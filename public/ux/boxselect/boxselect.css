@@ -1,0 +1,91 @@
+﻿ul.boxselect {
+	margin: 0;
+	overflow: hidden;
+	height: auto ! important;
+	cursor: text;
+}
+
+ul.boxselect li {
+	float: left;
+	display: inline;
+	list-style-type: none;
+	margin-top: 3px;
+	margin-left: 2px;
+	line-height: 1em;
+}
+
+ul.boxselect.stacked li {
+	display: block !important;
+	float: none !important
+}
+
+body.ext-ie7 ul.boxselect li {
+	margin: 3px 0 2px 3px;
+	line-height: 1.2em;
+	padding-bottom: 2px
+}
+
+body.ext-ie6 ul.boxselect li {
+	margin: 2px 0 2px 3px;
+	line-height: 1.1em;
+	padding-bottom: 2px
+}
+
+body.ext-gecko ul.boxselect li {
+	margin: 1px 0 2px 3px;
+}
+
+ul.boxselect li.item-box {
+	position: relative;
+	-moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	border-radius: 6px;
+	border: 1px solid #CAD8F3;
+	background: #DEE7F8;
+	padding: 1px 15px 1px 5px;
+}
+
+ul.boxselect li.bit-hover {
+	background: #BBCEF1;
+	border: 1px solid #6D95E0;
+}
+
+ul.boxselect li.item-box-selected {
+	border-color: #598BEC;
+	background: #598BEC;
+	color: #fff;
+}
+
+ul.boxselect input {
+	margin: 1px 0 2px 0;
+	border: 0;
+	outline: 0;
+	padding: 0;
+	background: none;
+}
+
+/* no left/right padding here please */
+ul.boxselect input.smallinput {
+	width: 20px;
+}
+
+ul.boxselect li.item-box div.deletebutton {
+	position: absolute;
+	right: 4px;
+	top: 5px;
+	display: block;
+	width: 7px;
+	height: 7px;
+	font-size: 1px;
+	background: url(close.gif);
+}
+
+ul.boxselect li.item-box div.deletebutton:hover {
+	background-position: 7px;
+}
+
+ul.boxselect li.item-box-focus div.deletebutton,
+ul.boxselect li.item-box-focus div.deletebutton:hover
+	{
+	background-position: bottom;
+}

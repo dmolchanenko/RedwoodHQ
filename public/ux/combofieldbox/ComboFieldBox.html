@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <title>MY EXAMPLES</title>
+	
+    <link rel="stylesheet" type="text/css" href="../../extjs-4.1.0-rc3/resources/css/ext-all.css">
+    <!--link rel="stylesheet" type="text/css" href="colorField.css"-->
+    <link rel="stylesheet" type="text/css" href="ComboFieldBox.css">
+
+    <script type="text/javascript" src="../../extjs-4.1.0/ext-all-debug.js"></script>
+    <script type="text/javascript" src="ComboView.js"></script>
+    <script type="text/javascript" src="ComboFieldBox.js"></script>
+   	<!--script type="text/javascript" src="ComboTree.js"></script-->
+    <script>
+		// Define the model for a State
+		Ext.define('State', {
+			extend: 'Ext.data.Model',
+			fields: [
+				{type: 'string',name: 'abbr'},
+				{type: 'string',name: 'name'},
+				{type: 'string',name: 'slogan'}
+			]
+		});
+ Ext.onReady(function () {
+	Ext.tip.QuickTipManager.init();
+
+
+	// The data for all states
+	var states = [{"abbr": "AL","name": "Alabama","slogan": "The Heart of Dixie"},
+			{"abbr": "AK","name": "Alaska","slogan": "The Land of the Midnight Sun"},
+			{"abbr": "AZ","name": "Arizona","slogan": "The Grand Canyon State"},
+			{"abbr": "AR","name": "Arkansas","slogan": "The Natural State"},
+			{"abbr": "CA","name": "California","slogan": "The Golden State"},
+			{"abbr": "CO","name": "Colorado","slogan": "The Mountain State"},
+			{"abbr": "CT","name": "Connecticut","slogan": "The Constitution State"},
+			{"abbr": "IA","name": "Iowa","slogan": "The Corn State"},
+			{"abbr": "LT","name": "Long test to see if it gets ellipsifyed","slogan": "The Constitution State"}
+			];
+
+	var store = Ext.create('Ext.data.Store', {
+		model: 'State',
+		data: states
+	});
+
+
+    
+	var comboFieldBox = Ext.create('Ext.ux.ComboFieldBox', {
+        fieldLabel: 'comboFieldBox',
+        renderTo: 'comboFieldBox',
+        displayField: 'name',
+        value: ['AK', 'CT'],
+        descField: 'slogan',
+        valueField: 'abbr',
+        width: 420,
+        labelWidth: 130,
+        store: store,
+        queryMode: 'local'
+		//typeAhead: true
+	});
+	
+	var comboFieldBox = Ext.create('Ext.ux.ComboFieldBox', {
+        fieldLabel: 'create new on enter',
+        renderTo: 'comboFieldBox',
+        displayField: 'name',
+        value: ['AK', 'CT'],
+        emptyText: 'select a country...',
+        descField: 'slogan',
+        valueField: 'abbr',
+        width: 420,
+        labelWidth: 130,
+        store: store,
+        queryMode: 'local',
+        height: 70,
+        createNewOnEnter : true,
+        forceSelection: false
+	}); 
+	var simpleCombo = Ext.create('Ext.form.field.ComboBox', {
+        fieldLabel: 'Select a single state',
+        renderTo: 'simpleCombo',
+        displayField: 'name',
+        valueField	:'abbr',
+        value:'AK',
+        width: 420,
+        multiSelect: true, 
+        labelWidth: 130,
+        store: store,
+        queryMode: 'local'
+        //typeAhead: true
+    });
+
+});
+    </script>
+    <style type="text/css">
+        .example {
+            width: 600px;
+            border: 1px solid #CCC;
+            padding: 0 10px;
+            margin: 0 0 10px;
+        }
+        .x-fieldset {
+            margin-top: 20px;
+        }
+        #transformCombo label {
+            display: block;
+            margin: 1em 0 2px;
+        }
+    </style>
+</head>
+<body>
+   	<h1>Test for ExtJs</h1>
+   	<div id="test1"/>
+   	<div id="test2"/>
+	<div class="ComboFieldBox example">
+	    <h2>Data Sources</h2>
+    	
+		<div id="comboFieldBox"></div>
+		<div id="simpleCombo"></div>
+	</div>
+</body>
+</html>
