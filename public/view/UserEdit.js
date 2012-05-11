@@ -1,7 +1,15 @@
-/**
- * Created by JetBrains WebStorm.
- * User: Dmitri
- * Date: 5/10/12
- * Time: 1:05 PM
- * To change this template use File | Settings | File Templates.
- */
+Ext.define('Redwood.view.UserEdit', {
+    extend: 'Ext.Window',
+    alias: 'widget.userEdit',
+
+    title: 'Constrained Window',
+    width: 200,
+    height: 100,
+    layout: 'fit',
+    items: {
+        xtype:"form"
+    }
+
+
+
+    });

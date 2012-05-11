@@ -8,7 +8,8 @@ Ext.define('Redwood.view.Viewport', {
         title: 'Redwood Automation Framework',
         items: [{
             //xtype: 'variablesEditor'
-            xtype: 'machinesEditor'
+            //xtype: 'machinesEditor'
+            xtype: 'usersEditor'
         }]
     }]
 });

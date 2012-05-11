@@ -1,4 +1,4 @@
-Ext.define('Redwood.model.MachineTags', {
+Ext.define('Redwood.model.UserTags', {
     extend: 'Ext.data.Model',
     idProperty: '_id',
 

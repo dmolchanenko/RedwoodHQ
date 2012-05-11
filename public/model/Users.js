@@ -1,4 +1,4 @@
-Ext.define('Redwood.model.Machines', {
+Ext.define('Redwood.model.Users', {
     extend: 'Ext.data.Model',
     idProperty: '_id',
 
@@ -6,16 +6,12 @@ Ext.define('Redwood.model.Machines', {
         name: 'tag',
         type: 'array'
     },{
-        name: 'roles',
-        type: 'array'
-    }, {
-        name: 'host',
+        name: 'role',
         type: 'string'
     }, {
-        name: 'description',
+        name: 'username',
         type: 'string'
-    },
-    {
+    }, {
         name: '_id',
         type: 'string'
     }

@@ -6,7 +6,7 @@ Ext.application({
     autoCreateViewport: true,
 
     controllers: [
-        'Machines','Variables'
+        'Machines','Variables','Users'
     ]
 });
 

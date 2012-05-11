@@ -1,62 +1,63 @@
-exports.variablesPut = function(req, res){
+exports.usersPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
-    UpdateVariables(app.getDB(),data,function(err){
+    data.password = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
+    UpdateUsers(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
             success: !err,
-            variables: req.body
+            users: req.body
         });
     });
-
-    var varTags = require('./variableTags');
-    varTags.CleanUpVariableTags();
+    var Tags = require('./userTags');
+    Tags.CleanUpUserTags();
 };
 
-exports.variablesGet = function(req, res,next){
+exports.usersGet = function(req, res){
     var app =  require('../common');
-    GetVariables(app.getDB(),{},function(data){
+    GetUsers(app.getDB(),{},function(data){
         res.contentType('json');
         res.json({
             success: true,
-            variables: data
+            users: data
         });
     });
 };
 
-exports.variablesDelete = function(req, res){
+exports.usersDelete = function(req, res){
     var app =  require('../common');
-    //DeleteVariables(app.getDB(),{_id: req.params.id},function(err){
+    //DeleteUsers(app.getDB(),{_id: req.params.id},function(err){
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
-    DeleteVariables(app.getDB(),{_id: id},function(err){
+    if (db.username == "admin") return;
+    DeleteUsers(app.getDB(),{_id: id},function(err){
         res.contentType('json');
         res.json({
             success: !err,
-            variables: []
+            users: []
         });
     });
-    var varTags = require('./variableTags');
-    varTags.CleanUpVariableTags();
+    var Tags = require('./userTags');
+    Tags.CleanUpUserTags();
 };
 
-exports.variablesPost = function(req, res){
+exports.usersPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
-    CreateVariables(app.getDB(),data,function(returnData){
+    CreateUsers(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
             success: true,
-            variables: returnData
+            users: returnData
         });
     });
 };
 
-function CreateVariables(db,data,callback){
-    db.collection('variables', function(err, collection) {
+function CreateUsers(db,data,callback){
+    db.collection('users', function(err, collection) {
         data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
@@ -64,8 +65,8 @@ function CreateVariables(db,data,callback){
     });
 }
 
-function UpdateVariables(db,data,callback){
-    db.collection('variables', function(err, collection) {
+function UpdateUsers(db,data,callback){
+    db.collection('users', function(err, collection) {
 
         //collection.update({_id:data._id},data,{safe:true},function(err){
         collection.save(data,{safe:true},function(err){
@@ -76,8 +77,8 @@ function UpdateVariables(db,data,callback){
 
 }
 
-function DeleteVariables(db,data,callback){
-    db.collection('variables', function(err, collection) {
+function DeleteUsers(db,data,callback){
+    db.collection('users', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
             callback(err);
         });
@@ -85,16 +86,16 @@ function DeleteVariables(db,data,callback){
 
 }
 
-function GetVariables(db,query,callback){
-    var variables = [];
+function GetUsers(db,query,callback){
+    var users = [];
 
-    db.collection('variables', function(err, collection) {
+    db.collection('users', function(err, collection) {
         collection.find(query, {}, function(err, cursor) {
-            cursor.each(function(err, variable) {
-                if(variable == null) {
-                    callback(variables);
+            cursor.each(function(err, user) {
+                if(user == null) {
+                    callback(users);
                 }
-                variables.push(variable);
+                users.push(user);
             });
         })
     })

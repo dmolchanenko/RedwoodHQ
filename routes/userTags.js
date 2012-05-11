@@ -1,7 +1,7 @@
 
-exports.machineTagsGet = function(req, res){
+exports.userTagsGet = function(req, res){
     var app =  require('../common');
-    GetMachineTags(app.getDB(),{},function(data){
+    GetUserTags(app.getDB(),{},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -10,11 +10,11 @@ exports.machineTagsGet = function(req, res){
     });
 };
 
-exports.machineTagsPost = function(req, res){
+exports.userTagsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
-    CreateMachineTags(app.getDB(),data,function(returnData){
+    CreateUserTags(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
             success: true,
@@ -23,8 +23,8 @@ exports.machineTagsPost = function(req, res){
     });
 };
 
-function CreateMachineTags(db,data,callback){
-    db.collection('machineTags', function(err, collection) {
+function CreateUserTags(db,data,callback){
+    db.collection('userTags', function(err, collection) {
         data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
@@ -32,8 +32,8 @@ function CreateMachineTags(db,data,callback){
     });
 }
 
-function DeleteMachineTags(db,data,callback){
-    db.collection('machineTags', function(err, collection) {
+function DeleteUserTags(db,data,callback){
+    db.collection('userTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
             if (callback != undefined){
                 callback(err);
@@ -43,9 +43,9 @@ function DeleteMachineTags(db,data,callback){
 
 }
 
-function GetMachineTags(db,query,callback){
+function GetUserTags(db,query,callback){
     var tags = [];
-    db.collection('machineTags', function(err, collection) {
+    db.collection('userTags', function(err, collection) {
         collection.find(query, {}, function(err, cursor) {
             cursor.each(function(err, tag) {
                 if(tag == null) {
@@ -57,20 +57,20 @@ function GetMachineTags(db,query,callback){
     })
 }
 
-exports.CleanUpMachineTags = function(){
+exports.CleanUpUserTags = function(){
     var app =  require('../common');
     var db = app.getDB();
 
     var callback = function(tags){
-        db.collection('machines', function(err, collection) {
+        db.collection('users', function(err, collection) {
             tags.forEach(function(tag, index, array){
                 collection.find({tag:tag.value}).count(function(err,number){
                     if (number == 0){
-                        DeleteMachineTags(db,tag);
+                        DeleteUserTags(db,tag);
                     }
                 });
             });
         });
     };
-    GetMachineTags(db,{},callback);
+    GetUserTags(db,{},callback);
 };

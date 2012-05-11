@@ -1,6 +1,6 @@
-Ext.define('Redwood.store.Machines', {
+Ext.define('Redwood.store.Users', {
     extend: 'Ext.data.Store',
-    model: 'Redwood.model.Machines',
+    model: 'Redwood.model.Users',
 
     autoLoad: true,
     autoSync: false,
@@ -10,15 +10,15 @@ Ext.define('Redwood.store.Machines', {
         update : 'PUT',
         destroy: 'DELETE'
     },
-    fields: ['_id','tag', 'host','description','roles'],
+    fields: ['_id','tag', 'username','password','role'],
 
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.Machines',
-        url: '/machines',
+        model: 'Redwood.model.Users',
+        url: '/users',
         reader: {
             type: 'json',
-            root: 'machines',
+            root: 'users',
             successProperty: 'success'
         }
     }
