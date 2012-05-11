@@ -1,43 +1,35 @@
-Ext.define("Redwood.controller.Variables", {
+Ext.define("Redwood.controller.Users", {
     extend: 'Ext.app.Controller',
 
-    models: ['Variables','VariableTags'],
-    stores: ['Variables','VariableTags'],
-    views:  ['Variables'],
+    models: ['Users','UserTags'],
+    stores: ['Users','UserTags'],
+    views:  ['Users','UserEdit'],
 
     init: function () {
         this.control({
-            'variablesEditor': {
+            'usersEditor': {
                 render: this.onEditorRender,
-                edit: this.afterVariableEdit,
-                varEdit: this.onVarEdit,
-                varDelete: this.onVarDelete
-                //beforeedit: this.BeforeEdit
+                edit: this.afterUserEdit,
+                varEdit: this.onUserEdit,
+                varDelete: this.onUserDelete
             },
-            'variablesEditor button': {
-                click: this.addVariable
+            'usersEditor button': {
+                click: this.addUser
             }
 
         });
     },
 
-    BeforeEdit: function(editor,e,eOpt){
-        //this.tagEditor.initComponent();
-        //this.tagEditor.clearValue();
-        //this.variablesEditor.tagEditor = null;
-
-    },
-
-    onVarEdit: function(evtData){
-        var store = this.getStore('Variables');
+    onUserEdit: function(evtData){
+        var store = this.getStore('Users');
         var record = store.getAt(evtData.rowIndex);
         if(record) {
-            this.rowEditor.startEdit(record, this.variablesEditor.columns[evtData.colIndex]);
+            this.rowEditor.startEdit(record, this.usersEditor.columns[evtData.colIndex]);
         }
     },
 
-    onVarDelete: function(evtData){
-        var store = this.getStore('Variables');
+    onUserDelete: function(evtData){
+        var store = this.getStore('Users');
 
         if (this.rowEditor.editing){
             return;
@@ -45,60 +37,27 @@ Ext.define("Redwood.controller.Variables", {
         var record = store.getAt(evtData.rowIndex);
         if(record) {
             store.remove(record);
-            store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Variables').load();} });
+            store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Users').load();} });
         }
 
     },
 
-    afterVariableEdit: function(evtData){
-        var varStore = this.getStore('Variables');
-        this.getStore('VariableTags').sync();
-        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Variables').load();} });
-        //varTagsStore.sync();
+    afterUserEdit: function(evtData){
+        var varStore = this.getStore('Users');
+        this.getStore('UserTags').sync();
+        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Users').load();} });
     },
 
-    addVariable: function () {
-        if(this.rowEditor.editing)
-            return false;
+    addUser: function () {
 
-        var newVar,
-            varStore = this.getStore('Variables');
 
-        // add blank item to store -- will automatically add new row to grid
-        newVar = varStore.add({
-            name: 'newVariable',
-            tag: '',
-            value: '',
-            possibleValues:[]
-        })[0];
-
-        //this.rowEditor.startAdd(newVar, 0);
-        //newVar.phantom = true;
-        this.rowEditor.startEdit(newVar, this.grid.columns[2]);
-        this.variablesEditor.getDockedComponent('top').getComponent('add').setDisabled(true);
-
-        /*
-        var sm = this.grid.getSelectionModel();
-
-        // after user clicks off from editing, sync the store, remove the record from the top and reload the store to see new changes
-        this.grid.on('edit', function() {
-            var record = sm.getSelection();
-            store.sync();
-            store.remove(record);
-            store.load();
-        });
-        */
     },
 
     onEditorRender: function () {
-        //console.log("Variables editor was rendered");
-        //this.getStore('VariableTags').load(function(records, operation, success) {
-        //    console.log('loaded records');
-        //});
-        //this.variablesEditor.varTagsStore = this.getStore('VariableTags').sync();
-        this.variablesEditor = Ext.ComponentQuery.query('variablesEditor')[0];
-        this.rowEditor = this.variablesEditor.rowEditor;
-        this.tagEditor = this.variablesEditor.tagEditor;
-        this.grid = this.variablesEditor;
+        this.userEdit = Ext.ComponentQuery.query('userEdit')[0];
+        this.usersEditor = Ext.ComponentQuery.query('usersEditor')[0];
+        this.rowEditor = this.usersEditor.rowEditor;
+        this.tagEditor = this.usersEditor.tagEditor;
+        this.grid = this.usersEditor;
     }
 });
