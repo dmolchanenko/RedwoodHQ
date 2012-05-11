@@ -4,7 +4,8 @@
   , "private": true
   , "dependencies": {
       "express": "2.5.8"
-    , "jade": ">= 0.0.1"
-    , "mongodb": ">= 0.9.9-8"
+    , "mongodb": "0.9.9-8"
+    , "cron": "0.3.0"
+    , "nodeunit": ">=0.7.4"
   }
 }
