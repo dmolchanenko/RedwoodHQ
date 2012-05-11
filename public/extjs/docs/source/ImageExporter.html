@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-engine-ImageExporter'>/**
+</span> * @private
+ */
+Ext.define('Ext.draw.engine.ImageExporter', {
+    singleton: true,
+   
+    statics: (function(){
+        var exportTypes = {
+            &quot;image/png&quot;: 1,
+            &quot;image/jpeg&quot;: 1
+            },
+            init = function(config){
+            
+                if(config.hasOwnProperty('width')){
+                    width = config['width'];
+                }
+                if(config.hasOwnProperty('height')){
+                    height = config['height'];
+                }
+                if(config.hasOwnProperty('type') &amp;&amp; exportTypes[config['type']]){
+                    type = config['type'];
+                }else{
+                    return false;
+                }
+                
+                // if all the elements were set up before
+                // we don't need to reset their values and reappend them to the form
+                if(formEl &amp;&amp; svgEl &amp;&amp; typeEl &amp;&amp; widthEl &amp;&amp; heightEl){
+                    return true;
+                }
+                
+                formEl = formEl || Ext.get(document.createElement('form'));
+                formEl.set({
+                    action: 'http://svg.sencha.io',
+                    method: 'POST'
+                });
+                
+                svgEl = svgEl || Ext.get(document.createElement('input'));
+                svgEl.set({
+                    name: 'svg',
+                    type: 'hidden'
+                });
+                
+                typeEl = typeEl || Ext.get(document.createElement('input'));
+                typeEl.set({ 
+                    name: 'type',
+                    type: 'hidden'
+                });
+                widthEl = widthEl || Ext.get(document.createElement('input'));
+                widthEl.set({
+                    name: 'width',
+                    type: 'hidden'
+                });
+                heightEl = heightEl || Ext.get(document.createElement('input'));
+                heightEl.set({
+                    name: 'height',
+                    type: 'hidden'
+                });
+                
+                formEl.appendChild(svgEl);
+                formEl.appendChild(typeEl);
+                formEl.appendChild(widthEl);
+                formEl.appendChild(heightEl);
+                
+                Ext.getBody().appendChild(formEl);
+                
+                return true;
+            },
+            process = function(surface){
+
+                var svgString = Ext.draw.engine.SvgExporter.self.generate({}, surface);
+
+                widthEl.set({
+                    value: width || surface.width
+                });
+                
+                heightEl.set({
+                    value: height || surface.height
+                });
+ 
+                if(type){
+                    typeEl.set({
+                        value: type
+                    });
+                }
+                svgEl.set({
+                    value: svgString
+                });
+                
+                formEl.dom.submit();
+                
+            },
+            formEl, typeEl, svgEl, widthEl, heightEl, type, width, height;
+
+        return {
+            generate: function(config, surface){
+                if(init(config)){
+                    process(surface);
+                }else{
+                    return false;
+                }
+            }
+        };
+    }())
+
+});
+</pre>
+</body>
+</html>

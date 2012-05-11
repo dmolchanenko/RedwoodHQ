@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Test Automation Framework Login</title>
+    <link rel="stylesheet" href="extjs/resources/css/ext-all-debug.css">
+    <script type="text/javascript" src="extjs/ext-all-debug.js"></script>
+    <script type="text/javascript">
+        Ext.Loader.setConfig({
+            enabled: true
+        });
+    </script>
+</head>
+<body class="claro">
+<p>
+    
+</p>
+<p>
+
+</p>
+<div jsId="loginForm" dojoType="dijit.form.Form" id="loginForm" encType="multipart/form-data" style="width:200px; margin-left:25%; margin-right:auto">
+    <script type="dojo/method" data-dojo-event="onSubmit">
+        if (this.validate()){
+            var deferred = dojo.xhrPost({
+                // The target URL on your webserver:
+                url: "/login",
+
+                // The form node, which contains the
+                // to be transferred form elements:
+                postData: dojo.toJson(loginForm.getValues(),true),
+
+                // The used data format.  Text is the most basic, no processing is done on it.
+                handleAs: "json",
+                headers: { "Content-Type": "application/json"},
+
+                // Timeout in milliseconds:
+                timeout: 5000,
+
+                // Event handler on errors:
+                error: function(response, ioArgs){
+                    //debug.dir(response);
+                    //dojo.byId("results").innerHTML = "Form submission failed.";
+                    alert("Unable to login");
+                    // return the response for succeeding callbacks
+                    return response;
+                }
+
+            });
+
+            deferred.then(function(data){
+                if (data == false){
+                    alert("Wrong User Name/Password");
+                }
+                else{
+                    dojo.cookie("JSESSIONID", data.session, {});
+                    window.location = data.redirect;
+                }
+
+            });
+        }
+        return false;
+    </script>
+
+    <table style="width:350px">
+        <tbody>
+            <tr>
+                <td>
+                    <label for="userNameTextBox">User Name: </label>
+                </td>
+                <td>
+                    <input type="text" id="userNameTextBox" name="userid" data-dojo-type="dijit.form.ValidationTextBox"
+                    required="true"
+                    trim="true"
+                    style="width:237px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="passwordTextBox">Password: </label>
+                </td>
+                <td>
+                    <input type="password" id="passwordTextBox" name="password" data-dojo-type="dijit.form.ValidationTextBox"
+                    required="true"
+                    trim="true"
+                    style="width:237px;"/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center;">
+                    <button dojoType="dijit.form.Button" type="submit">
+                        Login
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+</body>
+</html>
