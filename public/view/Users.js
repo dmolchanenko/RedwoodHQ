@@ -30,8 +30,14 @@ Ext.define('Redwood.view.Users', {
 
         this.columns = [
             {
-                header: 'User Name',
+                header: 'User ID',
                 dataIndex: 'username',
+                //flex: 1,
+                width: 200
+            },
+            {
+                header: 'First/Last Name',
+                dataIndex: 'name',
                 //flex: 1,
                 width: 200
             },
@@ -96,7 +102,7 @@ Ext.define('Redwood.view.Users', {
                     fieldLabel: 'Search',
                     labelWidth: 50,
                     xtype: 'searchfield',
-                    paramNames: ["tag","username","role"],
+                    paramNames: ["tag","username","role","name"],
                     store: Ext.data.StoreManager.lookup('Users')
                 }
             ]

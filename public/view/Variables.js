@@ -20,7 +20,7 @@ Ext.apply(Ext.form.field.VTypes, {
             var foundID = store.getAt(index).internalId;
             if (field.ownerCt.form.getRecord().internalId != foundID){
             //if (store.findExact(field.name,val,index) != -1){
-                this.varTestText = "Variable name should be unique.";
+                this.varTestText = "Variable with the same name already exists";
                 return false;
             }
         }

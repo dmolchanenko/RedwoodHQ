@@ -1,28 +1,27 @@
-Ext.define('Redwood.model.Users', {
+Ext.define('Redwood.model.Scripts', {
     extend: 'Ext.data.Model',
-    idProperty: '_id',
+    idProperty: 'fullpath',
+
 
     fields: [
         {
-            name:"name",
+            name:"text",
             type:"string"
         },
         {
-            name:"password",
+            name:"cls",
             type:"string"
         },
         {
-            name: 'tag',
+            name: 'expanded',
+            type: 'boolean'
+        },{
+            name: 'children',
             type: 'array'
         },{
-            name: 'role',
-            type: 'string'
-        }, {
-            name: 'username',
-            type: 'string'
-        }, {
-            name: '_id',
+            name: 'fullpath',
             type: 'string'
         }
     ]
+
 });

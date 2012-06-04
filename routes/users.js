@@ -3,7 +3,9 @@ exports.usersPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
-    data.password = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
+    if (data.password != ""){
+        data.password = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
+    }
     UpdateUsers(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -58,6 +60,8 @@ exports.usersPost = function(req, res){
 
 function CreateUsers(db,data,callback){
     db.collection('users', function(err, collection) {
+        var hash = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
+        data.password = hash;
         data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
@@ -67,11 +71,23 @@ function CreateUsers(db,data,callback){
 
 function UpdateUsers(db,data,callback){
     db.collection('users', function(err, collection) {
-
-        //collection.update({_id:data._id},data,{safe:true},function(err){
-        collection.save(data,{safe:true},function(err){
-            if (err) console.warn(err.message);
-            else callback(err);
+        if (data.password != ""){
+            var hash = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
+            data.password = hash;
+        }else{
+            delete data.password;
+        }
+        //collection.update({_id:data._id},{$set:{role:data.role},$set:{}},{safe:true},function(err){
+        collection.findOne({_id:data._id},{},function(err,u){
+            u.role = data.role;
+            u.name = data.name;
+            u.tag = data.tag;
+            u._id = data._id;
+            //myColl.save(j);
+            collection.save(u,{safe:true},function(err){
+                if (err) console.warn(err.message);
+                else callback(err);
+            });
         });
     });
 
@@ -94,7 +110,9 @@ function GetUsers(db,query,callback){
             cursor.each(function(err, user) {
                 if(user == null) {
                     callback(users);
+                    return;
                 }
+                user.password = "";
                 users.push(user);
             });
         })

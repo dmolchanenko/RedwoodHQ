@@ -6,6 +6,8 @@
 var express = require('express')
   , routes = require('./routes')
   , variables = require('./routes/variables')
+  , scripts = require('./routes/scripts')
+  , script = require('./routes/script')
   , users = require('./routes/users')
   , variableTags = require('./routes/variableTags')
   , userTags = require('./routes/userTags')
@@ -81,6 +83,14 @@ app.del('/users/:id',auth.auth, users.usersDelete);
 //userTags
 app.get('/userTags',auth.auth, userTags.userTagsGet);
 app.post('/userTags',auth.auth, userTags.userTagsPost);
+
+//scripts
+app.get('/scripts',auth.auth, scripts.scriptsGet);
+
+//script
+app.post('/script/get',auth.auth, script.scriptGet);
+app.post('/script',auth.auth, script.scriptPut);
+
 
 
 

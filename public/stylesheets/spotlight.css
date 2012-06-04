@@ -1,0 +1,23 @@
+body {
+    overflow: hidden;
+}
+
+#demo-ct .x-table-layout-cell {
+    padding: 20px;
+}
+
+.x-spotlight {
+    background-color: #ccc;
+
+    z-index: 8999;
+    position: absolute;
+    top: 0;
+    left: 0;
+    -moz-opacity: 0.5;
+    opacity: .50;
+    filter: alpha(opacity=50);
+    width: 0;
+    height: 0;
+    zoom: 1;
+    font-size: 0;
+}

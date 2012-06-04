@@ -5,7 +5,7 @@ exports.initDB = function(){
         Server = mongo.Server,
         Db = mongo.Db;
 
-    var dbServer = new Server('localhost', 27017, {auto_reconnect: true});
+    var dbServer = new Server('localhost', 27017, {auto_reconnect: true,safe:true});
     db = new Db('automationframework', dbServer);
 
     db.open(function(err, db) {
@@ -19,3 +19,4 @@ exports.initDB = function(){
 exports.getDB = function(){
     return db;
 };
+

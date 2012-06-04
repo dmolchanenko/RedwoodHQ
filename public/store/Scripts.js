@@ -1,25 +1,38 @@
-Ext.define('Redwood.store.Users', {
-    extend: 'Ext.data.Store',
-    model: 'Redwood.model.Users',
+Ext.define('Redwood.store.Scripts', {
+    extend: 'Ext.data.TreeStore',
+    model: 'Redwood.model.Scripts',
 
     autoLoad: true,
     autoSync: false,
-    actionMethods: {
-        create : 'POST',
-        read   : 'GET',
-        update : 'PUT',
-        destroy: 'DELETE'
-    },
-    fields: ['_id','tag', 'username','password','role'],
+    fields: ['fullpath','text', 'cls','expanded','children'],
+    sorters: [{
 
+        property : 'cls',
+        direction: 'DESC'
+
+    },
+    {
+        property : 'text',
+        direction: 'ASC'
+
+    }
+
+    ],
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.Users',
-        url: '/users',
+        model: 'Redwood.model.Scripts',
+        url: '/scripts',
         reader: {
-            type: 'json',
-            root: 'users',
-            successProperty: 'success'
+            type: 'json'
+            //root: 'users',
+            //successProperty: 'success'
         }
+    },
+    root: {
+        //leaf : true,
+        text: 'src',
+        id: 'src',
+        cls: 'folder',
+        expanded: true
     }
 });
