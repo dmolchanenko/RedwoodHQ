@@ -13,6 +13,10 @@ Ext.define('Redwood.model.Scripts', {
             type:"string"
         },
         {
+            name:"fileType",
+            type:"string"
+        },
+        {
             name: 'expanded',
             type: 'boolean'
         },{

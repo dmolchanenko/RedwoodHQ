@@ -1,4 +1,5 @@
 var db;
+var fs = require('fs');
 
 exports.initDB = function(){
     var mongo = require('mongodb'),
@@ -19,4 +20,32 @@ exports.initDB = function(){
 exports.getDB = function(){
     return db;
 };
+
+
+exports.walkDir = function(dir, done,fileCallback) {
+    dirWalker(dir,done,fileCallback)
+};
+
+function dirWalker(dir, done,fileCallback) {
+    fs.readdir(dir, function(err, list) {
+        if (err) return done(err);
+        var pending = list.length;
+        if (!pending) return done(null);
+        list.forEach(function(file) {
+            file = dir + '/' + file;
+            fs.stat(file, function(err, stat) {
+                fileCallback(file);
+                if (stat && stat.isDirectory()) {
+                    dirWalker(file, function(err, res) {
+                        if (!--pending) done(null);
+                    },fileCallback);
+                } else {
+                    if (!--pending) done(null);
+                }
+            });
+        });
+    });
+};
+
+
 

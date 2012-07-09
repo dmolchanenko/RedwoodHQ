@@ -27,6 +27,9 @@ Ext.define('Redwood.ux.CodeEditorField', {
         this.editor = CodeMirror.fromTextArea(element, {
             lineNumbers: true,
             matchBrackets: true,
+            extraKeys:{"Ctrl-S": function(){
+                me.up("scriptBrowser").fireEvent('saveAll',null);
+            }},
             mode: "text/x-groovy",
             onCursorActivity: function() {
                 editor.setLineClass(hlLine, null, null);
@@ -38,7 +41,6 @@ Ext.define('Redwood.ux.CodeEditorField', {
             }
         });
         var editor = this.editor;
-        //editor.setOption("theme", "redwood");
         var hlLine = this.editor.setLineClass(0, "activeline");
     },
 
@@ -78,10 +80,33 @@ Ext.define('Redwood.ux.EditorPanel', {
         type: 'fit'
     },
     preventHeader: true,
+    autoScroll:false,
 
     title:"",
-    listeners: {
-        beforeclose: function(panel,eOpt){
+
+    initComponent: function() {
+        var me = this;
+
+        Ext.applyIf(me, {
+            items: [
+
+                {
+                    xtype: 'codeeditorfield',
+                    margin: '0 0 -100 0',
+                    onChange: function(cm,changeOpt){
+                        if (me.dirty == false){
+                            me.setTitle(me.title + "*");
+                            me.dirty = true;
+                        }
+                    }
+
+                }
+            ]
+        });
+
+
+        me.callParent(arguments);
+        me.on("beforeclose",function(panel){
             if (this.dirty == true){
                 var me = this;
                 Ext.Msg.show({
@@ -101,28 +126,8 @@ Ext.define('Redwood.ux.EditorPanel', {
                 });
                 return false;
             }
-        }
-    },
-    initComponent: function() {
-        var me = this;
-
-        Ext.applyIf(me, {
-            items: [
-                {
-                    xtype: 'codeeditorfield',
-                    margin: '0 0 -100 0',
-                    onChange: function(cm,changeOpt){
-                        if (me.dirty == false){
-                            me.setTitle(me.title + "*");
-                            me.dirty = true;
-                        }
-                    }
-
-                }
-            ]
         });
-
-        me.callParent(arguments);
+        me.setAutoScroll(false);
     },
 
     clearDirty: function(){
@@ -147,6 +152,10 @@ Ext.define('Redwood.ux.EditorPanel', {
 
     reset: function() {
         this.down('codeeditorfield').setValue('');
+    },
+
+    setCursor: function(pos){
+        this.down('codeeditorfield').editor.setCursor(pos);
     }
 
 });

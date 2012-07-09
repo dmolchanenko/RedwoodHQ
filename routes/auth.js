@@ -9,8 +9,8 @@ exports.logIn = function (req,res,next){
         if (userFound){
             require('crypto').randomBytes(20, function(ex, buf) {
                 var token = buf.toString('hex');
-                sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 900000)};
-                res.cookie('sessionid', token, { expires: new Date(Date.now() + 900000), httpOnly: true});
+                sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000)};
+                res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: true});
                 //res.cookie('username', req.body.username, { expires: new Date(Date.now() + 900000), httpOnly: true});
                 res.cookie('username', req.body.username, {maxAge: 2592000000, httpOnly: true });
                 return next();

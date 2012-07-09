@@ -7,6 +7,7 @@ var express = require('express')
   , routes = require('./routes')
   , variables = require('./routes/variables')
   , scripts = require('./routes/scripts')
+  , folder = require('./routes/folder')
   , script = require('./routes/script')
   , users = require('./routes/users')
   , variableTags = require('./routes/variableTags')
@@ -14,8 +15,12 @@ var express = require('express')
   , machines = require('./routes/machines')
   , machinetags = require('./routes/machineTags')
   , machineroles = require('./routes/machineRoles')
+  , fileupload = require('./routes/fileupload')
   , common = require('./common')
-  , auth = require('./routes/auth');
+  , auth = require('./routes/auth')
+  , terminal = require('./routes/terminal')
+  , compile = require('./routes/compile')
+  , sio = require('socket.io') ;
 
 
 var app = module.exports = express.createServer(
@@ -23,6 +28,7 @@ var app = module.exports = express.createServer(
     //express.cookieParser(),
     //express.session({ secret: 'redwoodsecrect' })
 );
+var io = sio.listen(app);
 common.initDB();
 // Configuration
 
@@ -86,12 +92,43 @@ app.post('/userTags',auth.auth, userTags.userTagsPost);
 
 //scripts
 app.get('/scripts',auth.auth, scripts.scriptsGet);
+app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
+app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 
 //script
 app.post('/script/get',auth.auth, script.scriptGet);
-app.post('/script',auth.auth, script.scriptPut);
+app.post('/script',auth.auth, script.scriptPost);
+app.put('/script',auth.auth, script.scriptPut);
+
+//folder
+app.post('/folder',auth.auth, folder.folderPost);
+app.put('/folder',auth.auth, folder.folderPut);
+
+//folder
+app.post('/fileupload',auth.auth, fileupload.upload);
 
 
+io.configure( function() {
+    io.set('log level', 0);
+});
+
+io.sockets.on('connection', function(socket) {
+    console.log(socket.id);
+    socket.on("terminal",function(msg){
+        terminal.operation(msg,socket.id,function(response){
+            io.sockets.socket(socket.id).emit("terminal",response);
+        })
+    });
+    socket.on("compile",function(msg){
+        compile.operation(msg,socket.id,function(response){
+            console.log(response);
+            io.sockets.socket(socket.id).emit("compile",response);
+        })
+    });
+    socket.on('disconnect', function () {
+        terminal.closeSession(socket.id);
+    });
+});
 
 
 app.listen(3000, function(){

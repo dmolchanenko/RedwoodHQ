@@ -41,9 +41,9 @@ Ext.define('Redwood.view.UserEdit', {
     height: 300,
     layout: 'fit',
     modal: true,
-    onAfterrender: function(me,eOpts){
-        this.down('form').getForm().findField("username").focus();
-    },
+    //onAfterrender: function(me,eOpts){
+    //    this.down('form').getForm().findField("username").focus();
+    //},
     initComponent: function () {
         this.items= {
             xtype:"form",

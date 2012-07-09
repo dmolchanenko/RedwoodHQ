@@ -67,7 +67,6 @@ Ext.onReady(function() {
                 jsonData : form.getFieldValues(),
                 success: function(response, action) {
                     var obj = Ext.decode(response.responseText);
-                    console.log(obj);
                     if(obj.error == null){
                         window.location.href=obj.redirect;
                     }

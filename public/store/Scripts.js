@@ -5,6 +5,7 @@ Ext.define('Redwood.store.Scripts', {
     autoLoad: true,
     autoSync: false,
     fields: ['fullpath','text', 'cls','expanded','children'],
+    folderSort: true,
     sorters: [{
 
         property : 'cls',
@@ -24,15 +25,16 @@ Ext.define('Redwood.store.Scripts', {
         url: '/scripts',
         reader: {
             type: 'json'
-            //root: 'users',
-            //successProperty: 'success'
         }
-    },
+    }
+    /*
     root: {
         //leaf : true,
         text: 'src',
         id: 'src',
         cls: 'folder',
-        expanded: true
+        expanded: true,
+        fullpath: ""
     }
+    */
 });

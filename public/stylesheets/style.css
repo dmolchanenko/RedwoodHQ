@@ -1,8 +1,6 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
-
-a {
-  color: #00B7FF;
+.x-redwood-tree-unfocused .x-grid-cell{
+    border-style: dotted;
+    border-color: #101010;
+    border-width:thin;
+    background-color: #efefef !important;
 }

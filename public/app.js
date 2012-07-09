@@ -1,13 +1,18 @@
 Ext.application({
+//var APP =  newExt.app.Application({
 
     name: "Redwood",
     appFolder: ".",
-
     autoCreateViewport: true,
 
     controllers: [
         'Machines','Variables','Users','Scripts'
-    ]
+    ],
+    launch: function(){
+        Ext.tip.QuickTipManager.init();
+        Ext.socket = io.connect('http://'+ document.location.host);
+        //Ext.FocusManager.enable();
+    }
 });
 
 /*
