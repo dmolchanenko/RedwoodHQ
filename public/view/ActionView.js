@@ -56,9 +56,9 @@ Ext.define('Redwood.view.ActionParamGrid',{
         this.plugins =[this.rowEditor];
 
         this.rowEditor.on("beforeedit",function(editor,e){
-            e.grid.columns[1].getEditor().store.removeAll();
+            e.grid.columns[2].getEditor().store.removeAll();
             e.record.get("possiblevalues").forEach(function(item){
-                e.grid.columns[1].getEditor().store.add({"value":item});
+                e.grid.columns[2].getEditor().store.add({"value":item});
             });
 
         });
@@ -115,7 +115,8 @@ Ext.define('Redwood.view.ActionParamGrid',{
         {
             header: 'Possible Values',
             dataIndex: 'possiblevalues',
-            width: 350,
+            //width: 350,
+            flex: 1,
             editor: Ext.create('Ext.ux.ComboFieldBox', {
                 typeAhead:true,
                 displayField:"value",
@@ -215,10 +216,10 @@ Ext.define('Redwood.view.ActionView', {
             xtype: 'fieldset',
             title: 'Action Details',
             defaultType: 'textfield',
-            width: 900,
+            width: 1000,
             collapsible: true,
             defaults: {
-                width: 870
+                width: 970
             },
             items: [
                     {
@@ -271,10 +272,10 @@ Ext.define('Redwood.view.ActionView', {
         {
             xtype: 'fieldset',
             title: 'Parameters',
-            width: 900,
+            width: 1000,
             collapsible: true,
             defaults: {
-                width: 870
+                width: 970
             },
             items:[
                 {
