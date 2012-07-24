@@ -1,0 +1,20 @@
+Ext.define('Redwood.model.Actions', {
+    extend: 'Ext.data.Model',
+    idProperty: '_id',
+
+    fields: [{
+        name: 'tag',
+        type: 'array'
+    },{
+        name: 'params',
+        type: 'array'
+    }, {
+        name: 'name',
+        type: 'string'
+    },
+    {
+        name: '_id',
+        type: 'string'
+    }
+    ]
+});

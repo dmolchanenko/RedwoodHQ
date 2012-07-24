@@ -85,7 +85,7 @@ Ext.define('Redwood.view.Machines', {
                 allowBlank: false,
                 vtype: 'machineTest'
             }
-        }, {
+            }, {
                 header: 'Description',
                 dataIndex: 'description',
                 //flex: 1,
@@ -139,7 +139,7 @@ Ext.define('Redwood.view.Machines', {
             if ((Ext.encode(e.newValues) === Ext.encode(e.originalValues) )) {
                 return false;
             }
-            this.grid.getDockedComponent('top').getComponent('add').setDisabled(false);
+            this.grid.down("#addMachine").setDisabled(true);
         });
 
 
@@ -147,23 +147,23 @@ Ext.define('Redwood.view.Machines', {
             if (e.record.data._id == "") {
                 e.grid.store.removeAt(e.rowIdx);
             }
-            this.grid.getDockedComponent('top').getComponent('add').setDisabled(false);
+            this.grid.down("#addMachine").setDisabled(false);
         });
 
 
 
-        this.dockedItems = [{
+        this.tbar = {
             xtype: 'toolbar',
             dock: 'top',
-            id:"top",
             items: [
                 //'<-',
                 {
                     iconCls: 'icon-add',
                     text: 'Add Machine',
-                    id: "add",
-                    itemId:"add"
-                },{
+                    itemId:"addMachine"
+                },
+                "-",
+                {
                     width: 400,
                     fieldLabel: 'Search',
                     labelWidth: 50,
@@ -172,7 +172,7 @@ Ext.define('Redwood.view.Machines', {
                     store: Ext.data.StoreManager.lookup('Machines')
                 }
             ]
-        }];
+        };
         this.callParent(arguments);
     }
 });

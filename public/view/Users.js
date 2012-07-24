@@ -89,15 +89,14 @@ Ext.define('Redwood.view.Users', {
         this.dockedItems = [{
             xtype: 'toolbar',
             dock: 'top',
-            id:"top",
             items: [
                 //'<-',
                 {
                     iconCls: 'icon-add',
-                    text: 'Add User',
-                    id: "add",
-                    itemId:"add"
-                },{
+                    text: 'Add User'
+                },
+                "-",
+                {
                     width: 400,
                     fieldLabel: 'Search',
                     labelWidth: 50,

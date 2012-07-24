@@ -45,6 +45,7 @@ Ext.define('Redwood.view.Variables', {
 
     minHeight: 150,
     manageHeight: true,
+
     initComponent: function () {
         var variablesEditor = this;
 
@@ -177,7 +178,7 @@ Ext.define('Redwood.view.Variables', {
             if ((Ext.encode(e.newValues) === Ext.encode(e.originalValues) )) {
                 return false;
             }
-            this.grid.getDockedComponent('top').getComponent('add').setDisabled(false);
+            this.grid.down("#addVar").setDisabled(false);
         });
 
 
@@ -187,23 +188,24 @@ Ext.define('Redwood.view.Variables', {
             if (e.record.data._id == "") {
                 e.grid.store.removeAt(e.rowIdx);
             }
-            this.grid.getDockedComponent('top').getComponent('add').setDisabled(false);
+            this.grid.down("#addVar").setDisabled(false);
         });
 
 
 
-        this.dockedItems = [{
+        this.tbar = {
             xtype: 'toolbar',
             dock: 'top',
-            id:"top",
+            //hight: "22px",
             items: [
                 //'<-',
                 {
                     iconCls: 'icon-add',
                     text: 'Add Variable',
-                    id: "add",
-                    itemId:"add"
-                },{
+                    itemId:"addVar"
+                },
+                "-",
+                {
                     width: 400,
                     fieldLabel: 'Search',
                     labelWidth: 50,
@@ -212,7 +214,7 @@ Ext.define('Redwood.view.Variables', {
                     store: Ext.data.StoreManager.lookup('Variables')
                 }
             ]
-        }];
+        };
         this.callParent(arguments);
     }
 });

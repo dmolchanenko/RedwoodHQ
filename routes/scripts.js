@@ -1,6 +1,7 @@
 var fs = require('fs');
 var rootDir = "public/automationscripts";
 var common = require('../common');
+var git = require('../gitinterface/gitcommands')
 
 exports.scriptsGet = function(req, res){
     GetScripts(rootDir,function(data){
@@ -140,7 +141,10 @@ function DeleteScripts(scripts,callback){
             fs.unlinkSync(script.fullpath);
         }
         if (index == array.length -1){
-            callback();
+            var gitInfo = git.getGitInfo(script.fullpath);
+            git.delete(gitInfo.path,function(){
+                callback();
+            });
         }
     });
 }
@@ -159,7 +163,8 @@ var walkDir = function(dir, done) {
             file = dir + '/' + file;
             fs.stat(file, function(err, stat) {
                 if (stat && stat.isDirectory()) {
-                    if (file.indexOf(".git", file.length - 4) !== -1){
+                    //ignore .git dirs
+                    if ((file.indexOf(".git", file.length - 4) !== -1)||((file.indexOf("build", file.length - 5) !== -1)&&(file.indexOf("src/") == -1))){
                         if (!--pending) done(null, results);
                         return;
                     }

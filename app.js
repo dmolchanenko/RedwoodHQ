@@ -14,6 +14,8 @@ var express = require('express')
   , userTags = require('./routes/userTags')
   , machines = require('./routes/machines')
   , machinetags = require('./routes/machineTags')
+  , actions = require('./routes/actions')
+  , actiontags = require('./routes/actionTags')
   , machineroles = require('./routes/machineRoles')
   , fileupload = require('./routes/fileupload')
   , common = require('./common')
@@ -76,6 +78,16 @@ app.del('/machines/:id',auth.auth, machines.machinesDelete);
 //machineTags
 app.get('/machinetags',auth.auth, machinetags.machineTagsGet);
 app.post('/machinetags',auth.auth, machinetags.machineTagsPost);
+
+//actions
+app.get('/actions',auth.auth, actions.actionsGet);
+app.put('/actions/:id',auth.auth, actions.actionsPut);
+app.post('/actions',auth.auth, actions.actionsPost);
+app.del('/actions/:id',auth.auth, actions.actionsDelete);
+//actionTags
+app.get('/actiontags',auth.auth, actiontags.actionTagsGet);
+app.post('/actiontags',auth.auth, actiontags.actionTagsPost);
+
 //machineRoles
 app.get('/machineroles',auth.auth, machineroles.machineRolesGet);
 app.post('/machineroles',auth.auth, machineroles.machineRolesPost);

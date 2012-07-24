@@ -80,11 +80,6 @@ Ext.define('Redwood.view.FileName', {
                                     url = "/script";
                                 }
 
-                                console.log(method);
-                                console.log(jsonData);
-                                console.log(url);
-
-
                                 Ext.Ajax.request({
                                     url:url,
                                     method:method,

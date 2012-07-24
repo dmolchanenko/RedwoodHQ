@@ -1,6 +1,6 @@
 var fs = require('fs');
 var p = require('path');
-
+var git = require('../gitinterface/gitcommands');
 
 exports.upload = function(req, res){
     // get the temporary location of the file
@@ -18,19 +18,17 @@ exports.upload = function(req, res){
 
             if (err){
                 res.send('{error:"'+err+'"}');
-            }
-            else{
-                res.send("{error:null}");
+                return;
             }
             // delete the temporary file, so that the explicitly set temporary upload dir does not get filled with unwanted files
             fs.unlink(tmp_path, function(err) {
-                if (err){
-                    res.send('{error:"'+err+'"}');
-                }
-                else{
-                    res.send("{error:null}");
-                }
+                var gitInfo = git.getGitInfo(target_path);
 
+                git.add(gitInfo.path,gitInfo.fileName,function(){
+                    git.commit(gitInfo.path,gitInfo.fileName,function(){
+                        res.send("{error:null}");
+                    });
+                });
             });
         });
     });

@@ -1,6 +1,6 @@
 var fs = require('fs');
 var p = require('path');
-var rootDir = "public/automationscripts";
+var git = require('../gitinterface/gitcommands');
 
 exports.scriptGet = function(req, res){
     var sent = false;
@@ -36,8 +36,14 @@ exports.scriptPost = function(req, res){
 
 function UpdateScript(path,data,callback){
     fs.writeFile(path,data,'utf8',function(err){
-        if (err) throw err;
-        callback();
+        if (err) {
+            callback({error:err});
+            return;
+        }
+        var gitInfo = git.getGitInfo(path);
+        git.commit(gitInfo.path,gitInfo.fileName,function(){
+            callback(null)
+        });
     })
 }
 
@@ -56,7 +62,10 @@ function CreateScript(path,data,callback){
                     callback(err.message);
                 }
                 else{
-                    callback(null);
+                    var gitInfo = git.getGitInfo(path);
+                    git.add(gitInfo.path,gitInfo.fileName,function(){
+                        callback(null)
+                    });
                 }
             })
         }

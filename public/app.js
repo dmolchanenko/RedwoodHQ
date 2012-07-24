@@ -6,7 +6,7 @@ Ext.application({
     autoCreateViewport: true,
 
     controllers: [
-        'Machines','Variables','Users','Scripts'
+        'Machines','Variables','Users','Scripts','Actions'
     ],
     launch: function(){
         Ext.tip.QuickTipManager.init();

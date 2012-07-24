@@ -250,7 +250,10 @@ var compileAction = Ext.create('Ext.Action', {
     tooltip: "Build Scripts",
     margin: "0 3 0 3",
     handler: function(widget, event) {
-        this.up('scriptBrowser').fireEvent('compile');
+        var me = this;
+        this.up('scriptBrowser').fireEvent('saveAll',function(){
+            me.up('scriptBrowser').fireEvent('compile');
+        });
     }
 });
 
@@ -342,6 +345,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.scriptBrowser',
     id: "ScriptBrowser",
+    title: "Scripts",
 
     layout: 'fit',
     listeners:{

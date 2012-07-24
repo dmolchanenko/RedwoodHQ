@@ -21,13 +21,6 @@ Ext.define("Redwood.controller.Variables", {
         });
     },
 
-    BeforeEdit: function(editor,e,eOpt){
-        //this.tagEditor.initComponent();
-        //this.tagEditor.clearValue();
-        //this.variablesEditor.tagEditor = null;
-
-    },
-
     onVarEdit: function(evtData){
         var store = this.getStore('Variables');
         var record = store.getAt(evtData.rowIndex);
@@ -72,8 +65,6 @@ Ext.define("Redwood.controller.Variables", {
             possibleValues:[]
         })[0];
 
-        //this.rowEditor.startAdd(newVar, 0);
-        //newVar.phantom = true;
         this.rowEditor.startEdit(newVar, this.grid.columns[2]);
         this.variablesEditor.getDockedComponent('top').getComponent('add').setDisabled(true);
 
