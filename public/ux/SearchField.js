@@ -5,8 +5,6 @@ Ext.define('Ext.ux.form.SearchField', {
 
     trigger1Cls: Ext.baseCSSPrefix + 'form-clear-trigger',
 
-    //trigger2Cls: Ext.baseCSSPrefix + 'form-search-trigger',
-
     hasSearch : false,
     paramNames : null,
     filterFn: null,
@@ -17,7 +15,6 @@ Ext.define('Ext.ux.form.SearchField', {
 
 
         this.filterFn = function(record,id){
-            //console.log(id);
             var value = this.value;
             var values = [];
             var tempVal = "";
@@ -50,8 +47,6 @@ Ext.define('Ext.ux.form.SearchField', {
             for(var pCount=0; pCount<this.paramNames.length; pCount++) {
                 var paramValue = record.get(this.paramNames[pCount]);
                 for (var valCount =0;valCount<values.length;valCount++){
-                    //var matchValue = new RegExp("\\Q" +values[valCount] +"\\E.*");
-                    //var matchValue = new RegExp("^"+values[valCount] +".*");
                     var matchValue = new XRegExp("^" + XRegExp.escape(values[valCount])+".*");
                     if ( Object.prototype.toString.call(paramValue)  === "[object Array]") {
                         for (var paramCount=0;paramCount<paramValue.length;paramCount++){
@@ -59,9 +54,6 @@ Ext.define('Ext.ux.form.SearchField', {
                                 return true;
                             }
                         }
-                       // if (paramValue.indexOf(values[valCount]) != -1){
-                       //     return true;
-                       // }
                     }
                     else{
                         if (matchValue.test(paramValue)){
@@ -84,36 +76,6 @@ Ext.define('Ext.ux.form.SearchField', {
             }
         });
 
-        /*
-        me.on('specialkey', function(f, e){
-            if (e.getKey() == e.ENTER) {
-                me.onTrigger2Click();
-            }
-            //if (e.getKey() == e.BACKSPACE) {
-            //    me.onTrigger2Click();
-            //}
-            //if (e.getKey() == e.DELETE) {
-            //    me.onTrigger2Click();
-            //}
-        });
-
-        me.on('keyup',function(field,evt,eOpt){
-            if (this.value == ""){
-                me.onTrigger1Click();
-            }else{
-                me.onTrigger2Click();
-            }
-        });
-        */
-        // We're going to use filtering
-        //me.store.remoteFilter = true;
-
-        // Set up the proxy to encode the filter in the simplest way as a name/value pair
-
-        // If the Store has not been *configured* with a filterParam property, then use our filter parameter name
-        //if (!me.store.proxy.hasOwnProperty('filterParam')) {
-        //    me.store.proxy.filterParam = me.paramName;
-        //}
         me.store.proxy.encodeFilters = function(filters) {
             return filters[0].value;
         }
@@ -138,8 +100,6 @@ Ext.define('Ext.ux.form.SearchField', {
 
     onTrigger2Click : function(){
         var me = this,
-            store = me.store,
-            //proxy = store.getProxy(),
             value = me.getValue();
 
         if (value.length > 0) {

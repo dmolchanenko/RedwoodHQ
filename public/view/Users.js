@@ -1,21 +1,3 @@
-Ext.apply(Ext.form.field.VTypes, {
-    //  vtype validation function
-    userTest: function(val, field) {
-
-        var store = field.ownerCt.editingPlugin.grid.store;
-        var index = store.findExact(field.name,val);
-        if (index != -1){
-            var foundID = store.getAt(index).internalId;
-            if (field.ownerCt.form.getRecord().internalId != foundID){
-                this.userTestText = "Host should be unique.";
-                return false;
-            }
-        }
-        return true;
-    },
-    userTestText: 'Host should be unique.'
-});
-
 
 Ext.define('Redwood.view.Users', {
     extend: 'Ext.grid.Panel',

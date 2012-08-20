@@ -204,7 +204,7 @@ var saveScriptAction = Ext.create('Ext.Action', {
     }
 });
 
-deleteMenuAction = Ext.create('Ext.Action', {
+var deleteMenuAction = Ext.create('Ext.Action', {
     icon: 'images/delete.png',
     text: 'Delete',
     itemId: "deleteMenu",
@@ -214,7 +214,7 @@ deleteMenuAction = Ext.create('Ext.Action', {
     }
 });
 
-copyMenuAction = Ext.create('Ext.Action', {
+var copyMenuAction = Ext.create('Ext.Action', {
     icon: 'images/page_copy.png',
     itemId: "copyMenu",
     text: 'Copy',
@@ -223,7 +223,7 @@ copyMenuAction = Ext.create('Ext.Action', {
     }
 });
 
-pasteMenuAction = Ext.create('Ext.Action', {
+var pasteMenuAction = Ext.create('Ext.Action', {
     icon: 'images/paste_plain.png',
     itemId: "pasteMenu",
     text: 'Paste',

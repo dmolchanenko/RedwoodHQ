@@ -20,7 +20,7 @@ Ext.define('Redwood.view.Viewport', {
             xtype:"box",
             region:"north",
             height: "22px",
-            html: '<h1 class="x-panel-header" style="color:red">  Redwood Automation Framework</h1>',
+            html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood Automation Framework</h1>',
             border: false
         },
         {

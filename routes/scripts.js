@@ -1,7 +1,7 @@
 var fs = require('fs');
 var rootDir = "public/automationscripts";
 var common = require('../common');
-var git = require('../gitinterface/gitcommands')
+var git = require('../gitinterface/gitcommands');
 
 exports.scriptsGet = function(req, res){
     GetScripts(rootDir,function(data){

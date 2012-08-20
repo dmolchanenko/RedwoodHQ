@@ -103,8 +103,8 @@ app.get('/userTags',auth.auth, userTags.userTagsGet);
 app.post('/userTags',auth.auth, userTags.userTagsPost);
 
 //scripts
-app.get('/scripts',auth.auth, scripts.scriptsGet);
-app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
+app.get('/scripts/root',auth.auth, scripts.scriptsGet);
+app.delete('/scripts/:id',auth.auth, scripts.scriptsDelete);
 app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 
 //script

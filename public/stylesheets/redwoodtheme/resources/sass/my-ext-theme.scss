@@ -3,8 +3,140 @@
 $include-default: false;
 
 // Insert your custom variables here.
-//$base-color: #aaa1a2;
-//$supports-gradients: false;
+$theme-name: 'gray';
+$base-color: #919191;
+
+///////////////////////////test//////////////
+/*
+$button-small-border-radius:0px;
+$button-medium-border-radius:0px;
+$button-large-border-radius:0px;
+
+$tab-top-border-radius:0px 0px 0 0;
+$tab-bottom-border-radius:0px 0px 0 0;
+
+$tabbar-background-gradient:
+*/
+///////////////////////////////////////////
+
+
+
+//$base-color: #826837;
+//$base-color: #9d8ccd;
+
+//panel
+$panel-header-background-gradient: color-stops(#F0F0F0, #D7D7D7);
+$panel-border-color: #a5a5a5;
+$panel-header-color: #333;
+
+$panel-frame-background-color: #f1f1f1;
+
+//window
+$window-background-color: #e8e8e8;
+$window-header-color: #333;
+
+//menu
+$menu-item-active-background-color: darken(#f3f3f3, 5);
+$menu-item-active-border-color: #8c8c8c;
+
+//datepicker
+$datepicker-header-background-color: #6f6f6f;
+$datepicker-border-color: #585858;
+$datepicker-th-background-color: #d6d6d6;
+$datepicker-selected-item-background-color: #b6b6b6;
+$datepicker-item-hover-background-color: transparent;
+
+//progress bar
+$progress-border-color: #656565;
+$progress-background-color: #f1f1f1;
+$progress-bar-background-color: #8b8b8b;
+
+//tips
+$tip-base-color: $base-color;
+
+//grid
+$grid-header-over-border-color: darken($base-color, 3);
+
+//toolbar
+$toolbar-background-gradient: color-stops(#e6e6e6, #efefef);
+$toolbar-separator-color: #8a8677;
+$toolbar-text-color: #000;
+
+//btn group
+$btn-group-background-color: #f0f0f0;
+$btn-group-header-background-color: #c3c3c3;
+$btn-group-border-color: #b0b0b0;
+$btn-group-header-color: #666;
+$btn-group-inner-border-color: #ececec;
+
+//form
+$fieldset-header-color: #333;
+
+$boundlist-border-color: #9da0b0;
+
+//acordion
+$accordion-header-background-color: #e5e5e5;
+
+//tabs
+$tab-base-color: #eaeaea;
+$tab-color-active: #333333;
+
+$tab-background-gradient: color-stops(#dcdcdc, #eaeaea);
+$tab-background-gradient-over: 'tab-over' !default;
+$tab-background-gradient-active: color-stops(#ffffff, #eaeaea);
+$tab-background-gradient-disabled: 'tab-disabled' !default;
+
+//buttons
+$button-default-base-color: #f8f8f8;
+$button-default-base-color-over: #f3f3f3;
+$button-default-base-color-focus: $button-default-base-color-over;
+$button-default-base-color-pressed: #c4c4c4;
+$button-default-base-color-disabled: adjust-color($base-color, $hue: 0deg, $saturation: -55.556%, $lightness: 12.745%) !default; //F7F7F7
+
+$button-default-border-color: #a8a8a8;
+$button-default-border-color-over: #868686;
+$button-default-border-color-focus: $button-default-border-color-over;
+$button-default-border-color-pressed: $button-default-border-color-over;
+$button-default-border-color-disabled: adjust-color($button-default-base-color-disabled, $hue: 0deg, $saturation: 0%, $lightness: -8.627%) !default;
+
+$button-default-background-gradient: 'matte';
+$button-default-background-gradient-over: 'matte';
+$button-default-background-gradient-focus: 'matte';
+$button-default-background-gradient-pressed: 'matte-reverse';
+$button-default-background-gradient-disabled: 'matte';
+
+$button-default-background-gradient-color-stops: null;
+$button-default-background-gradient-color-stops-over: null;
+$button-default-background-gradient-color-stops-focus: null;
+$button-default-background-gradient-color-stops-pressed: null;
+$button-default-background-gradient-color-stops-disabled: null;
+
+
+$button-toolbar-base-color: $button-default-base-color;
+
+$button-toolbar-border-color: transparent !default;
+$button-toolbar-border-color-over: $button-default-border-color-over;
+$button-toolbar-border-color-focus: $button-default-border-color-focus;
+$button-toolbar-border-color-pressed: $button-default-border-color-pressed;
+$button-toolbar-border-color-disabled: $button-default-border-color-disabled;
+
+$button-toolbar-background-color: transparent !default;
+$button-toolbar-background-color-over: $button-default-base-color-over;
+$button-toolbar-background-color-focus: $button-default-base-color-focus;
+$button-toolbar-background-color-pressed: $button-default-base-color-pressed;
+$button-toolbar-background-color-disabled: transparent;
+
+$button-toolbar-background-gradient: null;
+$button-toolbar-background-gradient-over: 'matte';
+$button-toolbar-background-gradient-focus: 'matte';
+$button-toolbar-background-gradient-pressed: 'matte-reverse';
+$button-toolbar-background-gradient-disabled: null;
+
+$button-toolbar-background-gradient-color-stops: null;
+$button-toolbar-background-gradient-color-stops-over: null;
+$button-toolbar-background-gradient-color-stops-focus: null;
+$button-toolbar-background-gradient-color-stops-pressed: null;
+$button-toolbar-background-gradient-color-stops-disabled: null;
 
 @import 'ext4/default/all';
 

@@ -16,8 +16,26 @@ var saveAction = Ext.create('Ext.Action', {
     icon: "images/save.gif",
     tooltip: "Save Selected Action",
     handler: function(widget, event) {
+        var editor = this.up('actions');
+        editor.fireEvent('saveAction');
     }
 });
+
+var deleteAction = Ext.create('Ext.Action', {
+    icon: 'images/delete.png',
+    text: 'Delete',
+    itemId: "deleteAction",
+    tooltip: "Delete Selected Action",
+    handler: function(widget, event) {
+        var editor = this.up('actions');
+        editor.fireEvent('deleteAction');
+    }
+});
+
+function formatAction(val) {
+     return '<img src="images/action.png" align="top"> '+val;
+     //return '<img src="images/action.png"><span>' + val + '</span>';
+}
 
 Ext.define('Redwood.view.Actions', {
     extend: 'Ext.panel.Panel',
@@ -42,11 +60,18 @@ Ext.define('Redwood.view.Actions', {
                 title: "Actions",
                 focused: false,
                 hideHeaders: true,
+                listeners:{
+                    itemdblclick: function(me, record, element, node_index, event) {
+                        me.up('actions').fireEvent('editAction',record);
+                    }
+                },
                 columns: [
                 {
                     //header: 'Actions',
                     dataIndex: 'name',
-                    width: 200
+                    flex: 1,
+                    renderer: formatAction
+                    //width: 200
                 }
                 ],
                 tbar: {
@@ -85,7 +110,9 @@ Ext.define('Redwood.view.Actions', {
             dock: 'top',
             items:[
                 newAction,
-                saveAction
+                saveAction,
+                " ",
+                deleteAction
             ]
         };
         this.callParent(arguments);

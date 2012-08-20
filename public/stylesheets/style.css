@@ -4,3 +4,44 @@
     border-width:thin;
     background-color: #efefef !important;
 }
+
+.x-redwood-item-picker{
+    padding: 1px 1px 1px 4px;
+}
+
+.x-redwood-item-picker:hover{
+}
+
+.x-redwood-item-title{
+    font-size: 14px;
+    font-weight:bold;
+}
+
+.x-redwood-action-row .x-grid-cell{
+    background-color: #cdc1bb;
+    font-weight: bold;
+}
+
+.x-redwood-action-divider-row .x-grid-cell {
+    line-height: 4px !important;
+    background-color:#f5f5f5 !important;
+}
+
+.x-redwood-action-name-cell{
+    background-color:white !important;
+    border-width: 1px !important;
+    border-color: #d4fff8 !important;
+}
+
+.x-redwood-action-value-cell{
+    background-color: #d4fff8 !important;
+    border-width: 1px !important;
+    border-color: #d4fff8 !important;
+    font-weight: normal !important;
+}
+
+.x-redwood-action-value-cell .x-grid-cell-inner{
+    white-space: normal !important;
+    word-wrap: break-word !important;
+
+}
