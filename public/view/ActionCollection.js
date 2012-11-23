@@ -778,6 +778,11 @@ Ext.define('Redwood.view.ActionCollection', {
                     }),
                     getDisplayValue: function() {
                         return Ext.String.htmlDecode(this.value);
+                    },
+                    listeners:{
+                        focus: function(){
+                            this.selectText();
+                        }
                     }
                     //autoEncode: true
                 });

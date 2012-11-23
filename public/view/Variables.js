@@ -113,7 +113,12 @@ Ext.define('Redwood.view.Variables', {
             editor: {
                 xtype: 'textfield',
                 vtype: 'varTest',
-                allowBlank: false
+                allowBlank: false,
+                listeners:{
+                    focus: function(){
+                        this.selectText();
+                    }
+                }
             }
         }, {
             header: 'Value',
@@ -126,7 +131,12 @@ Ext.define('Redwood.view.Variables', {
                 queryMode: 'local',
                 valueField:'value',
                 grid: variablesEditor,
-                dataIndex:"possibleValues"
+                dataIndex:"possibleValues",
+                listeners:{
+                    focus: function(){
+                        this.selectText();
+                    }
+                }
             })
         },
             {

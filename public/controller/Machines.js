@@ -65,7 +65,7 @@ Ext.define("Redwood.controller.Machines", {
             //vmName: ''
         })[0];
 
-        this.rowEditor.startEdit(blank, this.grid.columns[1]);
+        this.rowEditor.startEdit(blank, this.grid.columns[2]);
         this.machinesEditor.getDockedComponent('top').getComponent('add').setDisabled(true);
 
     },

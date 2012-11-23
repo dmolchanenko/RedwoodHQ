@@ -107,8 +107,13 @@ Ext.define('Redwood.view.ActionParamGrid',{
                 width: 350,
                 editor: {
                     xtype: 'textfield',
-                    allowBlank: true,
-                    vtype: "paramTest"
+                    allowBlank: false,
+                    vtype: "paramTest",
+                    listeners:{
+                        focus: function(){
+                            this.selectText();
+                        }
+                    }
                 }
             },
             {

@@ -83,7 +83,12 @@ Ext.define('Redwood.view.Machines', {
             editor: {
                 xtype: 'textfield',
                 allowBlank: false,
-                vtype: 'machineTest'
+                vtype: 'machineTest',
+                listeners:{
+                    focus: function(){
+                        this.selectText();
+                    }
+                }
             }
             }, {
                 header: 'Description',
@@ -92,7 +97,12 @@ Ext.define('Redwood.view.Machines', {
                 width: 200,
                 editor: {
                     xtype: 'textfield',
-                    allowBlank: true
+                    allowBlank: true,
+                    listeners:{
+                        focus: function(){
+                            this.selectText();
+                        }
+                    }
                 }
             },
             {
