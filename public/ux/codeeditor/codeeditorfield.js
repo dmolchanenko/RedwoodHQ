@@ -5,6 +5,37 @@ Ext.define('Redwood.ux.CodeEditorField', {
     fieldLabel: 'Label',
     hideLabel: true,
 
+    isFullScreen: function(){
+        return /\bCodeMirror-fullscreen\b/.test(this.editor.getWrapperElement().className);
+    },
+
+    winHeight: function(){
+        return window.innerHeight || (document.documentElement || document.body).clientHeight;
+    },
+
+    setFullScreen: function(full){
+        this.editor.getWrapperElement().height = this.winHeight() + "px";
+        var wrap = this.up("codeeditorpanel").getEl().dom;
+        if (full) {
+            wrap.className += " CodeMirror-fullscreen";
+            wrap.style.height = "100%";
+            //wrap.style.height = this.winHeight() + "px";
+            wrap.style.width = "100%";
+            wrap.style.top = "0";
+            wrap.style.left = "0";
+            wrap.style.position = "fixed";
+            wrap.style.display = "block";
+            wrap.style.zIndex = "9999";
+
+            document.documentElement.style.overflow = "hidden";
+        } else {
+            wrap.className = wrap.className.replace(" CodeMirror-fullscreen", "");
+            wrap.style.height = "";
+            document.documentElement.style.overflow = "";
+        }
+        this.editor.refresh();
+    },
+
     initComponent: function() {
         var me = this;
 
@@ -27,9 +58,19 @@ Ext.define('Redwood.ux.CodeEditorField', {
         this.editor = CodeMirror.fromTextArea(element, {
             lineNumbers: true,
             matchBrackets: true,
-            extraKeys:{"Ctrl-S": function(){
-                me.up("scriptBrowser").fireEvent('saveAll',null);
-            }},
+            extraKeys:
+                {"Ctrl-S": function(){
+                    me.up("scriptBrowser").fireEvent('saveAll',null);
+                }
+                    /*,
+                "F11": function() {
+                    me.setFullScreen(!me.isFullScreen());
+                },
+                "Esc": function() {
+                    if (me.isFullScreen()) me.setFullScreen(false);
+                }
+                */
+            },
             mode: "text/x-groovy",
             onCursorActivity: function() {
                 editor.setLineClass(hlLine, null, null);
@@ -38,6 +79,11 @@ Ext.define('Redwood.ux.CodeEditorField', {
             onChange: function(cm,changeOpt){
                 me.onChange(cm,changeOpt);
                 //me.fireEvent('change',cm);
+            },
+            onResize: function(){
+                var showing = document.body.getElementsByClassName("CodeMirror-fullscreen")[0];
+                if (!showing) return;
+                showing.CodeMirror.getWrapperElement().style.height = me.winHeight() + "px";
             }
         });
         var editor = this.editor;

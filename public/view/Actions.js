@@ -46,26 +46,35 @@ Ext.define('Redwood.view.Actions', {
 
     initComponent: function () {
 
-        this.items=[
-            {
-                region: 'west',
-                split:true,
-                xtype: 'grid',
-                collapseDirection: "left",
-                collapsible: true,
-                multiSelect: false,
-                id:"actionsGrid",
-                store: Ext.data.StoreManager.lookup('Actions'),
-                width: 206,
-                title: "Actions",
-                focused: false,
-                hideHeaders: true,
-                listeners:{
-                    itemdblclick: function(me, record, element, node_index, event) {
-                        me.up('actions').fireEvent('editAction',record);
-                    }
-                },
-                columns: [
+        var actionListFlat = {
+            region: 'west',
+            split:true,
+            xtype: 'grid',
+            collapseDirection: "left",
+            collapsible: true,
+            multiSelect: false,
+            id:"actionsGrid",
+            store: Ext.data.StoreManager.lookup('Actions'),
+            width: 206,
+            title: "Actions",
+            focused: false,
+            hideHeaders: true,
+            viewConfig: {
+                plugins: {
+                    ptype: 'gridviewdragdrop',
+                    enableDrag: true,
+                    enableDrop: false,
+                    ddGroup: "actionDrop"
+                    //dragGroup: 'firstGridDDGroup',
+                    //dropGroup: 'secondGridDDGroup'
+                }
+            },
+            listeners:{
+                itemdblclick: function(me, record, element, node_index, event) {
+                    me.up('actions').fireEvent('editAction',record);
+                }
+            },
+            columns: [
                 {
                     //header: 'Actions',
                     dataIndex: 'name',
@@ -73,38 +82,106 @@ Ext.define('Redwood.view.Actions', {
                     renderer: formatAction
                     //width: 200
                 }
-                ],
+            ],
+            tbar: {
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [
+                    {
+                        width: 200,
+                        //fieldLabel: 'Search',
+                        //labelWidth: 50,
+                        xtype: 'searchfield',
+                        paramNames: ["tag","name"],
+                        store: Ext.data.StoreManager.lookup('Actions')
+                    }
+                ]
+
+            }
+        };
+
+        var actionListTree = {
+            xtype: 'grid',
+            multiSelect: false,
+            id:"actionsTreeGrid",
+            store: Ext.data.StoreManager.lookup('ActionsTree'),
+            width: 206,
+            title: "Actions Tree",
+            focused: false,
+            hideHeaders: true,
+            viewConfig: {
+                plugins: {
+                    ptype: 'gridviewdragdrop',
+                    enableDrag: true,
+                    enableDrop: false,
+                    ddGroup: "actionDrop"
+                }
+            },
+            listeners:{
+                itemdblclick: function(me, record, element, node_index, event) {
+                    me.up('actions').fireEvent('editAction',record);
+                }
+            },
+            columns: [
+                {
+                    dataIndex: 'name',
+                    flex: 1,
+                    renderer: formatAction
+                }
+            ],
+
+            tbar: {
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [
+                    {
+                        width: 200,
+                        //fieldLabel: 'Search',
+                        //labelWidth: 50,
+                        xtype: 'searchfield',
+                        paramNames: ["tag","name"],
+                        store: Ext.data.StoreManager.lookup('Actions')
+                    }
+                ]
+
+            }
+        };
+
+
+        this.items=[
+            actionListFlat,
+            {
+                xtype:"panel",
+                region:"center",
+                autoScroll:true,
                 tbar: {
                     xtype: 'toolbar',
                     dock: 'top',
-                    items: [
-                        {
-                            width: 200,
-                            //fieldLabel: 'Search',
-                            //labelWidth: 50,
-                            xtype: 'searchfield',
-                            paramNames: ["tag","name"],
-                            store: Ext.data.StoreManager.lookup('Actions')
-                        }
+                    items:[
+                        newAction,
+                        saveAction,
+                        " ",
+                        deleteAction
+                    ]
+                },
+                items:[
+                    {
+                        xtype:"tabpanel",
+                        itemId: 'actionstab',
+                        defaults:{ autoScroll:true },
+                        plugins: [
+                            Ext.create('Ext.ux.TabCloseMenu', {
+
+                            }),
+                            Ext.create('Ext.ux.TabReorderer', {
+
+                            })
                         ]
-
-                }
-            },
-            {
-                xtype:"tabpanel",
-                region: 'center',
-                itemId: 'actionstab',
-                defaults:{ autoScroll:true },
-                plugins: [
-                    Ext.create('Ext.ux.TabCloseMenu', {
-
-                    }),
-                    Ext.create('Ext.ux.TabReorderer', {
-
-                    })
+                    }
                 ]
             }
         ];
+        /*
         this.tbar = {
             xtype: 'toolbar',
             dock: 'top',
@@ -115,6 +192,7 @@ Ext.define('Redwood.view.Actions', {
                 deleteAction
             ]
         };
+        */
         this.callParent(arguments);
     }
 });

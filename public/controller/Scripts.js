@@ -1,5 +1,5 @@
 function openScript(path,lineNumber){
-    Ext.getCmp("ScriptBrowser").fireEvent('scriptEdit',path,lineNumber);
+    Ext.getCmp("ScriptBrowser").fireEvent('scriptEdit',path,parseInt(lineNumber,10));
     //scriptController.onScriptEdit(path,lineNumber);
     return false;
 }
@@ -21,7 +21,7 @@ Ext.define("Redwood.controller.Scripts", {
                 scriptEdit: this.onScriptEdit,
                 render: this.onScriptRender,
                 saveAll: this.onScriptSave,
-                delete: this.onDelete,
+                deleteScript: this.onDelete,
                 newFolder: this.onNewFolder,
                 rename: this.onRename,
                 copy: this.onCopy,
@@ -70,7 +70,10 @@ Ext.define("Redwood.controller.Scripts", {
                     if(srcIndex != -1){
                         var endOfPath = line.indexOf(":",srcIndex);
                         var path = line.slice(srcIndex,endOfPath);
-                        var lineNumber = line.substr(endOfPath+2,1);
+                        //var lineNumber = line.substr(endOfPath+2,1);
+                        var lineNumber = line.slice(endOfPath+1,line.indexOf(":",endOfPath+1));
+                        lineNumber = parseInt(lineNumber,10) -1;
+
                         normalisedPath = path;
                         while(normalisedPath.indexOf("\\") != -1){
                             var normalisedPath = normalisedPath.replace("\\","/");

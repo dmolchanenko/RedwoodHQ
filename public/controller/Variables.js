@@ -38,7 +38,8 @@ Ext.define("Redwood.controller.Variables", {
         var record = store.getAt(evtData.rowIndex);
         if(record) {
             store.remove(record);
-            store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Variables').load();} });
+            //store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Variables').load();} });
+            store.sync();
         }
 
     },
@@ -46,8 +47,8 @@ Ext.define("Redwood.controller.Variables", {
     afterVariableEdit: function(evtData){
         var varStore = this.getStore('Variables');
         this.getStore('VariableTags').sync();
-        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Variables').load();} });
-        //varTagsStore.sync();
+        //varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Variables').load();} });
+        varStore.sync();
     },
 
     addVariable: function () {
@@ -66,7 +67,7 @@ Ext.define("Redwood.controller.Variables", {
         })[0];
 
         this.rowEditor.startEdit(newVar, this.grid.columns[2]);
-        this.variablesEditor.getDockedComponent('top').getComponent('add').setDisabled(true);
+        //this.variablesEditor.getDockedComponent('top').getComponent('add').setDisabled(true);
 
         /*
         var sm = this.grid.getSelectionModel();

@@ -3,7 +3,7 @@ Ext.define("Redwood.controller.Actions", {
 
     models: ['Actions',"ActionTags"],
     stores: ['Actions',"ActionTags"],
-    views:  ['Actions'],
+    views:  ['Actions','ScriptPicker'],
 
     init: function () {
         this.control({
@@ -19,10 +19,10 @@ Ext.define("Redwood.controller.Actions", {
 
     onDeleteAction:function(){
         var actionView = this.tabPanel.getActiveTab();
-        if (actionView == undefined){
+        if (actionView === undefined){
             return;
         }
-        if (actionView.title == "[New Action]"){
+        if (actionView.title === "[New Action]"){
             return;
         }
         Ext.Msg.show({
@@ -31,17 +31,16 @@ Ext.define("Redwood.controller.Actions", {
             buttons: Ext.Msg.YESNO,
             icon: Ext.Msg.QUESTION,
             fn: function(id){
-                if (id == "yes"){
+                if (id === "yes"){
                     Ext.data.StoreManager.lookup('Actions').remove(actionView.dataRecord);
                     Ext.data.StoreManager.lookup('Actions').sync({success:function(batch,options){Ext.data.StoreManager.lookup('Actions').load();} });
                     actionView.close();
                 }
             }
-        })
-    }
-    ,
+        });
+    },
     onEditAction: function(record){
-        if (this.tabPanel.getComponent(record.get("name")) == undefined){
+        if (this.tabPanel.getComponent(record.get("name")) === undefined){
             var tab = Ext.create('Redwood.view.ActionView',{
                 title:record.get("name"),
                 closable:true,
@@ -57,18 +56,22 @@ Ext.define("Redwood.controller.Actions", {
 
     onSaveAction: function(){
         var actionView = this.tabPanel.getActiveTab();
-        if (actionView == undefined){
+        if (actionView === undefined){
             return;
         }
-        if (actionView.validate(this.getStore('Actions')) == false){
+        if (actionView.validate(this.getStore('Actions')) === false){
             return;
         }
         var action = actionView.getActionData();
-        if (actionView.dataRecord == null){
-            actionView.dataRecord = this.getStore('Actions').add(action);
+        if (actionView.dataRecord === null){
+            actionView.dataRecord = this.getStore('Actions').add(action)[0];
         }
         else{
+            actionView.dataRecord.set("collection",action.collection);
             actionView.dataRecord.set("name",action.name);
+            actionView.dataRecord.set("description",action.description);
+            actionView.dataRecord.set("status",action.status);
+            actionView.dataRecord.set("type",action.type);
             actionView.dataRecord.set("tag",action.tag);
             actionView.dataRecord.set("params",action.params);
         }
@@ -86,6 +89,7 @@ Ext.define("Redwood.controller.Actions", {
 
         this.tabPanel.add(tab);
         this.tabPanel.setActiveTab(tab);
+        tab.down("#name").focus();
     },
 
     onActionsRender: function(){

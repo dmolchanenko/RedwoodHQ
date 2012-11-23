@@ -20,7 +20,7 @@ Ext.define('Redwood.view.Viewport', {
             xtype:"box",
             region:"north",
             height: "22px",
-            html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood Automation Framework</h1>',
+            html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood HQ</h1>',
             border: false
         },
         {
@@ -40,7 +40,7 @@ Ext.define('Redwood.view.Viewport', {
                 xtype: "actions"
             },
             {
-                    xtype: 'scriptBrowser'
+                xtype: 'scriptBrowser'
             },
             {
 
@@ -70,6 +70,7 @@ Ext.define('Redwood.view.Viewport', {
                     {
                         xtype:"tabpanel",
                         region: "center",
+                        autoScroll: true,
                         listeners:{
                             afterrender: function(me){
                                 me.tabBar.setVisible(false);

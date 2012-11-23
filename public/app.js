@@ -9,6 +9,7 @@ Ext.application({
         'Machines','Variables','Users','Scripts','Actions'
     ],
     launch: function(){
+        Ext.clipboard = {};
         Ext.uniqueId = function()
         {
             var newDate = new Date;

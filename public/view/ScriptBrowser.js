@@ -210,7 +210,7 @@ var deleteMenuAction = Ext.create('Ext.Action', {
     itemId: "deleteMenu",
     //tooltip: "Delete",
     handler: function(widget, event) {
-        this.up('menu').scriptEditor.fireEvent('delete');
+        this.up('menu').scriptEditor.fireEvent('deleteScript');
     }
 });
 
@@ -461,7 +461,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             });
                         },
                         itemdblclick: function(me,record,item,index,evt,eOpts){
-                            if (record.get("fileType") == "file"){
+                            if (record.get("fileType") === "file"){
                                 scriptEditor.fireEvent('scriptEdit', record);
                             }
                         },
@@ -469,7 +469,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             this.getSelectionModel().select(this.getRootNode().getChildAt(0));
                         },
                         selectionchange: function(model,selected,eOpts){
-                            if ((selected.length == 0)||(selected.length > 1)){
+                            if ((selected.length === 0)||(selected.length > 1)){
                                 newItemButton.setDisabled(true);
 
                             }else{
@@ -480,7 +480,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                 if (node.parentNode.isRoot()){
                                     copyAction.setDisabled(true);
                                     deleteScriptAction.setDisabled(true);
-                                    if (node.get("fileType") == "libs"){
+                                    if (node.get("fileType") === "libs"){
                                         newScriptAction.setDisabled(true);
                                         newFolderAction.setDisabled(true);
                                     }
@@ -488,7 +488,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
                                 }
                             });
-                            if (foundRootItem == false){
+                            if (foundRootItem === false){
                                 newScriptAction.setDisabled(false);
                                 newFolderAction.setDisabled(false);
                                 deleteScriptAction.setDisabled(false);

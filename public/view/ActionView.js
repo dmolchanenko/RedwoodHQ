@@ -61,6 +61,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
     extend: 'Ext.grid.Panel',
     alias: "widget.actionparamgrid",
     selType: 'rowmodel',
+    autoHeight:true,
 
 
     initComponent: function () {
@@ -240,9 +241,18 @@ Ext.define('Redwood.view.ActionView', {
             if (me.dataRecord != null){
                 me.down("#name").setValue(me.dataRecord.get("name"));
                 me.down("#tag").setValue(me.dataRecord.get("tag"));
+                me.down("#status").setValue(me.dataRecord.get("status"));
+                me.down("#description").setValue(me.dataRecord.get("description"));
+                me.down("#type").setValue({type:me.dataRecord.get("type")});
                 me.dataRecord.get("params").forEach(function(item){
                     me.down("#params").store.add(item);
                 });
+
+                me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
+
+            }
+            else{
+                me.down("actioncollection").loadCollection("");
             }
             this.down("#name").focus();
         }
@@ -264,6 +274,13 @@ Ext.define('Redwood.view.ActionView', {
                 }
             }
         }
+        else{
+            if (index != -1){
+                this.down("#name").focus();
+                Ext.Msg.alert('Error', "Action with the same name already exits.");
+                return false;
+            }
+        }
 
     },
 
@@ -271,6 +288,9 @@ Ext.define('Redwood.view.ActionView', {
         var action = {};
         action.name = this.down("#name").getValue();
         action.tag = this.down("#tag").getValue();
+        action.status = this.down("#status").getValue();
+        action.type = this.down("#type").getValue().type;
+        action.description = this.down("#description").getValue();
 
         var paramStore = this.down("#params").store;
         action.params = [];
@@ -278,6 +298,7 @@ Ext.define('Redwood.view.ActionView', {
         storeData.forEach(function(item){
             action.params.push(item.data);
         });
+        action.collection = this.down("actioncollection").getCollectionData();
         return action;
     },
 
@@ -293,32 +314,52 @@ Ext.define('Redwood.view.ActionView', {
             },
             items: [
                     {
-                        //xtype: "textfield",
                         fieldLabel: "Name",
                         allowBlank: false,
+                        labelStyle: "font-weight: bold",
                         itemId:"name"
+                    },
+                    {
+                        fieldLabel: "Description",
+                        allowBlank: true,
+                        itemId:"description"
                     }
                     ,
-                    /*
                     {
-                        xtype:"boxselect",
-                        typeAhead:true,
-                        fieldLabel: "Tags",
-                        displayField:"value",
-                        height:24,
-                        width:300,
-                        labelWidth: 100,
-                        forceSelection:false,
-                        createNewOnEnter:true,
-                        encodeSubmitValue:true,
-                        createNewOnBlur: true,
-                        store:Ext.data.StoreManager.lookup('ActionTags'),
-                        valueField:"value",
-                        queryMode: 'local',
-                        maskRe: /[a-z_0-9]/
-                    }
-                    */
-
+                        xtype: "radiogroup",
+                        fieldLabel:"Action Type",
+                        labelStyle: "font-weight: bold",
+                        itemId:"type",
+                        width:200,
+                        items:[
+                            { boxLabel: 'Script', name: 'type', inputValue: 'script',width:70,checked: true },
+                            { boxLabel: 'Action Collection', name: 'type', inputValue: 'collection',width:200 }
+                        ],
+                        listeners: {
+                            change: function(me,newVal,oldVal){
+                                if(newVal.type == "script"){
+                                    me.up("actionview").down("#actionCollectionFiledSet").hide();
+                                    me.up("actionview").down("scriptPicker").show();
+                                }else{
+                                    me.up("actionview").down("#actionCollectionFiledSet").show();
+                                    me.up("actionview").down("scriptPicker").hide();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        xtype: "combo",
+                        width: 240,
+                        afterLabelTextTpl: this.requiredText,
+                        fieldLabel: 'Status',
+                        store: ["Automated","Needs Maintenance"],
+                        value: "Automated",
+                        name: 'status',
+                        itemId: 'status',
+                        forceSelection: true,
+                        editable: false,
+                        allowBlank: false
+                    },
                     {
                         xtype:"combofieldbox",
                         typeAhead:true,
@@ -360,17 +401,33 @@ Ext.define('Redwood.view.ActionView', {
         },
         {
             xtype: 'fieldset',
+            hidden: true,
             title: 'Action Collection',
             width: 1500,
             collapsible: true,
+            itemId:"actionCollectionFiledSet",
             defaults: {
                 width: 1470
             },
             items:[
                 {
-                    xtype:"actioncollection"
+                    xtype:"actioncollection",
+                    listeners:{
+                        afterrender: function(me){
+                            var actionView = me.up("actionview");
+                            if(actionView.dataRecord != null){
+                                me.parentActionID = actionView.dataRecord.get("_id");
+                            }
+                            me.parentActionParamsStore = actionView.down("actionparamgrid").store;
+                        }
+                    }
                 }
             ]
+        },
+        {
+            xtype: "scriptPicker",
+            hidden: false,
+            width: 700
         }
     ]
 

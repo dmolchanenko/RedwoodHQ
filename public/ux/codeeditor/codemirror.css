@@ -1,6 +1,5 @@
 .CodeMirror {
     height: inherit;
-    line-height: 1.1em;
 }
 
 .CodeMirror-scroll {
@@ -18,3 +17,11 @@
 .codemirror-field td.x-form-item-body  {
     vertical-align: top;
 }​
+
+.CodeMirror-fullscreen {
+     display: block;
+     position: absolute;
+     top: 0; left: 0;
+     width: 100%;
+     z-index: 9999;
+ }

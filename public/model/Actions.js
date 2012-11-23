@@ -13,8 +13,24 @@ Ext.define('Redwood.model.Actions', {
         type: 'string'
     },
     {
+        name: 'description',
+        type: 'string'
+    },
+    {
+        name: 'type',
+        type: 'string'
+    },
+    {
+        name: 'status',
+        type: 'string'
+    },
+    {
         name: '_id',
         type: 'string'
+    },
+    {
+        name: 'collection',
+        type: 'array'
     }
     ]
 });
