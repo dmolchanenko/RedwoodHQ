@@ -214,10 +214,14 @@ Ext.define('Redwood.view.ActionCollection', {
 
         var me = this;
 
+        //me.selModel= Ext.create('Ext.selection.Model', { listeners: {} })
         //this.enableLocking = true;
         this.viewConfig = {
+            autoScroll: true,
             markDirty: false,
             forceFit: true,
+            preserveScrollOnRefresh:true,
+            loadMask : false,
 
             //   Return CSS class to apply to rows depending upon data values
             getRowClass: function (record, index) {
@@ -282,7 +286,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             records = records.concat(newSelectedAction.childNodes);
 
                             view.getSelectionModel().select(records,true,true);
-                            view.getNode(newSelectedAction).scrollIntoView(view.up("actionview").getEl());
+                            view.getNode(newSelectedAction).scrollIntoView(me.parentPanel.getEl());
                             view.focusRow(view.getNode(newSelectedAction));
                         }
 
@@ -308,7 +312,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             records = records.concat(newSelectedAction.childNodes);
 
                             view.getSelectionModel().select(records,true,true);
-                            view.getNode(newSelectedAction).scrollIntoView(view.up("actionview").getEl());
+                            view.getNode(newSelectedAction).scrollIntoView(me.parentPanel.getEl());
                             view.focusRow(newSelectedAction);
                         }
 
@@ -331,7 +335,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             records = records.concat(newSelectedAction.childNodes);
 
                             view.getSelectionModel().select(records,false,true);
-                            view.getNode(newSelectedAction).scrollIntoView(view.up("actionview").getEl());
+                            view.getNode(newSelectedAction).scrollIntoView(me.parentPanel.getEl());
                             view.focusRow(newSelectedAction);
                         }
                         else{
@@ -358,7 +362,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             records = records.concat(newSelectedAction.childNodes);
 
                             view.getSelectionModel().select(records,false,true);
-                            view.getNode(newSelectedAction).scrollIntoView(view.up("actionview").getEl());
+                            view.getNode(newSelectedAction).scrollIntoView(me.parentPanel.getEl());
                             view.focusRow(newSelectedAction);
                         }
                         else{
@@ -566,7 +570,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.sort("rowOrder","ASC");
                             me.movingUp = false;
                             this.setDisabled(false);
-                            me.getView().getNode(record).scrollIntoView(me.up("actionview").getEl());
+                            me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.getSelectionModel().select(record);
                         }
                     },
@@ -603,7 +607,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.sort("rowOrder","ASC");
                             me.movingDown = false;
                             this.setDisabled(false);
-                            me.getView().getNode(record).scrollIntoView(me.up("actionview").getEl());
+                            me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.getSelectionModel().select(record);
                         }
                     },
@@ -814,15 +818,19 @@ Ext.define('Redwood.view.ActionCollection', {
 
         });
 
+        this.cellEditing.on("validateedit",function(editor,e){
+            console.log(e);
+            me.lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
+        });
+
         //reselect whole action after edit
         //refresh the grid to avoid bottom rows to become invisible due to
         //word wrapping
         this.cellEditing.on("edit",function(editor,e){
-            me.getView().refresh();
-            me.getView().focus();
-            me.getView().getNode(e.record.parentNode).scrollIntoView(me.up("actionview").getEl());
+            me.getView().updateLayout();
+            me.getSelectionModel().select(e.record);
 
-            //me.getView().refreshNode(me.store.getRoot().childNodes.length-1);
+            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
         });
         this.plugins= [this.cellEditing];
 
@@ -979,7 +987,7 @@ Ext.define('Redwood.view.ActionCollection', {
             me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
             me.store.sort("rowOrder","ASC");
             var rowIndex = me.getView().indexOf(newRecord);
-            me.getView().getNode(rowIndex).scrollIntoView(me.up("actionview").getEl());
+            me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
             me.getSelectionModel().select(newRecord);
         };
 
@@ -1016,7 +1024,7 @@ Ext.define('Redwood.view.ActionCollection', {
                         actionsGrid.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
                         this.setDisabled(false);
                         var rowIndex = me.getView().indexOf(newRecord);
-                        me.getView().getNode(rowIndex).scrollIntoView(me.up("actionview").getEl());
+                        me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
                         me.getSelectionModel().select(newRecord);
                     }
                 },
@@ -1243,7 +1251,7 @@ Ext.define('Redwood.view.ActionCollection', {
 
                             if (i==Ext.clipboard.data.length-1){
                                 var rowIndex = me.getView().indexOf(newRecord);
-                                me.getView().getNode(rowIndex).scrollIntoView(me.up("actionview").getEl());
+                                me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
                                 me.getSelectionModel().select(newRecord);
                                 Ext.MessageBox.hide();
                             }
@@ -1315,7 +1323,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (index==Ext.clipboard.data.length-1){
                                 me.store.sort("rowOrder","ASC");
                                 var rowIndex = me.getView().indexOf(newRecord);
-                                me.getView().getNode(rowIndex).scrollIntoView(me.up("actionview").getEl());
+                                me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
                                 me.getSelectionModel().select(newRecord);
                                 Ext.MessageBox.hide();
                             }

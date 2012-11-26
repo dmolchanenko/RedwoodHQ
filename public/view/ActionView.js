@@ -237,7 +237,9 @@ Ext.define('Redwood.view.ActionParamGrid',{
 Ext.define('Redwood.view.ActionView', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.actionview',
+    autoScroll: true,
     bodyPadding: 5,
+    //layout: 'vbox',
     myData:[],
     dataRecord: null,
 
@@ -424,6 +426,7 @@ Ext.define('Redwood.view.ActionView', {
                                 me.parentActionID = actionView.dataRecord.get("_id");
                             }
                             me.parentActionParamsStore = actionView.down("actionparamgrid").store;
+                            me.parentPanel = actionView;
                         }
                     }
                 }

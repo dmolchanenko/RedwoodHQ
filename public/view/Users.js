@@ -31,14 +31,7 @@ Ext.define('Redwood.view.Users', {
             {
                 header: 'Role',
                 dataIndex: 'role',
-                //flex: 1,
                 width: 200
-                //editor: {
-                //    editable: false,
-                //    forceSelection: true,
-                //    xtype: 'combo',
-                //    store: ['Admin','User']
-                //}
             },
             {
             xtype: 'actioncolumn',

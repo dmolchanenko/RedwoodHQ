@@ -153,7 +153,8 @@ Ext.define('Redwood.view.Actions', {
             {
                 xtype:"panel",
                 region:"center",
-                autoScroll:true,
+                layout: "fit",
+                //autoScroll:true,
                 tbar: {
                     xtype: 'toolbar',
                     dock: 'top',
@@ -168,7 +169,7 @@ Ext.define('Redwood.view.Actions', {
                     {
                         xtype:"tabpanel",
                         itemId: 'actionstab',
-                        defaults:{ autoScroll:true },
+                        //defaults:{ autoScroll:true },
                         plugins: [
                             Ext.create('Ext.ux.TabCloseMenu', {
 

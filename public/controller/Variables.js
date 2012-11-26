@@ -12,7 +12,6 @@ Ext.define("Redwood.controller.Variables", {
                 edit: this.afterVariableEdit,
                 varEdit: this.onVarEdit,
                 varDelete: this.onVarDelete
-                //beforeedit: this.BeforeEdit
             },
             'variablesEditor button': {
                 click: this.addVariable
@@ -67,27 +66,9 @@ Ext.define("Redwood.controller.Variables", {
         })[0];
 
         this.rowEditor.startEdit(newVar, this.grid.columns[2]);
-        //this.variablesEditor.getDockedComponent('top').getComponent('add').setDisabled(true);
-
-        /*
-        var sm = this.grid.getSelectionModel();
-
-        // after user clicks off from editing, sync the store, remove the record from the top and reload the store to see new changes
-        this.grid.on('edit', function() {
-            var record = sm.getSelection();
-            store.sync();
-            store.remove(record);
-            store.load();
-        });
-        */
     },
 
     onEditorRender: function () {
-        //console.log("Variables editor was rendered");
-        //this.getStore('VariableTags').load(function(records, operation, success) {
-        //    console.log('loaded records');
-        //});
-        //this.variablesEditor.varTagsStore = this.getStore('VariableTags').sync();
         this.variablesEditor = Ext.ComponentQuery.query('variablesEditor')[0];
         this.rowEditor = this.variablesEditor.rowEditor;
         this.tagEditor = this.variablesEditor.tagEditor;

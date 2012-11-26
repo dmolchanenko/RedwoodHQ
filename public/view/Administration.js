@@ -4,7 +4,8 @@ var adminStore = Ext.create('Ext.data.TreeStore', {
         children: [
             { text: "Variables", leaf: true },
             { text: "Machines", leaf: true },
-            { text: "Users", leaf: true }
+            { text: "Users", leaf: true },
+            { text: "Projects", leaf: true }
         ]
     }
 });
@@ -28,7 +29,7 @@ Ext.define('Redwood.view.Administration', {
             store: adminStore,
             width: 150,
             focused: true
-        },
+        }
         //Ext.create('Redwood.view.Variables',{region:"center"})
 
     ]

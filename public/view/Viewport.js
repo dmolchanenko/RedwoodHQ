@@ -90,6 +90,12 @@ Ext.define('Redwood.view.Viewport', {
                                 xtype: "usersEditor",
                                 itemId: "Users"
                             }
+                            /*,
+                            {
+                                xtype: "projectsEditor",
+                                itemId: "Projects"
+                            }
+                            */
 
                         ]
                     }
