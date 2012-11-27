@@ -149,7 +149,7 @@ Ext.define('Redwood.view.Machines', {
             if ((Ext.encode(e.newValues) === Ext.encode(e.originalValues) )) {
                 return false;
             }
-            this.grid.down("#addMachine").setDisabled(true);
+            //this.grid.down("#addMachine").setDisabled(true);
         });
 
 
@@ -157,7 +157,7 @@ Ext.define('Redwood.view.Machines', {
             if (e.record.data._id == "") {
                 e.grid.store.removeAt(e.rowIdx);
             }
-            this.grid.down("#addMachine").setDisabled(false);
+            //this.grid.down("#addMachine").setDisabled(false);
         });
 
 
