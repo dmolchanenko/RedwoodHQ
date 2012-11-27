@@ -1223,7 +1223,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     //animateTarget: 'mb7'
                 })};
                 //if nothing is selected
-                if (this.getSelectionModel().getSelection().length == 0){
+                if ((this.getSelectionModel().getSelection().length == 0) || (me.store.getRootNode().childNodes.length == 0)){
                     waitMsg();
                     setTimeout(function(){
                         var startingOrder = ((me.store.getRootNode().childNodes.length + 1)/2)+1;
