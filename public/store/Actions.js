@@ -3,7 +3,6 @@ Ext.define('Redwood.store.Actions', {
 
     autoLoad: true,
     autoSync: false,
-    fields: ['_id','tag', 'name','params'],
 
     proxy: {
         type: 'rest',

@@ -40,7 +40,9 @@ Ext.define("Redwood.controller.Actions", {
         });
     },
     onEditAction: function(record){
-        if (this.tabPanel.getComponent(record.get("name")) === undefined){
+        //if (this.tabPanel.getComponent(record.get("name")) === undefined){
+        var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"));
+        if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.ActionView',{
                 title:record.get("name"),
                 closable:true,
@@ -49,8 +51,10 @@ Ext.define("Redwood.controller.Actions", {
             });
 
             this.tabPanel.add(tab);
+            foundIndex = this.tabPanel.items.findIndex("title",record.get("name"));
         }
-        this.tabPanel.setActiveTab(record.get("name"));
+        this.tabPanel.setActiveTab(foundIndex);
+        //this.tabPanel.setActiveTab(record.get("name"));
 
     },
 
@@ -78,6 +82,7 @@ Ext.define("Redwood.controller.Actions", {
         this.getStore('Actions').sync();
         this.getStore('ActionTags').sync();
         actionView.setTitle(action.name);
+        actionView.itemId = action.name;
     },
 
     onNewAction: function(){

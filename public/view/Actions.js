@@ -32,7 +32,7 @@ var deleteAction = Ext.create('Ext.Action', {
     }
 });
 
-function formatAction(val) {
+function formatAction(val,metaData,record) {
      return '<img src="images/action.png" align="top"> '+val;
      //return '<img src="images/action.png"><span>' + val + '</span>';
 }
