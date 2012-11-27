@@ -558,6 +558,8 @@ Ext.define('Redwood.view.ActionCollection', {
                                 me.movingUp = false;
                                 return;
                             }
+                            var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
+
                             var recordUpOrder = (parseInt(record.get("order"))) - 1;
                             var recordUp = me.store.getRootNode().findChild("order",recordUpOrder.toString());
                             var newOrder = recordUp.get("order");
@@ -570,7 +572,8 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.sort("rowOrder","ASC");
                             me.movingUp = false;
                             this.setDisabled(false);
-                            me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
+                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
+                            //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.getSelectionModel().select(record);
                         }
                     },
@@ -597,6 +600,7 @@ Ext.define('Redwood.view.ActionCollection', {
                                 me.movingDown = false;
                                 return;
                             }
+                            var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
                             var newOrder = recordDown.get("order");
                             var newRowOrder = recordDown.get("rowOrder");
                             recordDown.set("order",record.get("order"));
@@ -607,7 +611,8 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.sort("rowOrder","ASC");
                             me.movingDown = false;
                             this.setDisabled(false);
-                            me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
+                            //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
+                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             me.getSelectionModel().select(record);
                         }
                     },
