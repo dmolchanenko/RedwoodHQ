@@ -4,7 +4,6 @@ Ext.define('Redwood.store.ActionTags', {
 
     autoLoad: true,
     autoSync: false,
-    fields: ['_id','value'],
 
     proxy: {
         type: 'rest',

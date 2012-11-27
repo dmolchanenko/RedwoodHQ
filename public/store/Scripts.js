@@ -4,7 +4,6 @@ Ext.define('Redwood.store.Scripts', {
 
     autoLoad: true,
     autoSync: false,
-    fields: ['fullpath','text', 'cls','expanded','children'],
     folderSort: true,
     sorters: [{
 

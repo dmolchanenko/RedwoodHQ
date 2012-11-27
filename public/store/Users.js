@@ -10,7 +10,6 @@ Ext.define('Redwood.store.Users', {
         update : 'PUT',
         destroy: 'DELETE'
     },
-    fields: ['_id','tag', 'username','password','role'],
 
     proxy: {
         type: 'rest',

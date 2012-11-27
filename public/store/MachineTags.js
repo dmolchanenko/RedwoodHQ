@@ -10,7 +10,6 @@ Ext.define('Redwood.store.MachineTags', {
         update : 'PUT',
         destroy: 'DELETE'
     },
-    fields: ['_id','value'],
 
     proxy: {
         type: 'rest',

@@ -10,7 +10,6 @@ Ext.define('Redwood.store.Variables', {
         update : 'PUT',
         destroy: 'DELETE'
     },
-    fields: ['_id','tag', 'name','value'],
 
     proxy: {
         type: 'rest',

@@ -10,7 +10,6 @@ Ext.define('Redwood.store.UserTags', {
         update : 'PUT',
         destroy: 'DELETE'
     },
-    fields: ['_id','value'],
 
     proxy: {
         type: 'rest',
