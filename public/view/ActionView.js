@@ -243,6 +243,143 @@ Ext.define('Redwood.view.ActionView', {
     myData:[],
     dataRecord: null,
 
+    initComponent: function () {
+        var formId = Ext.uniqueId();
+        this.items = [
+            {
+                xtype: 'fieldset',
+                title: 'Action Details',
+                defaultType: 'textfield',
+                width: 1500,
+                collapsible: true,
+                defaults: {
+                    width: 1470
+                },
+                items: [
+                    {
+                        fieldLabel: "Name",
+                        allowBlank: false,
+                        labelStyle: "font-weight: bold",
+                        itemId:"name"
+                    },
+                    {
+                        fieldLabel: "Description",
+                        allowBlank: true,
+                        itemId:"description"
+                    }
+                    ,
+                    {
+                        xtype: "radiogroup",
+                        fieldLabel:"Action Type",
+                        labelStyle: "font-weight: bold",
+                        itemId:"type",
+                        allowBlank:false,
+                        width:200,
+                        items:[
+                            { boxLabel: 'Script', name:"type",inputValue: 'script',width:70,checked: true,formId:formId},
+                            { boxLabel: 'Action Collection',name:"type", inputValue: 'collection',width:200,formId:formId}
+                        ]
+                        ,
+                        listeners: {
+                            change: function(me,newVal,oldVal){
+                                if(newVal.type == "script"){
+                                    me.up("actionview").down("#actionCollectionFiledSet").hide();
+                                    me.up("actionview").down("scriptPicker").show();
+                                }else{
+                                    me.up("actionview").down("#actionCollectionFiledSet").show();
+                                    me.up("actionview").down("scriptPicker").hide();
+                                }
+
+                            }
+                        }
+                    },
+                    {
+                        xtype: "combo",
+                        width: 240,
+                        afterLabelTextTpl: this.requiredText,
+                        fieldLabel: 'Status',
+                        store: ["To be Automated","Automated","Needs Maintenance"],
+                        value: "To be Automated",
+                        name: 'status',
+                        itemId: 'status',
+                        forceSelection: true,
+                        editable: false,
+                        allowBlank: false
+                    },
+                    {
+                        xtype:"combofieldbox",
+                        typeAhead:true,
+                        fieldLabel: "Tags",
+                        displayField:"value",
+                        descField:"value",
+                        height:24,
+                        //labelWidth: 100,
+                        forceSelection:false,
+                        createNewOnEnter:true,
+                        encodeSubmitValue:true,
+                        autoSelect: true,
+                        createNewOnBlur: true,
+                        store:Ext.data.StoreManager.lookup('ActionTags'),
+                        valueField:"value",
+                        queryMode: 'local',
+                        maskRe: /[a-z_0-9]/,
+                        removeOnDblClick:true,
+                        itemId:"tag"
+                    }
+                ]
+            },
+
+            {
+                xtype: 'fieldset',
+                title: 'Parameters',
+                width: 1500,
+                collapsible: true,
+                defaults: {
+                    width: 1470
+                },
+                items:[
+                    {
+                        xtype:"actionparamgrid",
+                        itemId: "params"
+
+                    }
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                hidden: true,
+                title: 'Action Collection',
+                width: 1500,
+                collapsible: true,
+                itemId:"actionCollectionFiledSet",
+                defaults: {
+                    width: 1470
+                },
+                items:[
+                    {
+                        xtype:"actioncollection",
+                        listeners:{
+                            afterrender: function(me){
+                                var actionView = me.up("actionview");
+                                if(actionView.dataRecord != null){
+                                    me.parentActionID = actionView.dataRecord.get("_id");
+                                }
+                                me.parentActionParamsStore = actionView.down("actionparamgrid").store;
+                                me.parentPanel = actionView;
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                xtype: "scriptPicker",
+                hidden: false,
+                width: 700
+            }
+        ]
+
+        this.callParent(arguments);
+    },
     listeners:{
         afterrender: function(me){
             if (me.dataRecord != null){
@@ -307,136 +444,6 @@ Ext.define('Redwood.view.ActionView', {
         });
         action.collection = this.down("actioncollection").getCollectionData();
         return action;
-    },
-
-    items: [
-        {
-            xtype: 'fieldset',
-            title: 'Action Details',
-            defaultType: 'textfield',
-            width: 1500,
-            collapsible: true,
-            defaults: {
-                width: 1470
-            },
-            items: [
-                    {
-                        fieldLabel: "Name",
-                        allowBlank: false,
-                        labelStyle: "font-weight: bold",
-                        itemId:"name"
-                    },
-                    {
-                        fieldLabel: "Description",
-                        allowBlank: true,
-                        itemId:"description"
-                    }
-                    ,
-                    {
-                        xtype: "radiogroup",
-                        fieldLabel:"Action Type",
-                        labelStyle: "font-weight: bold",
-                        itemId:"type",
-                        width:200,
-                        items:[
-                            { boxLabel: 'Script', name: 'type', inputValue: 'script',width:70,checked: true },
-                            { boxLabel: 'Action Collection', name: 'type', inputValue: 'collection',width:200 }
-                        ],
-                        listeners: {
-                            change: function(me,newVal,oldVal){
-                                if(newVal.type == "script"){
-                                    me.up("actionview").down("#actionCollectionFiledSet").hide();
-                                    me.up("actionview").down("scriptPicker").show();
-                                }else{
-                                    me.up("actionview").down("#actionCollectionFiledSet").show();
-                                    me.up("actionview").down("scriptPicker").hide();
-                                }
-                            }
-                        }
-                    },
-                    {
-                        xtype: "combo",
-                        width: 240,
-                        afterLabelTextTpl: this.requiredText,
-                        fieldLabel: 'Status',
-                        store: ["To be Automated","Automated","Needs Maintenance"],
-                        value: "To be Automated",
-                        name: 'status',
-                        itemId: 'status',
-                        forceSelection: true,
-                        editable: false,
-                        allowBlank: false
-                    },
-                    {
-                        xtype:"combofieldbox",
-                        typeAhead:true,
-                        fieldLabel: "Tags",
-                        displayField:"value",
-                        descField:"value",
-                        height:24,
-                        //labelWidth: 100,
-                        forceSelection:false,
-                        createNewOnEnter:true,
-                        encodeSubmitValue:true,
-                        autoSelect: true,
-                        createNewOnBlur: true,
-                        store:Ext.data.StoreManager.lookup('ActionTags'),
-                        valueField:"value",
-                        queryMode: 'local',
-                        maskRe: /[a-z_0-9]/,
-                        removeOnDblClick:true,
-                        itemId:"tag"
-                    }
-                ]
-        },
-
-        {
-            xtype: 'fieldset',
-            title: 'Parameters',
-            width: 1500,
-            collapsible: true,
-            defaults: {
-                width: 1470
-            },
-            items:[
-                {
-                    xtype:"actionparamgrid",
-                    itemId: "params"
-
-                }
-            ]
-        },
-        {
-            xtype: 'fieldset',
-            hidden: true,
-            title: 'Action Collection',
-            width: 1500,
-            collapsible: true,
-            itemId:"actionCollectionFiledSet",
-            defaults: {
-                width: 1470
-            },
-            items:[
-                {
-                    xtype:"actioncollection",
-                    listeners:{
-                        afterrender: function(me){
-                            var actionView = me.up("actionview");
-                            if(actionView.dataRecord != null){
-                                me.parentActionID = actionView.dataRecord.get("_id");
-                            }
-                            me.parentActionParamsStore = actionView.down("actionparamgrid").store;
-                            me.parentPanel = actionView;
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            xtype: "scriptPicker",
-            hidden: false,
-            width: 700
-        }
-    ]
+    }
 
 });
