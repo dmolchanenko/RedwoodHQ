@@ -938,6 +938,29 @@ Ext.define('Redwood.view.ActionCollection', {
                 newAction.order =  (parseInt(action.order,10) + orderAdjustment).toString(10);
                 //newAction.order = action.order;
                 newAction.rowOrder = parseInt(newAction.order,10) + (parseInt(newAction.order,10) - 1);
+
+                foundAction.get("params").forEach(function(searchParam){
+                    var foundParam = null;
+                    action.parameters.forEach(function(param){
+                        if (searchParam.id === param.paramid){
+                            foundParam = param;
+                            newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: searchParam.name, leaf: true,paramid:param.paramid,paramvalue:param.paramvalue,possiblevalues:searchParam.possiblevalues,parametertype:searchParam.parametertype});
+                        }
+
+                    });
+                    if (foundParam == null){
+                        var value;
+                        if (searchParam.parametertype === "Array of String"){
+                            value = [];
+                        }
+                        else{
+                            value = "<NULL>";
+                        }
+                        newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: searchParam.name, leaf: true,paramid:searchParam.id,paramvalue:value,possiblevalues:searchParam.possiblevalues,parametertype:searchParam.parametertype});
+                    }
+                });
+
+                /*
                 action.parameters.forEach(function(param){
                     var foundParam = null;
                     foundAction.get("params").forEach(function(searchParam){
@@ -946,7 +969,19 @@ Ext.define('Redwood.view.ActionCollection', {
                             newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: foundParam.name, leaf: true,paramid:param.paramid,paramvalue:param.paramvalue,possiblevalues:foundParam.possiblevalues,parametertype:foundParam.parametertype});
                         }
                     });
+                    if (foundParam == null){
+                        var value;
+                        if (param.parametertype === "Array of String"){
+                            value = [];
+                        }
+                        else{
+                            value = "<NULL>";
+                        }
+                        newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: param.name, leaf: true,paramid:param.id,paramvalue:value,possiblevalues:param.possiblevalues,parametertype:param.parametertype});
+                    }
                 });
+                */
+
                 me.store.getRootNode().appendChild(newAction);
                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
 
