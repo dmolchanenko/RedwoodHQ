@@ -206,6 +206,7 @@ Ext.define('Redwood.view.ActionCollection', {
     multiSelect: true,
     singleExpand: false,
     autoHeight: true,
+    enableColumnMove: false,
 
     parentActionID: null,
     parentActionParamsStore: null,
@@ -448,20 +449,22 @@ Ext.define('Redwood.view.ActionCollection', {
                 text: '',
                 width: 45,
                 dataIndex: 'order',
-                sortable: false
+                sortable: false,
+                menuDisabled:true
             },
             {
                 //xtype: 'treecolumn',
                 text: 'Action Name',
                 width: 200,
                 dataIndex: 'actionname',
-                sortable: false
+                sortable: false,menuDisabled:true
             },
             {
                 text: "Execution Flow",
                 width: 200,
                 dataIndex: "executionflow",
                 sortable: false,
+                menuDisabled:true,
                 editor: {
                     xtype: "combo",
                     store: Ext.create('Ext.data.Store', {
@@ -484,6 +487,7 @@ Ext.define('Redwood.view.ActionCollection', {
             {
                 text: 'Parameter Name',
                 width: 200,
+                menuDisabled:true,
                 renderer: function (value, meta, record) {
                     if (record.get("paramname") === "") {
                         //meta.tdCls = 'x-redwood-action-divider-row';
@@ -499,6 +503,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 text: 'Parameter Value',
                 //width: 200,
                 flex:1,
+                menuDisabled:true,
                 //tdCls:"x-redwood-action-value-cell",
                 renderer: function (value, meta, record) {
                     if (record.get("paramname") === ""){
@@ -518,6 +523,7 @@ Ext.define('Redwood.view.ActionCollection', {
             {
                 text: 'Return Value',
                 width: 100,
+                menuDisabled:true,
                 dataIndex: 'returnvalue',
                 sortable: false,
                 editor: {
@@ -527,6 +533,7 @@ Ext.define('Redwood.view.ActionCollection', {
             {
                 text: 'Host',
                 width: 100,
+                menuDisabled:true,
                 dataIndex: 'host',
                 sortable: false,
                 editor: {
@@ -536,6 +543,7 @@ Ext.define('Redwood.view.ActionCollection', {
             {
                 xtype: 'actioncolumn',
                 width: 70,
+                menuDisabled:true,
                 items: [
                     {
                         getClass: function(value, meta, record) {
@@ -1045,7 +1053,15 @@ Ext.define('Redwood.view.ActionCollection', {
 
                         var actionPicker = this.up("toolbar").down("#actionpicker");
 
-                        me.insertAction(actionPicker.getValue(),me.getSelectionModel().getSelection()[0]);
+                        var actionsFound = 0;
+                        me.getSelectionModel().getSelection().forEach(function(node){
+                            if(node.get("actionname") != ""){
+                                actionsFound++;
+                            }
+                        });
+                        if (actionsFound == 1){
+                            me.insertAction(actionPicker.getValue(),me.getSelectionModel().getSelection()[0]);
+                        }
 
                         /*
                         var actionSelected;
