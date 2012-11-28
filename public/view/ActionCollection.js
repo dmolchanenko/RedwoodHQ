@@ -676,6 +676,7 @@ Ext.define('Redwood.view.ActionCollection', {
                                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
                             }
                             me.removing = false;
+                            me.getView().updateLayout();
                             //console.log(grid.getRoot().getChildAt())
                         }
                     }
