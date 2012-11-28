@@ -20,7 +20,6 @@ Ext.define('Redwood.store.Scripts', {
     ],
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.Scripts',
         url: '/scripts',
         reader: {
             type: 'json'

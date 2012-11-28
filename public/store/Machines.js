@@ -13,7 +13,6 @@ Ext.define('Redwood.store.Machines', {
 
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.Machines',
         url: '/machines',
         reader: {
             type: 'json',

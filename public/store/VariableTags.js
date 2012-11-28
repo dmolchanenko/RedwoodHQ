@@ -13,7 +13,6 @@ Ext.define('Redwood.store.VariableTags', {
 
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.VariableTags',
         url: '/variabletags',
         reader: {
             type: 'json',

@@ -13,7 +13,6 @@ Ext.define('Redwood.store.MachineTags', {
 
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.MachineTags',
         url: '/machinetags',
         reader: {
             type: 'json',

@@ -13,7 +13,6 @@ Ext.define('Redwood.store.Variables', {
 
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.Variables',
         url: '/variables',
         reader: {
             type: 'json',

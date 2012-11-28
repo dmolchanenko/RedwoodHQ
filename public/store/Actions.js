@@ -1,5 +1,6 @@
 Ext.define('Redwood.store.Actions', {
     extend: 'Ext.data.Store',
+    model: 'Redwood.model.Actions',
 
     autoLoad: true,
     autoSync: false,
@@ -12,7 +13,6 @@ Ext.define('Redwood.store.Actions', {
 
     proxy: {
         type: 'rest',
-        model: 'Redwood.model.Actions',
         url: '/actions',
         reader: {
             type: 'json',
