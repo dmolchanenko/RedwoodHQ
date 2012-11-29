@@ -769,7 +769,14 @@ Ext.define('Redwood.view.ActionCollection', {
                     }),
                     valueField:"value",
                     queryMode: 'local',
-                    removeOnDblClick:true
+                    removeOnDblClick:true,
+                    listeners:{
+                        specialkey: function(field, e){
+                            if (e.getKey() == e.ENTER) {
+                                me.navigateToNextParam = true;
+                            }
+                        }
+                    }
                 });
                 e.column.getEditor().store.removeAll();
                 data.forEach(function(item){
@@ -800,6 +807,11 @@ Ext.define('Redwood.view.ActionCollection', {
                     listeners:{
                         focus: function(){
                             this.selectText();
+                        },
+                        specialkey: function(field, e){
+                            if (e.getKey() == e.ENTER) {
+                                me.navigateToNextParam = true;
+                            }
                         }
                     }
                     //autoEncode: true
@@ -833,18 +845,57 @@ Ext.define('Redwood.view.ActionCollection', {
         });
 
         this.cellEditing.on("validateedit",function(editor,e){
-            console.log(e);
             me.lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
         });
 
         //reselect whole action after edit
         //refresh the grid to avoid bottom rows to become invisible due to
         //word wrapping
-        this.cellEditing.on("edit",function(editor,e){
+        this.cellEditing.on("edit",function(editor,e,eOpt){
             me.getView().updateLayout();
             me.getSelectionModel().select(e.record);
 
-            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+            var scrollPlus = 0;
+            if (me.navigateToNextParam == true){
+                me.navigateToNextParam = false;
+                var index = e.record.parentNode.indexOf(e.record);
+                if (index + 1 < e.record.parentNode.childNodes.length){
+                    scrollPlus = 20;
+                    me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + scrollPlus;
+                    editor.startEdit(e.record.parentNode.getChildAt(index + 1), e.column);
+                }
+                else {
+
+                    var actionIndex = e.grid.getRootNode().indexOf(e.record.parentNode);
+                    while(true){
+                        var nextAction = null;
+                        if(actionIndex + 2 < e.grid.getRootNode().childNodes.length){
+                            nextAction = e.grid.getRootNode().getChildAt(actionIndex + 2);
+                            if (nextAction.childNodes.length > 0){
+                                scrollPlus = 40;
+                                if (nextAction.isExpanded() == true){
+                                    me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + scrollPlus;
+                                    editor.startEdit(nextAction.getChildAt(0), e.column);
+                                }
+                                else{
+                                    nextAction.expand(false,function(){
+                                        setTimeout(function(){
+                                            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + scrollPlus;
+                                            editor.startEdit(nextAction.getChildAt(0), e.column);
+                                        },400);
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                        else{
+                            break;
+                        }
+                        actionIndex = e.grid.getRootNode().indexOf(nextAction);
+                    }
+                }
+            }
+
         });
         this.plugins= [this.cellEditing];
 
