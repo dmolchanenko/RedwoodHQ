@@ -207,6 +207,7 @@ Ext.define('Redwood.view.ActionCollection', {
     singleExpand: false,
     autoHeight: true,
     enableColumnMove: false,
+    loadingData: false,
 
     parentActionID: null,
     parentActionParamsStore: null,
@@ -414,6 +415,14 @@ Ext.define('Redwood.view.ActionCollection', {
                 direction: 'DESC'
 
             }],
+            listeners:{
+                datachanged:function(){
+                    if ((me.markDirty)&&(me.loadingData == false)){
+                        console.log(me.loadingData);
+                        me.markDirty()
+                    }
+                }
+            },
             root: {
                 expanded: true
                 /*
@@ -967,6 +976,7 @@ Ext.define('Redwood.view.ActionCollection', {
         };
 
         this.loadCollection = function(collection){
+            me.loadingData = true;
             if((collection === "")||(collection.length == 0)) {
                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
                 return;
@@ -1018,32 +1028,10 @@ Ext.define('Redwood.view.ActionCollection', {
                     }
                 });
 
-                /*
-                action.parameters.forEach(function(param){
-                    var foundParam = null;
-                    foundAction.get("params").forEach(function(searchParam){
-                        if (searchParam.id === param.paramid){
-                            foundParam = searchParam;
-                            newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: foundParam.name, leaf: true,paramid:param.paramid,paramvalue:param.paramvalue,possiblevalues:foundParam.possiblevalues,parametertype:foundParam.parametertype});
-                        }
-                    });
-                    if (foundParam == null){
-                        var value;
-                        if (param.parametertype === "Array of String"){
-                            value = [];
-                        }
-                        else{
-                            value = "<NULL>";
-                        }
-                        newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: param.name, leaf: true,paramid:param.id,paramvalue:value,possiblevalues:param.possiblevalues,parametertype:param.parametertype});
-                    }
-                });
-                */
-
                 me.store.getRootNode().appendChild(newAction);
                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
-
             });
+            me.loadingData = false;
 
 
         };

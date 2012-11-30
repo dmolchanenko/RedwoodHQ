@@ -408,43 +408,6 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             this.removeRowCls(rowIdx, this.focusedItemCls);
                         },
                         listeners: {
-                            /*
-                            afterrender: function(me){
-                                var blurFunction = function(){
-                                    me.getSelectionModel().getSelection().forEach(function(node){
-                                        me.removeRowCls(me.indexOf(node),"x-grid-row-selected");
-                                        me.addRowCls(me.indexOf(node),"x-redwood-tree-unfocused");
-                                    });
-                                };
-
-                                var focusFunction = function(){
-                                    me.getSelectionModel().getSelection().forEach(function(node){
-                                        me.removeRowCls(me.indexOf(node),"x-redwood-tree-unfocused");
-                                        me.addRowCls(me.indexOf(node),"x-grid-row-selected");
-                                    });
-                                    me.up('scriptBrowser').fireEvent('focused','tree');
-                                };
-
-                                if (Ext.isIE){
-                                    me.el.on("focusout",function(){
-                                        blurFunction();
-                                    });
-                                    me.el.on("focusin",function(){
-                                        focusFunction();
-                                    });
-                                }
-                                else{
-                                    me.el.on("blur",function(){
-                                        blurFunction();
-                                    });
-                                    me.el.on("focus",function(){
-                                        focusFunction();
-                                    });
-                                }
-
-                            },
-                            */
-
                             itemcontextmenu: function(view, rec, node, index, e) {
                                 e.stopEvent();
                                 contextMenu.treePanel = view;
@@ -530,53 +493,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
         });
 
-        window.onbeforeunload = function(){
-            var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
-
-            for (var i=0;i<allScripts.length;i++){
-                if (allScripts[i].dirty == true){
-                    return "You have unsaved changes in one of your scripts.";
-                }
-            }
-        };
         this.items = [scriptView];
-
-        /*
-        var closeMe = Ext.create('Ext.Action', {
-            //icon:"",
-            cls: "x-tool-close"
-        });
-        //x-tool-close
-
-        this.dockedItems =[
-            {
-                xtype: 'toolbar',
-                dock: 'top',
-                items:[newItemButton,saveScriptAction,deleteScriptAction,'-',
-                    copyAction,pasteAction,'-',terminalAction,"-"," ",
-                    findText,
-                    findPrev,
-                    findNext,
-                    caseSensitive,
-                    regExpression
-                 ]
-            },
-            {
-                xtype: 'toolbar',
-                dock: 'top',
-                items:[
-                    replaceText,
-                    replaceAction,
-                    replaceAllAction,
-                    "->",
-                    closeMe
-                ]
-            }
-        ];
-        */
-
-
-
 
         this.tbar = {
             xtype: 'toolbar',

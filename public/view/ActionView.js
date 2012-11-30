@@ -65,6 +65,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
 
 
     initComponent: function () {
+        var me = this;
         this.rowEditor = null;
         this.rowEditor = Ext.create('Ext.grid.plugin.RowEditing', {
             autoCancel: false,
@@ -73,7 +74,17 @@ Ext.define('Redwood.view.ActionParamGrid',{
         this.store= Ext.create('Ext.data.ArrayStore', {
             model: 'ActionParams',
             autoSync: true,
-            data: []
+            data: [],
+            listeners:{
+                datachanged: function(){
+                    var actionView = me.up("actionview");
+                    if (actionView){
+                        if (actionView.loadingData === false){
+                            actionView.markDirty();
+                        }
+                    }
+                }
+            }
         });
         this.plugins =[this.rowEditor];
 
@@ -242,9 +253,41 @@ Ext.define('Redwood.view.ActionView', {
     //layout: 'vbox',
     myData:[],
     dataRecord: null,
+    dirty: false,
+    loadingData: false,
 
     initComponent: function () {
         var formId = Ext.uniqueId();
+        var me = this;
+
+        this.markDirty = function(){
+            this.dirty = true;
+            if(me.title.charAt(me.title.length-1) != "*"){
+                me.setTitle(me.title+"*")
+            }
+        };
+        me.on("beforeclose",function(panel){
+            if (this.dirty == true){
+                var me = this;
+                Ext.Msg.show({
+                    title:'Save Changes?',
+                    msg: 'You are closing a tab that has unsaved changes. Would you like to save your changes?',
+                    buttons: Ext.Msg.YESNOCANCEL,
+                    icon: Ext.Msg.QUESTION,
+                    fn: function(id){
+                        if (id == "no"){
+                            me.destroy();
+                        }
+                        if (id == "yes"){
+                            var editor = me.up('actions');
+                            editor.fireEvent('saveAction');
+                            me.destroy();
+                        }
+                    }
+                });
+                return false;
+            }
+        });
         this.items = [
             {
                 xtype: 'fieldset',
@@ -260,12 +303,26 @@ Ext.define('Redwood.view.ActionView', {
                         fieldLabel: "Name",
                         allowBlank: false,
                         labelStyle: "font-weight: bold",
-                        itemId:"name"
+                        itemId:"name",
+                        listeners:{
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
                     },
                     {
                         fieldLabel: "Description",
                         allowBlank: true,
-                        itemId:"description"
+                        itemId:"description",
+                        listeners:{
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
                     }
                     ,
                     {
@@ -289,6 +346,9 @@ Ext.define('Redwood.view.ActionView', {
                                     me.up("actionview").down("#actionCollectionFiledSet").show();
                                     me.up("actionview").down("scriptPicker").hide();
                                 }
+                                if (me.up("actionview").loadingData === false){
+                                    me.up("actionview").markDirty();
+                                }
 
                             }
                         }
@@ -304,7 +364,14 @@ Ext.define('Redwood.view.ActionView', {
                         itemId: 'status',
                         forceSelection: true,
                         editable: false,
-                        allowBlank: false
+                        allowBlank: false,
+                        listeners:{
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
                     },
                     {
                         xtype:"combofieldbox",
@@ -324,7 +391,14 @@ Ext.define('Redwood.view.ActionView', {
                         queryMode: 'local',
                         maskRe: /[a-z_0-9]/,
                         removeOnDblClick:true,
-                        itemId:"tag"
+                        itemId:"tag",
+                        listeners:{
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
                     }
                 ]
             },
@@ -359,13 +433,14 @@ Ext.define('Redwood.view.ActionView', {
                     {
                         xtype:"actioncollection",
                         listeners:{
-                            afterrender: function(me){
-                                var actionView = me.up("actionview");
+                            afterrender: function(collection){
+                                var actionView = collection.up("actionview");
                                 if(actionView.dataRecord != null){
-                                    me.parentActionID = actionView.dataRecord.get("_id");
+                                    collection.parentActionID = actionView.dataRecord.get("_id");
                                 }
-                                me.parentActionParamsStore = actionView.down("actionparamgrid").store;
-                                me.parentPanel = actionView;
+                                collection.parentActionParamsStore = actionView.down("actionparamgrid").store;
+                                collection.parentPanel = actionView;
+                                collection.markDirty = function(){me.markDirty()}
                             }
                         }
                     }
@@ -376,12 +451,13 @@ Ext.define('Redwood.view.ActionView', {
                 hidden: false,
                 width: 700
             }
-        ]
+        ];
 
         this.callParent(arguments);
     },
     listeners:{
         afterrender: function(me){
+            me.loadingData = true;
             if (me.dataRecord != null){
                 me.down("#name").setValue(me.dataRecord.get("name"));
                 me.down("#tag").setValue(me.dataRecord.get("tag"));
@@ -398,6 +474,7 @@ Ext.define('Redwood.view.ActionView', {
             else{
                 me.down("actioncollection").loadCollection("");
             }
+            me.loadingData = false;
             this.down("#name").focus();
         }
     },

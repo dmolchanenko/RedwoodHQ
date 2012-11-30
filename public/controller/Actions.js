@@ -17,7 +17,7 @@ Ext.define("Redwood.controller.Actions", {
         });
     },
 
-    onDeleteAction:function(){
+   onDeleteAction:function(){
         var actionView = this.tabPanel.getActiveTab();
         if (actionView === undefined){
             return;
