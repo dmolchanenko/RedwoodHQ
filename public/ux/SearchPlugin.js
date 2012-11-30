@@ -36,7 +36,7 @@ Ext.define('Ext.ux.SearchPlugin', {
             for(var pCount=0; pCount<field.paramNames.length; pCount++) {
                 var paramValue = record.get(field.paramNames[pCount]);
                 for (var valCount =0;valCount<values.length;valCount++){
-                    var matchValue = new XRegExp("^" + XRegExp.escape(values[valCount])+".*");
+                    var matchValue = new XRegExp("^" + XRegExp.escape(values[valCount])+".*","i");
                     if ( Object.prototype.toString.call(paramValue)  === "[object Array]") {
                         for (var paramCount=0;paramCount<paramValue.length;paramCount++){
                             if(matchValue.test(paramValue[paramCount])){
