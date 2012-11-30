@@ -886,16 +886,15 @@ Ext.define('Redwood.view.ActionCollection', {
                         if(actionIndex + 2 < e.grid.getRootNode().childNodes.length){
                             nextAction = e.grid.getRootNode().getChildAt(actionIndex + 2);
                             if (nextAction.childNodes.length > 0){
-                                scrollPlus = 40;
                                 if (nextAction.isExpanded() == true){
-                                    me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + scrollPlus;
+                                    me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + 40;
                                     editor.startEdit(nextAction.getChildAt(0), e.column);
                                 }
                                 else{
                                     nextAction.expand(false,function(){
                                         setTimeout(function(){
-                                            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + scrollPlus;
                                             editor.startEdit(nextAction.getChildAt(0), e.column);
+                                            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + 60;
                                         },400);
                                     });
                                 }
