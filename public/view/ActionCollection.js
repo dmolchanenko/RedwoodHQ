@@ -518,6 +518,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 },
                 dataIndex: 'paramvalue',
                 sortable: false,
+                itemId:"paramvalue",
                 editor: {}
             },
             {
@@ -848,6 +849,10 @@ Ext.define('Redwood.view.ActionCollection', {
             me.lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
         });
 
+        this.cellEditing.on("canceledit",function(editor,e){
+            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+        });
+
         //reselect whole action after edit
         //refresh the grid to avoid bottom rows to become invisible due to
         //word wrapping
@@ -889,6 +894,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             }
                         }
                         else{
+                            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos + scrollPlus;
                             break;
                         }
                         actionIndex = e.grid.getRootNode().indexOf(nextAction);
@@ -1089,6 +1095,10 @@ Ext.define('Redwood.view.ActionCollection', {
             var rowIndex = me.getView().indexOf(newRecord);
             me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
             me.getSelectionModel().select(newRecord);
+            //if (newRecord.childNodes.length > 0){
+                //me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
+            //}
+
         };
 
         var barItems = [
@@ -1126,6 +1136,9 @@ Ext.define('Redwood.view.ActionCollection', {
                         var rowIndex = me.getView().indexOf(newRecord);
                         me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
                         me.getSelectionModel().select(newRecord);
+                        if (newRecord.childNodes.length > 0){
+                            me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
+                        }
                     }
                 },
                 {
@@ -1150,50 +1163,6 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.insertAction(actionPicker.getValue(),me.getSelectionModel().getSelection()[0]);
                         }
 
-                        /*
-                        var actionSelected;
-                        var rowSelected;
-                        if (actionsGrid.getSelectionModel().getSelection().length > 0){
-                            actionSelected = parseInt(actionsGrid.getSelectionModel().getSelection()[0].get("order"),10);
-                            rowSelected = actionsGrid.getSelectionModel().getSelection()[0].get("rowOrder");
-                        }
-                        if(actionSelected === undefined){
-                            return;
-                        }
-                        this.setDisabled(true);
-
-
-                        var action = me.createAction(actionPicker.getValue(),actionPicker.store);
-                        if (action === null) return;
-
-                        if (me.parentActionID == action.actionid){
-                            Ext.Msg.alert('Error', "You can not add action to itself.");
-                            return;
-                        }
-                        var lastRowOrder = null;
-                        actionsGrid.store.getRootNode().eachChild(function(node){
-                            var order = parseInt(node.get("order"),10);
-                            if(order >= actionSelected){
-                                node.set("order",(order + 1).toString());
-                                node.set("rowOrder", node.get("rowOrder") + 2);
-                                lastRowOrder = node.get("rowOrder");
-                                return;
-                            }
-                            if (lastRowOrder !== null){
-                                node.set("rowOrder",lastRowOrder + 1);
-                                lastRowOrder = null;
-                            }
-
-                        });
-                        action.order = actionSelected;
-                        action.rowOrder = rowSelected;
-                        var newRecord = actionsGrid.store.getRootNode().appendChild(action);
-                        actionsGrid.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
-                        actionsGrid.store.sort("rowOrder","ASC");
-                        var rowIndex = me.getView().indexOf(newRecord);
-                        me.getView().getNode(rowIndex).scrollIntoView(me.up("actionview").getEl());
-                        this.setDisabled(false);
-                        */
                     }
                 },
                 {

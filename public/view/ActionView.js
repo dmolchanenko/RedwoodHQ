@@ -215,7 +215,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
 
                     // add blank item to store -- will automatically add new row to grid
                     var blank = grid.store.add({
-                        name: 'newParam',
+                        name: 'New Parameter',
                         possiblevalues:[],
                         parametertype:"String",
                         id:Ext.uniqueId()
