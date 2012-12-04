@@ -418,7 +418,6 @@ Ext.define('Redwood.view.ActionCollection', {
             listeners:{
                 datachanged:function(){
                     if ((me.markDirty)&&(me.loadingData == false)){
-                        console.log(me.loadingData);
                         me.markDirty()
                     }
                 }
@@ -978,6 +977,7 @@ Ext.define('Redwood.view.ActionCollection', {
             me.loadingData = true;
             if((collection === "")||(collection.length == 0)) {
                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
+                me.loadingData = false;
                 return;
             }
             var actionStore = Ext.getStore("Actions");
