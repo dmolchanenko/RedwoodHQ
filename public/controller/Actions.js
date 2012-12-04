@@ -82,6 +82,7 @@ Ext.define("Redwood.controller.Actions", {
         this.getStore('Actions').sync();
         this.getStore('ActionTags').sync();
         actionView.setTitle(action.name);
+        actionView.dirty = false;
     },
 
     onNewAction: function(){
