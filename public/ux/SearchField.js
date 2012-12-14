@@ -34,11 +34,13 @@ Ext.define('Ext.ux.form.SearchField', {
                     continue;
                 }
 
+                /*
                 if ((value[i] == " ")&&(quoteFound == false)){
                     values.push(tempVal);
                     tempVal = "";
                     continue;
                 }
+                */
                 tempVal = tempVal + value[i];
                 if (value.length == i+1){
                     values.push(tempVal);

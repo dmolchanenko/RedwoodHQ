@@ -1,3 +1,14 @@
+var scripts = require("../routes/scripts");
+var common = require("../common");
+var fs = require('fs');
+var path = require('path');
+var realtime = require("../routes/realtime");
+
+exports.allProjects = function(callback){
+    var app =  require('../common');
+    GetProjects(app.getDB(),{},callback);
+};
+
 exports.projectsPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -27,13 +38,14 @@ exports.projectsDelete = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
-    DeleteProjects(app.getDB(),{_id: id},function(err){
+    DeleteProjects(app.getDB(),{_id: id},req.body.name,function(err){
         res.contentType('json');
         res.json({
             success: !err,
             projects: []
         });
     });
+    realtime.emitMessage("projectDelete",req.body.name);
 };
 
 exports.projectsPost = function(req, res){
@@ -41,10 +53,12 @@ exports.projectsPost = function(req, res){
     var data = req.body;
     delete data._id;
     CreateProjects(app.getDB(),data,function(returnData){
-        res.contentType('json');
-        res.json({
-            success: true,
-            projects: returnData
+        scripts.CreateNewProject(data.name,data.language,function(){
+            res.contentType('json');
+            res.json({
+                success: true,
+                projects: returnData
+            });
         });
     });
 };
@@ -73,13 +87,36 @@ function UpdateProjects(db,data,callback){
 
 }
 
-function DeleteProjects(db,data,callback){
+function DeleteProjects(db,data,projectName,callback){
     db.collection('projects', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
-            callback(err);
+            db.collection('actions', function(err, collection) {
+                collection.remove({project:projectName},{safe:true},function(err) {
+                });
+            });
         });
     });
-
+    db.collection('variables', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+    var projectPath = path.resolve(__dirname,"../public/automationscripts/"+projectName);
+    var toDelete = [];
+    common.walkDir(projectPath,function(){
+        toDelete.reverse();
+        toDelete.push(projectPath);
+        toDelete.forEach(function(file,index,array){
+            if (fs.statSync(file).isDirectory()){
+                fs.rmdirSync(file);
+            }
+            else{
+                fs.unlinkSync(file);
+            }
+        });
+    },function(file){
+        toDelete.push(file);
+    });
+    callback();
 }
 
 function GetProjects(db,query,callback){

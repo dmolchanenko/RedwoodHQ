@@ -3,6 +3,7 @@ exports.actionsPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
+    data.project = req.cookies.project;
     UpdateActions(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -17,7 +18,7 @@ exports.actionsPut = function(req, res){
 
 exports.actionsGet = function(req, res){
     var app =  require('../common');
-    GetActions(app.getDB(),{},function(data){
+    GetActions(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -45,6 +46,7 @@ exports.actionsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
+    data.project = req.cookies.project;
     CreateActions(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({

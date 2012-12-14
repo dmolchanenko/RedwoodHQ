@@ -3,6 +3,7 @@ exports.variablesPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
+    data.project = req.cookies.project;
     UpdateVariables(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -17,7 +18,7 @@ exports.variablesPut = function(req, res){
 
 exports.variablesGet = function(req, res){
     var app =  require('../common');
-    GetVariables(app.getDB(),{},function(data){
+    GetVariables(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -46,6 +47,7 @@ exports.variablesPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
+    data.project = req.cookies.project;
     CreateVariables(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({

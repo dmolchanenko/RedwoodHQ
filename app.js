@@ -10,8 +10,10 @@ var express = require('express')
   , folder = require('./routes/folder')
   , script = require('./routes/script')
   , users = require('./routes/users')
+  , projects = require('./routes/projects')
   , variableTags = require('./routes/variableTags')
   , userTags = require('./routes/userTags')
+  , userStates = require('./routes/userStates')
   , machines = require('./routes/machines')
   , machinetags = require('./routes/machineTags')
   , actions = require('./routes/actions')
@@ -21,8 +23,7 @@ var express = require('express')
   , common = require('./common')
   , auth = require('./routes/auth')
   , terminal = require('./routes/terminal')
-  , compile = require('./routes/compile')
-  , sio = require('socket.io') ;
+  , realtime = require('./routes/realtime');
 
 
 var app = module.exports = express.createServer(
@@ -30,7 +31,6 @@ var app = module.exports = express.createServer(
     //express.cookieParser(),
     //express.session({ secret: 'redwoodsecrect' })
 );
-var io = sio.listen(app);
 common.initDB();
 // Configuration
 
@@ -98,6 +98,18 @@ app.put('/users/:id',auth.auth, users.usersPut);
 app.post('/users',auth.auth, users.usersPost);
 app.del('/users/:id',auth.auth, users.usersDelete);
 
+//userStates
+app.get('/userStates', auth.auth, users.userStatesGet);
+app.put('/userStates/:id',auth.auth, users.userStatesPut);
+app.post('/userStates',auth.auth, users.userStatesPost);
+app.del('/userStates/:id',auth.auth, users.userStatesDelete);
+
+//projects
+app.get('/projects', auth.auth, projects.projectsGet);
+app.put('/projects/:id',auth.auth, projects.projectsPut);
+app.post('/projects',auth.auth, projects.projectsPost);
+app.del('/projects/:id',auth.auth, projects.projectsDelete);
+
 //userTags
 app.get('/userTags',auth.auth, userTags.userTagsGet);
 app.post('/userTags',auth.auth, userTags.userTagsPost);
@@ -119,29 +131,7 @@ app.put('/folder',auth.auth, folder.folderPut);
 //folder
 app.post('/fileupload',auth.auth, fileupload.upload);
 
-
-io.configure( function() {
-    io.set('log level', 0);
-});
-
-io.sockets.on('connection', function(socket) {
-    console.log(socket.id);
-    socket.on("terminal",function(msg){
-        terminal.operation(msg,socket.id,function(response){
-            io.sockets.socket(socket.id).emit("terminal",response);
-        })
-    });
-    socket.on("compile",function(msg){
-        compile.operation(msg,socket.id,function(response){
-            console.log(response);
-            io.sockets.socket(socket.id).emit("compile",response);
-        })
-    });
-    socket.on('disconnect', function () {
-        terminal.closeSession(socket.id);
-    });
-});
-
+realtime.initSocket(app);
 
 app.listen(3000, function(){
   console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);

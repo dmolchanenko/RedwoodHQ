@@ -3,90 +3,51 @@ Ext.define("Redwood.controller.Projects", {
 
     models: ['Projects'],
     stores: ['Projects'],
-    views:  ['Projects'],
+    views:  ['Projects','ProjectEdit'],
 
     init: function () {
         this.control({
-            'usersEditor': {
+            'projectsEditor': {
                 render: this.onEditorRender,
                 edit: this.afterUserEdit,
-                userEdit: this.onUserEdit,
-                userDelete: this.onUserDelete,
-                celldblclick: this.onDoubleClick
+                projectDelete: this.onProjectDelete
             },
-            'usersEditor button': {
-                click: this.addUser
+            'projectsEditor button': {
+                click: this.addProject
             }
 
         });
     },
 
-    onDoubleClick: function(me,td,cell,record,tr){
-        if(record) {
-            var userEditWindow = new Redwood.view.UserEdit({newUser:false});
-            userEditWindow.show();
-            userEditWindow.items.getAt(0).loadRecord(record);
-            userEditWindow.items.getAt(0);
-            if (record.get("username") == "admin"){
-                userEditWindow.down('form').getForm().findField("role").disable();
+    onProjectDelete: function(evtData){
+
+        Ext.Msg.show({
+            title:'Delete Confirmation',
+            msg: 'Are you sure you want to delete selected project?<br>Please note that you CAN NOT undo this operation.',
+            buttons: Ext.Msg.YESNO,
+            icon: Ext.Msg.QUESTION,
+            fn: function(id){
+                if (id == "yes"){
+                    var store = Ext.data.StoreManager.lookup('Projects');
+                    var record = store.getAt(evtData.rowIndex);
+                    if(record) {
+                        store.remove(record);
+                        store.sync({success:function(batch,options){} });
+                    }
+                }
             }
-        }
-    },
-    onUserEdit: function(evtData){
-        var store = this.getStore('Users');
-        var record = store.getAt(evtData.rowIndex);
-        if(record) {
-            var userEditWindow = new Redwood.view.UserEdit({newUser:false});
-            userEditWindow.show();
-            //userEditWindow.on("destroy",function(){this.spot.hide();},this);
-            //this.spot.show("EditUser");
-            userEditWindow.items.getAt(0).loadRecord(record);
-            if (record.get("username") == "admin"){
-                userEditWindow.down('form').getForm().findField("role").disable();
-            }
-        }
-    },
+        });
 
-    onUserDelete: function(evtData){
-        var store = this.getStore('Users');
-        var record = store.getAt(evtData.rowIndex);
-        if(record) {
-            if (record.get("username") == "admin"){
-                return;
-            }
-            store.remove(record);
-            store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Users').load();} });
-        }
+
 
     },
 
-    afterUserEdit: function(evtData){
-        var varStore = this.getStore('Users');
-        this.getStore('UserTags').sync();
-        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Users').load();} });
-    },
-
-    addUser: function () {
-        /*
-         var record = this.getStore('Users').add({
-         username: '',
-         tag: '',
-         name: '',
-         password:'',
-         role:'User'
-         })[0];
-         */
-        var userEditWindow = new Redwood.view.UserEdit({newUser:true});
-        userEditWindow.show();
-        //userEditWindow.down('form').getForm().findField("username").focus();
+    addProject: function () {
+        var projectEditWindow = new Redwood.view.ProjectEdit({newProject:true});
+        projectEditWindow.show();
     },
 
     onEditorRender: function () {
-        this.usersEditor = Ext.ComponentQuery.query('usersEditor')[0];
-        //this.usersEditor = Ext.ComponentQuery.query('usersEditor')[0];
-        //this.userEdit = new Redwood.view.UserEdit();//Ext.ComponentQuery.query('userEdit')[0];
-        this.rowEditor = this.usersEditor.rowEditor;
-        this.tagEditor = this.usersEditor.tagEditor;
-        this.grid = this.usersEditor;
+        this.projectsEditor = Ext.ComponentQuery.query('projectsEditor')[0];
     }
 });

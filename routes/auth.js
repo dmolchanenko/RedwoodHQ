@@ -1,4 +1,6 @@
 var sessions = {};
+var projects =  require('../routes/projects');
+var userState =  require('../routes/userStates');
 
 exports.loginPage = function(req,res){
     res.redirect('/login.html');
@@ -10,9 +12,8 @@ exports.logIn = function (req,res,next){
             require('crypto').randomBytes(20, function(ex, buf) {
                 var token = buf.toString('hex');
                 sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000)};
-                res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: true});
-                //res.cookie('username', req.body.username, { expires: new Date(Date.now() + 900000), httpOnly: true});
-                res.cookie('username', req.body.username, {maxAge: 2592000000, httpOnly: true });
+                res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: false});
+                res.cookie('username', req.body.username, {maxAge: 2592000000, httpOnly: false });
                 return next();
             });
         }
@@ -23,13 +24,45 @@ exports.logIn = function (req,res,next){
 };
 
 exports.logInSucess = function(req,res){
-    res.json({error:null,redirect:"/index.html"});
+    userState.GetUserProject(req.cookies.username,function(project){
+        if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
+            projects.allProjects(function(projects){
+                res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
+                res.json({error:null,redirect:"/index.html"});
+            });
+        }
+        else if (project == null){
+            projects.allProjects(function(projects){
+                var found = false;
+                projects.forEach(function(project){
+                    if (project.name === req.cookies.project){
+                        found = true;
+                    }
+                });
+                if (found == false){
+                    res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
+                }
+                res.json({error:null,redirect:"/index.html"});
+            });
+        }
+        else{
+            if ((req.cookies.project === undefined)||(req.cookies.project == "")){
+                res.cookie('project', project, {maxAge: 2592000000, httpOnly: false });
+            }
+            res.json({error:null,redirect:"/index.html"});
+        }
+    })
 };
 
 exports.auth = function(req,res,next){
     if (sessions[req.cookies.username] != undefined){
         if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
-            return next();
+            if (req.cookies.project == undefined){
+                res.redirect("/login");
+            }
+            else{
+                return next();
+            }
         }
     }
     res.redirect("/login");

@@ -201,6 +201,10 @@
             }, 
             del = function(e) {
             	if(me.readOnly || me.disabled || !me.editable) {return}
+                if(e.button == 31){
+                    me.view.inputEl.dom.value = me.view.inputEl.dom.value + ' ';
+                    return false;
+                }
             	var nav = this,
                 boundList = nav.boundList,
                 item = boundList.highlightedItem,
@@ -240,7 +244,7 @@
 						var foundRec = me.store.findExact(me.valueField, rawValue);
                         rec = {};
                         rec[me.valueField] = rawValue;
-                        rec[me.displayField] = rawValue;
+                        rec[me.displayField] = Ext.util.Format.htmlEncode(rawValue);
 						if(foundRec < 0) {
 						 me.store.add(rec);
 						}

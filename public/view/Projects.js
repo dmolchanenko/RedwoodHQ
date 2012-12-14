@@ -8,24 +8,20 @@ Ext.define('Redwood.view.Projects', {
     minHeight: 150,
     manageHeight: true,
     initComponent: function () {
-        var usersEditor = this;
+        var me = this;
+
 
         this.columns = [
             {
-                header: 'Key',
-                dataIndex: 'key',
+                header: 'Name',
+                dataIndex: 'name',
                 //flex: 1,
                 width: 200
             },
             {
-                header: 'Description',
-                dataIndex: 'description',
+                header: 'Language',
+                dataIndex: 'language',
                 //flex: 1,
-                width: 200
-            },
-            {
-                header: 'Role',
-                dataIndex: 'role',
                 width: 200
             },
             {
@@ -33,20 +29,10 @@ Ext.define('Redwood.view.Projects', {
                 width: 50,
                 items: [
                     {
-                        icon: 'images/edit.png',  // Use a URL in the icon config
-                        tooltip: 'Edit',
-                        handler: function(grid, rowIndex, colIndex) {
-                            usersEditor.fireEvent('userEdit', {
-                                rowIndex: rowIndex,
-                                colIndex: colIndex
-                            });
-                        }
-                    },
-                    {
                         icon: 'images/delete.png',
                         tooltip: 'Delete',
                         handler: function(grid, rowIndex, colIndex) {
-                            usersEditor.fireEvent('userDelete', {
+                            me.fireEvent('projectDelete', {
                                 rowIndex: rowIndex,
                                 colIndex: colIndex
                             });
@@ -62,7 +48,10 @@ Ext.define('Redwood.view.Projects', {
             items: [
                 {
                     iconCls: 'icon-add',
-                    text: 'Add Project'
+                    text: 'Add Project',
+                    handler: function(){
+                        me.fireEvent('addProject');
+                    }
                 }
             ]
         }];

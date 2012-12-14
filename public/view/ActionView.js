@@ -14,14 +14,14 @@ Ext.define('ActionParams', {
 Ext.define('ValidValues', {
     extend: 'Ext.data.Model',
     fields: [
-        {type: 'string', name: 'value'}
+        {type: 'string', name: 'value'},
+        {type: 'string', name: 'text'}
     ]
 });
 
 var possibleValues = function(data){
     return Ext.create('Ext.data.ArrayStore', {
         model: 'ValidValues',
-        autoSync: true,
         data: data
     });
 };
@@ -88,12 +88,14 @@ Ext.define('Redwood.view.ActionParamGrid',{
         });
         this.plugins =[this.rowEditor];
 
+        this.rowEditor.on("edit",function(editor,e,eOpt){
+            console.log(e);
+        });
         this.rowEditor.on("beforeedit",function(editor,e){
             e.grid.columns[2].getEditor().store.removeAll();
             e.record.get("possiblevalues").forEach(function(item){
-                e.grid.columns[2].getEditor().store.add({"value":item});
+                e.grid.columns[2].getEditor().store.add({value:item,text:Ext.util.Format.htmlEncode(item)});
             });
-
         });
         this.rowEditor.on('validateedit', function (editor, e) {
             if ((Ext.encode(e.newValues) === Ext.encode(e.originalValues) )) {
@@ -120,6 +122,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
                     xtype: 'textfield',
                     allowBlank: false,
                     vtype: "paramTest",
+                    maskRe: /[^<]/,
                     listeners:{
                         focus: function(){
                             this.selectText();
@@ -152,10 +155,14 @@ Ext.define('Redwood.view.ActionParamGrid',{
                 dataIndex: 'possiblevalues',
                 //width: 350,
                 flex: 1,
+                maxWidth:915,
+                renderer: function (value, meta, record) {
+                    return Ext.util.Format.htmlEncode(value);
+                },
                 editor: Ext.create('Ext.ux.ComboFieldBox', {
                     typeAhead:true,
-                    displayField:"value",
-                    descField:"value",
+                    displayField:"text",
+                    descField:"text",
                     height:24,
                     labelWidth: 100,
                     forceSelection:false,
@@ -170,6 +177,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
             },
             {
                 xtype: 'actioncolumn',
+                menuDisabled:true,
                 width: 75,
                 items: [
                     {

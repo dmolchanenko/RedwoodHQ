@@ -4,7 +4,8 @@ var adminStore = Ext.create('Ext.data.TreeStore', {
         children: [
             { text: "Variables", leaf: true },
             { text: "Machines", leaf: true,icon:"images/pc.png" },
-            { text: "Users", leaf: true,icon:"images/user_go.png" }
+            { text: "Users", leaf: true,icon:"images/user_go.png" },
+            { text: "Projects", leaf: true,icon:"images/project.png" }
         ]
     }
 });
@@ -12,23 +13,87 @@ var adminStore = Ext.create('Ext.data.TreeStore', {
 Ext.define('Redwood.view.Viewport', {
     extend: 'Ext.container.Viewport',
 
-    //layout: 'fit',
     layout: 'border',
     style: {height:"100%"},
+    listeners:{
+        afterrender: function(me){
+            me.insert(0,{
+                xtype:"panel",
+                region:"north",
+                height: "22px",
+                bodyStyle: { background: '#A5A5A5'},
+                tbar: {
+                    xtype: 'toolbar',
+                    style: { background: '#A5A5A5'},
+                    dock: 'top',
+                    items:[
+                        {
+                            xtype:"box",
+                            html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood HQ</h1>'
+                        },
+                        "->",
+                        {
+                            xtype:"combo",
+                            store: Ext.data.StoreManager.lookup('Projects'),
+                            queryMode: 'local',
+                            displayField: 'name',
+                            valueField: 'name',
+                            itemID: "projectSelection",
+                            fieldLabel:"Choose Project",
+                            labelStyle: "font-weight: bold",
+                            width: 250,
+                            forceSelection: true,
+                            editable: false,
+                            listeners:{
+                                afterrender: function(me){
+                                    var project = Ext.util.Cookies.get("project");
+                                    me.getStore().on("load",function(store,records){
+                                        me.internalSelect = true;
+                                        records.forEach(function(record){
+                                            if (record.get("name") === project){
+                                                me.setValue(record);
+                                            }
+                                        });
+                                        me.internalSelect = false;
+                                    });
+                                    //me.setValue(me.getStore().findRecord("name",projectName).get("_id"));
+
+                                },
+                                change: function(me,value,oldValue){
+                                    //return;
+                                    if ( me.internalSelect === true) return;
+                                    Ext.Msg.show({
+                                        title:'Project Change Confirmation',
+                                        msg: 'Are you sure you want to change project?<br>Please note that all unsaved changes will be lost.',
+                                        buttons: Ext.Msg.YESNO,
+                                        icon: Ext.Msg.QUESTION,
+                                        fn: function(id){
+                                            if (id == "yes"){
+                                                Ext.util.Cookies.set("project",value);
+                                                window.location.reload(true);
+                                            }
+                                            else{
+                                                me.internalSelect = true;
+                                                me.setValue(oldValue);
+                                                me.internalSelect = false;
+                                            }
+                                        }
+                                    });
+
+
+                                }
+                            }
+                        }
+                    ]
+
+                }
+            });
+        }
+    },
     items: [
-        {
-            xtype:"box",
-            region:"north",
-            height: "22px",
-            html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood HQ</h1>',
-            border: false
-        },
         {
         xtype: 'tabpanel',
         region:"center",
-        //anchor: '100%',
-        //height:"300px",
-        //title: 'Redwood Automation Framework',
         items: [
             {
                 title: "Tasks"
@@ -90,12 +155,12 @@ Ext.define('Redwood.view.Viewport', {
                                 xtype: "usersEditor",
                                 itemId: "Users"
                             }
-                            /*,
+                            ,
                             {
                                 xtype: "projectsEditor",
                                 itemId: "Projects"
                             }
-                            */
+
 
                         ]
                     }

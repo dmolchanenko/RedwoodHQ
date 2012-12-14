@@ -1,11 +1,11 @@
-<project name="HelloWorld" basedir="." default="main">
+<project name="ProjectName" basedir="." default="main">
 
     <property name="src.dir"     value="src"/>
     <property name="build.dir"   value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
     <property name="jar.dir"     value="${build.dir}/jar"/>
     <property name="lib.dir"     value="External Libraries"/>
-    <property name="main-class"  value="HelloWorldApp"/>
+    <property name="main-class"  value="Redwood"/>
     <property name="build.compiler"  value="modern"/>
 
     <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc">

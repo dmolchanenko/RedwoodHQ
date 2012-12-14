@@ -27,11 +27,11 @@
             me.tpl = new Ext.XTemplate(
                 '<ul class="x-boxselect-list {fieldCls} {typeCls}">',
                     '{[this.empty(values)]}',
-                    '<tpl for=".">', 
+                    '<tpl for=".">',
                         //'<li class="x-boxselect-item"', descField ? ('data-qtitle="{' + displayField + '}" data-qtip="{' + descField + '}">') : '>',
                         '<li class="x-boxselect-item"', descField ? ('data-qtip="{' + descField + '}">') : '>',
-                        '<div class="x-boxselect-item-text">{[this.ellipsis(values.', displayField, ')]}</div>', 
-                        '<div class="x-tab-close-btn ', me.closeCls, '"></div>', 
+                        '<div class="x-boxselect-item-text">{[this.ellipsis(values.', displayField, ')]}</div>',
+                        '<div class="x-tab-close-btn ', me.closeCls, '"></div>',
                     '</li>', 
                 '</tpl>', 
                 '<li class="x-boxselect-input"><input style="width:'+( (field.createNewOnEnter && !field.forceSelection) ? 35 : 2) +'px;"/><li>', // need this to manage focus; widh of input is larger in createNewOnEnter is set to true

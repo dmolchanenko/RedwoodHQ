@@ -55,6 +55,7 @@ Ext.define('Redwood.view.UserEdit', {
             buttons: [
             {
                 text: 'Submit',
+                itemId: "submit",
                 formBind: true, //only enabled once the form is valid
                 disabled: true,
                 handler: function() {
@@ -102,7 +103,7 @@ Ext.define('Redwood.view.UserEdit', {
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
-                                this.up('form').getForm().submit();
+                                this.up('form').down("#submit").handler();
                             }
                         }
                     }
@@ -116,7 +117,7 @@ Ext.define('Redwood.view.UserEdit', {
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
-                                this.up('form').getForm().submit();
+                                this.up('form').down("#submit").handler();
                             }
                         }
                     }
@@ -133,7 +134,6 @@ Ext.define('Redwood.view.UserEdit', {
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
-                                this.up('form').getForm().submit();
                             }
                         }
                     }
@@ -160,7 +160,7 @@ Ext.define('Redwood.view.UserEdit', {
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
-                                this.up('form').getForm().submit();
+                                this.up('form').down("#submit").handler();
                             }
                         }
                     }
@@ -176,7 +176,7 @@ Ext.define('Redwood.view.UserEdit', {
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
-                                this.up('form').getForm().submit();
+                                this.up('form').down("#submit").handler();
                             }
                         }
                     }
@@ -193,7 +193,7 @@ Ext.define('Redwood.view.UserEdit', {
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
-                                this.up('form').getForm().submit();
+                                this.up('form').down("#submit").handler();
                             }
                         }
                     }

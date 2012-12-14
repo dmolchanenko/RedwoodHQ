@@ -521,7 +521,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     }
                     return Ext.util.Format.htmlEncode(value);
                     var encoded = Ext.util.Format.htmlEncode(value);
-                    encoded = "<b>"+encoded+"</b>"
+                    encoded = "<strong>"+encoded+"</strong>asdfasdfdsa"
                     return encoded;
                 },
                 dataIndex: 'paramvalue',
@@ -757,11 +757,22 @@ Ext.define('Redwood.view.ActionCollection', {
             }
 
             if (e.record.get("parametertype") === "Array of String"){
-                var data = e.record.get("paramvalue");
+                var data = [];
+
+                e.record.get("paramvalue").forEach(function(value){
+                    data.push({text:Ext.util.Format.htmlEncode(value),paramvalue:value});
+                });
+
+                e.record.get("possiblevalues").forEach(function(value){
+                    if (!Ext.Array.contains(e.record.get("paramvalue"),value)){
+                        data.push({text:Ext.util.Format.htmlEncode(value),paramvalue:value});
+                    }
+                });
+
                 e.column.setEditor({
                     xtype:"combofieldbox",
-                    displayField:"value",
-                    descField:"value",
+                    displayField:"text",
+                    descField:"text",
                     height:24,
                     labelWidth: 100,
                     forceSelection:false,
@@ -769,14 +780,13 @@ Ext.define('Redwood.view.ActionCollection', {
                     encodeSubmitValue:true,
                     autoSelect: true,
                     store:Ext.create('Ext.data.Store', {
-                        autoSync: true,
-                        autoLoad: true,
                         fields: [
-                            {type: 'string', name: 'value'}
+                            {type: 'auto', name: 'paramvalue'},
+                            {type: 'auto', name: 'text'}
                         ],
                         data: data
                     }),
-                    valueField:"value",
+                    valueField:"paramvalue",
                     queryMode: 'local',
                     removeOnDblClick:true,
                     listeners:{
@@ -786,10 +796,6 @@ Ext.define('Redwood.view.ActionCollection', {
                             }
                         }
                     }
-                });
-                e.column.getEditor().store.removeAll();
-                data.forEach(function(item){
-                    e.column.getEditor().store.add({value:item})
                 });
                 return;
             }
@@ -859,6 +865,16 @@ Ext.define('Redwood.view.ActionCollection', {
 
         this.cellEditing.on("canceledit",function(editor,e){
             me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+        });
+
+        this.cellEditing.on("beforeedit",function(editor,e){
+            if (e.value instanceof Array){
+                var newValue = [];
+                e.value.forEach(function(value){
+                    newValue.push({paramvalue:value})
+                });
+                e.value = newValue;
+            }
         });
 
         //reselect whole action after edit
@@ -1011,7 +1027,18 @@ Ext.define('Redwood.view.ActionCollection', {
                     action.parameters.forEach(function(param){
                         if (searchParam.id === param.paramid){
                             foundParam = param;
-                            newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: searchParam.name, leaf: true,paramid:param.paramid,paramvalue:param.paramvalue,possiblevalues:searchParam.possiblevalues,parametertype:searchParam.parametertype});
+                            var paramValue = param.paramvalue;
+                            if (searchParam.parametertype === "Array of String"){
+                                if(!paramValue instanceof Array){
+                                    paramValue = [];
+                                }
+                            }
+                            else{
+                                if(paramValue instanceof Array){
+                                    paramValue = "<NULL>";
+                                }
+                            }
+                            newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: searchParam.name, leaf: true,paramid:param.paramid,paramvalue:paramValue,possiblevalues:searchParam.possiblevalues,parametertype:searchParam.parametertype});
                         }
 
                     });

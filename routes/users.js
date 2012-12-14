@@ -3,9 +3,6 @@ exports.usersPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
-    if (data.password != ""){
-        data.password = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
-    }
     UpdateUsers(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -83,6 +80,9 @@ function UpdateUsers(db,data,callback){
             u.name = data.name;
             u.tag = data.tag;
             u._id = data._id;
+            if(data.password){
+                u.password = data.password;
+            }
             //myColl.save(j);
             collection.save(u,{safe:true},function(err){
                 if (err) console.warn(err.message);

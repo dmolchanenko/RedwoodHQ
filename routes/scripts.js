@@ -1,10 +1,11 @@
 var fs = require('fs');
-var rootDir = "public/automationscripts";
+var rootDir = "public/automationscripts/";
 var common = require('../common');
 var git = require('../gitinterface/gitcommands');
+var path = require('path');
 
 exports.scriptsGet = function(req, res){
-    GetScripts(rootDir,function(data){
+    GetScripts(rootDir+req.cookies.project,function(data){
         res.contentType('json');
         res.json(data);
         /*
@@ -36,6 +37,35 @@ exports.scriptsCopy = function(req, res){
             res.json({error:null});
         }
     });
+};
+
+
+exports.CreateNewProject = function(projectName,language,callback){
+    var templatePath = "";
+    if(language == "Java/Groovy"){
+        templatePath = path.resolve(__dirname,"../project_templates/java_project");
+    }
+    var common = require('../common');
+    var files = [];
+    common.walkDir(templatePath,function(){
+        var newProjectPath = path.resolve(__dirname,"../public/automationscripts/"+projectName);
+        fs.mkdirSync(newProjectPath);
+        files.forEach(function(file,index,array){
+            var destName = file.replace(templatePath,"");
+            destName = newProjectPath+destName;
+            console.log(destName);
+
+            if (fs.statSync(file).isDirectory()){
+                fs.mkdirSync(destName);
+            }
+            else{
+                var data = fs.readFileSync(file);
+                fs.writeFileSync(destName,data);
+            }
+        });
+        callback();
+
+    },function(file){files.push(file)})
 };
 
 function CopyScripts(scripts,destDir,callback){
@@ -83,38 +113,36 @@ function CopyScripts(scripts,destDir,callback){
             });
         }
         else{
-            fs.readFile(script,function(err,data){
+            var data = fs.readFileSync(script);
+
+            var name = script.substring(script.lastIndexOf("/")+1,script.length);
+            if (fs.existsSync(destDir+"/"+name)){
+                callback("File:" +destDir+"/"+name+" already exists.");
+                errFound = true;
+                return;
+            }
+            fs.writeFileSync(destDir+"/"+name,data,function(err){
                 if (err){
                     callback(err);
                     errFound = true;
                     return;
                 }
-
-                var name = script.substring(script.lastIndexOf("/")+1,script.length);
-                if (fs.existsSync(destDir+"/"+name)){
-                    callback("File:" +destDir+"/"+name+" already exists.");
-                    errFound = true;
-                    return;
-                }
-                fs.writeFileSync(destDir+"/"+name,data,function(err){
-                    if (err){
-                        callback(err);
-                        errFound = true;
-                        return;
-                    }
-                });
-                if((lastLoop)&& (errFound == false)){
-                    callback();
-                }
-            })
+            });
+            if((lastLoop)&& (errFound == false)){
+                callback();
+            }
         }
     });
 }
 
 function GetScripts(rootDir,callback){
     walkDir(rootDir, function(err, results) {
-        if (err) callback({error:err});
-        callback(results);
+        if (err) {
+            callback({error:err});
+        }
+        else{
+            callback(results);
+        }
     });
 }
 

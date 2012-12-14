@@ -6,8 +6,7 @@ Ext.application({
     autoCreateViewport: true,
 
     controllers: [
-        'Machines','Variables','Users','Scripts','Actions'
-    ],
+        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents'],
     launch: function(){
         Ext.clipboard = {};
         Ext.uniqueId = function()
@@ -21,6 +20,7 @@ Ext.application({
         };
         Ext.tip.QuickTipManager.init();
         Ext.socket = io.connect('http://'+ document.location.host);
+        this.getController("RealTimeEvents").startEvents();
         window.onbeforeunload = function(){
             console.log("SCRIPT");
             var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
