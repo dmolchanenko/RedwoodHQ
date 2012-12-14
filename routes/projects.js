@@ -45,7 +45,7 @@ exports.projectsDelete = function(req, res){
             projects: []
         });
     });
-    realtime.emitMessage("projectDelete",req.body.name);
+    realtime.emitMessage("deleteProject",{name:req.body.name,id:id});
 };
 
 exports.projectsPost = function(req, res){
@@ -59,6 +59,7 @@ exports.projectsPost = function(req, res){
                 success: true,
                 projects: returnData
             });
+            realtime.emitMessage("newProject",returnData[0]);
         });
     });
 };
