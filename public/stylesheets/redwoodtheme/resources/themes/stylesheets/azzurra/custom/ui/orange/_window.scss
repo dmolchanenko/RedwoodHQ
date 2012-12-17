@@ -1,0 +1,131 @@
+﻿
+
+@mixin orange-window-active {
+/*
+==============================================================
+=========== start 'orange-window-active' ui ==================
+*/
+	 @include active-window-overrides (
+		'orange-window-active',
+		'.x-window-active',
+
+		$ui-window-background-color:$window-orange-background-color,
+		$ui-window-border-color:adjust-color($window-orange-background-color,$lightness:-5.5%),
+   
+		$ui-window-header-color:$window-orange-header-text-color,
+		$ui-window-header-background-color:$window-orange-background-color,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$orange-tool-background-color-hover,
+		$ui-window-close-tool-color:$orange-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$orange-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-orange-background-color,
+		$button-ui-background-color-over:$button-orange-background-color-over,
+		$button-ui-background-color-pressed:$button-orange-background-color-pressed,
+		$button-ui-background-color-disabled:$button-orange-background-color-disabled,
+
+		$button-ui-border-color:$button-orange-border-color,
+		$button-ui-border-color-over:$button-orange-border-color-over,
+		$button-ui-border-color-pressed:$button-orange-border-color-pressed,
+		$button-ui-border-color-disabled:$button-orange-border-color-disabled,
+
+		$ui-tab-base-color:$base-orange-color-dark,
+
+		$ui-grid-row-background-color-selected:$grid-row-orange-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-orange-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'orange-window-active',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: $window-border-color,
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-header-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $window-background-color
+
+    );
+/*
+============== end 'orange-window-active' ui =================
+==============================================================
+*/
+
+}
+
+@mixin orange-window {
+	
+/*
+==============================================================
+=============== start 'orange-window' ui =====================
+*/
+
+	   @include active-window-overrides (
+		'orange-window',
+		'',
+
+		$ui-window-background-color:null,
+		$ui-window-border-color:null,
+   
+		$ui-window-header-color:null,
+		$ui-window-header-background-color:null,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$orange-tool-background-color-hover,
+		$ui-window-close-tool-color:$orange-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$orange-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-orange-background-color,
+		$button-ui-background-color-over:$button-orange-background-color-over,
+		$button-ui-background-color-pressed:$button-orange-background-color-pressed,
+		$button-ui-background-color-disabled:$button-orange-background-color-disabled,
+
+		$button-ui-border-color:$button-orange-border-color,
+		$button-ui-border-color-over:$button-orange-border-color-over,
+		$button-ui-border-color-pressed:$button-orange-border-color-pressed,
+		$button-ui-border-color-disabled:$button-orange-border-color-disabled,
+
+		$ui-tab-base-color:$base-orange-color-dark,
+
+
+		$ui-grid-row-background-color-selected:$grid-row-orange-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-orange-border-color-selected
+
+   );
+
+
+
+	@include extjs-window-ui(
+        'orange-window',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: adjust-color($base-orange-color,$lightness:-5.5%),
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-orange-header-text-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $base-orange-color
+
+    );
+/*
+=============== end 'orange-window' ui =====================
+============================================================
+*/
+
+
+
+}

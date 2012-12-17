@@ -1,0 +1,132 @@
+﻿
+
+@mixin black-window-active {
+/*
+==============================================================
+============= start 'black-window-active' ui ==================
+*/
+	 @include active-window-overrides (
+		'black-window-active',
+		'.x-window-active',
+
+		$ui-window-background-color:$window-black-background-color,
+		$ui-window-border-color:adjust-color($window-black-background-color,$lightness:-5.5%),
+   
+		$ui-window-header-color:$window-black-header-text-color,
+		$ui-window-header-background-color:$window-black-background-color,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$black-tool-background-color-hover,
+		$ui-window-close-tool-color:$black-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$black-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-black-background-color,
+		$button-ui-background-color-over:$button-black-background-color-over,
+		$button-ui-background-color-pressed:$button-black-background-color-pressed,
+		$button-ui-background-color-disabled:$button-black-background-color-disabled,
+
+		$button-ui-border-color:$button-black-border-color,
+		$button-ui-border-color-over:$button-black-border-color-over,
+		$button-ui-border-color-pressed:$button-black-border-color-pressed,
+		$button-ui-border-color-disabled:$button-black-border-color-disabled,
+
+		$ui-tab-base-color:$base-black-color-dark,
+
+
+		$ui-grid-row-background-color-selected:$grid-row-black-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-black-border-color-selected
+
+		
+   );
+
+
+
+	@include extjs-window-ui(
+        'black-window-active',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: $window-border-color,
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-header-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $window-background-color
+
+    );
+/*
+================ end 'black-window-active' ui =================
+==============================================================
+*/
+
+}
+
+@mixin black-window {
+	
+/*
+==============================================================
+================= start 'black-window' ui =====================
+*/
+
+	   @include active-window-overrides (
+		'black-window',
+		'',
+
+		$ui-window-background-color:null,
+		$ui-window-border-color:null,
+   
+		$ui-window-header-color:null,
+		$ui-window-header-background-color:null,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$black-tool-background-color-hover,
+		$ui-window-close-tool-color:$black-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$black-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-black-background-color,
+		$button-ui-background-color-over:$button-black-background-color-over,
+		$button-ui-background-color-pressed:$button-black-background-color-pressed,
+		$button-ui-background-color-disabled:$button-black-background-color-disabled,
+
+		$button-ui-border-color:$button-black-border-color,
+		$button-ui-border-color-over:$button-black-border-color-over,
+		$button-ui-border-color-pressed:$button-black-border-color-pressed,
+		$button-ui-border-color-disabled:$button-black-border-color-disabled,
+
+		$ui-tab-base-color:$base-black-color-dark,
+
+		$ui-grid-row-background-color-selected:$grid-row-black-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-black-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'black-window',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: adjust-color($base-black-color,$lightness:-5.5%),
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-black-header-text-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $base-black-color
+
+    );
+/*
+================= end 'black-window' ui =====================
+============================================================
+*/
+
+
+
+}

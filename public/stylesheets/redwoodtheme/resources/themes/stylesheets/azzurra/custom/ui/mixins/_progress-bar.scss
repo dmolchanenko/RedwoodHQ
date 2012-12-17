@@ -1,0 +1,35 @@
+﻿
+
+@mixin progress-active (
+	$ui-label,
+
+	$ui-border-color-active,
+    $ui-bar-background-color-active
+
+) {
+	@include extjs-progress-ui(
+        $ui-label,
+
+        $ui-background-color: $progress-background-color,
+        $ui-border-color: $progress-border-color,
+
+        $ui-bar-background-color: $progress-bar-background-color,
+
+        $ui-color-front: $progress-text-color-front,
+        $ui-color-back: $progress-text-color-back,
+
+		$ui-bar-background-gradient:$m-progress-bar-background-gradient //add new property
+    );
+
+	.#{$prefix}window-active {
+		.#{$prefix}progress-#{$ui-label} {
+			border-color: $ui-border-color-active 
+		}
+
+		.#{$prefix}progress-#{$ui-label} .x-progress-bar {
+			border-right-color: $ui-border-color-active;
+			border-top-color: $ui-border-color-active;
+			background-color: $ui-bar-background-color-active; 
+		}
+	}
+}

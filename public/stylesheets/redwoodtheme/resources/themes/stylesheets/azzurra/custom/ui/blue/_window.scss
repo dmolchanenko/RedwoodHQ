@@ -1,0 +1,130 @@
+﻿
+
+@mixin blue-window-active {
+/*
+==============================================================
+============= start 'blue-window-active' ui ==================
+*/
+	 @include active-window-overrides (
+		'blue-window-active',
+		'.x-window-active',
+
+		$ui-window-background-color:$window-blue-background-color,
+		$ui-window-border-color:adjust-color($window-blue-background-color,$lightness:-5.5%),
+   
+		$ui-window-header-color:$window-blue-header-text-color,
+		$ui-window-header-background-color:$window-blue-background-color,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$blue-tool-background-color-hover,
+		$ui-window-close-tool-color:$blue-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$blue-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-blue-background-color,
+		$button-ui-background-color-over:$button-blue-background-color-over,
+		$button-ui-background-color-pressed:$button-blue-background-color-pressed,
+		$button-ui-background-color-disabled:$button-blue-background-color-disabled,
+
+		$button-ui-border-color:$button-blue-border-color,
+		$button-ui-border-color-over:$button-blue-border-color-over,
+		$button-ui-border-color-pressed:$button-blue-border-color-pressed,
+		$button-ui-border-color-disabled:$button-blue-border-color-disabled,
+
+		$ui-tab-base-color:$base-blue-color-dark,
+
+		$ui-grid-row-background-color-selected:$grid-row-blue-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-blue-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'blue-window-active',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: $window-border-color,
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-header-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $window-background-color
+
+    );
+/*
+================ end 'blue-window-active' ui =================
+==============================================================
+*/
+
+}
+
+@mixin blue-window {
+	
+/*
+==============================================================
+================= start 'blue-window' ui =====================
+*/
+
+	   @include active-window-overrides (
+		'blue-window',
+		'',
+
+		$ui-window-background-color:null,
+		$ui-window-border-color:null,
+   
+		$ui-window-header-color:null,
+		$ui-window-header-background-color:null,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$blue-tool-background-color-hover,
+		$ui-window-close-tool-color:$blue-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$blue-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-blue-background-color,
+		$button-ui-background-color-over:$button-blue-background-color-over,
+		$button-ui-background-color-pressed:$button-blue-background-color-pressed,
+		$button-ui-background-color-disabled:$button-blue-background-color-disabled,
+
+		$button-ui-border-color:$button-blue-border-color,
+		$button-ui-border-color-over:$button-blue-border-color-over,
+		$button-ui-border-color-pressed:$button-blue-border-color-pressed,
+		$button-ui-border-color-disabled:$button-blue-border-color-disabled,
+
+		$ui-tab-base-color:$base-blue-color-dark,
+
+
+		$ui-grid-row-background-color-selected:$grid-row-blue-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-blue-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'blue-window',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: adjust-color($base-blue-color,$lightness:-5.5%),
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-blue-header-text-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $base-blue-color
+
+    );
+/*
+================= end 'blue-window' ui =====================
+============================================================
+*/
+
+
+
+}

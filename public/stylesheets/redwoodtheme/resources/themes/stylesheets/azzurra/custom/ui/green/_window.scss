@@ -1,0 +1,129 @@
+﻿
+
+@mixin green-window-active {
+/*
+==============================================================
+============= start 'green-window-active' ui ==================
+*/
+	 @include active-window-overrides (
+		'green-window-active',
+		'.x-window-active',
+
+		$ui-window-background-color:$window-green-background-color,
+		$ui-window-border-color:adjust-color($window-green-background-color,$lightness:-5.5%),
+   
+		$ui-window-header-color:$window-green-header-text-color,
+		$ui-window-header-background-color:$window-green-background-color,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$green-tool-background-color-hover,
+		$ui-window-close-tool-color:$green-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$green-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-green-background-color,
+		$button-ui-background-color-over:$button-green-background-color-over,
+		$button-ui-background-color-pressed:$button-green-background-color-pressed,
+		$button-ui-background-color-disabled:$button-green-background-color-disabled,
+
+		$button-ui-border-color:$button-green-border-color,
+		$button-ui-border-color-over:$button-green-border-color-over,
+		$button-ui-border-color-pressed:$button-green-border-color-pressed,
+		$button-ui-border-color-disabled:$button-green-border-color-disabled,
+
+		$ui-tab-base-color:$base-green-color-dark,
+
+		$ui-grid-row-background-color-selected:$grid-row-green-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-green-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'green-window-active',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: $window-border-color,
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-header-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $window-background-color
+
+    );
+/*
+================ end 'green-window-active' ui ================
+==============================================================
+*/
+
+}
+
+@mixin green-window {
+	
+/*
+==============================================================
+================= start 'green-window' ui ====================
+*/
+
+	   @include active-window-overrides (
+		'green-window',
+		'',
+
+		$ui-window-background-color:null,
+		$ui-window-border-color:null,
+   
+		$ui-window-header-color:null,
+		$ui-window-header-background-color:null,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$green-tool-background-color-hover,
+		$ui-window-close-tool-color:$green-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$green-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-green-background-color,
+		$button-ui-background-color-over:$button-green-background-color-over,
+		$button-ui-background-color-pressed:$button-green-background-color-pressed,
+		$button-ui-background-color-disabled:$button-green-background-color-disabled,
+
+		$button-ui-border-color:$button-green-border-color,
+		$button-ui-border-color-over:$button-green-border-color-over,
+		$button-ui-border-color-pressed:$button-green-border-color-pressed,
+		$button-ui-border-color-disabled:$button-green-border-color-disabled,
+
+		$ui-tab-base-color:$base-green-color-dark,
+
+		$ui-grid-row-background-color-selected:$grid-row-green-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-green-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'green-window',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: adjust-color($base-green-color,$lightness:-5.5%),
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-green-header-text-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $base-green-color
+
+    );
+/*
+================= end 'green-window' ui =====================
+============================================================
+*/
+
+
+
+}

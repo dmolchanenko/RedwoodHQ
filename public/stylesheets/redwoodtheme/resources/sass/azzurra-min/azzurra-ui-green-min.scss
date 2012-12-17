@@ -1,0 +1,50 @@
+@import "compass/css3";
+@import "blueprint/typography";
+
+
+@import 'azzurra/colors';
+@import 'azzurra/variables';
+
+$azzurra-core:false;
+
+@import 'azzurra/default/all';
+@import 'azzurra/custom/overrides/all';
+@import 'azzurra/custom/ui/all';
+
+
+// You may remove any of the following modules that you
+// do not use in order to create a smaller css file.
+
+	@include green-button;
+	@include green-button-active;
+
+	@include green-panel;
+	@include green-panel-framed;
+	@include green-panel-active;
+	@include green-panel-active-framed;
+
+	@include green-progress;
+	@include green-progress-active;
+
+	@include green-window;
+	@include green-window-active;
+
+	@include green-tab;
+	@include green-tab-active;
+
+
+
+// This line changes the location of your images when creating UIs to be relative instead of within the ExtJS directory.
+// You MUST set this to true/string value if you are creating new UIs + supporting legacy browsers.
+// This only applies to new UIs. It does not apply to default component images (i.e. when changing $base-color)
+// The value can either be true, in which case the image path will be "../images/"
+// or a string, of where the path is
+$relative-image-path-for-uis: false; // defaults to "../images/" when true
+
+
+
+
+
+
+
+

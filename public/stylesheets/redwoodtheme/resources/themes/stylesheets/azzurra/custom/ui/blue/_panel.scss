@@ -1,0 +1,128 @@
+﻿
+@mixin blue-panel {
+
+/*
+==============================================================
+================= start 'blue-panel' ui ======================
+*/
+
+@include ui-panel(
+	'blue-panel',
+
+	$ui-base-color:$base-blue-color,
+
+	$ui-header-text-color:$window-blue-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-blue-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-blue-border-color-selected,
+
+	$ui-tool-background-color-over:$blue-tool-background-color-hover,
+	$ui-tool-close-background-color:$blue-close-tool-background-color,
+	$ui-tool-close-background-color-over:$blue-close-tool-background-color-hover
+
+);
+
+/*
+==================== end 'blue-panel' ui =====================
+==============================================================
+*/
+
+}
+
+
+@mixin blue-panel-framed {
+
+/*
+==============================================================
+================= start 'blue-panel-framed' ui ===============
+*/
+
+@include ui-panel-framed(
+	'blue-panel-framed',
+
+	$ui-base-color:$base-blue-color,
+
+	$ui-header-text-color:$window-blue-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-blue-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-blue-border-color-selected,
+
+	$ui-tool-background-color-over:$blue-tool-background-color-hover,
+	$ui-tool-close-background-color:$blue-close-tool-background-color,
+	$ui-tool-close-background-color-over:$blue-close-tool-background-color-hover
+
+);
+
+
+/*
+==================== end 'blue-panel-framed' ui ==============
+==============================================================
+*/
+
+}
+
+
+
+
+
+
+@mixin blue-panel-active {
+
+/*	
+==============================================================
+================= start 'blue-panel-active' ui ===============
+*/
+
+@include ui-panel-active(
+	'blue-panel-active',
+
+	$ui-base-color:$base-blue-color,
+
+	$ui-header-text-color:$window-blue-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-blue-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-blue-border-color-selected,
+
+	$ui-tool-background-color-over:$blue-tool-background-color-hover,
+	$ui-tool-close-background-color:$blue-close-tool-background-color,
+	$ui-tool-close-background-color-over:$blue-close-tool-background-color-hover
+
+);	
+
+/*
+=============== end 'blue-panel-active' ui ===================
+==============================================================
+*/
+
+}
+
+
+@mixin blue-panel-active-framed {
+
+/*	
+==============================================================
+============= start 'blue-panel-active-framed' ui ============
+*/
+@include ui-panel-active-framed(
+	'blue-panel-active-framed',
+
+	$ui-base-color:$base-blue-color,
+
+	$ui-header-text-color:$window-blue-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-blue-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-blue-border-color-selected,
+
+	$ui-tool-background-color-over:$blue-tool-background-color-hover,
+	$ui-tool-close-background-color:$blue-close-tool-background-color,
+	$ui-tool-close-background-color-over:$blue-close-tool-background-color-hover
+
+);	
+	
+
+/*
+=============== end 'blue-panel-active' ui ===================
+==============================================================
+*/
+
+}

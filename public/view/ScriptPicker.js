@@ -19,7 +19,7 @@ Ext.define('Redwood.view.ScriptViewer', {
                         xtype: 'treepanel',
                         multiSelect: false,
                         rootVisible: false,
-                        store: Ext.data.StoreManager.lookup('Scripts'),
+                        store: Ext.data.StoreManager.lookup('MethodFinder'),
                         focused: false,
                         viewConfig: {
                             markDirty: false,

@@ -1,0 +1,130 @@
+﻿
+
+@mixin red-window-active {
+/*
+==============================================================
+============= start 'red-window-active' ui ==================
+*/
+	 @include active-window-overrides (
+		'red-window-active',
+		'.x-window-active',
+
+		$ui-window-background-color:$window-red-background-color,
+		$ui-window-border-color:adjust-color($window-red-background-color,$lightness:-5.5%),
+   
+		$ui-window-header-color:$window-red-header-text-color,
+		$ui-window-header-background-color:$window-red-background-color,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$red-tool-background-color-hover,
+		$ui-window-close-tool-color:$red-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$red-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-red-background-color,
+		$button-ui-background-color-over:$button-red-background-color-over,
+		$button-ui-background-color-pressed:$button-red-background-color-pressed,
+		$button-ui-background-color-disabled:$button-red-background-color-disabled,
+
+		$button-ui-border-color:$button-red-border-color,
+		$button-ui-border-color-over:$button-red-border-color-over,
+		$button-ui-border-color-pressed:$button-red-border-color-pressed,
+		$button-ui-border-color-disabled:$button-red-border-color-disabled,
+
+		$ui-tab-base-color:$base-red-color-dark,
+
+		$ui-grid-row-background-color-selected:$grid-row-red-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-red-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'red-window-active',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: $window-border-color,
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-header-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $window-background-color
+
+    );
+/*
+================ end 'red-window-active' ui =================
+==============================================================
+*/
+
+}
+
+@mixin red-window {
+	
+/*
+==============================================================
+================= start 'red-window' ui =====================
+*/
+
+	   @include active-window-overrides (
+		'red-window',
+		'',
+
+		$ui-window-background-color:null,
+		$ui-window-border-color:null,
+   
+		$ui-window-header-color:null,
+		$ui-window-header-background-color:null,
+
+		$ui-window-body-background-color: $base-color,
+
+		$ui-window-tool-color-hover:$red-tool-background-color-hover,
+		$ui-window-close-tool-color:$red-close-tool-background-color,
+		$ui-window-close-tool-color-hover:$red-close-tool-background-color-hover,
+
+		$button-ui-background-color:$button-red-background-color,
+		$button-ui-background-color-over:$button-red-background-color-over,
+		$button-ui-background-color-pressed:$button-red-background-color-pressed,
+		$button-ui-background-color-disabled:$button-red-background-color-disabled,
+
+		$button-ui-border-color:$button-red-border-color,
+		$button-ui-border-color-over:$button-red-border-color-over,
+		$button-ui-border-color-pressed:$button-red-border-color-pressed,
+		$button-ui-border-color-disabled:$button-red-border-color-disabled,
+
+		$ui-tab-base-color:$base-red-color-dark,
+
+
+		$ui-grid-row-background-color-selected:$grid-row-red-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-red-border-color-selected
+   );
+
+
+
+	@include extjs-window-ui(
+        'red-window',
+
+        $ui-border-radius: $window-border-radius,
+        $ui-border-color: adjust-color($base-red-color,$lightness:-5.5%),
+        $ui-inner-border-color: $window-inner-border-color,
+
+        $ui-header-color: $window-red-header-text-color,
+
+        $ui-body-border-color: $window-body-border-color,
+        $ui-body-background-color: $window-body-background-color,
+        $ui-body-color: $window-body-color,
+
+        $ui-background-color: $base-red-color
+
+    );
+/*
+================= end 'red-window' ui =====================
+============================================================
+*/
+
+
+
+}

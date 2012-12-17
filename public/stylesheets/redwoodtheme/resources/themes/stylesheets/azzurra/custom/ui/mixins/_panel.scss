@@ -1,0 +1,394 @@
+﻿@mixin ui-panel (
+	$ui-label,
+
+	$ui-base-color,
+
+	$ui-header-text-color,
+
+	$ui-grid-background-color-selected,
+	$ui-grid-border-color-selected,
+
+	$ui-tool-background-color-over,
+	$ui-tool-close-background-color,
+	$ui-tool-close-background-color-over
+
+) {
+		@include extjs-panel-ui(
+            $ui-label,
+
+            $ui-base-color: $panel-base-color,
+            $ui-border-width: $panel-border-width,
+            $ui-border-color: $base-borders-color,
+            $ui-border-radius: $panel-border-radius,
+
+            $ui-header-color: $ui-header-text-color,
+            $ui-header-font-size: $panel-header-font-size,
+            $ui-header-font-weight: $panel-header-font-weight,
+            $ui-header-border-color: darken($ui-base-color,8),
+            $ui-header-background-color: $ui-base-color,
+            $ui-header-background-gradient: $panel-header-background-gradient,
+
+			$m-ui-header-inner-border:$m-panel-header-inner-border, //codaxy
+			$m-ui-header-text-shadow:$m-header-text-shadow, //codaxy
+
+            $ui-body-color: $panel-body-color,
+            $ui-body-border-color: $base-borders-color,
+            $ui-body-border-width:1px,
+            $ui-body-background-color: $panel-body-background-color,
+
+			$m-ui-body-inner-border:$m-body-inner-border, //codaxy
+
+			$ui-tool-background-color-hover:$ui-tool-background-color-over,
+			$ui-close-tool-background-color:$ui-tool-close-background-color, 
+			$ui-close-tool-background-color-hover:$ui-tool-close-background-color-over
+        );
+
+		.#{$prefix}panel-header-#{$ui-label}+.#{$prefix}panel-body-#{$ui-label} {
+			border-top-color:darken($ui-base-color,8);
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}+.#{$prefix}toolbar-docked-top {
+			border-top-color:darken($ui-base-color,8);
+		}
+
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}grid-with-row-lines .#{$prefix}panel-body-#{$ui-label} {
+
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+				border-color: $ui-grid-border-color-selected !important;
+				background-color: $ui-grid-background-color-selected !important;
+			}
+			
+		
+		}
+
+
+}
+
+
+
+
+@mixin ui-panel-framed (
+	$ui-label,
+
+	$ui-base-color,
+
+	$ui-header-text-color,
+
+	$ui-grid-background-color-selected,
+	$ui-grid-border-color-selected,
+
+	$ui-tool-background-color-over,
+	$ui-tool-close-background-color,
+	$ui-tool-close-background-color-over
+
+) {
+	        @include extjs-panel-ui(
+            $ui-label,
+
+            $ui-base-color: $panel-base-color,
+            $ui-border-width: 1px 2px 2px,
+            $ui-border-color: $ui-base-color,
+            $ui-border-radius: $panel-frame-border-radius,
+
+            $ui-header-color: $ui-header-text-color,
+            $ui-header-font-size: $panel-header-font-size,
+            $ui-header-font-weight: $panel-header-font-weight,
+            $ui-header-border-color: $ui-base-color,
+            $ui-header-background-color: $ui-base-color,
+            $ui-header-background-gradient: $panel-header-background-gradient,
+
+			$m-ui-header-inner-border:$m-panel-header-inner-border, //codaxy
+			$m-ui-header-text-shadow:$m-header-text-shadow,
+			$m-ui-panel-frame-inner-border:$m-panel-frame-inner-border, //codaxy
+			
+            $ui-body-color: $m-panel-frame-color, //codaxy: replace '$panel-body-color' whit '$m-panel-frame-color'
+            $ui-body-border-color: $base-borders-color,
+            $ui-body-border-width: 0,
+            $ui-body-background-color: $panel-frame-background-color,
+
+			$ui-tool-background-color-hover:$ui-tool-background-color-over,
+			$ui-close-tool-background-color:$ui-tool-close-background-color, 
+			$ui-close-tool-background-color-hover:$ui-tool-close-background-color-over,
+
+            $ui-image-label-with-border-radius: 'default'
+
+
+        );
+
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}grid-with-row-lines .#{$prefix}panel-body-#{$ui-label} {
+
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+				border-color: $ui-grid-border-color-selected !important;
+				background-color: $ui-grid-background-color-selected !important;
+			}
+			
+		
+		}
+
+}
+
+
+
+@mixin ui-panel-active (
+	$ui-label,
+
+	$ui-base-color,
+
+	$ui-header-text-color,
+
+	$ui-grid-background-color-selected,
+	$ui-grid-border-color-selected,
+
+	$ui-tool-background-color-over,
+	$ui-tool-close-background-color,
+	$ui-tool-close-background-color-over
+) {
+		@include extjs-panel-ui(
+		$ui-label,
+
+            $ui-base-color: $panel-base-color,
+            $ui-border-width: $panel-border-width,
+            $ui-border-color: $panel-border-color,
+            $ui-border-radius: $panel-border-radius,
+
+            $ui-header-color: $panel-header-color,
+            $ui-header-font-size: $panel-header-font-size,
+            $ui-header-font-weight: $panel-header-font-weight,
+            $ui-header-border-color: darken($panel-header-background-color,2),
+            $ui-header-background-color: $panel-header-background-color,
+            $ui-header-background-gradient: $panel-header-background-gradient,
+
+			$m-ui-header-inner-border:$m-panel-header-inner-border, //codaxy
+			$m-ui-header-text-shadow:$m-header-text-shadow, //codaxy
+
+            $ui-body-color: $panel-body-color,
+            $ui-body-border-color: darken($panel-header-background-color,2),
+            $ui-body-border-width: 1px,
+            $ui-body-background-color: $panel-body-background-color,
+
+			$m-ui-body-inner-border:$m-body-inner-border, //codaxy
+
+			$ui-tool-background-color-hover:$panel-tool-background-color-hover,
+			$ui-close-tool-background-color:$panel-tool-close-background-color, 
+			$ui-close-tool-background-color-hover:$panel-tool-close-background-color
+	);
+
+	.#{$prefix}window-active {
+		
+		.#{$prefix}panel-#{$ui-label} {
+			border-color:$ui-base-color; 
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}+.#{$prefix}panel-body-#{$ui-label} {
+			border-top-color:darken($ui-base-color,8);
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}+.#{$prefix}toolbar-docked-top {
+			border-top-color:darken($ui-base-color,8);
+		}
+
+		.#{$prefix}panel-header-text-#{$ui-label} {
+			  color: $ui-header-text-color;
+		 }
+
+		.#{$prefix}panel-header-#{$ui-label} {
+			border-color:darken($ui-base-color,8);
+			background-color:$ui-base-color;
+
+			//tools overrides
+			&>.#{$prefix}panel-header-body .#{$prefix}tool {
+				img:hover {
+					background-color:$ui-tool-background-color-over;
+				}
+
+			img.#{$prefix}tool-close {
+					background-color:$ui-tool-close-background-color;
+
+					&:hover {
+						background-color:$ui-tool-close-background-color-over;
+					}
+				}
+			}
+
+		}
+		
+		.#{$prefix}panel-header-text-#{$ui-label} {
+			color:$ui-header-text-color;
+		}	
+
+
+
+		.#{$prefix}panel-collapsed .#{$prefix}window-header-#{$ui-label},
+		.#{$prefix}panel-collapsed .#{$prefix}panel-#{$ui-label} {
+			border-color:darken($ui-base-color,8);
+			
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-vertical {
+			border-color: darken($ui-base-color,8);
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-left,
+		.#{$prefix}panel-header-#{$ui-label}-right {
+			background-color:$ui-base-color;
+			color:	$ui-header-text-color; 
+		}
+
+
+		//=============GRID=================//
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}grid-with-row-lines .#{$prefix}panel-body-#{$ui-label} .x-grid-table {
+
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+				border-color: $ui-grid-border-color-selected !important;
+				background-color: $ui-grid-background-color-selected !important;
+			}
+
+		}
+	}
+
+
+}
+
+
+
+@mixin ui-panel-active-framed (
+	$ui-label,
+
+	$ui-base-color,
+
+	$ui-header-text-color,
+
+	$ui-grid-background-color-selected,
+	$ui-grid-border-color-selected,
+
+	$ui-tool-background-color-over,
+	$ui-tool-close-background-color,
+	$ui-tool-close-background-color-over
+) {
+
+	@include extjs-panel-ui(
+		$ui-label,
+
+            $ui-base-color: $panel-base-color,
+            $ui-border-width: 1px 2px 2px,
+            $ui-border-color:  $panel-frame-header-background-color,
+            $ui-border-radius: $panel-frame-border-radius,
+
+            $ui-header-color: $panel-header-color,
+            $ui-header-font-size: $panel-header-font-size,
+            $ui-header-font-weight: $panel-header-font-weight,
+            $ui-header-border-color: $panel-frame-border-color,
+            $ui-header-background-color: $panel-frame-header-background-color,
+            $ui-header-background-gradient: $panel-header-background-gradient,
+
+			$m-ui-header-inner-border:$m-panel-header-inner-border, //codaxy
+			$m-ui-header-text-shadow:$m-header-text-shadow,
+			$m-ui-panel-frame-inner-border:$m-panel-frame-inner-border, //codaxy
+			
+            $ui-body-color: $m-panel-frame-color, //codaxy: replace '$panel-body-color' whit '$m-panel-frame-color'
+            $ui-body-border-color: $base-borders-color,
+            $ui-body-border-width: 0,
+            $ui-body-background-color: $panel-frame-background-color,
+
+			$ui-tool-background-color-hover:$panel-tool-background-color-hover,
+			$ui-close-tool-background-color:$panel-tool-close-background-color, 
+			$ui-close-tool-background-color-hover:$panel-tool-close-background-color,
+
+            $ui-image-label-with-border-radius: 'default'
+	);
+
+	.#{$prefix}window-active {
+
+		.#{$prefix}panel-#{$ui-label} {
+			border-color:$ui-base-color; 
+		}
+		
+		.#{$prefix}panel-header-#{$ui-label} {
+			border-color:$ui-base-color;
+			background-color:$ui-base-color;
+
+			//tools overrides
+			&>.#{$prefix}panel-header-body .#{$prefix}tool {
+				img:hover {
+					background-color:$ui-tool-background-color-over;
+				}
+
+			img.#{$prefix}tool-close {
+					background-color:$ui-tool-close-background-color;
+
+					&:hover {
+						background-color:$ui-tool-close-background-color-over;
+					}
+				}
+			}
+
+		}		
+
+		.#{$prefix}panel-header-text-#{$ui-label} {
+			color:$ui-header-text-color;
+		}
+
+
+		.#{$prefix}panel-collapsed .#{$prefix}window-header-#{$ui-label},
+		.#{$prefix}panel-collapsed .#{$prefix}panel-header-#{$ui-label} {
+			border-color: $ui-base-color;
+			color:	$ui-header-text-color; 
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-vertical {
+			border-color: $ui-base-color; 
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-left,
+		.#{$prefix}panel-header-#{$ui-label}-right {
+			background-color: $ui-base-color;
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-top {
+			  background-color: $ui-base-color;
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-right {
+			  background-color: $ui-base-color;
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-bottom {
+			  background-color: $ui-base-color; }
+
+		.#{$prefix}panel-header-#{$ui-label}-left {
+			  background-color: $ui-base-color; 
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-collapsed-top {
+			  background-color: $ui-base-color; 
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-collapsed-right {
+		  background-color: $ui-base-color; 
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-collapsed-bottom {
+		  background-color: $ui-base-color; 
+		}
+
+		.#{$prefix}panel-header-#{$ui-label}-collapsed-left {
+		  background-color: $ui-base-color; 
+		}
+
+
+		//=============GRID=================//
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}grid-with-row-lines .#{$prefix}panel-body-#{$ui-label} .x-grid-table {
+
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+				border-color: $ui-grid-border-color-selected !important;
+				background-color: $ui-grid-background-color-selected !important;
+			}
+
+		}
+	}
+
+}

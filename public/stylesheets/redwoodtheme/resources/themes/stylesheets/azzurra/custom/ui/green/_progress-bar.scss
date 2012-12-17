@@ -1,0 +1,53 @@
+﻿
+@mixin green-progress {
+
+/*
+==============================================================
+=========== start 'green-progress-active' ui =================
+*/
+
+	@include extjs-progress-ui(
+        'green-progress',
+
+        $ui-background-color: $progress-background-color,
+        $ui-border-color: $progress-bar-green-base-color,
+
+        $ui-bar-background-color: $progress-bar-green-base-color,
+
+        $ui-color-front: $progress-text-color-front,
+        $ui-color-back: $progress-text-color-back,
+
+		$ui-bar-background-gradient:$m-progress-bar-background-gradient //add new property
+    )
+
+/*
+============= end 'green-progress-active' ui =================
+==============================================================
+*/
+
+
+}
+
+
+@mixin green-progress-active {
+
+/*
+==============================================================
+=========== start 'green-progress-active' ui =================
+*/
+
+	@include progress-active(
+        'green-progress-active',
+
+        $ui-border-color-active: $progress-bar-green-base-color,
+        $ui-bar-background-color-active: $progress-bar-green-base-color
+
+    )
+
+/*
+============= end 'green-progress-active' ui =================
+==============================================================
+*/
+
+
+}

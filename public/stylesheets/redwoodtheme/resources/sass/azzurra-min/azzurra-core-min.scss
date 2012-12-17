@@ -1,0 +1,146 @@
+@import "compass/css3";
+@import "blueprint/typography";
+
+
+@import 'azzurra/colors.scss';
+@import 'azzurra/variables.scss';
+
+
+$azzurra-core:true;
+
+@import 'azzurra/default/all';
+@import 'azzurra/custom/overrides/all';
+@import 'azzurra/custom/ui/all';
+
+
+// You may remove any of the following modules that you
+// do not use in order to create a smaller css file.
+
+// You may also uncomment any of the commented includes
+// in order to include particular ui styles directly in your
+// output css file.
+
+@include extjs-boundlist;
+@include extjs-button;
+//	@include blue-button;
+//	@include blue-button-active;
+//	@include red-button;
+//	@include red-button-active;
+//	@include green-button;
+//	@include green-button-active;
+//	@include black-button;
+//	@include black-button-active;
+//	@include orange-button;
+//	@include orange-button-active;
+//	@include custom-button;
+//	@include custom-button-active;
+@include extjs-btn-group;
+@include extjs-datepicker;
+@include extjs-colorpicker;
+@include extjs-menu;
+@include extjs-grid;
+@include extjs-form;
+    @include extjs-form-field;
+    @include extjs-form-fieldset;
+    @include extjs-form-file;
+    @include extjs-form-checkboxfield;
+    @include extjs-form-checkboxgroup;
+    @include extjs-form-triggerfield;
+    @include extjs-form-htmleditor;
+@include extjs-panel;
+//	@include blue-panel;
+//	@include blue-panel-framed;
+//	@include blue-panel-active;
+//	@include blue-panel-active-framed;
+//	@include red-panel;
+//	@include red-panel-framed;
+//	@include red-panel-active;
+//	@include red-panel-active-framed;
+//	@include green-panel;
+//	@include green-panel-framed;
+//	@include green-panel-active;
+//	@include green-panel-active-framed;
+//	@include black-panel;
+//	@include black-panel-framed;
+//	@include black-panel-active;
+//	@include black-panel-active-framed;
+//	@include orange-panel;
+//	@include orange-panel-framed;
+//	@include orange-panel-active;
+//	@include orange-panel-active-framed;
+//	@include custom-panel;
+//	@include custom-panel-framed;
+//	@include custom-panel-active;
+//	@include custom-panel-active-framed;
+@include extjs-qtip;
+@include extjs-slider;
+@include extjs-progress;
+//	@include blue-progress;
+//	@include blue-progress-active;
+//	@include red-progress;
+//	@include red-progress-active;
+//	@include green-progress;
+//	@include green-progress-active;
+//	@include black-progress;
+//	@include black-progress-active;
+//	@include orange-progress;
+//	@include orange-progress-active;
+//	@include custom-progress;
+//	@include custom-progress-active;
+@include extjs-toolbar;
+@include extjs-window;
+//	@include blue-window;
+//	@include blue-window-active;
+//	@include red-window;
+//	@include red-window-active;
+//	@include green-window;
+//	@include green-window-active;
+//	@include black-window;
+//	@include black-window-active;
+//	@include orange-window;
+//	@include orange-window-active;
+//	@include custom-window;
+//	@include custom-window-active;
+@include extjs-messagebox;
+@include extjs-tabbar;
+@include extjs-tab;
+//	@include blue-tab;
+//	@include blue-tab-active;
+//	@include red-tab;
+//	@include red-tab-active;
+//	@include green-tab;
+//	@include green-tab-active;
+//	@include black-tab;
+//	@include black-tab-active;
+//	@include orange-tab;
+//	@include orange-tab-active;
+//	@include custom-tab;
+//	@include custom-tab-active;
+@include extjs-tree;
+@include extjs-drawcomponent;
+@include extjs-viewport;
+
+@include extjs-dragdrop;
+@include extjs-resizable;
+@include extjs-splitter;
+@include extjs-layout;
+@include extjs-tool;
+@include extjs-scroller;
+    
+@include extjs-html;
+
+
+// This line changes the location of your images when creating UIs to be relative instead of within the ExtJS directory.
+// You MUST set this to true/string value if you are creating new UIs + supporting legacy browsers.
+// This only applies to new UIs. It does not apply to default component images (i.e. when changing $base-color)
+// The value can either be true, in which case the image path will be "../images/"
+// or a string, of where the path is
+$relative-image-path-for-uis: false; // defaults to "../images/" when true
+
+
+
+
+
+
+
+

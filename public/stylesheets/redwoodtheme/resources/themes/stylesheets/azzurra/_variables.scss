@@ -1,0 +1,323 @@
+﻿$theme-name:"azzurra";
+// Unless you want to include all components, you must set $include-default to false
+// IF you set this to true, you can also remove lines 10 to 38 of this file
+
+$include-default: false;
+$compile-all: false;
+
+$font-family:'Segoe UI',tahoma,arial,verdana,sans-serif;
+
+$m-global-border-radius:false;
+
+$include-missing-images: false;
+
+$include-shadow-images: false;
+
+
+//================================ panel ========================================//
+
+$panel-base-color:$base-color;
+
+//panele header
+$panel-header-background-color:$base-header-color;
+$panel-header-background-gradient:'null';
+$panel-header-color:lighten($color,5);
+$panel-header-line-height: 19px;
+$m-panel-header-inner-border: false;
+$panel-header-border-color:$base-borders-color;
+
+$panel-border-color: $panel-header-border-color;
+
+//body
+$panel-body-background-color:$panel-base-color;
+$panel-frame-background-color:$panel-header-background-color;
+
+//framed panel
+$panel-frame-header-background-color:$base-header-color;
+
+
+$panel-frame-border-radius: null;
+$panel-frame-border-color:$base-borders-color;
+
+$m-panel-frame-color: $color;
+$panel-frame-background-color:$panel-base-color;
+
+//header tool 
+$panel-tool-background-color-hover:darken($panel-header-background-color,10);
+$panel-tool-close-background-color: darken($panel-header-background-color,30); 
+$panel-tool-close-background-color:darken($panel-header-background-color,30);
+
+
+
+//=============================================== window ============================================================//
+
+$window-base-color:$base-color;
+
+$window-header-line-height: 26px;
+
+$window-border-radius: null;
+
+$window-background-color: adjust-color($window-base-color,$lightness:-10%);
+$window-border-color:lighten($base-borders-color,6.5);
+$window-inner-border-color: 'null';
+$window-header-color: adjust-color(black, $lightness: 30%);
+
+$window-body-border-color: $base-borders-color;
+$window-body-background-color:$base-color;
+
+//================================================= toolbar ====================================================//
+
+$toolbar-background-color:lighten($base-header-color,7.5);
+$toolbar-background-gradient:'null';
+$toolbar-border-color: $base-borders-color;
+
+//separator
+$toolbar-separator-color: adjust-color($toolbar-background-color, $lightness: -15%);
+$toolbar-separator-highlight-color: adjust-color($toolbar-background-color, $lightness: 25%);
+
+//================================================= button ====================================================//
+
+$button-default-base-color:adjust-color($base-color,$lightness: -20%);
+$button-default-color: white;
+
+$button-default-background-color: adjust-color($button-default-base-color,$lightness:-20%);
+$button-default-background-color-over:adjust-color($button-default-background-color,$lightness:5%);
+$button-default-background-color-pressed:adjust-color($button-default-background-color,$lightness:-10%);
+$button-default-background-color-focus:$button-default-background-color;
+$button-default-background-color-disabled:adjust-color($button-default-background-color,$lightness:20%);
+
+$button-default-border-color:adjust-color($button-default-background-color,$lightness:-10%);
+$button-default-border-color-over: adjust-color($button-default-border-color,$lightness:5%);
+$button-default-border-color-pressed:$button-default-background-color-pressed;
+$button-default-border-color-fokus:adjust-color($button-default-border-color,$lightness:-50%);
+$button-default-border-color-disabled:$button-default-background-color-disabled;
+
+$button-default-background-gradient:'null';
+$button-default-background-gradient-over:'null';
+$button-default-background-gradient-pressed: 'null';
+$button-default-background-gradient-disabled: 'null';
+
+$button-default-color-disabled: lighten($button-default-color, 15);
+
+//toolbars button
+
+$button-toolbar-background-gradient-over: 'null';
+$button-toolbar-background-gradient-pressed:'null';
+
+$button-toolbar-background-color-pressed: $base-menu-color;
+$button-toolbar-background-color-over:adjust-color($button-toolbar-background-color-pressed, $lightness:10%);
+$button-toolbar-background-color-fokus: $button-toolbar-background-color-over;
+
+$button-toolbar-border-color-over:$button-toolbar-background-color-over;
+$button-toolbar-border-color-focus: $button-toolbar-border-color-over;
+$button-toolbar-border-color-pressed:$button-toolbar-background-color-pressed;
+$button-toolbar-border-color-disabled: transparent;
+
+$button-toolbar-color-over:$base-color;
+$button-toolbar-color-focus:adjust-color( $button-toolbar-color-over,$lightness:0);
+$button-toolbar-color-pressed: $button-toolbar-color-over;
+
+
+//================================================= button group =====================================================//
+
+$btn-group-inner-border-color: 'null';
+
+$btn-group-border-color: $panel-border-color;
+$btn-group-background-color: transparent;
+
+$btn-group-header-color:white;
+$btn-group-header-background-color: adjust-color($panel-border-color,$lightness:-10%);
+
+//================================================== menu ===========================================================//
+
+
+$m-grid-header-text-shadow:false;
+$menu-text-color:adjust-color($base-color,$lightness:0);
+
+$menu-background-color: $base-menu-color;
+
+$menu-item-active-background-color: adjust-color($menu-background-color, $lightness:-5%);
+$menu-item-active-border-color: $menu-item-active-background-color;
+
+$m-menu-item-active-background-gradiant:'null';
+
+$menu-separator-border-color: $menu-item-active-background-color;
+$menu-separator-background-color: transparent;
+
+
+
+//=============================================== grid ===============================================================//
+
+$grid-base-color:$base-color;
+
+//==== grid header ===//
+$grid-header-background-color: lighten($base-header-color,12.5);
+$grid-header-background-gradient:'null';
+
+$grid-header-over-background-color: lighten($grid-base-color,1.5);
+$grid-header-over-background-gradient: 'null';
+
+$grid-header-border-color: $base-borders-color;
+
+//=== grid body ===//
+
+$m-grid-body-background-color: lighten($base-color,2);
+
+//=== grid rows ===//
+
+$grid-row-cell-background: lighten($grid-base-color,2);
+$grid-row-cell-alt-background: $grid-row-cell-background;
+
+$grid-row-cell-border-color:lighten($base-borders-color,15);
+
+$grid-row-cell-over-border-color: $grid-row-cell-border-color;
+$grid-row-cell-over-background-color: darken($grid-row-cell-alt-background,3);
+
+$grid-row-cell-selected-border-style: solid;
+$grid-row-cell-selected-background-color: $grid-row-cell-over-border-color;
+$grid-row-cell-selected-border-color: darken($grid-row-cell-over-border-color,7.5);
+
+$grid-row-wrap-border-color:$grid-row-cell-border-color;
+
+$m-grid-header-border-color: $base-borders-color;
+$grid-header-over-border-color: $m-grid-header-border-color;
+$m-grid-border:$m-grid-header-border-color;
+
+
+//======================//
+//=====grouped grid=====//
+
+$grid-grouped-header-background-color: darken($m-grid-body-background-color,5);
+$grid-grouped-header-border-color: lighten($base-borders-color,2);
+$grid-grouped-header-border-width:1px 0;
+
+$grid-grouped-title-color: $color;
+
+//=== grid editor ===//
+$grid-row-editor-background-color: lighten($base-header-color,1.5);
+
+//================================================= form =================================================//
+
+$form-field-invalid-border-color: #c75050;
+$form-field-background-image: 'null';
+
+$form-field-invalid-background-image: 'null';
+
+$form-field-border-color: adjust-color($base-color,$lightness:-20%);
+$form-field-focus-border-color: adjust-color(red, $lightness: -16.863%);
+
+
+$form-field-border-color: #b9b9b9;
+
+$form-field-focus-border-color: adjust-color($form-field-border-color,$lightness:-5%);
+
+$fieldset-header-color: $color;
+
+//================================================ boundlists ===============================================//
+
+$boundlist-background-color: #fff;
+
+$boundlist-border-color: adjust-color($base-color,$lightness:-20%);
+
+$boundlist-item-border-style: solid;
+
+$boundlist-item-over-border-color: $boundlist-background-color;
+$boundlist-item-selected-border-color: $boundlist-background-color;
+
+$boundlist-item-over-background-color: adjust-color($base-color, $lightness: -3%);
+$boundlist-item-selected-background-color: darken($boundlist-item-over-background-color, 10);
+
+
+//================================================ tabs ===================================================//
+
+$tab-inner-border: false;
+
+//size
+$tab-height: 23px;
+$tab-spacing: 0px;
+
+//background
+$tab-base-color:$base-color;
+$tab-base-color-active:adjust-color($base-color,$lightness:-40%,$saturation:3%);
+
+$tab-background: transparent;
+$tab-background-over: $tab-background;
+$tab-background-disabled: $tab-background;
+
+$tab-color:lighten($color,17.5);
+$tab-color-over: darken($tab-color,12);
+$tab-color-active: white;
+$tab-color-disabled: #c3b3b3 !default;
+
+//gradiat
+$tab-background-gradient: 'null';
+$tab-background-gradient-over: 'null';
+$tab-background-gradient-active: 'null';
+$tab-background-gradient-disabled: 'null';
+
+//border
+$tab-border-color-active: adjust-color($tab-base-color-active,$lightness:0%);
+
+//tab bar strip
+$tabbar-strip-background-color: $tab-base-color-active;
+$tabbar-strip-border-color: $tab-base-color-active;
+
+$tab-closable-icon-top: 0px;
+$tab-closable-icon-right: 0px;
+
+$m-tabbar-background-gradiant:false;
+$m-tabbar-background-color:transparent;
+$tabbar-border-color: $panel-header-border-color;
+
+
+
+//===================================== accordian ===============================================//
+
+$border-layout-ct-background: $base-color;
+
+$accordion-header-color: #000 !default;
+$accordion-header-background-color: adjust-color($base-color, $lightness: -10%) !default;
+
+$m-accordion-inner-border:false;
+
+$m-acordian-header-inner-border-color:$accordion-header-background-color;
+
+//====================================== progress bar ===============================================//
+
+$m-progress-bar-background-gradient:'null';
+
+$progress-bar-background-color: darken($base-header-color,7);
+$progress-border-color: darken($progress-bar-background-color,5);
+
+
+
+
+
+//==================================== date picker ==================================================//
+
+$datepicker-base-color: $base-color;
+$datepicker-header-background-color:adjust-color($base-menu-color,$lightness:5%);
+$datepicker-border-color: adjust-color($datepicker-header-background-color, $lightness: 0%);
+
+//header
+$datepicker-header-background-gradient: 'null';
+
+//body
+$datepicker-today-item-border-color: $base-menu-color;
+
+$datepicker-th-background-gradient: 'null';
+$datepicker-th-background-color:adjust-color($progress-bar-background-color,$lightness:20%);
+
+$datepicker-tool-sprite-image: 'tools/tool-sprites.png';
+
+//footer
+$datepicker-footer-background-gradient:'null';
+
+
+//================================= color picker =================================================//
+
+
+$colorpicker-border-color:$base-menu-color;
+$colorpicker-item-border-color: darken($base-menu-color,10);
+$colorpicker-over-border-color: darken($base-menu-color,15);
+$colorpicker-over-background-color: darken($base-menu-color,10);

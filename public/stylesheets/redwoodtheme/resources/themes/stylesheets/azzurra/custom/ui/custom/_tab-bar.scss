@@ -1,0 +1,49 @@
+﻿
+@mixin custom-tab {
+/*
+==============================================================
+=============== start 'custom-tab' ui ========================
+*/
+	@include tab-ui (
+		'custom-tab',
+
+		$ui-active:false,
+
+		$ui-base-tab-background-color-active:$tab-custom-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-custom-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-custom-border-color-selected
+	);
+/*
+================= end 'custom-tab' ui ========================
+==============================================================
+*/
+}
+
+
+
+@mixin custom-tab-active {
+/*
+==============================================================
+=============== start 'custom-tab-active' ui =================
+*/
+
+	@include tab-ui (
+		'custom-tab-active',
+
+		$ui-active:true,
+
+		$ui-base-tab-background-color-active:$tab-custom-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-custom-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-custom-border-color-selected
+	);
+
+/*
+================ end 'custom-tab-active' ui ==================
+==============================================================
+*/
+}
+
+
+

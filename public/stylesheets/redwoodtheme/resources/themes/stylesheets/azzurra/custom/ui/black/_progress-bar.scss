@@ -1,0 +1,53 @@
+﻿
+@mixin black-progress {
+
+/*
+==============================================================
+============ start 'black-progress' ui =======================
+*/
+
+	@include extjs-progress-ui(
+        'black-progress',
+
+        $ui-background-color: $progress-background-color,
+        $ui-border-color: $progress-bar-black-base-color,
+
+        $ui-bar-background-color: $progress-bar-black-base-color,
+
+        $ui-color-front: $progress-text-color-front,
+        $ui-color-back: $progress-text-color-back,
+
+		$ui-bar-background-gradient:$m-progress-bar-background-gradient //add new property
+    )
+
+/*
+============== end 'black-progress' ui =======================
+==============================================================
+*/
+
+
+}
+
+
+@mixin black-progress-active {
+
+/*
+==============================================================
+============ start 'black-progress-active' ui ================
+*/
+
+	@include progress-active(
+        'black-progress-active',
+
+        $ui-border-color-active: $progress-bar-black-base-color,
+        $ui-bar-background-color-active: $progress-bar-black-base-color
+
+    )
+
+/*
+============== end 'black-progress-active' ui ================
+==============================================================
+*/
+
+
+}

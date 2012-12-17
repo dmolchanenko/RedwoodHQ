@@ -1,0 +1,10 @@
+﻿
+@mixin menu-correction-overrides {
+	.#{$prefix}css-shadow {
+		box-shadow:none !important;
+	}
+
+	.#{$prefix}menu-body {
+		border-color:$base-menu-color !important;
+	}
+}

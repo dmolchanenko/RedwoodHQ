@@ -1,0 +1,387 @@
+﻿	
+@mixin orange-button {
+/*
+==============================================================
+================ start 'orange-button' ui ====================
+*/
+
+	@include extjs-button-ui(
+			/* UI + Scale */
+			'orange-button-small',
+
+			$button-small-border-radius,
+			$button-small-border-width,
+
+			$button-orange-border-color,
+			$button-orange-border-color-over,
+			$button-orange-border-color-focus,
+			$button-orange-border-color-pressed,
+			$button-orange-border-color-disabled,
+
+			$button-small-padding,
+			$button-small-text-padding,
+
+			$button-orange-background-color,
+			$button-orange-background-color-over,
+			$button-orange-background-color-focus,
+			$button-orange-background-color-pressed,
+			$button-orange-background-color-disabled,
+
+			$button-default-background-gradient,
+			$button-default-background-gradient-over,
+			$button-default-background-gradient-focus,
+			$button-default-background-gradient-pressed,
+			$button-default-background-gradient-disabled,
+
+			$button-orange-color,
+			$button-orange-color-over,
+			$button-orange-color-focus,
+			$button-orange-color-pressed,
+			$button-orange-color-disabled,
+
+			$button-small-font-size,
+			$button-small-font-size-over,
+			$button-small-font-size-focus,
+			$button-small-font-size-pressed,
+			$button-small-font-size-disabled,
+
+			$button-small-font-weight,
+			$button-small-font-weight-over,
+			$button-small-font-weight-focus,
+			$button-small-font-weight-pressed,
+			$button-small-font-weight-disabled,
+
+			$button-small-font-family,
+			$button-small-font-family-over,
+			$button-small-font-family-focus,
+			$button-small-font-family-pressed,
+			$button-small-font-family-disabled,
+
+			$button-small-icon-size
+		);
+
+		@include extjs-button-ui(
+			'orange-button-medium',
+
+			$button-medium-border-radius,
+			$button-medium-border-width,
+
+			$button-orange-border-color,
+			$button-orange-border-color-over,
+			$button-orange-border-color-focus,
+			$button-orange-border-color-pressed,
+			$button-orange-border-color-disabled,
+
+			$button-medium-padding,
+			$button-medium-text-padding,
+
+			$button-orange-background-color,
+			$button-orange-background-color-over,
+			$button-orange-background-color-focus,
+			$button-orange-background-color-pressed,
+			$button-orange-background-color-disabled,
+
+			$button-default-background-gradient,
+			$button-default-background-gradient-over,
+			$button-default-background-gradient-focus,
+			$button-default-background-gradient-pressed,
+			$button-default-background-gradient-disabled,
+
+			$button-orange-color,
+			$button-orange-color-over,
+			$button-orange-color-focus,
+			$button-orange-color-pressed,
+			$button-orange-color-disabled,
+
+			$button-medium-font-size,
+			$button-medium-font-size-over,
+			$button-medium-font-size-focus,
+			$button-medium-font-size-pressed,
+			$button-medium-font-size-disabled,
+
+			$button-medium-font-weight,
+			$button-medium-font-weight-over,
+			$button-medium-font-weight-focus,
+			$button-medium-font-weight-pressed,
+			$button-medium-font-weight-disabled,
+
+			$button-medium-font-family,
+			$button-medium-font-family-over,
+			$button-medium-font-family-focus,
+			$button-medium-font-family-pressed,
+			$button-medium-font-family-disabled,
+
+			$button-medium-icon-size
+		);
+
+		@include extjs-button-ui(
+			'orange-button-large',
+
+			$button-large-border-radius,
+			$button-large-border-width,
+
+			$button-orange-border-color,
+			$button-orange-border-color-over,
+			$button-orange-border-color-focus,
+			$button-orange-border-color-pressed,
+			$button-orange-border-color-disabled,
+
+			$button-large-padding,
+			$button-large-text-padding,
+
+			$button-orange-background-color,
+			$button-orange-background-color-over,
+			$button-orange-background-color-focus,
+			$button-orange-background-color-pressed,
+			$button-orange-background-color-disabled,
+
+			$button-default-background-gradient,
+			$button-default-background-gradient-over,
+			$button-default-background-gradient-focus,
+			$button-default-background-gradient-pressed,
+			$button-default-background-gradient-disabled,
+
+			$button-orange-color,
+			$button-orange-color-over,
+			$button-orange-color-focus,
+			$button-orange-color-pressed,
+			$button-orange-color-disabled,
+
+			$button-large-font-size,
+			$button-large-font-size-over,
+			$button-large-font-size-focus,
+			$button-large-font-size-pressed,
+			$button-large-font-size-disabled,
+
+			$button-large-font-weight,
+			$button-large-font-weight-over,
+			$button-large-font-weight-focus,
+			$button-large-font-weight-pressed,
+			$button-large-font-weight-disabled,
+
+			$button-large-font-family,
+			$button-large-font-family-over,
+			$button-large-font-family-focus,
+			$button-large-font-family-pressed,
+			$button-large-font-family-disabled,
+
+			$button-large-icon-size
+		);
+/*
+================= end 'orange-button' ui =====================
+==============================================================
+*/
+
+
+}
+
+@mixin orange-button-active {
+/*
+==============================================================
+============= start 'orange-button-active' ui ================
+*/
+
+
+	@include extjs-button-ui(
+        'orange-button-active-small',
+
+        $button-small-border-radius,
+        $button-small-border-width,
+
+        $button-default-border-color,
+        $button-default-border-color-over,
+        $button-default-border-color-focus,
+        $button-default-border-color-pressed,
+        $button-default-border-color-disabled,
+
+        $button-small-padding,
+        $button-small-text-padding,
+
+        $button-default-background-color,
+        $button-default-background-color-over,
+        $button-default-background-color-focus,
+        $button-default-background-color-pressed,
+        $button-default-background-color-disabled,
+
+        $button-default-background-gradient,
+        $button-default-background-gradient-over,
+        $button-default-background-gradient-focus,
+        $button-default-background-gradient-pressed,
+        $button-default-background-gradient-disabled,
+
+        $button-default-color,
+        $button-default-color-over,
+        $button-default-color-focus,
+        $button-default-color-pressed,
+        $button-default-color-disabled,
+
+        $button-small-font-size,
+        $button-small-font-size-over,
+        $button-small-font-size-focus,
+        $button-small-font-size-pressed,
+        $button-small-font-size-disabled,
+
+        $button-small-font-weight,
+        $button-small-font-weight-over,
+        $button-small-font-weight-focus,
+        $button-small-font-weight-pressed,
+        $button-small-font-weight-disabled,
+
+        $button-small-font-family,
+        $button-small-font-family-over,
+        $button-small-font-family-focus,
+        $button-small-font-family-pressed,
+        $button-small-font-family-disabled,
+
+        $button-small-icon-size,
+
+		$m-button-inner-border-color,
+		$m-button-inner-border-color-over,
+		$m-button-inner-border-color-pressed
+    );
+
+    @include extjs-button-ui(
+        'orange-button-active-medium',
+
+        $button-medium-border-radius,
+        $button-medium-border-width,
+
+        $button-default-border-color,
+        $button-default-border-color-over,
+        $button-default-border-color-focus,
+        $button-default-border-color-pressed,
+        $button-default-border-color-disabled,
+
+        $button-medium-padding,
+        $button-medium-text-padding,
+
+        $button-default-background-color,
+        $button-default-background-color-over,
+        $button-default-background-color-focus,
+        $button-default-background-color-pressed,
+        $button-default-background-color-disabled,
+
+        $button-default-background-gradient,
+        $button-default-background-gradient-over,
+        $button-default-background-gradient-focus,
+        $button-default-background-gradient-pressed,
+        $button-default-background-gradient-disabled,
+
+        $button-default-color,
+        $button-default-color-over,
+        $button-default-color-focus,
+        $button-default-color-pressed,
+        $button-default-color-disabled,
+
+        $button-medium-font-size,
+        $button-medium-font-size-over,
+        $button-medium-font-size-focus,
+        $button-medium-font-size-pressed,
+        $button-medium-font-size-disabled,
+
+        $button-medium-font-weight,
+        $button-medium-font-weight-over,
+        $button-medium-font-weight-focus,
+        $button-medium-font-weight-pressed,
+        $button-medium-font-weight-disabled,
+
+        $button-medium-font-family,
+        $button-medium-font-family-over,
+        $button-medium-font-family-focus,
+        $button-medium-font-family-pressed,
+        $button-medium-font-family-disabled,
+
+        $button-medium-icon-size,
+
+		$m-button-inner-border-color,
+		$m-button-inner-border-color-over,
+		$m-button-inner-border-color-pressed
+    );
+
+    @include extjs-button-ui(
+        'orange-button-active-large',
+
+        $button-large-border-radius,
+        $button-large-border-width,
+
+        $button-default-border-color,
+        $button-default-border-color-over,
+        $button-default-border-color-focus,
+        $button-default-border-color-pressed,
+        $button-default-border-color-disabled,
+
+        $button-large-padding,
+        $button-large-text-padding,
+
+        $button-default-background-color,
+        $button-default-background-color-over,
+        $button-default-background-color-focus,
+        $button-default-background-color-pressed,
+        $button-default-background-color-disabled,
+
+        $button-default-background-gradient,
+        $button-default-background-gradient-over,
+        $button-default-background-gradient-focus,
+        $button-default-background-gradient-pressed,
+        $button-default-background-gradient-disabled,
+
+        $button-default-color,
+        $button-default-color-over,
+        $button-default-color-focus,
+        $button-default-color-pressed,
+        $button-default-color-disabled,
+
+        $button-large-font-size,
+        $button-large-font-size-over,
+        $button-large-font-size-focus,
+        $button-large-font-size-pressed,
+        $button-large-font-size-disabled,
+
+        $button-large-font-weight,
+        $button-large-font-weight-over,
+        $button-large-font-weight-focus,
+        $button-large-font-weight-pressed,
+        $button-large-font-weight-disabled,
+
+        $button-large-font-family,
+        $button-large-font-family-over,
+        $button-large-font-family-focus,
+        $button-large-font-family-pressed,
+        $button-large-font-family-disabled,
+
+        $button-large-icon-size,
+
+		$m-button-inner-border-color,
+		$m-button-inner-border-color-over,
+		$m-button-inner-border-color-pressed
+    );
+
+
+	//overrides
+
+	.#{$prefix}window-active {
+		
+		@include button-color-override (
+			'orange-button-active',
+
+			$button-ui-background-color:$button-orange-background-color,
+			$button-ui-background-color-over:$button-orange-background-color-over,
+			$button-ui-background-color-pressed:$button-orange-background-color-pressed,
+			$button-ui-background-color-disabled:$button-orange-background-color-disabled,
+
+			$button-ui-border-color:$button-orange-border-color,
+			$button-ui-border-color-over:$button-orange-border-color-over,
+			$button-ui-border-color-pressed:$button-orange-border-color-pressed,
+			$button-ui-border-color-disabled:$button-orange-border-color-disabled
+		
+		);
+		
+	
+	}
+
+/*
+=============== end 'orange-button-active' ui ================
+==============================================================
+*/
+
+}

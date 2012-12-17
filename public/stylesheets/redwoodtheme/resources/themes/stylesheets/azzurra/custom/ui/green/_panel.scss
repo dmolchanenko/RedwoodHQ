@@ -1,0 +1,127 @@
+﻿
+@mixin green-panel {
+
+/*
+==============================================================
+================ start 'green-panel' ui ======================
+*/
+
+@include ui-panel(
+	'green-panel',
+
+	$ui-base-color:$base-green-color,
+
+	$ui-header-text-color:$window-green-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-green-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-green-border-color-selected,
+
+	$ui-tool-background-color-over:$green-tool-background-color-hover,
+	$ui-tool-close-background-color:$green-close-tool-background-color,
+	$ui-tool-close-background-color-over:$green-close-tool-background-color-hover
+
+);
+
+/*
+==================== end 'green-panel' ui ====================
+==============================================================
+*/
+
+}
+
+
+@mixin green-panel-framed {
+
+/*
+==============================================================
+============== start 'green-panel-framed' ui =================
+*/
+@include ui-panel-framed(
+	'green-panel-framed',
+
+	$ui-base-color:$base-green-color,
+
+	$ui-header-text-color:$window-green-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-green-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-green-border-color-selected,
+
+	$ui-tool-background-color-over:$green-tool-background-color-hover,
+	$ui-tool-close-background-color:$green-close-tool-background-color,
+	$ui-tool-close-background-color-over:$green-close-tool-background-color-hover
+
+);
+
+
+/*
+================= end 'green-panel-framed' ui ================
+==============================================================
+*/
+
+}
+
+
+
+
+
+
+@mixin green-panel-active {
+
+/*	
+==============================================================
+============== start 'green-panel-active' ui =================
+*/
+
+@include ui-panel-active(
+	'green-panel-active',
+
+	$ui-base-color:$base-green-color,
+
+	$ui-header-text-color:$window-green-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-green-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-green-border-color-selected,
+
+	$ui-tool-background-color-over:$green-tool-background-color-hover,
+	$ui-tool-close-background-color:$green-close-tool-background-color,
+	$ui-tool-close-background-color-over:$green-close-tool-background-color-hover
+
+);	
+
+/*
+============= end 'green-panel-active' ui ====================
+==============================================================
+*/
+
+}
+
+
+@mixin green-panel-active-framed {
+
+/*	
+==============================================================
+============== start 'green-panel-active-framed' ui ==========
+*/
+@include ui-panel-active-framed(
+	'green-panel-active-framed',
+
+	$ui-base-color:$base-green-color,
+
+	$ui-header-text-color:$window-green-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-green-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-green-border-color-selected,
+
+	$ui-tool-background-color-over:$green-tool-background-color-hover,
+	$ui-tool-close-background-color:$green-close-tool-background-color,
+	$ui-tool-close-background-color-over:$green-close-tool-background-color-hover
+
+);	
+	
+
+/*
+============== end 'green-panel-active' ui ===================
+==============================================================
+*/
+
+}

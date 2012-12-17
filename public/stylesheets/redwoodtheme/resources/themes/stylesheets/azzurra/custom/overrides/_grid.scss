@@ -1,0 +1,43 @@
+﻿@mixin grid-row-correction () {
+	
+	.#{$prefix}grid-row {
+		.#{$prefix}grid-cell,
+		.#{$prefix}grid-rowwrap-div {
+			border-bottom-color:transparent;
+		}
+
+		&:nth-child(2) {
+			.#{$prefix}grid-cell,
+			.#{$prefix}grid-rowwrap-div {
+				border-top-color:transparent;
+			}
+		}
+
+		&:last-child {
+			.#{$prefix}grid-cell,
+			.#{$prefix}grid-rowwrap-div {
+				border-bottom-color:$grid-row-cell-border-color;
+			}
+		}
+	}
+
+	.#{$prefix}grid-row-selected+.#{$prefix}grid-row {
+		.#{$prefix}grid-cell,
+		.#{$prefix}grid-rowwrap-div {
+			border-top-color:transparent;
+	
+		}
+	
+	}
+}
+
+@mixin grid-cell-selected {
+	.#{$prefix}grid-cell-selected {
+        background-color: transparent !important;
+    }
+
+}
+
+
+
+

@@ -1,0 +1,50 @@
+﻿
+@mixin green-tab {
+/*
+==============================================================
+================= start 'green-tab' ui =======================
+*/
+	@include tab-ui (
+		'green-tab',
+
+		$ui-active:false,
+
+		$ui-base-tab-background-color-active:$tab-green-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-green-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-green-border-color-selected
+	);
+/*
+=================== end 'green-tab' ui =======================
+==============================================================
+*/
+}
+
+
+
+@mixin green-tab-active {
+/*
+==============================================================
+============= start 'green-tab-active' ui ====================
+*/
+
+	@include tab-ui (
+		'green-tab-active',
+
+		$ui-active:true,
+
+		$ui-base-tab-background-color-active:$tab-green-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-green-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-green-border-color-selected
+
+	);
+
+/*
+============= end 'green-tab-active' ui ======================
+==============================================================
+*/
+}
+
+
+

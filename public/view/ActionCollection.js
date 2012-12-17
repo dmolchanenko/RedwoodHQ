@@ -216,14 +216,33 @@ Ext.define('Redwood.view.ActionCollection', {
 
         var me = this;
 
+
+        this.on("beforeitemcollapse",function(){
+            me.lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
+        });
+
+        this.on("beforeitemexpand",function(){
+            me.lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
+        });
+
+        this.on("afteritemexpand",function(){
+            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+        });
+
+        this.on("afteritemecollapse",function(){
+            me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+        });
+
         //me.selModel= Ext.create('Ext.selection.Model', { listeners: {} })
         //this.enableLocking = true;
         this.viewConfig = {
-            autoScroll: true,
+            //autoScroll: true,
             markDirty: false,
-            forceFit: true,
-            preserveScrollOnRefresh:true,
+            //forceFit: true,
+            //preserveScrollOnRefresh:true,
             loadMask : false,
+
+            animate: false,
 
             //   Return CSS class to apply to rows depending upon data values
             getRowClass: function (record, index) {
@@ -738,6 +757,17 @@ Ext.define('Redwood.view.ActionCollection', {
             }
 
             if ((e.field === "host")&&(e.record.get("actionname") != "")){
+                e.column.setEditor({
+                    xtype:"combo",
+                    displayField: 'value',
+                    height:20,
+                    valueField: 'value',
+                    typeAhead: true,
+                    queryMode: 'local',
+                    editable: false,
+                    store:Ext.data.StoreManager.lookup('MachineRoles')
+                });
+
                 return true;
             }
 
@@ -923,6 +953,9 @@ Ext.define('Redwood.view.ActionCollection', {
                         actionIndex = e.grid.getRootNode().indexOf(nextAction);
                     }
                 }
+            }
+            else{
+                me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
             }
 
         });

@@ -1,0 +1,53 @@
+﻿
+@mixin orange-progress {
+
+/*
+==============================================================
+============ start 'orange-progress-active' ui ===============
+*/
+
+	@include extjs-progress-ui(
+        'orange-progress',
+
+        $ui-background-color: $progress-background-color,
+        $ui-border-color: $progress-bar-orange-base-color,
+
+        $ui-bar-background-color: $progress-bar-orange-base-color,
+
+        $ui-color-front: $progress-text-color-front,
+        $ui-color-back: $progress-text-color-back,
+
+		$ui-bar-background-gradient:$m-progress-bar-background-gradient //add new property
+    )
+
+/*
+============== end 'orange-progress-active' ui ===============
+==============================================================
+*/
+
+
+}
+
+
+@mixin orange-progress-active {
+
+/*
+==============================================================
+========== start 'orange-progress-active' ui =================
+*/
+
+	@include progress-active(
+        'orange-progress-active',
+
+        $ui-border-color-active: $progress-bar-orange-base-color,
+        $ui-bar-background-color-active: $progress-bar-orange-base-color
+
+    )
+
+/*
+============ end 'orange-progress-active' ui =================
+==============================================================
+*/
+
+
+}

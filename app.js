@@ -23,7 +23,8 @@ var express = require('express')
   , common = require('./common')
   , auth = require('./routes/auth')
   , terminal = require('./routes/terminal')
-  , realtime = require('./routes/realtime');
+  , realtime = require('./routes/realtime')
+  , methodFinder = require('./routes/methodFinder');
 
 
 var app = module.exports = express.createServer(
@@ -130,6 +131,9 @@ app.put('/folder',auth.auth, folder.folderPut);
 
 //folder
 app.post('/fileupload',auth.auth, fileupload.upload);
+
+//methodFinder
+app.post('/methodFinder/:id',auth.auth, methodFinder.methodFinderPost);
 
 realtime.initSocket(app);
 

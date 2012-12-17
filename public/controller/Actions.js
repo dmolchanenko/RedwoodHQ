@@ -1,8 +1,8 @@
 Ext.define("Redwood.controller.Actions", {
     extend: 'Ext.app.Controller',
 
-    models: ['Actions',"ActionTags"],
-    stores: ['Actions',"ActionTags"],
+    models: ['Actions',"ActionTags",'MethodFinder'],
+    stores: ['Actions',"ActionTags",'MethodFinder'],
     views:  ['Actions','ScriptPicker'],
 
     init: function () {

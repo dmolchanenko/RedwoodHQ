@@ -1,0 +1,225 @@
+﻿@mixin tab-ui (
+	$ui-name,
+
+	$ui-active,
+
+	$ui-base-tab-background-color-active,
+
+	$ui-grid-row-background-color-selected,
+
+	$ui-grid-row-border-color-selected
+
+) {
+	
+	@if $ui-active == false {	
+
+		div.#{$prefix}panel-#{$ui-name} {
+				&>.#{$prefix}tab-bar-top .#{$prefix}tab {	
+					border-bottom-color:$ui-base-tab-background-color-active;
+				}
+
+				&>.#{$prefix}tab-bar-bottom .#{$prefix}tab {	
+					border-top-color:$ui-base-tab-background-color-active !important;
+				}
+	
+				&>.#{$prefix}tab-bar .#{$prefix}tab-active {
+					background-color: $ui-base-tab-background-color-active;
+					border-color: $ui-base-tab-background-color-active !important;
+				}
+
+				&>.#{$prefix}tab-bar .#{$prefix}tab-bar-strip-default-plain {
+					background-color: $ui-base-tab-background-color-active;
+					border-color: $ui-base-tab-background-color-active;
+				}
+
+				&>.#{$prefix}tab-bar .#{$prefix}tab-bar-strip-default  {
+					background-color: $ui-base-tab-background-color-active;
+					border-color: $ui-base-tab-background-color-active;
+				}
+
+				.#{$prefix}tab-bar-top+.#{$prefix}panel-body-#{$ui-name}{
+					border-top-color:$ui-base-tab-background-color-active !important;
+				}
+		
+				@include extjs-panel-ui(
+					$ui-name,
+
+					$ui-base-color: $panel-base-color,
+					$ui-border-width: $panel-border-width,
+					$ui-border-color: $panel-border-color,
+					$ui-border-radius: $panel-border-radius,
+
+					$ui-header-color: $panel-header-color,
+					$ui-header-font-size: $panel-header-font-size,
+					$ui-header-font-weight: $panel-header-font-weight,
+					$ui-header-border-color: $panel-header-border-color,
+					$ui-header-background-color: $panel-header-background-color,
+					$ui-header-background-gradient: $panel-header-background-gradient,
+
+					$m-ui-header-inner-border:$m-panel-header-inner-border, //codaxy
+					$m-ui-header-text-shadow:$m-header-text-shadow, //codaxy
+
+					$ui-body-color: $panel-body-color,
+					$ui-body-border-color: $panel-body-border-color,
+					$ui-body-border-width: 1px,
+					$ui-body-background-color: $panel-body-background-color,
+
+					$m-ui-body-inner-border:$m-body-inner-border //codaxy
+				);
+	
+			}
+
+
+
+
+			//== grid ==//
+
+	
+			div.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-with-row-lines {
+		
+
+					.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+					.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+						border-color: $ui-grid-row-border-color-selected !important;
+						background-color: $ui-grid-row-background-color-selected !important;
+
+					}	
+			}
+
+			div.#{$prefix}tabpanel-child {
+					.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-with-row-lines {
+
+						.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+						.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+							border-color: $ui-grid-row-border-color-selected !important;
+							background-color: $ui-grid-row-background-color-selected !important;
+
+						}	
+				}
+
+			}
+
+
+			div.#{$prefix}tabpanel-child .#{$prefix}tabpanel-child {
+					.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-with-row-lines {
+
+						.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+						.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+							border-color: $ui-grid-row-border-color-selected !important;
+							background-color: $ui-grid-row-background-color-selected !important;
+
+						}	
+					}
+
+				
+			}
+
+		
+
+	} @else {
+		.#{$prefix}panel-#{$ui-name} {
+			@include extjs-panel-ui(
+				$ui-name,
+
+				$ui-base-color: $panel-base-color,
+				$ui-border-width: $panel-border-width,
+				$ui-border-color: $panel-border-color,
+				$ui-border-radius: $panel-border-radius,
+
+				$ui-header-color: $panel-header-color,
+				$ui-header-font-size: $panel-header-font-size,
+				$ui-header-font-weight: $panel-header-font-weight,
+				$ui-header-border-color: $panel-header-border-color,
+				$ui-header-background-color: $panel-header-background-color,
+				$ui-header-background-gradient: $panel-header-background-gradient,
+
+				$m-ui-header-inner-border:$m-panel-header-inner-border, //codaxy
+				$m-ui-header-text-shadow:$m-header-text-shadow, //codaxy
+
+				$ui-body-color: $panel-body-color,
+				$ui-body-border-color: $panel-body-border-color,
+				$ui-body-border-width: 1px,
+				$ui-body-background-color: $panel-body-background-color,
+
+				$m-ui-body-inner-border:$m-body-inner-border //codaxy
+			);		
+		}
+		
+		.#{$prefix}window-active {
+			div.#{$prefix}panel-#{$ui-name} {
+				&>.#{$prefix}tab-bar-top .#{$prefix}tab {	
+					border-bottom-color:$ui-base-tab-background-color-active;
+				}
+				
+				&>.#{$prefix}tab-bar-bottom .#{$prefix}tab {	
+					border-top-color:$ui-base-tab-background-color-active !important;
+					border-bottom-color:transparent !important;
+				}
+
+				&>.#{$prefix}tab-bar-bottom .#{$prefix}tab-active {	
+					border-bottom-color:$ui-base-tab-background-color-active !important;
+				}
+
+
+				&>.#{$prefix}tab-bar .#{$prefix}tab-active {
+					background-color: $ui-base-tab-background-color-active;
+					border-color: $ui-base-tab-background-color-active !important;
+				}
+
+				&>.#{$prefix}tab-bar .#{$prefix}tab-bar-strip-default-plain {
+					background-color: $ui-base-tab-background-color-active;
+					border-color: $ui-base-tab-background-color-active;
+				}
+
+				&>.#{$prefix}tab-bar .#{$prefix}tab-bar-strip-default  {
+					background-color: $ui-base-tab-background-color-active;
+					border-color: $ui-base-tab-background-color-active;
+				}
+
+				.#{$prefix}tab-bar-top+.#{$prefix}panel-body-#{$ui-name}{
+					border-top-color:$ui-base-tab-background-color-active !important;
+				}	
+			}
+
+			//== grid ==//
+	
+			div.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-with-row-lines {		
+
+				.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+				.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+					border-color: $ui-grid-row-border-color-selected !important;
+					background-color: $ui-grid-row-background-color-selected !important;
+
+				}	
+			}
+
+			div.#{$prefix}tabpanel-child {
+				.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-with-row-lines {
+
+					.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+					.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+						border-color: $ui-grid-row-border-color-selected !important;
+						background-color: $ui-grid-row-background-color-selected !important;
+
+					}	
+			}
+	
+			div.#{$prefix}tabpanel-child .#{$prefix}tabpanel-child {
+				.#{$prefix}panel-#{$ui-name}.#{$prefix}grid-with-row-lines {
+
+					.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+					.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+						border-color: $ui-grid-row-border-color-selected !important;
+						background-color: $ui-grid-row-background-color-selected !important;
+
+					}	
+				}
+			}
+
+			}		
+		}
+	
+	}
+
+	
+}

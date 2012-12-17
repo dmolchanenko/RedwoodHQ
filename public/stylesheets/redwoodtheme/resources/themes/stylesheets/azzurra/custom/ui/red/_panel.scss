@@ -1,0 +1,127 @@
+﻿
+@mixin red-panel {
+
+/*
+==============================================================
+================= start 'red-panel' ui =======================
+*/
+
+@include ui-panel(
+	'red-panel',
+
+	$ui-base-color:$base-red-color,
+
+	$ui-header-text-color:$window-red-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-red-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-red-border-color-selected,
+
+	$ui-tool-background-color-over:$red-tool-background-color-hover,
+	$ui-tool-close-background-color:$red-close-tool-background-color,
+	$ui-tool-close-background-color-over:$red-close-tool-background-color-hover
+
+);
+
+/*
+==================== end 'red-panel' ui ======================
+==============================================================
+*/
+
+}
+
+
+@mixin red-panel-framed {
+
+/*
+==============================================================
+================= start 'red-panel-framed' ui ================
+*/
+@include ui-panel-framed(
+	'red-panel-framed',
+
+	$ui-base-color:$base-red-color,
+
+	$ui-header-text-color:$window-red-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-red-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-red-border-color-selected,
+
+	$ui-tool-background-color-over:$red-tool-background-color-hover,
+	$ui-tool-close-background-color:$red-close-tool-background-color,
+	$ui-tool-close-background-color-over:$red-close-tool-background-color-hover
+
+);
+
+
+/*
+================= end 'red-panel-framed' ui ==================
+==============================================================
+*/
+
+}
+
+
+
+
+
+
+@mixin red-panel-active {
+
+/*	
+==============================================================
+============== start 'red-panel-active' ui ===================
+*/
+
+@include ui-panel-active(
+	'red-panel-active',
+
+	$ui-base-color:$base-red-color,
+
+	$ui-header-text-color:$window-red-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-red-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-red-border-color-selected,
+
+	$ui-tool-background-color-over:$red-tool-background-color-hover,
+	$ui-tool-close-background-color:$red-close-tool-background-color,
+	$ui-tool-close-background-color-over:$red-close-tool-background-color-hover
+
+);	
+
+/*
+=============== end 'red-panel-active' ui ====================
+==============================================================
+*/
+
+}
+
+
+@mixin red-panel-active-framed {
+
+/*	
+==============================================================
+============== start 'red-panel-active-framed' ui ============
+*/
+@include ui-panel-active-framed(
+	'red-panel-active-framed',
+
+	$ui-base-color:$base-red-color,
+
+	$ui-header-text-color:$window-red-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-red-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-red-border-color-selected,
+
+	$ui-tool-background-color-over:$red-tool-background-color-hover,
+	$ui-tool-close-background-color:$red-close-tool-background-color,
+	$ui-tool-close-background-color-over:$red-close-tool-background-color-hover
+
+);	
+	
+
+/*
+=============== end 'red-panel-active' ui ====================
+==============================================================
+*/
+
+}

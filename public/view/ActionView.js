@@ -89,7 +89,6 @@ Ext.define('Redwood.view.ActionParamGrid',{
         this.plugins =[this.rowEditor];
 
         this.rowEditor.on("edit",function(editor,e,eOpt){
-            console.log(e);
         });
         this.rowEditor.on("beforeedit",function(editor,e){
             e.grid.columns[2].getEditor().store.removeAll();
@@ -256,9 +255,13 @@ Ext.define('Redwood.view.ActionParamGrid',{
 Ext.define('Redwood.view.ActionView', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.actionview',
-    autoScroll: true,
+    //autoScroll: true,
+    overflowY: 'auto',
     bodyPadding: 5,
-    //layout: 'vbox',
+    //type: 'auto',
+    //align : 'stretch',
+    //pack  : 'start',
+    //forceFit: true,
     myData:[],
     dataRecord: null,
     dirty: false,
@@ -301,10 +304,14 @@ Ext.define('Redwood.view.ActionView', {
                 xtype: 'fieldset',
                 title: 'Action Details',
                 defaultType: 'textfield',
-                width: 1500,
+                flex: 1,
+                //layout:"hBox",
+                //align : 'stretch',
+                //pack  : 'start',
+                //width: 1500,
                 collapsible: true,
                 defaults: {
-                    width: 1470
+                    flex: 1
                 },
                 items: [
                     {
@@ -312,6 +319,7 @@ Ext.define('Redwood.view.ActionView', {
                         allowBlank: false,
                         labelStyle: "font-weight: bold",
                         itemId:"name",
+                        anchor:'90%',
                         listeners:{
                             change: function(){
                                 if (me.loadingData === false){
@@ -324,6 +332,7 @@ Ext.define('Redwood.view.ActionView', {
                         fieldLabel: "Description",
                         allowBlank: true,
                         itemId:"description",
+                        anchor:'90%',
                         listeners:{
                             change: function(){
                                 if (me.loadingData === false){
@@ -388,6 +397,7 @@ Ext.define('Redwood.view.ActionView', {
                         displayField:"value",
                         descField:"value",
                         height:24,
+                        anchor:'90%',
                         //labelWidth: 100,
                         forceSelection:false,
                         createNewOnEnter:true,
@@ -414,14 +424,18 @@ Ext.define('Redwood.view.ActionView', {
             {
                 xtype: 'fieldset',
                 title: 'Parameters',
-                width: 1500,
+                flex: 1,
+                /*
+                layout:"hbox",
+                align : 'stretch',
+                pack  : 'start',
+                anchor:"99%",
+                */
                 collapsible: true,
-                defaults: {
-                    width: 1470
-                },
                 items:[
                     {
                         xtype:"actionparamgrid",
+                        flex: 1,
                         itemId: "params"
 
                     }
@@ -431,15 +445,21 @@ Ext.define('Redwood.view.ActionView', {
                 xtype: 'fieldset',
                 hidden: true,
                 title: 'Action Collection',
-                width: 1500,
+                flex: 1,
+
+                layout:"hbox",
+                //align : 'stretchmax',
+                //pack: "center",
+                constrainAlign: true,
+                //maxWidth: 1672,
+
                 collapsible: true,
                 itemId:"actionCollectionFiledSet",
-                defaults: {
-                    width: 1470
-                },
                 items:[
                     {
                         xtype:"actioncollection",
+                        //anchor:"100%",
+                        flex: 1,
                         listeners:{
                             afterrender: function(collection){
                                 var actionView = collection.up("actionview");

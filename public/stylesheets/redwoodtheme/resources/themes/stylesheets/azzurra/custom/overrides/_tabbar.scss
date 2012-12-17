@@ -1,0 +1,44 @@
+﻿
+@mixin tab-bar-border-correction {
+	.#{$prefix}tab {	
+		border:none;
+		border-top:1px solid transparent;
+		border-bottom:1px solid $tab-base-color-active;
+
+		&.#{$prefix}tab-bottom {
+			border-bottom-color: transparent;
+		}
+	}
+
+	.#{$prefix}tab-active {
+		border:1px solid $tab-border-color-active;
+	}
+
+}
+
+@mixin tab-bar-close-tool-correction {
+	.#{$prefix}tab-close-btn {
+	visibility: hidden;
+	}
+
+	.#{$prefix}tab-active .#{$prefix}tab-close-btn {
+		visibility: visible !important;
+		background-image:url("../themes/images/azzurra/tab/tab-white-close.gif") !important;
+	}
+
+	.#{$prefix}tab-over .#{$prefix}tab-close-btn {
+		visibility: visible;
+	}
+}
+
+@mixin tab-correction {
+
+	.#{$prefix}ie7 .#{$prefix}tab {
+		height:$tab-height - 4 !important;
+	}
+
+	.#{$prefix}tab:first-child {
+		margin-left:2px !important;
+	}
+
+}

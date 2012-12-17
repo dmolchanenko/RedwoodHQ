@@ -1,0 +1,49 @@
+﻿
+@mixin black-tab {
+/*
+==============================================================
+================= start 'black-tab' ui ========================
+*/
+	@include tab-ui (
+		'black-tab',
+
+		$ui-active:false,
+
+		$ui-base-tab-background-color-active:$tab-black-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-black-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-black-border-color-selected
+	);
+/*
+=================== end 'black-tab' ui ========================
+==============================================================
+*/
+}
+
+
+
+@mixin black-tab-active {
+/*
+==============================================================
+============= start 'black-tab-active' ui =====================
+*/
+
+	@include tab-ui (
+		'black-tab-active',
+
+		$ui-active:true,
+
+		$ui-base-tab-background-color-active:$tab-black-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-black-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-black-border-color-selected
+	);
+
+/*
+============= end 'black-tab-active' ui =======================
+==============================================================
+*/
+}
+
+
+

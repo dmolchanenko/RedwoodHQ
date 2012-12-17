@@ -1,0 +1,127 @@
+﻿
+@mixin orange-panel {
+
+/*
+==============================================================
+=============== start 'orange-panel' ui ======================
+*/
+
+@include ui-panel(
+	'orange-panel',
+
+	$ui-base-color:$base-orange-color,
+
+	$ui-header-text-color:$window-orange-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-orange-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-orange-border-color-selected,
+
+	$ui-tool-background-color-over:$orange-tool-background-color-hover,
+	$ui-tool-close-background-color:$orange-close-tool-background-color,
+	$ui-tool-close-background-color-over:$orange-close-tool-background-color-hover
+
+);
+
+/*
+==================== end 'panel-orange' ui ===================
+==============================================================
+*/
+
+}
+
+
+@mixin orange-panel-framed {
+
+/*
+==============================================================
+=============== start 'orange-panel-framed' ui ===============
+*/
+@include ui-panel-framed(
+	'orange-panel-framed',
+
+	$ui-base-color:$base-orange-color,
+
+	$ui-header-text-color:$window-orange-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-orange-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-orange-border-color-selected,
+
+	$ui-tool-background-color-over:$orange-tool-background-color-hover,
+	$ui-tool-close-background-color:$orange-close-tool-background-color,
+	$ui-tool-close-background-color-over:$orange-close-tool-background-color-hover
+
+);
+
+
+/*
+================= end 'orange-panel-framed' ui ===============
+==============================================================
+*/
+
+}
+
+
+
+
+
+
+@mixin orange-panel-active {
+
+/*	
+==============================================================
+============== start 'orange-panel-active' ui ================
+*/
+
+@include ui-panel-active(
+	'orange-panel-active',
+
+	$ui-base-color:$base-orange-color,
+
+	$ui-header-text-color:$window-orange-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-orange-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-orange-border-color-selected,
+
+	$ui-tool-background-color-over:$orange-tool-background-color-hover,
+	$ui-tool-close-background-color:$orange-close-tool-background-color,
+	$ui-tool-close-background-color-over:$orange-close-tool-background-color-hover
+
+);	
+
+/*
+============ end 'orange-panel-active' ui ====================
+==============================================================
+*/
+
+}
+
+
+@mixin orange-panel-active-framed {
+
+/*	
+==============================================================
+============ start 'orange-panel-active-framed' ui ===========
+*/
+@include ui-panel-active-framed(
+	'orange-panel-active-framed',
+
+	$ui-base-color:$base-orange-color,
+
+	$ui-header-text-color:$window-orange-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-orange-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-orange-border-color-selected,
+
+	$ui-tool-background-color-over:$orange-tool-background-color-hover,
+	$ui-tool-close-background-color:$orange-close-tool-background-color,
+	$ui-tool-close-background-color-over:$orange-close-tool-background-color-hover
+
+);	
+	
+
+/*
+============ end 'orange-panel-active' ui ====================
+==============================================================
+*/
+
+}
