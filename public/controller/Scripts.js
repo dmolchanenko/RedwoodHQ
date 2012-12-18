@@ -47,7 +47,7 @@ Ext.define("Redwood.controller.Scripts", {
     compileEventAttached: false,
 
     onCompile: function(){
-        Ext.socket.emit('compile', "compile");
+        Ext.socket.emit('compile', {project:Ext.util.Cookies.get("project")});
         var me = this;
 
         var output = me.scriptBrowser.down("#compileOutput");

@@ -59,8 +59,7 @@ Ext.define('Redwood.view.Variables', {
                 xtype: 'checkcolumn',
                 header: "Task Variable",
                 dataIndex: 'taskVar',
-                //flex:1,
-                width: 71,
+                width: 77,
                 editor:{
                     xtype:'checkboxfield'
                 },
@@ -69,17 +68,6 @@ Ext.define('Redwood.view.Variables', {
                         variablesEditor.fireEvent("edit");
                     }
                 }
-                /*,
-                renderer: function(value){
-                    var cssPrefix = Ext.baseCSSPrefix,
-                        cls = [cssPrefix + 'grid-checkheader'];
-
-                    if (value) {
-                        cls.push(cssPrefix + 'grid-checkheader-checked');
-                    }
-                    return '<div class="' + cls.join(' ') + '">&#160;</div>';
-                }
-                */
             },
             {
                 header: 'Tags',

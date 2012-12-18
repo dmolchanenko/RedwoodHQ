@@ -5,7 +5,7 @@ exports.operation = function(msg, id,callback){
     if (compileProcs[id] != undefined){
         compileProcs[id].proc.kill();
     }
-    var buildDir = __dirname.replace("\\routes","")+"/public/automationscripts";
+    var buildDir = __dirname.replace("\\routes","")+"/public/automationscripts/"+msg.project;
     var antDir = __dirname.replace("\\routes","")+"/ant/bin/";
     compileProcs[id] = {proc:spawn(antDir+'ant.bat',['compile'],{cwd: buildDir,timeout:1800000}),status:"compile"};
     console.log(antDir);

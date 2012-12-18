@@ -169,6 +169,7 @@ Ext.define('Redwood.view.Actions', {
                     {
                         xtype:"tabpanel",
                         itemId: 'actionstab',
+                        ui: "black-tab",
                         //defaults:{ autoScroll:true },
                         plugins: [
                             Ext.create('Ext.ux.TabCloseMenu', {

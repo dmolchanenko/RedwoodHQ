@@ -1,6 +1,4 @@
-﻿
-
-    Ext.define('Ext.window.WindowActiveCls', {
+﻿    Ext.define('Ext.window.WindowActiveCls', {
         override: 'Ext.window.Window',
 
         shadow: false,

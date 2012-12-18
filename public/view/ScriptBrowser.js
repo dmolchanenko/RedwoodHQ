@@ -464,6 +464,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     xtype:'tabpanel',
                     itemId: 'scriptstab',
                     id:'scriptstab',
+                    ui: "orange-tab",
                     region: 'center',
                     defaults:{ autoScroll:true },
                     plugins: [
