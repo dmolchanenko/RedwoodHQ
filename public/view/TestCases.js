@@ -1,4 +1,4 @@
-var newAction = Ext.create('Ext.Action', {
+var newTestCase = Ext.create('Ext.Action', {
     icon: 'images/page_add.png',
     text: 'New Test Case',
     itemId: "newTestCase",
@@ -9,7 +9,7 @@ var newAction = Ext.create('Ext.Action', {
     }
 });
 
-var saveAction = Ext.create('Ext.Action', {
+var saveTestCase = Ext.create('Ext.Action', {
     icon: "images/save.gif",
     tooltip: "Save Selected Test Case",
     handler: function(widget, event) {
@@ -18,7 +18,7 @@ var saveAction = Ext.create('Ext.Action', {
     }
 });
 
-var deleteAction = Ext.create('Ext.Action', {
+var deleteTestCase = Ext.create('Ext.Action', {
     icon: 'images/delete.png',
     text: 'Delete',
     itemId: "deleteTestCase",
@@ -162,10 +162,10 @@ Ext.define('Redwood.view.TestCases', {
                     xtype: 'toolbar',
                     dock: 'top',
                     items:[
-                        newAction,
-                        saveAction,
+                        newTestCase,
+                        saveTestCase,
                         " ",
-                        deleteAction
+                        deleteTestCase
                     ]
                 },
                 items:[
