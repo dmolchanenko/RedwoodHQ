@@ -2,7 +2,7 @@ Ext.define("Redwood.controller.Actions", {
     extend: 'Ext.app.Controller',
 
     models: ['Actions',"ActionTags",'MethodFinder'],
-    stores: ['Actions',"ActionTags",'MethodFinder'],
+    stores: ['Actions',"ActionTags"],
     views:  ['Actions','ScriptPicker'],
 
     init: function () {
@@ -42,7 +42,7 @@ Ext.define("Redwood.controller.Actions", {
     },
     onEditAction: function(record){
         //if (this.tabPanel.getComponent(record.get("name")) === undefined){
-        var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"));
+        var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.ActionView',{
                 title:record.get("name"),
@@ -52,7 +52,7 @@ Ext.define("Redwood.controller.Actions", {
             });
 
             this.tabPanel.add(tab);
-            foundIndex = this.tabPanel.items.findIndex("title",record.get("name"));
+            var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
         }
         this.tabPanel.setActiveTab(foundIndex);
         //this.tabPanel.setActiveTab(record.get("name"));
@@ -79,6 +79,7 @@ Ext.define("Redwood.controller.Actions", {
             actionView.dataRecord.set("type",action.type);
             actionView.dataRecord.set("tag",action.tag);
             actionView.dataRecord.set("params",action.params);
+            actionView.dataRecord.set("script",action.script);
         }
         this.getStore('Actions').sync();
         this.getStore('ActionTags').sync();
@@ -101,41 +102,6 @@ Ext.define("Redwood.controller.Actions", {
     onActionsRender: function(){
         this.actionsPanel = Ext.ComponentQuery.query('actions')[0];
         this.tabPanel = Ext.ComponentQuery.query('#actionstab',this.actionsPanel)[0];
-
-        //create another store for actions combo box
-        //keep two stores in sync
-        var actionsStore = this.getStore('Actions');
-
-        var actionsCombo = Ext.create('Ext.data.ArrayStore', {
-            storeId: 'ActionsCombo',
-            model:"Redwood.model.Actions",
-            data:[]
-        });
-
-        actionsStore.on("beforesync", function(options,eOpts){
-            if (options.create){
-                options.create.forEach(function(r){
-                    actionsCombo.add(r);
-                });
-            }
-            if (options.destroy){
-                options.destroy.forEach(function(r){
-                    actionsCombo.remove(actionsCombo.findRecord("_id", r.get("_id")));
-                });
-            }
-            if (options.update){
-                options.update.forEach(function(r){
-                    actionsCombo.remove(actionsCombo.findRecord("_id", r.get("_id")));
-                    actionsCombo.add(r);
-                });
-            }
-        });
-
-        var records = [];
-        actionsStore.each(function(r){
-            records.push(r.copy());
-        });
-        actionsCombo.add(records);
     }
 
 

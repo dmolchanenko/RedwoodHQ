@@ -20,6 +20,7 @@ Ext.define('Redwood.store.MethodFinder', {
 
     ],
     proxy: {
+        appendId:false,
         actionMethods: {
             read   : 'POST'
         },

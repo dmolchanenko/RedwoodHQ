@@ -6,7 +6,7 @@ Ext.application({
     autoCreateViewport: true,
 
     controllers: [
-        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents'],
+        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases'],
     launch: function(){
         Ext.clipboard = {};
         Ext.uniqueId = function()

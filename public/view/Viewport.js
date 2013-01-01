@@ -21,10 +21,11 @@ Ext.define('Redwood.view.Viewport', {
                 xtype:"panel",
                 region:"north",
                 height: "22px",
-                bodyStyle: { background: '#A5A5A5'},
+                bodyStyle: { background: '#DDE0E4'},
                 tbar: {
                     xtype: 'toolbar',
-                    style: { background: '#A5A5A5'},
+                    style: { background: '#DDE0E4'},
+                    //style: { background: '#A5A5A5'},
                     dock: 'top',
                     items:[
                         {
@@ -100,7 +101,7 @@ Ext.define('Redwood.view.Viewport', {
                 title: "Tasks"
             },
             {
-                title: "Test Cases"
+                xtype: "testcases"
             },
             {
                 xtype: "actions"

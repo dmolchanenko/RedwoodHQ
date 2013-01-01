@@ -477,7 +477,14 @@ Ext.define('Redwood.view.ActionView', {
             {
                 xtype: "scriptPicker",
                 hidden: false,
-                width: 700
+                width: 700,
+                listeners: {
+                    change: function(){
+                        if (me.loadingData == false){
+                            me.markDirty();
+                        }
+                    }
+                }
             }
         ];
 
@@ -492,6 +499,7 @@ Ext.define('Redwood.view.ActionView', {
                 me.down("#status").setValue(me.dataRecord.get("status"));
                 me.down("#description").setValue(me.dataRecord.get("description"));
                 me.down("#type").setValue({type:me.dataRecord.get("type")});
+                me.down("scriptPicker").setValue(me.dataRecord.get("script"));
                 me.dataRecord.get("params").forEach(function(item){
                     me.down("#params").store.add(item);
                 });
@@ -540,6 +548,7 @@ Ext.define('Redwood.view.ActionView', {
         action.status = this.down("#status").getValue();
         action.type = this.down("#type").getValue().type;
         action.description = this.down("#description").getValue();
+        action.script = this.down("scriptPicker").getValue();
 
         var paramStore = this.down("#params").store;
         action.params = [];

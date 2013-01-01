@@ -24,6 +24,8 @@ var express = require('express')
   , auth = require('./routes/auth')
   , terminal = require('./routes/terminal')
   , realtime = require('./routes/realtime')
+  , testcases = require('./routes/testcases')
+  , testcaseTags = require('./routes/testcaseTags')
   , methodFinder = require('./routes/methodFinder');
 
 
@@ -85,9 +87,20 @@ app.get('/actions',auth.auth, actions.actionsGet);
 app.put('/actions/:id',auth.auth, actions.actionsPut);
 app.post('/actions',auth.auth, actions.actionsPost);
 app.del('/actions/:id',auth.auth, actions.actionsDelete);
+
 //actionTags
 app.get('/actiontags',auth.auth, actiontags.actionTagsGet);
 app.post('/actiontags',auth.auth, actiontags.actionTagsPost);
+
+//testcases
+app.get('/testcases',auth.auth, testcases.testcasesGet);
+app.put('/testcases/:id',auth.auth, testcases.testcasesPut);
+app.post('/testcases',auth.auth, testcases.testcasesPost);
+app.del('/testcases/:id',auth.auth, testcases.testcasesDelete);
+
+//actionTags
+app.get('/testcasetags',auth.auth, testcaseTags.testcaseTagsGet);
+app.post('/testcasetags',auth.auth, testcaseTags.testcaseTagsPost);
 
 //machineRoles
 app.get('/machineroles',auth.auth, machineroles.machineRolesGet);
@@ -117,7 +130,7 @@ app.post('/userTags',auth.auth, userTags.userTagsPost);
 
 //scripts
 app.get('/scripts/root',auth.auth, scripts.scriptsGet);
-app.delete('/scripts/:id',auth.auth, scripts.scriptsDelete);
+app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
 app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 
 //script
@@ -133,7 +146,7 @@ app.put('/folder',auth.auth, folder.folderPut);
 app.post('/fileupload',auth.auth, fileupload.upload);
 
 //methodFinder
-app.post('/methodFinder/:id',auth.auth, methodFinder.methodFinderPost);
+app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 
 realtime.initSocket(app);
 

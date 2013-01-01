@@ -12,7 +12,7 @@ Ext.define('Redwood.model.MethodFinder', {
             type:"string"
         },
         {
-            name:"fileType",
+            name:"type",
             type:"string"
         },
         {
