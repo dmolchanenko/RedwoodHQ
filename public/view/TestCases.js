@@ -44,6 +44,48 @@ Ext.define('Redwood.view.TestCases', {
     layout: 'border',
 
     initComponent: function () {
+        var me = this;
+        var actionsStore = Ext.data.StoreManager.lookup('Actions');
+
+        var actionsPanelStore = Ext.create('Ext.data.ArrayStore', {
+            storeId: 'ActionsTestCaseCombo',
+            model:"Redwood.model.Actions",
+            data:[]
+        });
+
+        actionsStore.on("beforesync", function(options,eOpts){
+            if (options.create){
+                options.create.forEach(function(r){
+                    actionsPanelStore.add(r);
+                });
+            }
+            if (options.destroy){
+                options.destroy.forEach(function(r){
+                    actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                });
+            }
+            if (options.update){
+                options.update.forEach(function(r){
+                    actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                    actionsPanelStore.add(r);
+                });
+            }
+        });
+
+        this.actionStoreLoaded = false;
+
+        actionsStore.on("load",function(store){
+            if (me.actionStoreLoaded == false){
+                me.actionStoreLoaded = true;
+
+                var records = [];
+                actionsStore.each(function(r){
+                    records.push(r.copy());
+                });
+                actionsPanelStore.add(records);
+            }
+
+        });
 
         var actionListFlat = {
             //region: 'west',
@@ -53,7 +95,7 @@ Ext.define('Redwood.view.TestCases', {
             //collapseDirection: "left",
             //collapsible: true,
             multiSelect: false,
-            store: Ext.data.StoreManager.lookup('Actions'),
+            store: actionsPanelStore,
             width: 206,
             title: "Actions",
             focused: false,
@@ -92,7 +134,7 @@ Ext.define('Redwood.view.TestCases', {
                         //labelWidth: 50,
                         xtype: 'searchfield',
                         paramNames: ["tag","name"],
-                        store: Ext.data.StoreManager.lookup('Actions')
+                        store: actionsPanelStore
                     }
                 ]
 

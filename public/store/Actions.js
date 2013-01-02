@@ -21,6 +21,10 @@ Ext.define('Redwood.store.Actions', {
             successProperty: 'success'
         }
     },
+
+    createSyncedStore: function(name){
+
+    },
     listeners:{
         load: function(me){
             if (me.initialLoad == false){

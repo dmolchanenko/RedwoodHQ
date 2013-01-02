@@ -35,8 +35,8 @@ Ext.define('Redwood.view.TestCaseView', {
                             me.destroy();
                         }
                         if (id == "yes"){
-                            var editor = me.up('actions');
-                            editor.fireEvent('saveAction');
+                            var editor = me.up('testcases');
+                            editor.fireEvent('saveTestCase');
                             me.destroy();
                         }
                     }
