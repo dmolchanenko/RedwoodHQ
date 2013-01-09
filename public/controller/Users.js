@@ -38,8 +38,6 @@ Ext.define("Redwood.controller.Users", {
         if(record) {
             var userEditWindow = new Redwood.view.UserEdit({newUser:false});
             userEditWindow.show();
-            //userEditWindow.on("destroy",function(){this.spot.hide();},this);
-            //this.spot.show("EditUser");
             userEditWindow.items.getAt(0).loadRecord(record);
             if (record.get("username") == "admin"){
                 userEditWindow.down('form').getForm().findField("role").disable();
@@ -67,24 +65,12 @@ Ext.define("Redwood.controller.Users", {
     },
 
     addUser: function () {
-        /*
-        var record = this.getStore('Users').add({
-            username: '',
-            tag: '',
-            name: '',
-            password:'',
-            role:'User'
-        })[0];
-        */
         var userEditWindow = new Redwood.view.UserEdit({newUser:true});
         userEditWindow.show();
-        //userEditWindow.down('form').getForm().findField("username").focus();
     },
 
     onEditorRender: function () {
         this.usersEditor = Ext.ComponentQuery.query('usersEditor')[0];
-        //this.usersEditor = Ext.ComponentQuery.query('usersEditor')[0];
-        //this.userEdit = new Redwood.view.UserEdit();//Ext.ComponentQuery.query('userEdit')[0];
         this.rowEditor = this.usersEditor.rowEditor;
         this.tagEditor = this.usersEditor.tagEditor;
         this.grid = this.usersEditor;

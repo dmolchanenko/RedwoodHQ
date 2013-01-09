@@ -2,10 +2,22 @@ var adminStore = Ext.create('Ext.data.TreeStore', {
     root: {
         expanded: true,
         children: [
-            { text: "Variables", leaf: true },
-            { text: "Machines", leaf: true,icon:"images/pc.png" },
+            //{ text: "Variables", leaf: true },
+            //{ text: "Machines", leaf: true,icon:"images/pc.png" },
             { text: "Users", leaf: true,icon:"images/user_go.png" },
             { text: "Projects", leaf: true,icon:"images/project.png" }
+        ]
+    }
+});
+
+var executionStore = Ext.create('Ext.data.TreeStore', {
+    root: {
+        expanded: true,
+        children: [
+            { text: "Executions", leaf: true,icon:"images/user_go.png" },
+            { text: "Test Sets", leaf: true,icon:"images/project.png" },
+            { text: "Variables", leaf: true },
+            { text: "Machines", leaf: true,icon:"images/pc.png" }
         ]
     }
 });
@@ -98,7 +110,64 @@ Ext.define('Redwood.view.Viewport', {
         ui: "blue-tab",
         items: [
             {
-                title: "Tasks"
+                xtype: 'panel',
+                layout: 'border',
+                title: 'Execution',
+                itemId: "executionTab",
+
+                items: [
+                    {
+                        region: 'west',
+                        split:true,
+                        xtype: 'treepanel',
+                        itemId: "executionPanel",
+                        collapseDirection: "left",
+                        collapsible: true,
+                        multiSelect: false,
+                        rootVisible: false,
+                        store: executionStore,
+                        width: 150,
+                        focused: true,
+                        listeners:{
+                            itemclick: function(me,record,item,index,evt,eOpts){
+                                me.up("#executionTab").down("tabpanel").setActiveTab(record.get("text").replace(" ",""));
+                            }
+                        }
+                    },
+                    {
+                        xtype:"tabpanel",
+                        region: "center",
+                        autoScroll: true,
+                        listeners:{
+                            afterrender: function(me){
+                                me.tabBar.setVisible(false);
+                                me.setActiveTab("Variables");
+                            }
+                        },
+                        items:[
+                            {
+                                xtype: "testsetsEditor",
+                                title: "Test Sets",
+                                itemId: "TestSets"
+                            },
+                            {
+                                xtype: "variablesEditor",
+                                itemId: "Variables"
+                            },
+                            {
+                                xtype: "machinesEditor",
+                                itemId: "Machines"
+                            }
+                        ]
+                    }
+                ],
+
+                listeners:{
+                    afterrender: function(me){
+                        var treePanel = me.down("#executionPanel");
+                        treePanel.getSelectionModel().select(treePanel.getRootNode().getChildAt(0));
+                    }
+                }
             },
             {
                 xtype: "testcases"
@@ -145,14 +214,14 @@ Ext.define('Redwood.view.Viewport', {
                             }
                         },
                         items:[
-                            {
-                                xtype: "variablesEditor",
-                                itemId: "Variables"
-                            },
-                            {
-                                xtype: "machinesEditor",
-                                itemId: "Machines"
-                            },
+                            //{
+                            //    xtype: "variablesEditor",
+                            //    itemId: "Variables"
+                            //},
+                            //{
+                            //    xtype: "machinesEditor",
+                            //    itemId: "Machines"
+                            //},
                             {
                                 xtype: "usersEditor",
                                 itemId: "Users"

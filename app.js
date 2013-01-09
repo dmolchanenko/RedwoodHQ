@@ -24,6 +24,7 @@ var express = require('express')
   , auth = require('./routes/auth')
   , terminal = require('./routes/terminal')
   , realtime = require('./routes/realtime')
+  , testsets = require('./routes/testsets')
   , testcases = require('./routes/testcases')
   , testcaseTags = require('./routes/testcaseTags')
   , methodFinder = require('./routes/methodFinder');
@@ -111,6 +112,12 @@ app.get('/users', auth.auth, users.usersGet);
 app.put('/users/:id',auth.auth, users.usersPut);
 app.post('/users',auth.auth, users.usersPost);
 app.del('/users/:id',auth.auth, users.usersDelete);
+
+//testsets
+app.get('/testsets', auth.auth, testsets.testsetsGet);
+app.put('/testsets/:id',auth.auth, testsets.testsetsPut);
+app.post('/testsets',auth.auth, testsets.testsetsPost);
+app.del('/testsets/:id',auth.auth, testsets.testsetsDelete);
 
 //userStates
 app.get('/userStates', auth.auth, users.userStatesGet);
