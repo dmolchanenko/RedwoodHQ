@@ -123,6 +123,7 @@ Ext.define("Redwood.controller.Scripts", {
                 waitMsg: 'Uploading...',
                 success: function(fp, o) {
                     console.log(o);
+                    Ext.Msg.alert('Success', 'cool').hide();
                 },
                 //don't know why but failed actually means success
                 failure: function(form,info){

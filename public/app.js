@@ -6,7 +6,7 @@ Ext.application({
     autoCreateViewport: true,
 
     controllers: [
-        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets'],
+        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions'],
     launch: function(){
         Ext.clipboard = {};
         Ext.uniqueId = function()
@@ -36,6 +36,14 @@ Ext.application({
             for (var i=0;i<allActions.length;i++){
                 if (allActions[i].dirty == true){
                     return "You have unsaved changes in one of your actions.";
+                }
+            }
+
+            var allTestCases = Ext.ComponentQuery.query('testcaseview');
+
+            for (var i=0;i<allTestCases.length;i++){
+                if (allTestCases[i].dirty == true){
+                    return "You have unsaved changes in one of your test cases.";
                 }
             }
         };

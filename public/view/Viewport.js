@@ -141,10 +141,17 @@ Ext.define('Redwood.view.Viewport', {
                         listeners:{
                             afterrender: function(me){
                                 me.tabBar.setVisible(false);
-                                me.setActiveTab("Variables");
+                                me.setActiveTab("Executions");
                             }
                         },
                         items:[
+
+                            {
+                                xtype: "executionsEditor",
+                                title: "Executions",
+                                itemId: "Executions"
+                            },
+
                             {
                                 xtype: "testsetsEditor",
                                 title: "Test Sets",

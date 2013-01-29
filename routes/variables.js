@@ -13,7 +13,7 @@ exports.variablesPut = function(req, res){
     });
 
     var varTags = require('./variableTags');
-    varTags.CleanUpVariableTags();
+    varTags.CleanUpVariableTags(req);
 };
 
 exports.variablesGet = function(req, res){
@@ -40,7 +40,7 @@ exports.variablesDelete = function(req, res){
         });
     });
     var varTags = require('./variableTags');
-    varTags.CleanUpVariableTags();
+    varTags.CleanUpVariableTags(req);
 };
 
 exports.variablesPost = function(req, res){

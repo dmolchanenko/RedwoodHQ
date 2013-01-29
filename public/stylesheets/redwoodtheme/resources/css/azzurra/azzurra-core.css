@@ -3777,7 +3777,7 @@ textarea.x-form-invalid-field {
     visibility: hidden; }
   .x-tab-bar .x-tab-active .x-tab-close-btn {
     visibility: visible !important;
-    background-image: url("../themes/images/azzurra/tab/tab-white-close.gif") !important; }
+    background-image: url('../../themes/images/azzurra/tab/tab-white-close.gif'); }
   .x-tab-bar .x-tab-over .x-tab-close-btn {
     visibility: visible; }
 

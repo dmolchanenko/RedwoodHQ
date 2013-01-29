@@ -1,7 +1,7 @@
 
 exports.testcaseTagsGet = function(req, res){
     var app =  require('../common');
-    GetTestCaseTags(app.getDB(),{},function(data){
+    GetTestCaseTags(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -14,6 +14,7 @@ exports.testcaseTagsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
+    data.project = req.cookies.project;
     CreateTestCaseTags(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
@@ -57,7 +58,7 @@ function GetTestCaseTags(db,query,callback){
     })
 }
 
-exports.CleanUpTestCaseTags = function(){
+exports.CleanUpTestCaseTags = function(req){
     var app =  require('../common');
     var db = app.getDB();
 
@@ -72,5 +73,5 @@ exports.CleanUpTestCaseTags = function(){
             });
         });
     };
-    GetTestCaseTags(db,{},callback);
+    GetTestCaseTags(db,{project:req.cookies.project},callback);
 };

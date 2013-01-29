@@ -45,3 +45,15 @@
     word-wrap: break-word !important;
 
 }
+
+.x-redwood-testcase-passed .x-grid-cell{
+    background-color: #51ff8e !important;
+}
+
+.x-redwood-testcase-failed .x-grid-cell{
+    background-color: #ff686e !important;
+}
+
+.x-redwood-testcase-running .x-grid-cell{
+    background-color: #ffef5a !important;
+}

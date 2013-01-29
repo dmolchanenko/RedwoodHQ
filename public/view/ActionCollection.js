@@ -229,7 +229,7 @@ Ext.define('Redwood.view.ActionCollection', {
             me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
         });
 
-        this.on("afteritemecollapse",function(){
+        this.on("afteritemcollapse",function(){
             me.parentPanel.getEl().dom.children[0].scrollTop = me.lastScrollPos;
         });
 
@@ -1002,7 +1002,7 @@ Ext.define('Redwood.view.ActionCollection', {
             root.eachChild(function(node){
                 if (node.get("actionname") !== ""){
                     var action = {};
-                    action.paramname = node.get("paramname");
+                    //action.paramname = node.get("paramname");
                     action.order = node.get("order");
                     action.actionid = node.get("actionid");
                     action.host = node.get("host");
@@ -1047,6 +1047,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 var newAction = {};
                 newAction.actionname = foundAction.get("name");
                 newAction.actionid = foundAction.get("_id");
+                newAction.host = action.host;
                 newAction.icon = Ext.BLANK_IMAGE_URL;
                 newAction.expanded = true;
                 newAction.executionflow = action.executionflow;

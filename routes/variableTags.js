@@ -1,7 +1,7 @@
 
 exports.variableTagsGet = function(req, res){
     var app =  require('../common');
-    GetVariableTags(app.getDB(),{},function(data){
+    GetVariableTags(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -14,6 +14,7 @@ exports.variableTagsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
+    data.project = req.cookies.project;
     CreateVariableTags(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
@@ -57,7 +58,7 @@ function GetVariableTags(db,query,callback){
     })
 }
 
-exports.CleanUpVariableTags = function(){
+exports.CleanUpVariableTags = function(req){
     var app =  require('../common');
     var db = app.getDB();
 
@@ -72,5 +73,5 @@ exports.CleanUpVariableTags = function(){
             });
         });
     };
-    GetVariableTags(db,{},callback);
+    GetVariableTags(db,{project:req.cookies.project},callback);
 };

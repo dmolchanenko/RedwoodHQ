@@ -23,7 +23,7 @@
 
 	.#{$prefix}tab-active .#{$prefix}tab-close-btn {
 		visibility: visible !important;
-		background-image:url("../themes/images/azzurra/tab/tab-white-close.gif") !important;
+		background-image: theme-background-image($theme-name,'tab/tab-white-close.gif');
 	}
 
 	.#{$prefix}tab-over .#{$prefix}tab-close-btn {

@@ -3,6 +3,7 @@ Ext.define('Ext.ux.ComboGridBox',
         alias : 'widget.combogridbox',
         dataIndex:null,
         grid:null,
+        displayNULLOption:false,
 
         initComponent: function(){
             var me = this;
@@ -12,7 +13,8 @@ Ext.define('Ext.ux.ComboGridBox',
             this.store = Ext.create('Ext.data.Store', {
                 autoDestroy: true,
                 fields: [
-                    {name: 'value', type: 'string'}
+                    {name: 'value', type: 'string'},
+                    {name: 'text', type: 'string'}
                 ],
                 data:this.data,
                 autoLoad: true,
@@ -24,7 +26,17 @@ Ext.define('Ext.ux.ComboGridBox',
                 me.store.removeAll();
 
                 for(var i=0;i<array.length;i++){
-                    me.store.add({'value':array[i]});
+                    var tmpObj = {};
+                    tmpObj[me.displayField] = Ext.util.Format.htmlEncode(array[i]);
+                    tmpObj[me.valueField] = array[i];
+                    me.store.add(tmpObj);
+                    //me.store.add({'value':array[i]});
+                }
+                if (me.displayNULLOption == true){
+                    var tmpObj = {};
+                    tmpObj[me.displayField] = Ext.util.Format.htmlEncode("<NULL>");
+                    tmpObj[me.valueField] = "<NULL>";
+                    me.store.add(tmpObj);
                 }
                 return true;
             });

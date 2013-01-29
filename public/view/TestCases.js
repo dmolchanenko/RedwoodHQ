@@ -214,7 +214,7 @@ Ext.define('Redwood.view.TestCases', {
                     {
                         xtype:"tabpanel",
                         itemId: 'testcasetab',
-                        ui: "black-tab",
+                        ui: "green-tab",
                         plugins: [
                             Ext.create('Ext.ux.TabCloseMenu', {
 

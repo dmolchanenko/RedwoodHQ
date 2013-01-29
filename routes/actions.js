@@ -13,7 +13,7 @@ exports.actionsPut = function(req, res){
     });
 
     var Tags = require('./actionTags');
-    Tags.CleanUpActionTags();
+    Tags.CleanUpActionTags(req);
 };
 
 exports.actionsGet = function(req, res){
@@ -39,7 +39,7 @@ exports.actionsDelete = function(req, res){
         });
     });
     var Tags = require('./actionTags');
-    Tags.CleanUpActionTags();
+    Tags.CleanUpActionTags(req);
 };
 
 exports.actionsPost = function(req, res){
@@ -94,6 +94,7 @@ function GetActions(db,query,callback){
             cursor.each(function(err, action) {
                 if(action == null) {
                     callback(actions);
+                    return;
                 }
                 actions.push(action);
             });

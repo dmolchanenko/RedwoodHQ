@@ -61,7 +61,7 @@ Ext.define("Redwood.controller.Variables", {
         newVar = varStore.add({
             name: 'newVariable',
             tag: '',
-            value: '',
+            value: '<NULL>',
             possibleValues:[]
         })[0];
 

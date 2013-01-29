@@ -113,17 +113,25 @@ Ext.define('Redwood.view.Variables', {
             dataIndex: 'value',
             //width: 500,
             flex: 1,
+            renderer:function(value, meta, record){
+                return Ext.util.Format.htmlEncode(value);
+            },
             editor: Ext.create('Ext.ux.ComboGridBox', {
                 typeAhead: true,
-                displayField: 'value',
+                displayField: 'text',
                 queryMode: 'local',
                 valueField:'value',
+                descField:"text",
                 grid: variablesEditor,
                 dataIndex:"possibleValues",
+                displayNULLOption:true,
                 listeners:{
                     focus: function(){
                         this.selectText();
                     }
+                },
+                getDisplayValue: function() {
+                    return Ext.String.htmlDecode(this.value);
                 }
             })
         },

@@ -1,7 +1,6 @@
-
-exports.actionTagsGet = function(req, res){
+exports.executionTagsGet = function(req, res){
     var app =  require('../common');
-    GetActionTags(app.getDB(),{project:req.cookies.project},function(data){
+    GetExecutionTags(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -10,12 +9,12 @@ exports.actionTagsGet = function(req, res){
     });
 };
 
-exports.actionTagsPost = function(req, res){
+exports.executionTagsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
     data.project = req.cookies.project;
-    CreateActionTags(app.getDB(),data,function(returnData){
+    CreateExecutionTags(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
             success: true,
@@ -24,8 +23,8 @@ exports.actionTagsPost = function(req, res){
     });
 };
 
-function CreateActionTags(db,data,callback){
-    db.collection('actionTags', function(err, collection) {
+function CreateExecutionTags(db,data,callback){
+    db.collection('executionTags', function(err, collection) {
         data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
@@ -33,8 +32,8 @@ function CreateActionTags(db,data,callback){
     });
 }
 
-function DeleteActionTags(db,data,callback){
-    db.collection('actionTags', function(err, collection) {
+function DeleteExecutionTags(db,data,callback){
+    db.collection('executionTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
             if (callback != undefined){
                 callback(err);
@@ -44,9 +43,9 @@ function DeleteActionTags(db,data,callback){
 
 }
 
-function GetActionTags(db,query,callback){
+function GetExecutionTags(db,query,callback){
     var tags = [];
-    db.collection('actionTags', function(err, collection) {
+    db.collection('executionTags', function(err, collection) {
         collection.find(query, {}, function(err, cursor) {
             cursor.each(function(err, tag) {
                 if(tag == null) {
@@ -58,20 +57,20 @@ function GetActionTags(db,query,callback){
     })
 }
 
-exports.CleanUpActionTags = function(req){
+exports.CleanUpExecutionTags = function(req){
     var app =  require('../common');
     var db = app.getDB();
 
     var callback = function(tags){
-        db.collection('actions', function(err, collection) {
+        db.collection('executions', function(err, collection) {
             tags.forEach(function(tag, index, array){
                 collection.find({tag:tag.value}).count(function(err,number){
                     if (number == 0){
-                        DeleteActionTags(db,tag);
+                        DeleteExecutionTags(db,tag);
                     }
                 });
             });
         });
     };
-    GetActionTags(db,{project:req.cookies.project},callback);
+    GetExecutionTags(db,{project:req.cookies.project},callback);
 };

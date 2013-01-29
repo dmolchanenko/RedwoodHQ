@@ -19,9 +19,9 @@ Ext.define('Redwood.model.Variables', {
         name: 'taskVar',
         type: 'bool'
     },
-        {
-            name: 'possibleValues',
-            type: 'array'
-        }
+    {
+        name: 'possibleValues',
+        type: 'array'
+    }
     ]
 });

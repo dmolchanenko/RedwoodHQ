@@ -27,6 +27,10 @@ var express = require('express')
   , testsets = require('./routes/testsets')
   , testcases = require('./routes/testcases')
   , testcaseTags = require('./routes/testcaseTags')
+  , executions = require('./routes/executions')
+  , executionTags = require('./routes/executionTags')
+  , executiontestcases = require('./routes/executiontestcases')
+  , executionengine = require('./routes/executionengine')
   , methodFinder = require('./routes/methodFinder');
 
 
@@ -74,6 +78,10 @@ app.del('/variables/:id',auth.auth, variables.variablesDelete);
 app.get('/variableTags',auth.auth, variableTags.variableTagsGet);
 app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 
+//start execution
+app.post('/executionengine/startexecution',auth.auth, executionengine.startexecutionPost);
+app.post('/executionengine/actionresult',auth.auth, executionengine.actionresultPost);
+
 //machines
 app.get('/machines',auth.auth, machines.machinesGet);
 app.put('/machines/:id',auth.auth, machines.machinesPut);
@@ -99,9 +107,25 @@ app.put('/testcases/:id',auth.auth, testcases.testcasesPut);
 app.post('/testcases',auth.auth, testcases.testcasesPost);
 app.del('/testcases/:id',auth.auth, testcases.testcasesDelete);
 
-//actionTags
+//testcaseTags
 app.get('/testcasetags',auth.auth, testcaseTags.testcaseTagsGet);
 app.post('/testcasetags',auth.auth, testcaseTags.testcaseTagsPost);
+
+//executions
+app.get('/executions',auth.auth, executions.executionsGet);
+app.put('/executions/:id',auth.auth, executions.executionsPut);
+app.post('/executions',auth.auth, executions.executionsPost);
+app.del('/executions/:id',auth.auth, executions.executionsDelete);
+
+//executionTags
+app.get('/executiontags',auth.auth, executionTags.executionTagsGet);
+app.post('/executiontags',auth.auth, executionTags.executionTagsPost);
+
+//executiontestcases
+app.get('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesGet);
+app.put('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesPut);
+app.post('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPost);
+app.del('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesDelete);
 
 //machineRoles
 app.get('/machineroles',auth.auth, machineroles.machineRolesGet);

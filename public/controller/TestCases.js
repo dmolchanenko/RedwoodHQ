@@ -51,7 +51,7 @@ Ext.define("Redwood.controller.TestCases", {
             });
 
             this.tabPanel.add(tab);
-            var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
+            foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
         }
         this.tabPanel.setActiveTab(foundIndex);
 

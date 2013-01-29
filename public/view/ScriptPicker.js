@@ -89,14 +89,15 @@ Ext.define('Redwood.view.ScriptPicker', {
 
     trigger1Cls: Ext.baseCSSPrefix + 'form-search-trigger',
     fieldLabel: "Select Script",
-    editable: false,
+    editable: true,
 
     openScriptViewer: function(){
         var me = this;
         var scripts = new Redwood.view.ScriptViewer();
         scripts.on("methodselected",function(record){
             var method = record.get("fullpath");
-            method = method.split("src/")[1];
+            method = method.substring(method.lastIndexOf("/")+1,method.length);
+            //method = method.split("src/")[1];
             method = method.substring(0,method.length - 7);
             me.setValue(method);
         });
@@ -109,9 +110,9 @@ Ext.define('Redwood.view.ScriptPicker', {
 
     listeners:{
         afterrender: function(me){
-            me.inputEl.dom.onclick = function(){
-                me.openScriptViewer();
-            }
+            //me.inputEl.dom.onclick = function(){
+            //    me.openScriptViewer();
+            //}
         }
     }
 

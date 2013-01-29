@@ -3,6 +3,7 @@ exports.testsetsPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
+    data.project = req.cookies.project;
     UpdateTestSets(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -14,7 +15,7 @@ exports.testsetsPut = function(req, res){
 
 exports.testsetsGet = function(req, res){
     var app =  require('../common');
-    GetTestSets(app.getDB(),{},function(data){
+    GetTestSets(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -40,6 +41,7 @@ exports.testsetsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
+    data.project = req.cookies.project;
     CreateTestSets(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({

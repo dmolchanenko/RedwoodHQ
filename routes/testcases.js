@@ -13,7 +13,7 @@ exports.testcasesPut = function(req, res){
     });
 
     var Tags = require('./actionTags');
-    Tags.CleanUpActionTags();
+    Tags.CleanUpActionTags(req);
 };
 
 exports.testcasesGet = function(req, res){
@@ -39,7 +39,7 @@ exports.testcasesDelete = function(req, res){
         });
     });
     var Tags = require('./testcaseTags');
-    Tags.CleanUpActionTags();
+    Tags.CleanUpActionTags(req);
 };
 
 exports.testcasesPost = function(req, res){
@@ -67,8 +67,6 @@ function CreateTestCases(db,data,callback){
 
 function UpdateTestCases(db,data,callback){
     db.collection('testcases', function(err, collection) {
-
-        //collection.update({_id:data._id},data,{safe:true},function(err){
         collection.save(data,{safe:true},function(err){
             if (err) console.warn(err.message);
             else callback(err);

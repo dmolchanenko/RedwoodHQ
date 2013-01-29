@@ -11,6 +11,7 @@ exports.upload = function(req, res){
     fs.exists(target_path,function(exists){
         if (exists){
             res.send('{error:"File already exists."}');
+            fs.unlink(tmp_path);
             return;
         }
         // move the file from the temporary location to the intended location
@@ -26,7 +27,7 @@ exports.upload = function(req, res){
 
                 git.add(gitInfo.path,gitInfo.fileName,function(){
                     git.commit(gitInfo.path,gitInfo.fileName,function(){
-                        res.send("{error:null}");
+                        res.send("{error:null,success:true}");
                     });
                 });
             });
