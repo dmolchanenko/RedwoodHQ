@@ -22,9 +22,6 @@ exports.startexecutionPost = function(req, res){
     var variables = {};
     var testcases = req.body.testcases;
 
-    res.contentType('json');
-    res.json({success:true});
-
     req.body.variables.forEach(function(variable){
         variables[variable.name] = variable.value;
     });
@@ -46,7 +43,10 @@ exports.startexecutionPost = function(req, res){
     */
 
     console.log(variables);
-    executions[executionID] = {testcases:testcases,machines:machines,variables:variables,currentTestCases:{}};
+    executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project};
+    testcases.forEach(function(testcase){
+        executions[executionID].testcases[testcase.testcaseID] = testcase;
+    });
     lockMachines(machines);
     //random id for compile proc
     var id;
@@ -60,41 +60,241 @@ exports.startexecutionPost = function(req, res){
             res.json({error:"Error, unable to compile scripts."});
         }
         else{
-            agentBaseState(req.cookies.project,"localhost",function(){
-                GetTestCaseDetails(testcases[0].testcaseID,function(testcase,result,hosts){
-                    var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
-
-                    result.executionID = executionID;
-                    //result.testcaseName = testcase.dbTestCase.name;
-                    executions[executionID].currentTestCases[testcase.dbTestCase._id] = {testcase:testcase,result:result};
-                    createResult(result,function(writtenResult){
-                        result._id = writtenResult._id;
-                    });
-
-                    findNextAction(testcase.actions,variables,function(action){
-                        executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
-
-                        agentInstructions.name = action.name;
-                        agentInstructions.script = action.script;
-                        agentInstructions.parameters = [];
-                        action.dbAction.parameters.forEach(function(parameter){
-                            agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
-                            console.log(parameter);
-                        });
-                        sendAgentCommand("localhost",agentInstructions)
-                    });
-                })
-            });
+            res.contentType('json');
+            res.json({success:true});
+            executeTestCases(executions[executionID].testcases,executionID);
         }
     });
 };
 
+function executeTestCases(testcases,executionID){
+    var variables = executions[executionID].variables;
+    var machines = executions[executionID].machines;
+    var tcArray = [];
+
+    for(var key in testcases){
+        tcArray.push(key);
+    }
+
+    //execution all done
+    if (tcArray.length == 0){
+        unlockMachines(machines);
+        delete executions[executionID];
+        return;
+    }
+    var count = 0;
+    var nextTC = function(){
+
+        startTCExecution(testcases[tcArray[count]].testcaseID,variables,executionID,function(){
+            console.log("test case started: "+testcases[tcArray[count]].testcaseID);
+            count++;
+            var machineAvailable = false;
+            machines.forEach(function(machine){
+                if(machine.runningTC == undefined){
+                    machineAvailable = true;
+                }
+            });
+            if((count < tcArray.length)&&(machineAvailable == true)){
+                nextTC();
+            }
+            else{
+                //remove any useless machines
+                var toRemove = [];
+                machines.forEach(function(machine){
+                    if(machine.runningTC == undefined){
+                        toRemove.push(machine)
+                    }
+                });
+                unlockMachines(toRemove,function(){
+                    toRemove.forEach(function(machine){
+                        machines.splice(machines.indexOf(machine),1);
+                    });
+                });
+            }
+        });
+    };
+    nextTC();
+}
+
+function startTCExecution(id,variables,executionID,callback){
+    GetTestCaseDetails(id,function(testcase,result,hosts){
+
+        //updateExecutionTestCase({_id:testcases[0]._id.executionTestCaseID},{$set:{"status":"Running"}});
+        updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":""}});
+        var machines = executions[executionID].machines;
+
+        machines.sort(function(a,b){
+            return a.roles.length - b.roles.length;
+        });
+
+        hosts.push("Default");
+        var reservedHosts = [];
+        testcase.machines = [];
+        machines.forEach(function(machine){
+            hosts.forEach(function(host){
+               if((machine.roles.indexOf(host) != -1)&& (reservedHosts.indexOf(host) == -1) &&((machine.runningTC == undefined)||(machine.runningTC == testcase))){
+                   machine.runningTC = testcase;
+                   reservedHosts.push(host);
+                   testcase.machines.push(machine);
+               }
+           });
+        });
+
+        if (testcase.machines.length == 0){
+            if (callback){
+                callback({error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()});
+            }
+            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Finished",result:"Failed",error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()}});
+            return;
+        }
+
+        var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
+
+        result.executionID = executionID;
+        //result.testcaseName = testcase.dbTestCase.name;
+        executions[executionID].currentTestCases[testcase.dbTestCase._id] = {testcase:testcase,result:result,executionTestCaseID:id};
+        createResult(result,function(writtenResult){
+            result._id = writtenResult[0]._id;
+        });
+
+        findNextAction(testcase.actions,variables,function(action){
+            executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
+
+            agentInstructions.name = action.name;
+            agentInstructions.script = action.script;
+            agentInstructions.parameters = [];
+            action.dbAction.parameters.forEach(function(parameter){
+                agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
+                console.log(parameter);
+            });
+
+            var foundMachine = null;
+            var actionHost = "Default";
+            if(action.dbAction.host != "") actionHost = action.dbAction.host;
+            testcase.machines.forEach(function(machine){
+                if ((machine.roles.indexOf(actionHost) != -1)&&(foundMachine == null)){
+                    foundMachine = machine;
+                }
+            });
+
+            if (foundMachine.baseStateRun == true){
+                if (callback) callback();
+                sendAgentCommand(foundMachine.host,agentInstructions);
+            }
+            else{
+                agentBaseState(executions[executionID].project,foundMachine.host,function(){
+                    foundMachine.baseStateRun = true;
+                    if (callback) callback();
+                    sendAgentCommand(foundMachine.host,agentInstructions);
+                });
+            }
+        });
+    })
+}
+
+
 exports.actionresultPost = function(req, res){
+    res.contentType('json');
+    res.json({success:true});
+
     var execution = executions[req.body.executionID];
     var testcase = execution.currentTestCases[req.body.testcaseID];
+    if (testcase == undefined) return;
 
+    testcase.currentAction.result.status = "Finished";
+    testcase.currentAction.result.result = req.body.result;
+    testcase.result.result = req.body.result;
+    if (req.body.error){
+        testcase.currentAction.result.error = req.body.error;
+        testcase.result.error = req.body.error;
+    }
 
+    if (req.body.trace){
+        testcase.currentAction.result.trace = req.body.trace;
+        testcase.result.trace = req.body.trace;
+    }
+
+    var actionFlow = testcase.currentAction.dbAction.executionflow;
+    if (req.body.result == "Failed"){
+        if (actionFlow == "Record Error Stop Test Case"){
+            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:"Failed"}});
+            return;
+        }
+        else if (actionFlow == "Record Error Continue Test Case"){
+            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{result:"Failed"}});
+        }
+        else{
+            testcase.currentAction.result.result = "Passed";
+            testcase.result.result = "Passed";
+        }
+    }
+
+    if ((req.body.returnValue)&&(testcase.currentAction.dbAction.returnvalue != "")){
+        execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
+    }
+
+    markFinishedResults(testcase.result.children,function(){
+        updateResult(testcase.result);
+    });
+
+    findNextAction(testcase.testcase.actions,execution.variables,function(action){
+        if(action == null){
+            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:testcase.result.result}});
+            testcase.testcase.machines.forEach(function(machine){
+                delete machine.runningTC;
+            });
+            delete execution.testcases[testcase.executionTestCaseID];
+            delete execution.currentTestCases[testcase.executionTestCaseID];
+            executeTestCases(execution.testcases,req.body.executionID);
+            return;
+        }
+        var agentInstructions = {command:"run action",executionID:req.body.executionID,testcaseID:testcase.testcase.dbTestCase._id};
+
+        execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
+
+        agentInstructions.name = action.name;
+        agentInstructions.script = action.script;
+        agentInstructions.parameters = [];
+        action.dbAction.parameters.forEach(function(parameter){
+            agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
+            console.log(parameter);
+        });
+        sendAgentCommand("localhost",agentInstructions)
+    });
 };
+
+function markFinishedResults(results,callback){
+    var count = 0;
+    var status = "Passed";
+    results.forEach(function(action){
+        if (action.status == "Not Run"){
+            if (action.children.length != 0){
+                markFinishedResults(action.children,function(childStatus){
+                    count++;
+                    if(count == results.length){
+                        if (childStatus == "Not Run"){
+                            callback("Not Run");
+                        }
+                        else{
+                            action.status = status;
+                            callback(status)
+                        }
+                    }
+                })
+            }
+            else{
+                status = "Not Run"
+            }
+        }
+        else if((action.status == "Failed")&&(status != "Not Run")){
+            status = "Failed"
+        }
+        count++;
+        if (count == results.length){
+            callback(status);
+        }
+    });
+}
 
 
 function agentBaseState(project,agentHost,callback){
@@ -102,7 +302,7 @@ function agentBaseState(project,agentHost,callback){
         syncFilesWithAgent(agentHost,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"bin",function(){
             syncFilesWithAgent(agentHost,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"lib",function(){
                 syncFilesWithAgent(agentHost,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"lib",function(){
-                    syncFilesWithAgent(agentHost,path.join(__dirname, '../public/automationscripts/'+project+"/launcher"),"launcher",function(){
+                    syncFilesWithAgent(agentHost,path.join(__dirname, '../launcher'),"launcher",function(){
                         sendAgentCommand(agentHost,{command:"start launcher"},function(){
                             callback();
                         });
@@ -271,11 +471,21 @@ function createResult(result,callback){
 function updateResult(result,callback){
     db.collection('testcaseresults', function(err, collection) {
         collection.save(result,{safe:true},function(err){
-            if (err) console.warn(err.message);
-            else callback(err);
+            if (callback){
+                callback(err);
+            }
         });
     });
+}
 
+function updateExecutionTestCase(query,update,callback){
+    db.collection('executiontestcases', function(err, collection) {
+        collection.update(query,update,{safe:true},function(err){
+            if (callback){
+                callback(err);
+            }
+        });
+    });
 }
 
 function lockMachines(machines,callback){
@@ -293,24 +503,44 @@ function lockMachines(machines,callback){
     });
 }
 
+function unlockMachines(machines,callback){
+    var machineCount = 0;
+    machines.forEach(function(machine){
+        db.collection('machines', function(err, collection) {
+            collection.update({_id:machine._id},{$set:{state:""}},{safe:true},function(err){
+                machineCount++;
+                if (machineCount == machines.length){
+                    if (callback) callback();
+                }
+            });
+        });
+    });
+}
+
 
 function findNextAction (actions,variables,callback){
-    var order = 1;
+    var order = 0;
+    var allDone = false;
     actions.sort(function(a, b){
         return parseInt(a.dbAction.order)-parseInt(b.dbAction.order);
     });
+
     actions.forEach(function(action){
-        if(action.dbAction.order == order.toString()){
-            if (action.status == "Finished"){
+        order++;
+        //if(action.dbAction.order == order.toString()){
+            if (action.result.status == "Finished"){
                 if (order == actions.length){
-                    callback(null);
+                    if (allDone == false){
+                        callback(null);
+                        allDone = true;
+                    }
+                    return;
                 }
-                order++;
                 return;
             }
             if (action.script){
                 var paramVars = {};
-                if (action.parent.dbAction.parameters){
+                if ((action.parent.dbAction)&&(action.parent.dbAction.parameters)){
                     action.parent.dbAction.parameters.forEach(function(param){
                         paramVars[param.paramname] = param.paramvalue;
                     });
@@ -319,12 +549,18 @@ function findNextAction (actions,variables,callback){
                 action.dbAction.parameters.forEach(function(param){
                     param.paramvalue = resolveParamValue(param.paramvalue,paramVars);
                 });
-                callback(action);
+                if (allDone == false){
+                    callback(action);
+                    allDone = true;
+                }
             }
             else{
                 findNextAction(action.actions,variables,function(action){
                     if ((action == null) &&(order == actions.length)){
-                        callback(null)
+                        if (allDone == false){
+                            callback(null);
+                            allDone = true;
+                        }
                     }
                     else if (action != null){
                         var paramVars = {};
@@ -337,11 +573,15 @@ function findNextAction (actions,variables,callback){
                         action.dbAction.parameters.forEach(function(param){
                             param.paramvalue = resolveParamValue(param.paramvalue,paramVars);
                         });
-                        callback(action)
+                        if (allDone == false){
+                            callback(action);
+                            allDone = true;
+                        }
                     }
                 });
             }
-        }
+        //}
+
     });
 }
 

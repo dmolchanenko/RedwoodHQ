@@ -34,7 +34,7 @@ var express = require('express')
   , methodFinder = require('./routes/methodFinder');
 
 
-var app = module.exports = express.createServer(
+var app = express.createServer(
     //express.bodyParser(),
     //express.cookieParser(),
     //express.session({ secret: 'redwoodsecrect' })
@@ -80,7 +80,7 @@ app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 
 //start execution
 app.post('/executionengine/startexecution',auth.auth, executionengine.startexecutionPost);
-app.post('/executionengine/actionresult',auth.auth, executionengine.actionresultPost);
+app.post('/executionengine/actionresult',executionengine.actionresultPost);
 
 //machines
 app.get('/machines',auth.auth, machines.machinesGet);
@@ -182,5 +182,5 @@ app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 realtime.initSocket(app);
 
 app.listen(3000, function(){
-  console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+  console.log("Express server listening on port %d in %s mode", 3000, app.settings.env);
 });

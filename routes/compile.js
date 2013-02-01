@@ -21,7 +21,9 @@ exports.operation = function(msg, id,callback,onFinish){
         //}
         //else{
         delete compileProcs[id];
-        onFinish();
+        if (onFinish){
+            onFinish();
+        }
         //}
     });
     callback("");

@@ -18,8 +18,10 @@ exports.Post = function(req, res){
     }
     else if(command.command == "cleanup"){
         console.log("cleaning up");
-        cleanUpBinDir(function(){
-            res.send("{error:null,success:true}");
+        stopLauncher(function(){
+            cleanUpBinDir(function(){
+                res.send("{error:null,success:true}");
+            });
         });
     }
     else if (command.command == "start launcher"){
@@ -35,24 +37,55 @@ exports.Post = function(req, res){
     }
 };
 
+
+function startLauncher_debug(callback){
+            launcherConn = net.connect(3002, function(){
+                callback(null);
+                var cache = "";
+                launcherConn.on('data', function(data) {
+                    cache += data.toString();
+
+                    console.log('data:', data.toString());
+                    if (cache.indexOf("--EOM--") != -1){
+                        var msg = JSON.parse(cache.substring(0,cache.length - 7));
+                        if (msg.command == "action finished"){
+                            sendActionResult(msg);
+                        }
+                        cache = "";
+                    }
+                });
+
+                launcherConn.on('error', function(err) {
+                    callback(err);
+                });
+            });
+}
+
+
+
 function startLauncher(callback){
-    //callback();
-    //return
-    launcherProc = spawn("../Java/bin/java.exe",["-cp",'../lib/*;../launcher/*',"redwood.launcher.Launcher"],{cwd:path.resolve(__dirname,"../bin/")});
+    launcherProc = spawn("../Java/bin/java.exe",["-cp",'../lib/*;../launcher/*',"-Xmx512m","redwood.launcher.Launcher"],{cwd:path.resolve(__dirname,"../bin/")});
     launcherProc.stderr.on('data', function (data) {
         console.log("error:"+data.toString());
+        launcherProc = null;
         callback(data.toString());
     });
     launcherProc.stdout.on('data', function (data) {
         console.log('stdout: ' + data.toString());
-        if (data.toString() == "launcher running.\r\n"){
-            callback(null);
+        if (data.toString().indexOf("launcher running.") != -1){
             launcherConn = net.connect(3002, function(){
+                callback(null);
+                var cache = "";
                 launcherConn.on('data', function(data) {
+                    cache += data.toString();
+
                     console.log('data:', data.toString());
-                    var msg = JSON.parse(data.toString());
-                    if (msg.command == "action finished"){
-                        sendActionResult(msg);
+                    if (cache.indexOf("--EOM--") != -1){
+                        var msg = JSON.parse(cache.substring(0,cache.length - 7));
+                        if (msg.command == "action finished"){
+                            sendActionResult(msg);
+                        }
+                        cache = "";
                     }
                 });
 
@@ -62,15 +95,29 @@ function startLauncher(callback){
             });
         }
     });
+}
 
-
+function stopLauncher(callback){
+    if (launcherProc != null){
+        //sendLauncherCommand({command:"exit"},function(){
+            launcherProc.kill();
+            launcherProc = null;
+            callback();
+        //});
+    }
+    //if there is runaway launcher try to kill it
+    else{
+        var conn;
+        conn = net.connect(3002, function(){
+            conn.write(JSON.stringify({command:"exit"})+"\r\n");
+            setTimeout(function() { callback();}, 1000);
+        }).on('error', function(err) {
+                callback();
+            });
+    }
 }
 
 function cleanUpBinDir(callback){
-    if (launcherProc != null){
-        launcherProc.kill();
-        launcherProc = null;
-    }
     deleteDir(path.resolve(__dirname,"../bin/"),callback)
 }
 
@@ -107,8 +154,13 @@ function deleteDir(dir,callback){
 }
 
 function sendLauncherCommand(command,callback){
-    launcherConn.write(JSON.stringify(command)+"\n");
-    launcherConn.end();
+    if (launcherConn == null){
+        console.log("unable to connect to launcher");
+        return;
+    }
+    launcherConn.write(JSON.stringify(command)+"\r\n");
+    //launcherConn.end();
+    callback(null);
 }
 
 
@@ -116,7 +168,7 @@ function sendActionResult(result){
     var options = {
         hostname: "localhost",
         port: 3000,
-        path: 'executionengine/actionresult',
+        path: '/executionengine/actionresult',
         method: 'POST',
         agent:false,
         headers: {

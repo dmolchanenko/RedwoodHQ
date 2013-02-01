@@ -28,7 +28,7 @@ exports.logInSucess = function(req,res){
         if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
             projects.allProjects(function(projects){
                 res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
-                res.json({error:null,redirect:"/index.html"});
+                res.json({error:null,redirect:"./index.html"});
             });
         }
         else if (project == null){
@@ -42,14 +42,14 @@ exports.logInSucess = function(req,res){
                 if (found == false){
                     res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
                 }
-                res.json({error:null,redirect:"/index.html"});
+                res.json({error:null,redirect:"./index.html"});
             });
         }
         else{
             if ((req.cookies.project === undefined)||(req.cookies.project == "")){
                 res.cookie('project', project, {maxAge: 2592000000, httpOnly: false });
             }
-            res.json({error:null,redirect:"/index.html"});
+            res.json({error:null,redirect:"./index.html"});
         }
     })
 };

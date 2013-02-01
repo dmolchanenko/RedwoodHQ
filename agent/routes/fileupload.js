@@ -19,6 +19,7 @@ exports.Post = function(req, res){
     fs.rename(tmp_path, target_path, function(err) {
         if (err){
             res.send('{error:"'+err+'"}');
+            console.log("ERROR:"+err);
             fs.unlink(tmp_path);
             return;
         }
