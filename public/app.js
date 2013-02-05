@@ -8,6 +8,7 @@ Ext.application({
     controllers: [
         'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions'],
     launch: function(){
+        Redwood.app = this;
         Ext.clipboard = {};
         Ext.uniqueId = function()
         {

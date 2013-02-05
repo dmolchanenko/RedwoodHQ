@@ -20,16 +20,15 @@ Ext.define("Redwood.controller.Projects", {
     },
 
     onProjectDelete: function(evtData){
-
+        var store = Ext.data.StoreManager.lookup('Projects');
+        var record = store.getAt(evtData.rowIndex);
         Ext.Msg.show({
             title:'Delete Confirmation',
-            msg: 'Are you sure you want to delete selected project?<br>Please note that you CAN NOT undo this operation.',
+            msg: 'Are you sure you want to delete <b>'+record.get("name")+'</b> project?<br>Please note that you CAN NOT undo this operation.',
             buttons: Ext.Msg.YESNO,
             icon: Ext.Msg.QUESTION,
             fn: function(id){
                 if (id == "yes"){
-                    var store = Ext.data.StoreManager.lookup('Projects');
-                    var record = store.getAt(evtData.rowIndex);
                     if(record) {
                         store.remove(record);
                         store.sync({success:function(batch,options){} });

@@ -114,7 +114,7 @@ app.post('/testcasetags',auth.auth, testcaseTags.testcaseTagsPost);
 //executions
 app.get('/executions',auth.auth, executions.executionsGet);
 app.put('/executions/:id',auth.auth, executions.executionsPut);
-app.post('/executions',auth.auth, executions.executionsPost);
+app.post('/executions/:id',auth.auth, executions.executionsPost);
 app.del('/executions/:id',auth.auth, executions.executionsDelete);
 
 //executionTags
@@ -125,6 +125,7 @@ app.post('/executiontags',auth.auth, executionTags.executionTagsPost);
 app.get('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesGet);
 app.put('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesPut);
 app.post('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPost);
+app.post('/executiontestcases/udatetestset',auth.auth, executiontestcases.executionsTestSetUpdatePost);
 app.del('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesDelete);
 
 //machineRoles

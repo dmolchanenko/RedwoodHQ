@@ -8,6 +8,7 @@ var path = require('path');
 var fs = require('fs');
 var walk = require('walk');
 var compile = require("./compile");
+var realtime = require("../routes/realtime");
 var db;
 
 exports.startexecutionPost = function(req, res){
@@ -86,7 +87,7 @@ function executeTestCases(testcases,executionID){
     var nextTC = function(){
 
         startTCExecution(testcases[tcArray[count]].testcaseID,variables,executionID,function(){
-            console.log("test case started: "+testcases[tcArray[count]].testcaseID);
+            //console.log("test case started: "+testcases[tcArray[count]].testcaseID);
             count++;
             var machineAvailable = false;
             machines.forEach(function(machine){
@@ -208,26 +209,15 @@ exports.actionresultPost = function(req, res){
         testcase.currentAction.result.error = req.body.error;
         testcase.result.error = req.body.error;
     }
+    else{
+        testcase.result.error = "";
+    }
 
     if (req.body.trace){
         testcase.currentAction.result.trace = req.body.trace;
         testcase.result.trace = req.body.trace;
     }
 
-    var actionFlow = testcase.currentAction.dbAction.executionflow;
-    if (req.body.result == "Failed"){
-        if (actionFlow == "Record Error Stop Test Case"){
-            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:"Failed"}});
-            return;
-        }
-        else if (actionFlow == "Record Error Continue Test Case"){
-            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{result:"Failed"}});
-        }
-        else{
-            testcase.currentAction.result.result = "Passed";
-            testcase.result.result = "Passed";
-        }
-    }
 
     if ((req.body.returnValue)&&(testcase.currentAction.dbAction.returnvalue != "")){
         execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
@@ -237,15 +227,26 @@ exports.actionresultPost = function(req, res){
         updateResult(testcase.result);
     });
 
+    var actionFlow = testcase.currentAction.dbAction.executionflow;
+    if (req.body.result == "Failed"){
+        if (actionFlow == "Record Error Stop Test Case"){
+            finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
+            //updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:"Failed"}});
+            return;
+        }
+        else if (actionFlow == "Record Error Continue Test Case"){
+            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{result:"Failed"}});
+        }
+        else{
+            testcase.currentAction.result.result = "Passed";
+            testcase.result.result = "Passed";
+            testcase.result.error = "";
+        }
+    }
+
     findNextAction(testcase.testcase.actions,execution.variables,function(action){
         if(action == null){
-            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:testcase.result.result}});
-            testcase.testcase.machines.forEach(function(machine){
-                delete machine.runningTC;
-            });
-            delete execution.testcases[testcase.executionTestCaseID];
-            delete execution.currentTestCases[testcase.executionTestCaseID];
-            executeTestCases(execution.testcases,req.body.executionID);
+            finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
             return;
         }
         var agentInstructions = {command:"run action",executionID:req.body.executionID,testcaseID:testcase.testcase.dbTestCase._id};
@@ -262,6 +263,24 @@ exports.actionresultPost = function(req, res){
         sendAgentCommand("localhost",agentInstructions)
     });
 };
+
+
+//last action or we are done with the TC
+//start next test case if there is one
+function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
+    //updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:testcase.result.result}});
+    updateExecutionTestCase({_id:testcaseId},{$set:{"status":"Finished",result:testcase.result.result,error:testcase.result.error}});
+    var count = 0;
+    testcase.testcase.machines.forEach(function(machine){
+        delete machine.runningTC;
+        count++;
+        if (count == testcase.testcase.machines.length){
+            delete execution.testcases[testcase.executionTestCaseID];
+            delete execution.currentTestCases[testcase.executionTestCaseID];
+            executeTestCases(execution.testcases,executionID);
+        }
+    });
+}
 
 function markFinishedResults(results,callback){
     var count = 0;
@@ -480,7 +499,8 @@ function updateResult(result,callback){
 
 function updateExecutionTestCase(query,update,callback){
     db.collection('executiontestcases', function(err, collection) {
-        collection.update(query,update,{safe:true},function(err){
+        collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            realtime.emitMessage("UpdateExecutionTestCase",data);
             if (callback){
                 callback(err);
             }

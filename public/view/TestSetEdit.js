@@ -96,7 +96,17 @@ Ext.define('Redwood.view.TestSetEdit', {
                                 Ext.data.StoreManager.lookup('TestSets').add(newTestSet);
                             }
 
-                            Ext.data.StoreManager.lookup('TestSets').sync();
+                            Ext.data.StoreManager.lookup('TestSets').sync({success:function(batch,options){
+                                if (me.newTestSet == false){
+                                    Ext.Ajax.request({
+                                        url:"/executiontestcases/udatetestset",
+                                        method:"POST",
+                                        jsonData : {testset:me.testSetData.get("_id")},
+                                        success: function(response, action) {
+                                        }
+                                    });
+                                }
+                            }});
                             window.close();
                         }
                     }

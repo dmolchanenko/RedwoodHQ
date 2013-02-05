@@ -1,13 +1,15 @@
 var spawn = require('child_process').spawn;
 var compileProcs = {};
+var path = require('path');
 
 exports.operation = function(msg, id,callback,onFinish){
     if (compileProcs[id] != undefined){
         compileProcs[id].proc.kill();
     }
     var buildDir = __dirname.replace("\\routes","")+"/public/automationscripts/"+msg.project;
-    var antDir = __dirname.replace("\\routes","")+"/ant/bin/";
-    compileProcs[id] = {proc:spawn(antDir+'ant.bat',['clean','compile','jar'],{cwd: buildDir,timeout:1800000}),status:"compile"};
+    var antDir = __dirname.replace("\\routes","")+"/vendor/ant/bin/";
+    var javaDir = path.resolve(__dirname,"../vendor/Java");
+    compileProcs[id] = {proc:spawn(antDir+'ant.bat',['clean','compile','jar'],{cwd: buildDir,timeout:1800000,env:{JAVA_HOME:javaDir}}),status:"compile"};
     console.log(antDir);
     console.log(buildDir);
     compileProcs[id].proc.stdout.on('data', function(data) {

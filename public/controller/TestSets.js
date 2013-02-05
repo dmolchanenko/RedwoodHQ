@@ -47,9 +47,10 @@ Ext.define("Redwood.controller.TestSets", {
     },
 
     afterTestSetEdit: function(evtData){
-        var varStore = this.getStore('TestSets');
+        var store = this.getStore('TestSets');
         this.getStore('TestSetTags').sync();
-        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('TestSets').load();} });
+        store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('TestSets').load();} });
+
     },
 
     addTestSet: function () {

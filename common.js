@@ -13,6 +13,10 @@ exports.initDB = function(){
         if(!err) {
             console.log("DB connected");
         }
+        else{
+            console.error("Couldn't connect to MongoDB", err.message);
+            process.exit(1);
+        }
     });
 
 };
@@ -21,6 +25,26 @@ exports.getDB = function(){
     return db;
 };
 
+exports.uniqueId = function()
+{
+    var newDate = new Date;
+    var partOne = newDate.getTime();
+    var partTwo = 1 + Math.floor((Math.random()*32767));
+    var partThree = 1 + Math.floor((Math.random()*32767));
+    var id = partOne + '-' + partTwo + '-' + partThree;
+    return id;
+};
+
+exports.ArrayIndexOf = function(a, fnc) {
+    if (!fnc || typeof (fnc) != 'function') {
+        return -1;
+    }
+    if (!a || !a.length || a.length < 1) return -1;
+    for (var i = 0; i < a.length; i++) {
+        if (fnc(a[i])) return i;
+    }
+    return -1;
+};
 
 exports.walkDir = function(dir, done,fileCallback) {
     dirWalker(dir,done,fileCallback)

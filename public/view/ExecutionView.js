@@ -10,10 +10,15 @@ Ext.define('Redwood.view.ExecutionView', {
     viewType: "Execution",
 
     initComponent: function () {
-        var formId = Ext.uniqueId();
         var me = this;
+        if (me.dataRecord == null){
+            me.itemId = Ext.uniqueId();
+        }
+        else{
+            me.itemId = me.dataRecord.get("_id");
+        }
 
-        this.markDirty = function(from){
+        this.markDirty = function(){
             this.dirty = true;
             if(me.title.charAt(me.title.length-1) != "*"){
                 me.setTitle(me.title+"*")
@@ -68,9 +73,9 @@ Ext.define('Redwood.view.ExecutionView', {
             ],
             data: variables,
             listeners:{
-                datachanged:function(){
+                update:function(){
                     if (me.loadingData === false){
-                        me.markDirty("varst");
+                        me.markDirty();
                     }
                 }
             }
@@ -269,6 +274,7 @@ Ext.define('Redwood.view.ExecutionView', {
 
 
         var executionTCStore =  new Ext.data.Store({
+            storeId: "ExecutionTCs"+this.itemId,
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'tag',     type: 'array'},
@@ -482,6 +488,9 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#testset").setDisabled(true);
                 me.down("#executionTestcases").store.removeAll();
                 me.dataRecord.get("testcases").forEach(function(testcase){
+                    var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
+                    testcase.name = originalTC.get("name");
+                    testcase.tag = originalTC.get("tag");
                     me.down("#executionTestcases").store.add(testcase);
                 });
             }
@@ -522,6 +531,7 @@ Ext.define('Redwood.view.ExecutionView', {
     },
     getExecutionData: function(){
         var execution = {};
+        execution._id = this.itemId;
         execution.name = this.down("#name").getValue();
         execution.tag = this.down("#tag").getValue();
         execution.testset = this.down("#testset").getValue();

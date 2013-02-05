@@ -55,7 +55,7 @@ function CreateExecutionTestCases(db,data,callback){
             collection.insert(data[i], {safe:true},function(err,returnData){
                 count++;
                 if (count == data.length){
-                    callback();
+                    if (callback) callback();
                 }
                 //callback(returnData);
             });
@@ -76,7 +76,7 @@ function UpdateExecutionTestCases(db,data,callback){
 function DeleteExecutionTestCases(db,data,callback){
     db.collection('executiontestcases', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
-            callback(err);
+            if (callback) callback(err);
         });
     });
 
@@ -100,4 +100,54 @@ function GetTestCases(db,query,callback){
 
 exports.GetExecutionTestCases = function(db,query,callback){
     GetTestCases(db,query,callback);
+};
+
+exports.executionsTestSetUpdatePost = function(req, res){
+    var db =  require('../common').getDB();
+    var arrayIndexOf = require('../common').ArrayIndexOf;
+    var data = req.body;
+    res.contentType('json');
+    res.json({
+        success: true
+    });
+
+    var updateExecution = function(executionID){
+        GetTestCases(db,{executionID:executionID},function(testCases){
+            db.collection('testsets', function(err, collection) {
+                var id = db.bson_serializer.ObjectID(data.testset);
+                collection.findOne({_id:id}, {}, function(err, testset) {
+                    testCases.forEach(function(execTC){
+                        //var matchedIndex = testset.testcases.indexOf({_id:execTC.testcaseID});
+                        var matchedIndex = arrayIndexOf(testset.testcases,function(tc){
+                            return execTC.testcaseID === tc._id;
+                        });
+                        if (matchedIndex == -1){
+                            DeleteExecutionTestCases(db,execTC);
+                            //toRemove.push(execTC._id);
+                        }
+                        else{
+                            testset.testcases.splice(matchedIndex,1);
+                        }
+                    });
+                    testset.testcases.forEach(function(toAddTC){
+                        var id = require("../common").uniqueId();
+                        CreateExecutionTestCases(db,[{_id:id,executionID:executionID,testcaseID:toAddTC._id,status:"Not Run"}])
+                    });
+
+                })
+            });
+        });
+    };
+
+    db.collection('executions', function(err, collection) {
+        collection.find({testset:data.testset}, {}, function(err, cursor) {
+            cursor.each(function(err, execution) {
+                if(execution == null) {
+                    return;
+                }
+                updateExecution(execution._id);
+            });
+        })
+    });
+
 };

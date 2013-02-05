@@ -9,7 +9,7 @@ Ext.define('Redwood.store.MethodFinder', {
     sorters: [{
 
         property : 'cls',
-        direction: 'DESC'
+        direction: 'ASC'
 
     },
         {

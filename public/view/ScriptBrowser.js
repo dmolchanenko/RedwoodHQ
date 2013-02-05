@@ -239,7 +239,7 @@ var deleteScriptAction = Ext.create('Ext.Action', {
     tooltip: "Delete",
     margin: "0 3 0 3",
     handler: function(widget, event) {
-        this.up('scriptBrowser').fireEvent('delete');
+        this.up('scriptBrowser').fireEvent('deleteScript');
     }
 });
 

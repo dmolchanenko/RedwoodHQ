@@ -36,6 +36,7 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Msg.alert('Error', "Please select test cases to run the execution against.");
             return;
         }
+        executionView.down("#executionTestcases").getSelectionModel().deselectAll();
 
         this.saveExecution(function(execution){
             Ext.Ajax.request({
@@ -64,15 +65,19 @@ Ext.define("Redwood.controller.Executions", {
         var newExecution = false;
         if (executionView.dataRecord === null){
             newExecution = true;
+            var id = execution._id;
+            delete execution._id;
             executionView.dataRecord = this.getStore('Executions').add(execution)[0];
+            executionView.dataRecord.set("_id",id);
         }
         else{
             executionView.dataRecord.set("name",execution.name);
+            executionView.dataRecord.set("variables",execution.variables);
             executionView.dataRecord.set("tag",execution.tag);
         }
         this.getStore('Executions').sync({success:function(){
             if (newExecution == false){
-                callback(executionView.dataRecord);
+                if (typeof (callback) === 'function') callback(executionView.dataRecord);
                 return;
             }
 
@@ -85,7 +90,7 @@ Ext.define("Redwood.controller.Executions", {
                 jsonData : execution.testcases,
                 success: function(response) {
                     var obj = Ext.decode(response.responseText);
-                    callback(executionView.dataRecord);
+                    if (typeof (callback) === 'function') callback(executionView.dataRecord);
                     if(obj.error != null){
                         Ext.Msg.alert('Error', obj.error);
                     }
@@ -109,8 +114,9 @@ Ext.define("Redwood.controller.Executions", {
     onExecutionEdit: function(record){
         var me = this;
         if(record) {
-            var foundIndex = this.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
-            if (foundIndex == -1){
+            //var foundIndex = this.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
+            var foundTab = me.tabPanel.down("#"+record.get("_id"));
+            if (foundTab === null){
                 Ext.Ajax.request({
                     url:"/executiontestcases/"+record.get("_id"),
                     method:"GET",
@@ -125,18 +131,19 @@ Ext.define("Redwood.controller.Executions", {
                             title:"[Execution] " + record.get("name"),
                             closable:true,
                             dataRecord:record,
-                            itemId:record.get("name")
+                            itemId:record.get("_id")
                         });
 
                         me.tabPanel.add(tab);
-                        foundIndex = me.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
-                        me.tabPanel.setActiveTab(foundIndex);
+                        //foundIndex = me.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
+                        foundTab = me.tabPanel.down("#"+record.get("_id"));
+                        me.tabPanel.setActiveTab(foundTab);
                     }
                 });
 
             }
             else{
-                this.tabPanel.setActiveTab(foundIndex);
+                me.tabPanel.setActiveTab(foundTab);
             }
         }
     },

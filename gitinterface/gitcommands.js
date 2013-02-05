@@ -2,7 +2,7 @@ var spawn = require('child_process').spawn;
 
 exports.add = function(workdir,file,callback){
 
-    var git  = spawn('Git/bin/git.exe',['add',file],{cwd: workdir,timeout:300000});
+    var git  = spawn('vendor/Git/bin/git.exe',['add',file],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         console.log('stdout: ' + data);
@@ -19,7 +19,7 @@ exports.add = function(workdir,file,callback){
 
 exports.commit = function(workdir,file,callback){
 
-    var git  = spawn('Git/bin/git.exe',['commit',file,'-m','auto comment'],{cwd: workdir,timeout:300000});
+    var git  = spawn('vendor/Git/bin/git.exe',['commit',file,'-m','auto comment'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         console.log('stdout: ' + data);
@@ -36,7 +36,7 @@ exports.commit = function(workdir,file,callback){
 
 exports.delete = function(workdir,callback){
     //git commit -a -m "File nonsense.txt is now removed"
-    var git  = spawn('Git/bin/git.exe',['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
+    var git  = spawn('vendor/Git/bin/git.exe',['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         console.log('stdout: ' + data);

@@ -106,6 +106,7 @@ Ext.define('Redwood.view.Viewport', {
     items: [
         {
         xtype: 'tabpanel',
+        itemId: 'mainTabPanel',
         region: "center",
         ui: "blue-tab",
         items: [

@@ -2,7 +2,7 @@ exports.executionsPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    //data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateExecutions(app.getDB(),data,function(err){
         res.contentType('json');
@@ -29,8 +29,8 @@ exports.executionsGet = function(req, res){
 exports.executionsDelete = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
-    DeleteExecutions(app.getDB(),{_id: id},function(err){
+    //var id = db.bson_serializer.ObjectID(req.params.id);
+    DeleteExecutions(app.getDB(),{_id: req.params.id},function(err){
         res.contentType('json');
         res.json({
             success: !err,
@@ -44,7 +44,7 @@ exports.executionsDelete = function(req, res){
 exports.executionsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
-    delete data._id;
+    //delete data._id;
     data.project = req.cookies.project;
     CreateExecutions(app.getDB(),data,function(returnData){
         res.contentType('json');
@@ -57,7 +57,7 @@ exports.executionsPost = function(req, res){
 
 function CreateExecutions(db,data,callback){
     db.collection('executions', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        //data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
         });

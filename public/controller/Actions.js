@@ -1,3 +1,12 @@
+function openAction(id){
+    var store = Ext.data.StoreManager.lookup('Actions');
+    var tab = Ext.ComponentQuery.query("#mainTabPanel")[0];
+    tab.setActiveTab(tab.down("#actionsBrowser"));
+    var controller = Redwood.app.getController("Actions");
+    controller.onEditAction(store.getById(id));
+    return false;
+}
+
 Ext.define("Redwood.controller.Actions", {
     extend: 'Ext.app.Controller',
 

@@ -69,6 +69,10 @@ Ext.define("Redwood.controller.Scripts", {
                     var srcIndex = line.lastIndexOf("\\src\\");
                     if(srcIndex != -1){
                         var endOfPath = line.indexOf(":",srcIndex);
+                        if (endOfPath == -1){
+                            srcIndex = line.indexOf("\\src\\");
+                            endOfPath = line.indexOf(":",srcIndex);
+                        }
                         var path = line.slice(srcIndex,endOfPath);
                         //var lineNumber = line.substr(endOfPath+2,1);
                         var lineNumber = line.slice(endOfPath+1,line.indexOf(":",endOfPath+1));
@@ -122,8 +126,12 @@ Ext.define("Redwood.controller.Scripts", {
                 url: '/fileupload',
                 waitMsg: 'Uploading...',
                 success: function(fp, o) {
-                    console.log(o);
                     Ext.Msg.alert('Success', 'cool').hide();
+                    var newNode = selection.appendChild({text:fileName,fileType:"file",leaf:true,icon:me.getIconType(fileName),fullpath:path+"/"+fileName});
+                    me.getStore('Scripts').sort();
+                    newNode.parentNode.expand();
+                    me.treePanel.getSelectionModel().select(newNode);
+
                 },
                 //don't know why but failed actually means success
                 failure: function(form,info){
@@ -197,14 +205,7 @@ Ext.define("Redwood.controller.Scripts", {
         if(this.treePanel.getSelectionModel().getSelection().length == 1){
             var me = this;
             var selection = this.treePanel.getSelectionModel().getSelection()[0];
-            var path = "";
-            if (selection.get("fileType") != "folder"){
-                selection = selection.parentNode;
-                path = selection.get("fullpath");
-            }
-            else{
-                path = selection.get("fullpath");
-            }
+            var path = me.getPathFromNode(selection);
 
             var allScripts = [];
             this.clipBoard.forEach(function(node){
@@ -311,14 +312,7 @@ Ext.define("Redwood.controller.Scripts", {
         if(this.treePanel.getSelectionModel().getSelection().length > 0){
             var me = this;
             var selection = this.treePanel.getSelectionModel().getSelection()[0];
-            var path = "";
-            if (selection.get("fileType") != "folder"){
-                selection = selection.parentNode;
-                path = selection.get("fullpath");
-            }
-            else{
-                path = selection.get("fullpath");
-            }
+            var path = me.getPathFromNode(selection);
 
             var win = Ext.create('Redwood.view.FileName',{
                 path:path,
@@ -338,9 +332,13 @@ Ext.define("Redwood.controller.Scripts", {
     onDelete: function(){
         var selection = this.treePanel.getSelectionModel().getSelection();
         if(selection.length > 0){
+            var message = 'Are you sure you want to delete selected files/folders?';
+            if (selection.length == 1){
+                message = 'Are you sure you want to delete: <b>'+selection[0].get("text")+'</b> ?';
+            }
             Ext.Msg.show({
                 title:'Delete Confirmation',
-                msg: 'Are you sure you want to delete selected files/folders?',
+                msg: message,
                 buttons: Ext.Msg.YESNO,
                 icon: Ext.Msg.QUESTION,
                 fn: function(id){
@@ -371,18 +369,23 @@ Ext.define("Redwood.controller.Scripts", {
         }
     },
 
+    getPathFromNode: function(node){
+        var path;
+        if (node.get("fileType") != "folder"){
+            node = node.parentNode;
+            path = node.get("fullpath");
+        }
+        else{
+            path = node.get("fullpath");
+        }
+        return path;
+    },
+
     onNewScript: function(){
         if(this.treePanel.getSelectionModel().getSelection().length > 0){
             var me = this;
             var selection = this.treePanel.getSelectionModel().getSelection()[0];
-            var path = "";
-            if (selection.get("fileType") != "folder"){
-                selection = selection.parentNode;
-                path = selection.get("fullpath");
-            }
-            else{
-                path = selection.get("fullpath");
-            }
+            var path = me.getPathFromNode(selection);
 
             var win = Ext.create('Redwood.view.FileName',{
                 path:path,
