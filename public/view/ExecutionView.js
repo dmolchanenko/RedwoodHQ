@@ -188,6 +188,7 @@ Ext.define('Redwood.view.ExecutionView', {
             fields: [
                 {name: 'host',     type: 'string'},
                 {name: 'tag',     type: 'array'},
+                {name: 'state',     type: 'string'},
                 {name: 'description',     type: 'string'},
                 {name: 'roles',     type: 'array'},
                 {name: '_id',     type: 'string'}
@@ -196,7 +197,7 @@ Ext.define('Redwood.view.ExecutionView', {
             listeners:{
                 datachanged:function(){
                     if (me.loadingData === false){
-                        me.markDirty("machineStore");
+                        me.markDirty();
                     }
                 }
             }

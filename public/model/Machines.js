@@ -8,6 +8,10 @@ Ext.define('Redwood.model.Machines', {
     },{
         name: 'roles',
         type: 'array'
+    },
+    {
+        name: 'state',
+        type: 'string'
     }, {
         name: 'host',
         type: 'string'

@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
+var appDir = path.resolve(__dirname,"../")+"/";
 var spawn = require('child_process').spawn;
 
 exports.methodFinderPost = function(req,res){
@@ -74,7 +75,7 @@ function FindFiles(path,callback){
 function FindClasses(path,callback){
     var classes = [];
     var err = false;
-    var proc = spawn("Java/bin/java.exe",["-cp",'utils/lib/*;groovy/lib/*;utils/*',"MethodList",path,"class"]);
+    var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
     proc.stderr.on('data', function (data) {
         console.log(data.toString());
     });
@@ -108,7 +109,8 @@ function FindClasses(path,callback){
 function FindMethods(path,classname,callback){
     var methods = [];
     var err = false;
-    var proc = spawn("Java/bin/java.exe",["-cp",'utils/lib/*;groovy/lib/*;utils/*',"MethodList",path,classname]);
+    //var proc = spawn("vendor/Java/bin/java.exe",["-cp",'utils/lib/*;vendor/groovy/*;utils/*',"MethodList",path,classname]);
+    var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
     proc.stderr.on('data', function (data) {
         console.log(data.toString());
     });
