@@ -253,7 +253,7 @@
 					}
 					me.view.focus()
                 },
-                space:del,
+                //space:del,
                 del:del
             });
             Ext.defer(boxKeyNav.enable, 1, boxKeyNav);

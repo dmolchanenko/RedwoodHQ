@@ -407,6 +407,7 @@ Ext.define('Redwood.view.ActionView', {
                         store:Ext.data.StoreManager.lookup('ActionTags'),
                         valueField:"value",
                         queryMode: 'local',
+                        //maskRe: /[a-z0-9-_]+$/,
                         maskRe: /[a-z_0-9]/,
                         removeOnDblClick:true,
                         itemId:"tag",

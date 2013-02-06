@@ -1,9 +1,14 @@
+var realtime = require("./realtime");
+
 exports.machinesPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
     UpdateMachines(app.getDB(),data,function(err){
+        if (!err){
+            realtime.emitMessage("UpdateMachines",data);
+        }
         res.contentType('json');
         res.json({
             success: !err,
@@ -33,6 +38,9 @@ exports.machinesDelete = function(req, res){
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
     DeleteMachines(app.getDB(),{_id: id},function(err){
+        if (!err){
+            realtime.emitMessage("DeleteMachines",req.params.id);
+        }
         res.contentType('json');
         res.json({
             success: !err,
@@ -50,6 +58,7 @@ exports.machinesPost = function(req, res){
     var data = req.body;
     delete data._id;
     CreateMachines(app.getDB(),data,function(returnData){
+        realtime.emitMessage("AddMachines",returnData);
         res.contentType('json');
         res.json({
             success: true,
