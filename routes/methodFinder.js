@@ -1,5 +1,6 @@
 var fs = require('fs');
-var rootDir = "public/automationscripts/";
+var path = require('path');
+var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var spawn = require('child_process').spawn;
 
 exports.methodFinderPost = function(req,res){
