@@ -181,7 +181,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     }
                 })
             }
-            machines.push({host:machine.get("host"),tag:machine.get("tag"),description:machine.get("description"),roles:machine.get("roles"),_id:machine.get("_id"),selected:foundMachine})
+            machines.push({host:machine.get("host"),tag:machine.get("tag"),state:machine.get("state"),description:machine.get("description"),roles:machine.get("roles"),_id:machine.get("_id"),selected:foundMachine})
         });
 
         var linkedMachineStore =  new Ext.data.Store({
@@ -221,6 +221,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     linkedRecord.set("tag", r.get("tag"));
                     linkedRecord.set("description", r.get("description"));
                     linkedRecord.set("roles", r.get("roles"));
+                    linkedRecord.set("state", r.get("state"));
                 });
             }
         });
@@ -257,6 +258,11 @@ Ext.define('Redwood.view.ExecutionView', {
                     header: 'Roles',
                     dataIndex: 'roles',
                     width: 200
+                },
+                {
+                    header: 'State',
+                    dataIndex: 'state',
+                    width: 120
                 },
                 {
                     header: 'Description',

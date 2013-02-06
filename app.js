@@ -40,6 +40,7 @@ var app = express.createServer(
     //express.session({ secret: 'redwoodsecrect' })
 );
 common.initDB();
+
 // Configuration
 
 app.configure(function(){
@@ -181,6 +182,8 @@ app.post('/fileupload',auth.auth, fileupload.upload);
 app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 
 realtime.initSocket(app);
+
+common.cleanUpExecutions();
 
 app.listen(3000, function(){
   console.log("Express server listening on port %d in %s mode", 3000, app.settings.env);

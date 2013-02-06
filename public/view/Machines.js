@@ -31,12 +31,15 @@ Ext.define('Redwood.view.Machines', {
     manageHeight: true,
     initComponent: function () {
         var machinesEditor = this;
+        this.viewConfig = {
+            markDirty: false
+        };
 
         this.columns = [
             {
                 header: 'Tags',
                 dataIndex: 'tag',
-                width: 350,
+                width: 200,
                 editor: Ext.create('Ext.ux.ComboFieldBox', {
                     typeAhead:true,
                     displayField:"value",
@@ -57,7 +60,7 @@ Ext.define('Redwood.view.Machines', {
             {
                 header: 'Roles',
                 dataIndex: 'roles',
-                width: 350,
+                width: 200,
                 editor: Ext.create('Ext.ux.ComboFieldBox', {
                     displayField:"value",
                     descField:"value",
@@ -94,7 +97,7 @@ Ext.define('Redwood.view.Machines', {
                 header: 'Description',
                 dataIndex: 'description',
                 //flex: 1,
-                width: 200,
+                width: 300,
                 editor: {
                     xtype: 'textfield',
                     allowBlank: true,
@@ -104,6 +107,11 @@ Ext.define('Redwood.view.Machines', {
                         }
                     }
                 }
+            },
+            {
+                header:"State",
+                width:120,
+                dataIndex:"state"
             },
             {
             xtype: 'actioncolumn',

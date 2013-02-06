@@ -64,7 +64,9 @@ function startLauncher_debug(callback){
 
 
 function startLauncher(callback){
-    launcherProc = spawn("../../vendor/Java/bin/java.exe",["-cp",'../lib/*;../launcher/*',"-Xmx512m","redwood.launcher.Launcher"],{cwd:path.resolve(__dirname,"../bin/")});
+    var libPath = path.resolve(__dirname,"../lib")+"/";
+    var launcherPath  = path.resolve(__dirname,"../launcher")+"/";
+    launcherProc = spawn(path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe",["-cp",libPath+'*;'+launcherPath+'*',"-Xmx512m","redwood.launcher.Launcher"],{cwd:path.resolve(__dirname,"../bin/")});
     launcherProc.stderr.on('data', function (data) {
         console.log("error:"+data.toString());
         launcherProc = null;

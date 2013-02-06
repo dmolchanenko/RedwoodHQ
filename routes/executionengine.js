@@ -511,9 +511,9 @@ function updateExecutionTestCase(query,update,callback){
 function lockMachines(machines,callback){
     var machineCount = 0;
     machines.forEach(function(machine){
-        machine.state = "Running Test";
         db.collection('machines', function(err, collection) {
-            collection.save(machine,{safe:true},function(err){
+            collection.findAndModify({_id:machine._id},{},{$set:{state:"Running Test"}},{safe:true,new:true},function(err,data){
+                realtime.emitMessage("UpdateMachines",data);
                 machineCount++;
                 if (machineCount == machines.length){
                     if (callback) callback();
@@ -527,7 +527,8 @@ function unlockMachines(machines,callback){
     var machineCount = 0;
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
-            collection.update({_id:machine._id},{$set:{state:""}},{safe:true},function(err){
+            collection.findAndModify({_id:machine._id},{},{$set:{state:""}},{safe:true,new:true},function(err,data){
+                realtime.emitMessage("UpdateMachines",data);
                 machineCount++;
                 if (machineCount == machines.length){
                     if (callback) callback();

@@ -69,6 +69,15 @@ function dirWalker(dir, done,fileCallback) {
             });
         });
     });
+}
+
+exports.cleanUpExecutions = function(){
+    db.collection('machines', function(err, collection) {
+        collection.update({},{},{$set:{state:""}},{multi:true});
+    });
+    db.collection('executiontestcases', function(err, collection) {
+        collection.update({"status":"Running"},{},{$set:{status:"Not Run",result:"",error:""}},{multi:true});
+    });
 };
 
 
