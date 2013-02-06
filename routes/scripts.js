@@ -59,7 +59,14 @@ exports.CreateNewProject = function(projectName,language,callback){
                 fs.mkdirSync(destName);
             }
             else{
-                var data = fs.readFileSync(file);
+                var data = "";
+                if (file.indexOf("build.xml") != -1){
+                    data = fs.readFileSync(file,"utf8");
+                    data = data.replace('<project name="ProjectName"','<project name="'+ projectName +'"');
+                }
+                else{
+                    data = fs.readFileSync(file);
+                }
                 fs.writeFileSync(destName,data);
             }
         });
