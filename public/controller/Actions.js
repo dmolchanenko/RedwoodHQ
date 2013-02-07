@@ -4,7 +4,9 @@ function openAction(id){
     tab.setActiveTab(tab.down("#actionsBrowser"));
     var controller = Redwood.app.getController("Actions");
     controller.onEditAction(store.getById(id));
-    return false;
+    if(!Ext.isIE){
+        return false;
+    }
 }
 
 Ext.define("Redwood.controller.Actions", {

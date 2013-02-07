@@ -6,6 +6,7 @@ var argv = require('optimist').argv,
     path = require('path'),
     fs = require('fs'),
     policyfile = require('policyfile'),
+    spawn = require('child_process').spawn;
 
     Buffer = require('buffer').Buffer,
     WebSocketServer = require('ws').Server,
@@ -97,3 +98,8 @@ webServer.listen(source_port, function() {
 
 // Attach Flash policyfile answer service
 policyfile.createServer().listen(-1, webServer);
+
+//start vnc server
+var vncPath = path.resolve(__dirname,"../../vendor/UltraVNC/");
+launcherProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
+

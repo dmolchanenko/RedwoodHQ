@@ -1,7 +1,7 @@
 var db;
 var fs = require('fs');
 
-exports.initDB = function(){
+exports.initDB = function(callback){
     var mongo = require('mongodb'),
         Server = mongo.Server,
         Db = mongo.Db;
@@ -11,6 +11,7 @@ exports.initDB = function(){
 
     db.open(function(err, db) {
         if(!err) {
+            if (callback) callback();
             console.log("DB connected");
         }
         else{
@@ -73,10 +74,13 @@ function dirWalker(dir, done,fileCallback) {
 
 exports.cleanUpExecutions = function(){
     db.collection('machines', function(err, collection) {
-        collection.update({},{},{$set:{state:""}},{multi:true});
+        collection.update({state:"Running Test"},{$set:{state:""}},{multi:true});
     });
     db.collection('executiontestcases', function(err, collection) {
-        collection.update({"status":"Running"},{},{$set:{status:"Not Run",result:"",error:""}},{multi:true});
+        console.log(err);
+        collection.update({"status":"Running"},{$set:{status:"Not Run",result:"",error:""}},{multi:true,safe:true},function(err){
+            console.log(err)
+        });
     });
 };
 

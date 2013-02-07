@@ -121,7 +121,6 @@ function startTCExecution(id,variables,executionID,callback){
     GetTestCaseDetails(id,function(testcase,result,hosts){
 
         //updateExecutionTestCase({_id:testcases[0]._id.executionTestCaseID},{$set:{"status":"Running"}});
-        updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":""}});
         var machines = executions[executionID].machines;
 
         machines.sort(function(a,b){
@@ -149,6 +148,7 @@ function startTCExecution(id,variables,executionID,callback){
             return;
         }
 
+
         var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
 
         result.executionID = executionID;
@@ -160,6 +160,7 @@ function startTCExecution(id,variables,executionID,callback){
 
         findNextAction(testcase.actions,variables,function(action){
             executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
+
 
             agentInstructions.name = action.name;
             agentInstructions.script = action.script;
@@ -177,6 +178,8 @@ function startTCExecution(id,variables,executionID,callback){
                     foundMachine = machine;
                 }
             });
+
+            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":""}},foundMachine.host);
 
             if (foundMachine.baseStateRun == true){
                 if (callback) callback();
@@ -249,6 +252,18 @@ exports.actionresultPost = function(req, res){
             finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
             return;
         }
+
+        var foundMachine = null;
+        var actionHost = "Default";
+        if(action.dbAction.host != "") actionHost = action.dbAction.host;
+        testcase.testcase.machines.forEach(function(machine){
+            if ((machine.roles.indexOf(actionHost) != -1)&&(foundMachine == null)){
+                foundMachine = machine;
+            }
+        });
+
+        updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":""}},foundMachine.host);
+
         var agentInstructions = {command:"run action",executionID:req.body.executionID,testcaseID:testcase.testcase.dbTestCase._id};
 
         execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
@@ -260,7 +275,7 @@ exports.actionresultPost = function(req, res){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
             console.log(parameter);
         });
-        sendAgentCommand("localhost",agentInstructions)
+        sendAgentCommand(foundMachine.host,agentInstructions)
     });
 };
 
@@ -497,9 +512,12 @@ function updateResult(result,callback){
     });
 }
 
-function updateExecutionTestCase(query,update,callback){
+function updateExecutionTestCase(query,update,machineHost,callback){
     db.collection('executiontestcases', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            if (machineHost){
+                data.host = machineHost;
+            }
             realtime.emitMessage("UpdateExecutionTestCase",data);
             if (callback){
                 callback(err);

@@ -12,6 +12,9 @@
 .x-redwood-item-picker:hover{
 }
 
+.x-form-goto-trigger {
+    background-image: url('../images/goto-trigger.png'); }
+
 .x-redwood-item-title{
     font-size: 14px;
     font-weight:bold;

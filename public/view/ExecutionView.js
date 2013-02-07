@@ -254,7 +254,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'host',
                     width: 200,
                     renderer: function (value, meta, record) {
-                        return "<a href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
+                        return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
                     }
                 },
                 {
@@ -265,7 +265,13 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'State',
                     dataIndex: 'state',
-                    width: 120
+                    width: 120,
+                    renderer: function(value,record){
+                        if (value == "Running Test"){
+                            return "<p style='color:green'>"+value+"</p>";
+                        }
+                        return value;
+                    }
                 },
                 {
                     header: 'Description',
@@ -344,7 +350,13 @@ Ext.define('Redwood.view.ExecutionView', {
                     width: 100,
                     renderer: function (value, meta, record) {
                         if(record.get("host") && (value == "Running")){
-                            return "<a href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;)'>" + value +"</a>";
+                            return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;)'>" + value +"</a>";
+                        }
+                        else if (value == "Finished"){
+                            return "<p style='color:green'>"+value+"</p>";
+                        }
+                        else if ( value == "Not Run"){
+                            return "<p style='color:#ffb013'>"+value+"</p>";
                         }
                         else{
                             return value;
@@ -374,7 +386,19 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Result',
                     dataIndex: 'result',
-                    width: 75
+                    width: 75,
+                    renderer: function(value,record){
+                        if (value == "Passed"){
+                            return "<p style='color:green'>"+value+"</p>"
+                        }
+                        else if (value == "Failed"){
+                            return "<p style='color:red'>"+value+"</p>"
+                        }
+                        else{
+                            return value;
+                        }
+
+                    }
                 }
             ]
 

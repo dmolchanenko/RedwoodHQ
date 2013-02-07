@@ -486,7 +486,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 dataIndex: 'actionname',
                 sortable: false,menuDisabled:true,
                 renderer: function (value, meta, record) {
-                    return "<a href='javascript:openAction(&quot;"+ record.get("actionid") +"&quot;)'>" + value +"</a>";
+                    return "<a style= 'color: blue;' href='javascript:openAction(&quot;"+ record.get("actionid") +"&quot;)'>" + value +"</a>";
                 }
             },
             {

@@ -1,6 +1,8 @@
 function vncToMachine(host){
-    window.open ("novnc/vnc.html?host="+host+"&port=3004&password=admin&timeout=20","VNC to "+host);
-    return false;
+    window.open ("novnc/vnc.html?host="+host+"&port=3004&password=admin&connectTimeout=20");
+    if(!Ext.isIE){
+        return false;
+    }
 }
 
 Ext.define("Redwood.controller.Machines", {

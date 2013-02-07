@@ -37,6 +37,25 @@ Ext.define('Redwood.view.Machines', {
 
         this.columns = [
             {
+                header: 'Host Name/IP',
+                dataIndex: 'host',
+                //flex: 1,
+                width: 200,
+                renderer: function (value, meta, record) {
+                    return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
+                },
+                editor: {
+                    xtype: 'textfield',
+                    allowBlank: false,
+                    vtype: 'machineTest',
+                    listeners:{
+                        focus: function(){
+                            this.selectText();
+                        }
+                    }
+                }
+            },
+            {
                 header: 'Tags',
                 dataIndex: 'tag',
                 width: 200,
@@ -78,25 +97,7 @@ Ext.define('Redwood.view.Machines', {
                     typeAhead:true,
                     allowBlank: false
                 })
-            }, {
-            header: 'Host Name/IP',
-            dataIndex: 'host',
-            //flex: 1,
-            width: 200,
-            renderer: function (value, meta, record) {
-                return "<a href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
-            },
-            editor: {
-                xtype: 'textfield',
-                allowBlank: false,
-                vtype: 'machineTest',
-                listeners:{
-                    focus: function(){
-                        this.selectText();
-                    }
-                }
-            }
-            }, {
+            },  {
                 header: 'Description',
                 dataIndex: 'description',
                 //flex: 1,
@@ -114,7 +115,13 @@ Ext.define('Redwood.view.Machines', {
             {
                 header:"State",
                 width:120,
-                dataIndex:"state"
+                dataIndex:"state",
+                renderer: function(value,record){
+                    if (value == "Running Test"){
+                        return "<p style='color:green'>"+value+"</p>";
+                    }
+                    return value;
+                }
             },
             {
             xtype: 'actioncolumn',

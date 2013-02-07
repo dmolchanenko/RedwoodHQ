@@ -88,6 +88,7 @@ Ext.define('Redwood.view.ScriptPicker', {
     alias: 'widget.scriptPicker',
 
     trigger1Cls: Ext.baseCSSPrefix + 'form-search-trigger',
+    //trigger2Cls: Ext.baseCSSPrefix + 'form-goto-trigger',
     fieldLabel: "Select Script",
     editable: true,
 
@@ -104,7 +105,7 @@ Ext.define('Redwood.view.ScriptPicker', {
         scripts.show();
     },
 
-    onTriggerClick: function() {
+    onTrigger1Click: function() {
         this.openScriptViewer();
     },
 

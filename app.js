@@ -39,7 +39,9 @@ var app = express.createServer(
     //express.cookieParser(),
     //express.session({ secret: 'redwoodsecrect' })
 );
-common.initDB();
+common.initDB(function(){
+    common.cleanUpExecutions();
+});
 
 // Configuration
 
@@ -183,7 +185,6 @@ app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 
 realtime.initSocket(app);
 
-common.cleanUpExecutions();
 
 app.listen(3000, function(){
   console.log("Express server listening on port %d in %s mode", 3000, app.settings.env);
