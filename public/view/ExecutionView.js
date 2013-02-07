@@ -252,7 +252,10 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Host Name/IP',
                     dataIndex: 'host',
-                    width: 200
+                    width: 200,
+                    renderer: function (value, meta, record) {
+                        return "<a href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
+                    }
                 },
                 {
                     header: 'Roles',
@@ -286,6 +289,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'name',     type: 'string'},
                 {name: 'tag',     type: 'array'},
                 {name: 'status',     type: 'string'},
+                {name: 'host',     type: 'string'},
                 {name: 'result',     type: 'string'},
                 {name: 'startdate',     type: 'date'},
                 {name: 'enddate',     type: 'date'},
@@ -337,7 +341,15 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Status',
                     dataIndex: 'status',
-                    width: 100
+                    width: 100,
+                    renderer: function (value, meta, record) {
+                        if(record.get("host") && (value == "Running")){
+                            return "<a href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;)'>" + value +"</a>";
+                        }
+                        else{
+                            return value;
+                        }
+                    }
                 },
                 {
                     header: 'Started',

@@ -83,6 +83,9 @@ Ext.define('Redwood.view.Machines', {
             dataIndex: 'host',
             //flex: 1,
             width: 200,
+            renderer: function (value, meta, record) {
+                return "<a href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
+            },
             editor: {
                 xtype: 'textfield',
                 allowBlank: false,
