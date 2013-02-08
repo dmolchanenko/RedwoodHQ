@@ -4,8 +4,8 @@
   , "private": true
   , "dependencies": {
       "express": "3.0.0"
-    , "cron": "0.3.0"
     , "walk" : "2.2.1"
+    , "cron": "1.0.1"
     , "policyfile" : "0.0.5"
   }
 }

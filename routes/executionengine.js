@@ -211,6 +211,7 @@ exports.actionresultPost = function(req, res){
     if (req.body.error){
         testcase.currentAction.result.error = req.body.error;
         testcase.result.error = req.body.error;
+        testcase.currentAction.result.error = req.body.error;
     }
     else{
         testcase.result.error = "";
@@ -219,6 +220,7 @@ exports.actionresultPost = function(req, res){
     if (req.body.trace){
         testcase.currentAction.result.trace = req.body.trace;
         testcase.result.trace = req.body.trace;
+        testcase.currentAction.result.trace = req.body.trace;
     }
 
 
@@ -242,6 +244,8 @@ exports.actionresultPost = function(req, res){
         }
         else{
             testcase.currentAction.result.result = "Passed";
+            testcase.currentAction.result.trace = "";
+            testcase.currentAction.result.error = "";
             testcase.result.result = "Passed";
             testcase.result.error = "";
         }
@@ -530,8 +534,10 @@ function lockMachines(machines,callback){
     var machineCount = 0;
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
-            collection.findAndModify({_id:machine._id},{},{$set:{state:"Running Test"}},{safe:true,new:true},function(err,data){
-                realtime.emitMessage("UpdateMachines",data);
+            collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{state:"Running Test"}},{safe:true,new:true},function(err,data){
+                if(data != null){
+                    realtime.emitMessage("UpdateMachines",data);
+                }
                 machineCount++;
                 if (machineCount == machines.length){
                     if (callback) callback();
@@ -545,8 +551,10 @@ function unlockMachines(machines,callback){
     var machineCount = 0;
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
-            collection.findAndModify({_id:machine._id},{},{$set:{state:""}},{safe:true,new:true},function(err,data){
-                realtime.emitMessage("UpdateMachines",data);
+            collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{state:""}},{safe:true,new:true},function(err,data){
+                if(data != null){
+                    realtime.emitMessage("UpdateMachines",data);
+                }
                 machineCount++;
                 if (machineCount == machines.length){
                     if (callback) callback();

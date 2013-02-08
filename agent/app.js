@@ -1,9 +1,7 @@
 var express = require('express');
 var command = require('./routes/command');
 var fileupload = require('./routes/fileupload');
-
-
-
+var heartbeat = require('./routes/heartbeat');
 
 var app = express();
 
@@ -30,6 +28,7 @@ app.configure('production', function(){
 
 
 app.listen(3001, function(){
+    heartbeat.startHeartBeat();
     //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
 

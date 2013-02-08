@@ -79,8 +79,12 @@ function FindClasses(path,callback){
     proc.stderr.on('data', function (data) {
         console.log(data.toString());
     });
+    var cache = "";
     proc.stdout.on('data', function(data) {
-        data.toString().split("\r\n").forEach(function(line,index,array){
+        cache = cache + data;
+        if (cache.indexOf("\r\n") == -1) return;
+        cache.toString().split("\r\n").forEach(function(line,index,array){
+            cache = "";
             if (line == "COMPILATION ERROR:"){
                 err = true;
             }
@@ -110,12 +114,16 @@ function FindMethods(path,classname,callback){
     var methods = [];
     var err = false;
     //var proc = spawn("vendor/Java/bin/java.exe",["-cp",'utils/lib/*;vendor/groovy/*;utils/*',"MethodList",path,classname]);
-    var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
+    var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,classname]);
     proc.stderr.on('data', function (data) {
         console.log(data.toString());
     });
+    var cache = "";
     proc.stdout.on('data', function(data) {
-        data.toString().split("\r\n").forEach(function(line,index,array){
+        cache = cache + data;
+        if (cache.indexOf("\r\n") == -1) return;
+        cache.toString().split("\r\n").forEach(function(line,index,array){
+            cache = "";
             if (line == "COMPILATION ERROR:"){
                 err = true;
             }
