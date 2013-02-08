@@ -421,8 +421,9 @@ Ext.define('Redwood.view.ActionView', {
                     }
                 ]
             },
-
+            /*
             {
+
                 xtype: 'fieldset',
                 title: 'Parameters',
                 flex: 1,
@@ -431,17 +432,19 @@ Ext.define('Redwood.view.ActionView', {
                 align : 'stretch',
                 pack  : 'start',
                 anchor:"99%",
-                */
+
                 collapsible: true,
                 items:[
+                 */
                     {
                         xtype:"actionparamgrid",
                         flex: 1,
-                        itemId: "params"
+                        itemId: "params",
+                        padding: "0 10 10 2"
 
-                    }
-                ]
-            },
+                    },
+            //    ]
+            //},
             {
                 xtype: 'fieldset',
                 hidden: true,

@@ -562,7 +562,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 }
             },
             {
-                text: 'Host',
+                text: 'Machine Role',
                 width: 100,
                 menuDisabled:true,
                 dataIndex: 'host',
@@ -978,6 +978,7 @@ Ext.define('Redwood.view.ActionCollection', {
             //action.icon = "images/action.png";
             action.expanded = true;
             action.executionflow = "Record Error Stop Test Case";
+            action.host = "Default";
             action.children = [];
             foundAction.get("params").forEach(function(param){
                 var value;
@@ -1332,6 +1333,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     });
                     newAction.actionname = actionToClone.actionname;
                     newAction.executionflow = actionToClone.executionflow;
+                    newAction.host = actionToClone.host;
                     newAction.actionid = actionToClone.actionid;
                     newAction.icon = actionToClone.icon;
                     newAction.expanded = true;
@@ -1370,6 +1372,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             });
                             newAction.actionname = actionToClone.actionname;
                             newAction.executionflow = actionToClone.executionflow;
+                            newAction.host = actionToClone.host;
                             newAction.actionid = actionToClone.actionid;
                             newAction.icon = actionToClone.icon;
                             newAction.expanded = true;
@@ -1441,6 +1444,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             });
                             newAction.actionname = actionToClone.actionname;
                             newAction.executionflow = actionToClone.executionflow;
+                            newAction.host = actionToClone.host;
                             newAction.actionid = actionToClone.actionid;
                             newAction.icon = actionToClone.icon;
                             newAction.expanded = true;

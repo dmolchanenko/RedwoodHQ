@@ -463,6 +463,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         anchor:'90%',
                         fieldLabel: 'Test Set',
                         store: Ext.data.StoreManager.lookup('TestSets'),
+                        labelStyle: "font-weight: bold",
                         //value: "",
                         queryMode: 'local',
                         displayField: 'name',

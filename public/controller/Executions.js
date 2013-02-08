@@ -37,6 +37,7 @@ Ext.define("Redwood.controller.Executions", {
             return;
         }
         executionView.down("#executionTestcases").getSelectionModel().deselectAll();
+        executionView.down("#executionMachines").getSelectionModel().deselectAll();
 
         this.saveExecution(function(execution){
             Ext.Ajax.request({
@@ -151,7 +152,7 @@ Ext.define("Redwood.controller.Executions", {
     onExecutionDelete: function(record){
         if(record) {
             Ext.data.StoreManager.lookup('Executions').remove(record);
-            Ext.data.StoreManager.lookup('Executions').sync({success:function(batch,options){Ext.data.StoreManager.lookup('Executions').load();} });
+            Ext.data.StoreManager.lookup('Executions').sync({success:function(batch,options){} });
         }
 
     },
@@ -159,7 +160,7 @@ Ext.define("Redwood.controller.Executions", {
     afterExecutionEdit: function(evtData){
         var varStore = this.getStore('Executions');
         this.getStore('ExecutionTags').sync();
-        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Executions').load();} });
+        varStore.sync({success:function(batch,options){} });
     },
 
     addExecution: function () {

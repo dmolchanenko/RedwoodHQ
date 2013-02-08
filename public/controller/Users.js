@@ -53,7 +53,7 @@ Ext.define("Redwood.controller.Users", {
                 return;
             }
             store.remove(record);
-            store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Users').load();} });
+            store.sync({success:function(batch,options){} });
         }
 
     },
@@ -61,7 +61,7 @@ Ext.define("Redwood.controller.Users", {
     afterUserEdit: function(evtData){
         var varStore = this.getStore('Users');
         this.getStore('UserTags').sync();
-        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Users').load();} });
+        varStore.sync({success:function(batch,options){} });
     },
 
     addUser: function () {

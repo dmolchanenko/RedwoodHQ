@@ -33,7 +33,7 @@ Ext.define("Redwood.controller.TestCases", {
             fn: function(id){
                 if (id === "yes"){
                     Ext.data.StoreManager.lookup('TestCases').remove(testcaseView.dataRecord);
-                    Ext.data.StoreManager.lookup('TestCases').sync({success:function(batch,options){Ext.data.StoreManager.lookup('TestCases').load();} });
+                    Ext.data.StoreManager.lookup('TestCases').sync({success:function(batch,options){} });
                     testcaseView.dirty = false;
                     testcaseView.close();
                 }

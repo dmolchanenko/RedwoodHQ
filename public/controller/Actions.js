@@ -44,7 +44,7 @@ Ext.define("Redwood.controller.Actions", {
             fn: function(id){
                 if (id === "yes"){
                     Ext.data.StoreManager.lookup('Actions').remove(actionView.dataRecord);
-                    Ext.data.StoreManager.lookup('Actions').sync({success:function(batch,options){Ext.data.StoreManager.lookup('Actions').load();} });
+                    Ext.data.StoreManager.lookup('Actions').sync({success:function(batch,options){} });
                     actionView.dirty = false;
                     actionView.close();
                 }

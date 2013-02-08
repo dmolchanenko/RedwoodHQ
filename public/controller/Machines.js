@@ -43,7 +43,7 @@ Ext.define("Redwood.controller.Machines", {
         var record = store.getAt(evtData.rowIndex);
         if(record) {
             store.remove(record);
-            store.sync({success:function(batch,options){Ext.data.StoreManager.lookup('MachineRoles').load();} });
+            store.sync({success:function(batch,options){} });
         }
 
     },
@@ -52,7 +52,7 @@ Ext.define("Redwood.controller.Machines", {
         var varStore = this.getStore('Machines');
         this.getStore('MachineRoles').sync();
         this.getStore('MachineTags').sync();
-        varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Machines').load();} });
+        varStore.sync({success:function(batch,options){} });
 
     },
 

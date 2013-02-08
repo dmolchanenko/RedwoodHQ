@@ -330,6 +330,7 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onDelete: function(){
+        var me = this;
         var selection = this.treePanel.getSelectionModel().getSelection();
         if(selection.length > 0){
             var message = 'Are you sure you want to delete selected files/folders?';
@@ -360,6 +361,7 @@ Ext.define("Redwood.controller.Scripts", {
                             success: function(response, action) {
                                 for (var i=0;selection.length > i;i++){
                                     selection[i].remove();
+                                    me.tabPanel.remove(selection[i].get("fullpath"));
                                 }
                             }
                         });

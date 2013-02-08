@@ -57,9 +57,9 @@ Ext.define('Redwood.view.Variables', {
         this.columns = [
             {
                 xtype: 'checkcolumn',
-                header: "Task Variable",
+                header: "Execution Var",
                 dataIndex: 'taskVar',
-                width: 77,
+                width: 80,
                 editor:{
                     xtype:'checkboxfield'
                 },
