@@ -8,9 +8,8 @@ var argv = require('optimist').argv,
     policyfile = require('policyfile'),
     spawn = require('child_process').spawn;
 
-    Buffer = require('buffer').Buffer,
+var Buffer = require('buffer').Buffer,
     WebSocketServer = require('ws').Server,
-
     webServer, wsServer,
     source_host, source_port, target_host, target_port,certFile,keyFile;
 
@@ -40,10 +39,15 @@ new_client = function(client) {
     });
 
     client.on('message', function(msg) {
-        if (client.protocol === 'base64') {
-            target.write(new Buffer(msg, 'base64'),'binary');
-        } else {
-            target.write(msg,'binary');
+        try{
+            if (client.protocol === 'base64') {
+                target.write(new Buffer(msg, 'base64'),'binary');
+            } else {
+                target.write(msg,'binary');
+            }
+        }
+        catch(err){
+            console.log("Error:"+err)
         }
     });
     client.on('close', function(code, reason) {
