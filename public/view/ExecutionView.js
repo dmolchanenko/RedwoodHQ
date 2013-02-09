@@ -235,6 +235,20 @@ Ext.define('Redwood.view.ExecutionView', {
             store: linkedMachineStore,
             itemId:"executionMachines",
             selType: 'rowmodel',
+            tbar:{
+            xtype: 'toolbar',
+            dock: 'top',
+            items: [
+                {
+                    width: 400,
+                    fieldLabel: 'Search',
+                    labelWidth: 50,
+                    xtype: 'searchfield',
+                    paramNames: ["tag","host","description","roles"],
+                    store: linkedMachineStore
+                }
+            ]
+            },
             viewConfig: {
                 markDirty: false
             },

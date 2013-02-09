@@ -4,7 +4,7 @@ var argv = require('optimist').argv,
     https = require('https'),
     url = require('url'),
     path = require('path'),
-    common = require('common'),
+    common = require('./common'),
     fs = require('fs'),
     policyfile = require('policyfile'),
     spawn = require('child_process').spawn;
@@ -48,7 +48,8 @@ new_client = function(client) {
             }
         }
         catch(err){
-            console.log("Error:"+err)
+            console.log("Error:"+err);
+            target.end();
         }
     });
     client.on('close', function(code, reason) {
@@ -80,7 +81,7 @@ common.parseConfig(function(){
     target_port = "5950";
 
     source_host = "localhost";
-    source_port = common.config.AgentVNCPort;
+    source_port = common.Config.AgentVNCPort;
 
     console.log("WebSocket settings: ");
     console.log("    - proxying from " + source_host + ":" + source_port +
@@ -106,7 +107,7 @@ common.parseConfig(function(){
     policyfile.createServer().listen(-1, webServer);
 
     //start vnc server
-    var vncPath = path.resolve(__dirname,"../../vendor/UltraVNC/");
+    var vncPath = path.resolve(__dirname,"../vendor/UltraVNC/");
     launcherProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
 });
 

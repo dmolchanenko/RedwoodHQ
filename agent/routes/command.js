@@ -6,6 +6,7 @@ var walk = require('walk');
 var launcherProc = null;
 var spawn = require('child_process').spawn;
 var launcherConn = null;
+var common = require('../common');
 
 exports.Post = function(req, res){
     var command = req.body;
@@ -85,7 +86,7 @@ function startLauncher(callback){
                     if (cache.indexOf("--EOM--") != -1){
                         var msg = JSON.parse(cache.substring(0,cache.length - 7));
                         if (msg.command == "action finished"){
-                            sendActionResult(msg);
+                            sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                         }
                         cache = "";
                     }
@@ -166,10 +167,10 @@ function sendLauncherCommand(command,callback){
 }
 
 
-function sendActionResult(result){
+function sendActionResult(result,host,port){
     var options = {
-        hostname: "localhost",
-        port: 3000,
+        hostname: host,
+        port: port,
         path: '/executionengine/actionresult',
         method: 'POST',
         agent:false,
