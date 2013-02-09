@@ -42,12 +42,42 @@ Ext.define('Redwood.view.Machines', {
                 //flex: 1,
                 width: 200,
                 renderer: function (value, meta, record) {
-                    return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
+                    return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ value +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
                 },
                 editor: {
                     xtype: 'textfield',
                     allowBlank: false,
                     vtype: 'machineTest',
+                    listeners:{
+                        focus: function(){
+                            this.selectText();
+                        }
+                    }
+                }
+            },
+            {
+                header: 'Port',
+                dataIndex: 'port',
+                //flex: 1,
+                width: 100,
+                editor: {
+                    xtype: 'textfield',
+                    allowBlank: false,
+                    listeners:{
+                        focus: function(){
+                            this.selectText();
+                        }
+                    }
+                }
+            },
+            {
+                header: 'VNC Port',
+                dataIndex: 'vncport',
+                //flex: 1,
+                width: 100,
+                editor: {
+                    xtype: 'textfield',
+                    allowBlank: false,
                     listeners:{
                         focus: function(){
                             this.selectText();

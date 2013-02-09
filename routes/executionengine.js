@@ -179,17 +179,17 @@ function startTCExecution(id,variables,executionID,callback){
                 }
             });
 
-            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":""}},foundMachine.host);
+            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":""}},foundMachine.host,foundMachine.vncport);
 
             if (foundMachine.baseStateRun == true){
                 if (callback) callback();
-                sendAgentCommand(foundMachine.host,agentInstructions);
+                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
             }
             else{
-                agentBaseState(executions[executionID].project,foundMachine.host,function(){
+                agentBaseState(executions[executionID].project,foundMachine.host,foundMachine.port,function(){
                     foundMachine.baseStateRun = true;
                     if (callback) callback();
-                    sendAgentCommand(foundMachine.host,agentInstructions);
+                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
                 });
             }
         });
@@ -266,7 +266,7 @@ exports.actionresultPost = function(req, res){
             }
         });
 
-        updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":""}},foundMachine.host);
+        updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":""}},foundMachine.host,foundMachine.vncport);
 
         var agentInstructions = {command:"run action",executionID:req.body.executionID,testcaseID:testcase.testcase.dbTestCase._id};
 
@@ -279,7 +279,7 @@ exports.actionresultPost = function(req, res){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
             console.log(parameter);
         });
-        sendAgentCommand(foundMachine.host,agentInstructions)
+        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions)
     });
 };
 
@@ -335,13 +335,13 @@ function markFinishedResults(results,callback){
 }
 
 
-function agentBaseState(project,agentHost,callback){
-    sendAgentCommand(agentHost,{command:"cleanup"},function(){
-        syncFilesWithAgent(agentHost,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"bin",function(){
-            syncFilesWithAgent(agentHost,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"lib",function(){
-                syncFilesWithAgent(agentHost,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"lib",function(){
-                    syncFilesWithAgent(agentHost,path.join(__dirname, '../launcher'),"launcher",function(){
-                        sendAgentCommand(agentHost,{command:"start launcher"},function(){
+function agentBaseState(project,agentHost,port,callback){
+    sendAgentCommand(agentHost,port,{command:"cleanup"},function(){
+        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"bin",function(){
+            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"lib",function(){
+                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"lib",function(){
+                    syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"launcher",function(){
+                        sendAgentCommand(agentHost,port,{command:"start launcher"},function(){
                             callback();
                         });
                     });
@@ -351,7 +351,7 @@ function agentBaseState(project,agentHost,callback){
     });
 }
 
-function syncFilesWithAgent(agentHost,rootPath,destDir,callback){
+function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
     var walker = walk.walkSync(rootPath);
 
     var fileCount = 0;
@@ -366,7 +366,7 @@ function syncFilesWithAgent(agentHost,rootPath,destDir,callback){
             dest = destDir + path+"/"+fileStats.name
         }
 
-        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,function(){
+        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,function(){
             fileCount--;
             if(fileCount == 0){
                 callback();
@@ -381,7 +381,7 @@ function syncFilesWithAgent(agentHost,rootPath,destDir,callback){
     });
 }
 
-function sendFileToAgent(file,dest,agentHost,callback){
+function sendFileToAgent(file,dest,agentHost,port,callback){
     var stat = fs.statSync(file);
 
     var readStream = fs.createReadStream(file);
@@ -402,7 +402,7 @@ function sendFileToAgent(file,dest,agentHost,callback){
 
     var options = {
         hostname: agentHost,
-        port: 3001,
+        port: port,
         path: '/fileupload',
         method: 'POST',
         headers: {
@@ -436,10 +436,10 @@ function sendFileToAgent(file,dest,agentHost,callback){
     });
 }
 
-function sendAgentCommand(agentHost,command,callback){
+function sendAgentCommand(agentHost,port,command,callback){
     var options = {
         hostname: agentHost,
-        port: 3001,
+        port: port,
         path: '/command',
         method: 'POST',
         headers: {
@@ -516,11 +516,12 @@ function updateResult(result,callback){
     });
 }
 
-function updateExecutionTestCase(query,update,machineHost,callback){
+function updateExecutionTestCase(query,update,machineHost,vncport,callback){
     db.collection('executiontestcases', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
             if (machineHost){
                 data.host = machineHost;
+                data.vncport = vncport;
             }
             realtime.emitMessage("UpdateExecutionTestCase",data);
             if (callback){

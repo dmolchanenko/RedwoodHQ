@@ -2,6 +2,7 @@ var express = require('express');
 var command = require('./routes/command');
 var fileupload = require('./routes/fileupload');
 var heartbeat = require('./routes/heartbeat');
+var common = require('./common');
 
 var app = express();
 
@@ -26,9 +27,13 @@ app.configure('production', function(){
     app.use(express.errorHandler());
 });
 
-
-app.listen(3001, function(){
-    heartbeat.startHeartBeat();
-    //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+common.parseConfig(function(){
+    app.listen(common.Config.AgentPort, function(){
+        heartbeat.startHeartBeat(common.Config.AppServerIPHost,common.Config.AppServerPort,common.Config.AgentPort,common.Config.AgentVNCPort);
+        //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+    });
 });
+
+
+
 

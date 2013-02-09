@@ -31,6 +31,7 @@ var express = require('express')
   , executionTags = require('./routes/executionTags')
   , executiontestcases = require('./routes/executiontestcases')
   , executionengine = require('./routes/executionengine')
+  , heartbeat = require('./routes/heartbeat')
   , methodFinder = require('./routes/methodFinder');
 
 
@@ -39,9 +40,6 @@ var app = express.createServer(
     //express.cookieParser(),
     //express.session({ secret: 'redwoodsecrect' })
 );
-common.initDB(function(){
-    common.cleanUpExecutions();
-});
 
 // Configuration
 
@@ -84,6 +82,9 @@ app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 //start execution
 app.post('/executionengine/startexecution',auth.auth, executionengine.startexecutionPost);
 app.post('/executionengine/actionresult',executionengine.actionresultPost);
+
+//heartbeat
+app.post('/heartbeat',heartbeat.heartbeatPost);
 
 //machines
 app.get('/machines',auth.auth, machines.machinesGet);
@@ -183,9 +184,14 @@ app.post('/fileupload',auth.auth, fileupload.upload);
 //methodFinder
 app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 
-realtime.initSocket(app);
+common.parseConfig(function(){
+    common.initDB(common.Config.DBPort,function(){
+        common.cleanUpExecutions();
+    });
 
+    realtime.initSocket(app);
 
-app.listen(3000, function(){
-  console.log("Express server listening on port %d in %s mode", 3000, app.settings.env);
+    app.listen(common.Config.AppServerPort, function(){
+      console.log("Express server listening on port %d in %s mode", common.Config.AppServerPort, app.settings.env);
+    });
 });

@@ -1,7 +1,9 @@
 var http = require('http');
 var os = require('os');
+var macaddr = require('../macaddr');
 
-exports.startHeartBeat = function(server){
+exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
+    /*
     var interfaces = os.networkInterfaces();
     var addresses = [];
     for (var k in interfaces) {
@@ -13,12 +15,15 @@ exports.startHeartBeat = function(server){
         }
     }
 
+
     console.log(addresses);
+     */
+    var macAddress = null;
 
     var recursive = function () {
         var options = {
-            hostname: "localhost",
-            port: 3001,
+            hostname: server,
+            port: serverPort,
             path: '/heartbeat',
             method: 'POST',
             headers: {
@@ -29,18 +34,26 @@ exports.startHeartBeat = function(server){
         var req = http.request(options, function(res) {
             res.setEncoding('utf8');
             res.on('data', function (chunk) {
-
             });
         });
 
         req.on('error', function(e) {
             console.log('problem with request: ' + e.message);
+            setTimeout(recursive,20000);
         });
 
         // write data to request body
-        req.write(JSON.stringify({}));
+        req.write(JSON.stringify({macAddress:macAddress,hostname:os.hostname(),port:agentPort,vncPort:vncPort}));
         req.end();
-        setTimeout(recursive,20000);
     };
-    recursive();
+
+    macaddr.address(function(err, addr) {
+        if (addr) {
+            macAddress = addr;
+            recursive();
+        } else {
+            console.log('MAC address not found');
+        }
+    });
+
 };

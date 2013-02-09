@@ -16,6 +16,12 @@ Ext.define('Redwood.model.Machines', {
         name: 'host',
         type: 'string'
     }, {
+        name: 'port',
+        type: 'string'
+    }, {
+        name: 'vncport',
+        type: 'string'
+    }, {
         name: 'description',
         type: 'string'
     },

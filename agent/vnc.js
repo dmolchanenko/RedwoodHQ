@@ -4,6 +4,7 @@ var argv = require('optimist').argv,
     https = require('https'),
     url = require('url'),
     path = require('path'),
+    common = require('common'),
     fs = require('fs'),
     policyfile = require('policyfile'),
     spawn = require('child_process').spawn;
@@ -74,36 +75,38 @@ selectProtocol = function(protocols, callback) {
     }
 };
 
-target_host = "localhost";
-target_port = "5900";
+common.parseConfig(function(){
+    target_host = "localhost";
+    target_port = "5950";
 
-source_host = "localhost";
-source_port = "3004";
+    source_host = "localhost";
+    source_port = common.config.AgentVNCPort;
 
-console.log("WebSocket settings: ");
-console.log("    - proxying from " + source_host + ":" + source_port +
-    " to " + target_host + ":" + target_port);
+    console.log("WebSocket settings: ");
+    console.log("    - proxying from " + source_host + ":" + source_port +
+        " to " + target_host + ":" + target_port);
 
-if (certFile) {
-    argv.key = argv.key || argv.cert;
-    var cert = fs.readFileSync(certFile),
-        key = fs.readFileSync(keyFile);
-    console.log("    - Running in encrypted HTTPS (wss://) mode using: " + certFile + ", " + keyFile);
-    webServer = https.createServer({cert: cert, key: key});
-} else {
-    console.log("    - Running in unencrypted HTTP (ws://) mode");
-    webServer = http.createServer();
-}
-webServer.listen(source_port, function() {
-    wsServer = new WebSocketServer({server: webServer,
-        handleProtocols: selectProtocol});
-    wsServer.on('connection', new_client);
+    if (certFile) {
+        argv.key = argv.key || argv.cert;
+        var cert = fs.readFileSync(certFile),
+            key = fs.readFileSync(keyFile);
+        console.log("    - Running in encrypted HTTPS (wss://) mode using: " + certFile + ", " + keyFile);
+        webServer = https.createServer({cert: cert, key: key});
+    } else {
+        console.log("    - Running in unencrypted HTTP (ws://) mode");
+        webServer = http.createServer();
+    }
+    webServer.listen(source_port, function() {
+        wsServer = new WebSocketServer({server: webServer,
+            handleProtocols: selectProtocol});
+        wsServer.on('connection', new_client);
+    });
+
+    // Attach Flash policyfile answer service
+    policyfile.createServer().listen(-1, webServer);
+
+    //start vnc server
+    var vncPath = path.resolve(__dirname,"../../vendor/UltraVNC/");
+    launcherProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
 });
-
-// Attach Flash policyfile answer service
-policyfile.createServer().listen(-1, webServer);
-
-//start vnc server
-var vncPath = path.resolve(__dirname,"../../vendor/UltraVNC/");
-launcherProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
 

@@ -1,12 +1,29 @@
 var db;
 var fs = require('fs');
+var Config = {};
+exports.Config = Config;
 
-exports.initDB = function(callback){
+exports.parseConfig = function(callback){
+    var conf = fs.readFileSync(__dirname+"/properties.conf");
+    var i = 0;
+    var parsed = conf.toString().split("\r\n");
+    parsed.forEach(function(line){
+        i++;
+        if ((line.indexOf("#") != 0)&&(line.indexOf("=") != -1)){
+            Config[line.split("=")[0]] = line.split("=")[1];
+        }
+        if(i == parsed.length){
+            callback()
+        }
+    })
+};
+
+exports.initDB = function(port,callback){
     var mongo = require('mongodb'),
         Server = mongo.Server,
         Db = mongo.Db;
 
-    var dbServer = new Server('localhost', 27017, {auto_reconnect: true,safe:true});
+    var dbServer = new Server('localhost', parseInt(port), {auto_reconnect: true,safe:true});
     db = new Db('automationframework', dbServer);
 
     db.open(function(err, db) {
@@ -77,9 +94,7 @@ exports.cleanUpExecutions = function(){
         collection.update({state:"Running Test"},{$set:{state:""}},{multi:true});
     });
     db.collection('executiontestcases', function(err, collection) {
-        console.log(err);
         collection.update({"status":"Running"},{$set:{status:"Not Run",result:"",error:""}},{multi:true,safe:true},function(err){
-            console.log(err)
         });
     });
 };

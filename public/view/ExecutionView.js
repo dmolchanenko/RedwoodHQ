@@ -181,12 +181,14 @@ Ext.define('Redwood.view.ExecutionView', {
                     }
                 })
             }
-            machines.push({host:machine.get("host"),tag:machine.get("tag"),state:machine.get("state"),description:machine.get("description"),roles:machine.get("roles"),_id:machine.get("_id"),selected:foundMachine})
+            machines.push({host:machine.get("host"),tag:machine.get("tag"),state:machine.get("state"),description:machine.get("description"),roles:machine.get("roles"),port:machine.get("port"),vncport:machine.get("vncport"),_id:machine.get("_id"),selected:foundMachine})
         });
 
         var linkedMachineStore =  new Ext.data.Store({
             fields: [
                 {name: 'host',     type: 'string'},
+                {name: 'vncport',     type: 'string'},
+                {name: 'port',     type: 'string'},
                 {name: 'tag',     type: 'array'},
                 {name: 'state',     type: 'string'},
                 {name: 'description',     type: 'string'},
@@ -218,10 +220,13 @@ Ext.define('Redwood.view.ExecutionView', {
                 options.update.forEach(function(r){
                     var linkedRecord = linkedMachineStore.findRecord("_id", r.get("_id"));
                     linkedRecord.set("host", r.get("host"));
+                    linkedRecord.set("port", r.get("port"));
+                    linkedRecord.set("vncport", r.get("vncport"));
                     linkedRecord.set("tag", r.get("tag"));
                     linkedRecord.set("description", r.get("description"));
                     linkedRecord.set("roles", r.get("roles"));
                     linkedRecord.set("state", r.get("state"));
+                    //me.down("#hostMachineColumn").renderer(linkedRecord.get("host"),null,linkedRecord)
                 });
             }
         });
@@ -252,10 +257,16 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Host Name/IP',
                     dataIndex: 'host',
+                    itemId:"hostMachineColumn",
                     width: 200,
                     renderer: function (value, meta, record) {
-                        return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ value +"&quot;)'>" + value +"</a>";
+                        return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ value +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
                     }
+                },
+                {
+                    header: 'Port',
+                    dataIndex: 'port',
+                    width: 100
                 },
                 {
                     header: 'Roles',
@@ -350,7 +361,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     width: 100,
                     renderer: function (value, meta, record) {
                         if(record.get("host") && (value == "Running")){
-                            return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;)'>" + value +"</a>";
+                            return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
                         }
                         else if (value == "Finished"){
                             return "<p style='color:green'>"+value+"</p>";

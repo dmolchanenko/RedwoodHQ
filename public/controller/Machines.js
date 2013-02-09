@@ -1,5 +1,5 @@
-function vncToMachine(host){
-    window.open ("novnc/vnc.html?host="+host+"&port=3004&password=admin&connectTimeout=20");
+function vncToMachine(host,port){
+    window.open ("novnc/vnc.html?host="+host+"&port="+port+"&password=admin&connectTimeout=20");
     if(!Ext.isIE){
         return false;
     }
@@ -67,6 +67,8 @@ Ext.define("Redwood.controller.Machines", {
         blank = store.add({
             tags: [],
             host: 'newHost',
+            port: '3001',
+            vncport: '3002',
             description:'',
             roles: ['Default']
             //vmName: ''
