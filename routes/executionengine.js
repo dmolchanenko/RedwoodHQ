@@ -27,46 +27,47 @@ exports.startexecutionPost = function(req, res){
         variables[variable.name] = variable.value;
     });
 
-    /*
+    console.log(variables);
+    executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project};
+    getGlobalVars(executionID,function(){
+        testcases.forEach(function(testcase){
+            executions[executionID].testcases[testcase.testcaseID] = testcase;
+        });
+        lockMachines(machines);
+        //random id for compile proc
+        var id;
+        for (var i = 0; i < 24; i++) {
+            id += Math.floor(Math.random() * 10).toString(16);
+        }
+        var compileOut = "";
+        compile.operation({project:req.cookies.project},id,function(data){compileOut = compileOut + data},function(){
+            if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
+                res.contentType('json');
+                res.json({error:"Error, unable to compile scripts."});
+            }
+            else{
+                res.contentType('json');
+                res.json({success:true});
+                executeTestCases(executions[executionID].testcases,executionID);
+            }
+        });
+    });
+};
+
+function getGlobalVars(executionID,callback){
     db.collection('variables', function(err, collection) {
         collection.find({taskVar:false}, {}, function(err, cursor) {
             cursor.each(function(err, variable) {
                 if(variable == null) {
-                    //callback(variables);
+                    callback();
                 }
                 else{
-                    variables[variable.name] = variable.value;
-                    console.log("HAHAHA")
+                    executions[executionID].variables[variable.name] = variable.value;
                 }
             });
         })
     });
-    */
-
-    console.log(variables);
-    executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project};
-    testcases.forEach(function(testcase){
-        executions[executionID].testcases[testcase.testcaseID] = testcase;
-    });
-    lockMachines(machines);
-    //random id for compile proc
-    var id;
-    for (var i = 0; i < 24; i++) {
-        id += Math.floor(Math.random() * 10).toString(16);
-    }
-    var compileOut = "";
-    compile.operation({project:req.cookies.project},id,function(data){compileOut = compileOut + data},function(){
-        if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
-            res.contentType('json');
-            res.json({error:"Error, unable to compile scripts."});
-        }
-        else{
-            res.contentType('json');
-            res.json({success:true});
-            executeTestCases(executions[executionID].testcases,executionID);
-        }
-    });
-};
+}
 
 function executeTestCases(testcases,executionID){
     var variables = executions[executionID].variables;
@@ -202,6 +203,7 @@ exports.actionresultPost = function(req, res){
     res.json({success:true});
 
     var execution = executions[req.body.executionID];
+    if (!execution) return;
     var testcase = execution.currentTestCases[req.body.testcaseID];
     if (testcase == undefined) return;
 

@@ -887,6 +887,10 @@ Ext.define('Redwood.view.ActionCollection', {
                     store.add({text:Ext.util.Format.htmlEncode("${"+name+"}"),value:"${"+name+"}"});
                 });
             }
+            Ext.data.StoreManager.lookup('Variables').each(function(variable){
+                var name = variable.get("name");
+                store.add({text:Ext.util.Format.htmlEncode("${"+name+"}"),value:"${"+name+"}"});
+            });
             e.column.getEditor().setEditable(true);
 
 
