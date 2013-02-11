@@ -98,11 +98,20 @@ Ext.define('Redwood.view.ExecutionView', {
             }
             if (options.update){
                 options.update.forEach(function(variable){
+                    var linkedRecord = linkedVarStore.findRecord("_id", variable.get("_id"));
                     if (variable.get("taskVar") == true){
-                        var linkedRecord = linkedVarStore.findRecord("_id", variable.get("_id"));
+                        //if null it means the taskVar flag changed and we need to add instead of update
+                        if (linkedRecord == null){
+                            linkedVarStore.add(variable);
+                            return;
+                        }
                         linkedRecord.set("name", variable.get("name"));
                         linkedRecord.set("tag", variable.get("tag"));
                         linkedRecord.set("possibleValues", variable.get("possibleValues"));
+                    }
+                    //looks like the variable no longer belongs here
+                    else if(linkedRecord != null){
+                        linkedVarStore.remove(linkedRecord);
                     }
                 });
             }
@@ -321,6 +330,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'tag',     type: 'array'},
                 {name: 'status',     type: 'string'},
                 {name: 'host',     type: 'string'},
+                {name: 'resultID',     type: 'string'},
                 {name: 'result',     type: 'string'},
                 {name: 'startdate',     type: 'date'},
                 {name: 'enddate',     type: 'date'},
@@ -362,7 +372,16 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Name',
                     dataIndex: 'name',
-                    flex: 1
+                    flex: 1,
+                    renderer: function (value, meta, record) {
+                        if (record.get("status") == "Finished"){
+                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                        }
+                        else{
+                            return value;
+                        }
+
+                    }
                 },
                 {
                     header: 'Tags',

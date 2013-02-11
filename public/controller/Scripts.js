@@ -298,7 +298,7 @@ Ext.define("Redwood.controller.Scripts", {
                 fn: function(newName){
                     //new path
                     path = path.substring(0,path.lastIndexOf("/")+1)+newName;
-                    selection.set({text:newName,fullpath:path});
+                    selection.set({text:newName,fullpath:path,icon:me.getIconType(newName)});
                     selection.dirty = false;
                     me.getStore('Scripts').sort();
                     me.treePanel.getSelectionModel().select(selection);

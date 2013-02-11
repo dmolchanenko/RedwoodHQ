@@ -32,6 +32,7 @@ var express = require('express')
   , executiontestcases = require('./routes/executiontestcases')
   , executionengine = require('./routes/executionengine')
   , heartbeat = require('./routes/heartbeat')
+  , results = require('./routes/results')
   , methodFinder = require('./routes/methodFinder');
 
 
@@ -85,6 +86,9 @@ app.post('/executionengine/actionresult',executionengine.actionresultPost);
 
 //heartbeat
 app.post('/heartbeat',heartbeat.heartbeatPost);
+
+//results
+app.get('/results/:id',results.resultsGet);
 
 //machines
 app.get('/machines',auth.auth, machines.machinesGet);

@@ -78,7 +78,7 @@ function DeleteExecutions(db,data,callback){
     db.collection('executions', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
             db.collection('executiontestcases', function(err, collection) {
-                collection.remove({executionID:data._id.__id},{safe:true},function(err) {
+                collection.remove({executionID:data._id},{safe:true},function(err) {
                     callback(err);
                 });
             });

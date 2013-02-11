@@ -180,7 +180,7 @@ function startTCExecution(id,variables,executionID,callback){
                 }
             });
 
-            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":""}},foundMachine.host,foundMachine.vncport);
+            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id}},foundMachine.host,foundMachine.vncport);
 
             if (foundMachine.baseStateRun == true){
                 if (callback) callback();
@@ -208,10 +208,10 @@ exports.actionresultPost = function(req, res){
     if (testcase == undefined) return;
 
     testcase.currentAction.result.status = "Finished";
+    testcase.result.status = "Finished";
     testcase.currentAction.result.result = req.body.result;
     testcase.result.result = req.body.result;
     if (req.body.error){
-        testcase.currentAction.result.error = req.body.error;
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
     }
@@ -220,7 +220,6 @@ exports.actionresultPost = function(req, res){
     }
 
     if (req.body.trace){
-        testcase.currentAction.result.trace = req.body.trace;
         testcase.result.trace = req.body.trace;
         testcase.currentAction.result.trace = req.body.trace;
     }
@@ -269,6 +268,7 @@ exports.actionresultPost = function(req, res){
         });
 
         updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":""}},foundMachine.host,foundMachine.vncport);
+        testcase.result.status = "Running";
 
         var agentInstructions = {command:"run action",executionID:req.body.executionID,testcaseID:testcase.testcase.dbTestCase._id};
 
@@ -305,33 +305,53 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
 
 function markFinishedResults(results,callback){
     var count = 0;
-    var status = "Passed";
+    var result = "Passed";
+    var status = "Finished";
     results.forEach(function(action){
         if (action.status == "Not Run"){
             if (action.children.length != 0){
-                markFinishedResults(action.children,function(childStatus){
+                markFinishedResults(action.children,function(childStatus,childResult,markFinished){
+                    if (markFinished === true){
+                        action.status = "Finished";
+                        action.result = "Failed";
+                        callback("Finished","Failed",true);
+                        return;
+                    }
                     count++;
-                    if(count == results.length){
-                        if (childStatus == "Not Run"){
-                            callback("Not Run");
+                    if (childStatus == "Not Run"){
+                        status = "Not Run"
+                    }
+                    if((childStatus == "Finished") && (childResult == "Failed")){
+                        result = "Failed"
+                    }
+                    if(count == action.children.length){
+                        action.result = result;
+                        action.status = status;
+                        if (status == "Finished"){
+                            if ((action.executionflow == "Record Error Stop Test Case")&&(result == "Failed")){
+                                callback(status,result,true)
+                            }
+                            else{
+                                callback(status,result)
+                            }
                         }
                         else{
-                            action.status = status;
-                            callback(status)
+                            callback(status,"")
                         }
                     }
                 })
             }
             else{
-                status = "Not Run"
+                callback("Not Run","")
             }
         }
-        else if((action.status == "Failed")&&(status != "Not Run")){
-            status = "Failed"
-        }
-        count++;
-        if (count == results.length){
-            callback(status);
+        else{
+            if ((action.executionflow == "Record Error Stop Test Case")&&(action.result == "Failed")){
+                callback("Finished","Failed",true)
+            }
+            else{
+                callback("Finished",action.result)
+            }
         }
     });
 }
@@ -661,7 +681,7 @@ function GetTestCaseDetails(testcaseID,callback){
                             if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                                 hosts.push(innerAction.host)
                             }
-                            var newActionResult = {parameters:innerAction.parameters,status:"Not Run",children:[]};
+                            var newActionResult = {parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                             lastResultPoint.children.push(newActionResult);
                             var newAction = {result:newActionResult,dbAction:innerAction,parent:lastPoint,actions:[],returnValues:{}};
                             lastPoint.actions.push(newAction);
@@ -691,7 +711,7 @@ function GetTestCaseDetails(testcaseID,callback){
                         if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                             hosts.push(innerAction.host)
                         }
-                        var newActionResult = {parameters:innerAction.parameters,status:"Not Run",children:[]};
+                        var newActionResult = {parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                         testcaseResults.children.push(newActionResult);
                         var newAction = {dbAction:innerAction,parent:testcaseDetails,result:newActionResult,actions:[]};
                         testcaseDetails.actions.push(newAction);

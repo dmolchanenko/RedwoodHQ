@@ -1,4 +1,4 @@
-<project name="ProjectName" basedir="." default="main">
+<project name="CNN" basedir="." default="main">
 
     <property name="src.dir"     value="src"/>
     <property name="build.dir"   value="build"/>
@@ -11,7 +11,7 @@
     <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc">
         <classpath>
             <fileset dir="${lib.dir}">
-                <include name="groovy-all-2.0.0.jar"/>
+                <include name="**/*.jar"/>
             </fileset>
         </classpath>
     </taskdef>

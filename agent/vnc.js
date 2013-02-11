@@ -44,7 +44,10 @@ new_client = function(client) {
             if (client.protocol === 'base64') {
                 target.write(new Buffer(msg, 'base64'),'binary');
             } else {
-                target.write(msg,'binary');
+                //setTimeout(function() {
+                    if (target.writable) target.write(msg,'binary');
+                //}, 500);
+
             }
         }
         catch(err){

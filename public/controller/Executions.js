@@ -1,9 +1,19 @@
+function openResultDetails(id){
+    var controller = Redwood.app.getController("Executions");
+    controller.openExecutionDetails(id);
+
+    if(!Ext.isIE){
+        return false;
+    }
+}
+
+
 Ext.define("Redwood.controller.Executions", {
     extend: 'Ext.app.Controller',
 
     models: ['Executions','ExecutionTags'],
     stores: ['Executions','ExecutionTags'],
-    views:  ['Executions'],
+    views:  ['Executions','ResultsView'],
 
     init: function () {
         this.control({
@@ -18,6 +28,36 @@ Ext.define("Redwood.controller.Executions", {
                 run: this.runExecution
             }
 
+        });
+    },
+
+    openExecutionDetails: function(id){
+        var me = this;
+        Ext.Ajax.request({
+            url:"/results/"+id,
+            method:"GET",
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error != null){
+                    Ext.Msg.alert('Error', obj.error);
+                }
+                else{
+                    var foundTab = me.tabPanel.down("#"+obj.testcase._id);
+                    if (foundTab != null){
+                        me.tabPanel.setActiveTab(foundTab);
+                        return;
+                    }
+                    var tab = Ext.create('Redwood.view.ResultsView',{
+                        title:"[Test Details] " + obj.testcase.name,
+                        closable:true,
+                        dataRecord:obj.testcase,
+                        itemId:obj.testcase._id
+                    });
+
+                    me.tabPanel.add(tab);
+                    me.tabPanel.setActiveTab(tab);
+                }
+            }
         });
     },
 
@@ -150,9 +190,22 @@ Ext.define("Redwood.controller.Executions", {
     },
 
     onExecutionDelete: function(record){
+        var foundTab = this.tabPanel.down("#"+record.get("_id"));
         if(record) {
-            Ext.data.StoreManager.lookup('Executions').remove(record);
-            Ext.data.StoreManager.lookup('Executions').sync({success:function(batch,options){} });
+            Ext.Msg.show({
+                title:'Delete Confirmation',
+                msg: "Are you sure you want to delete '"+ foundTab.title + "' execution?" ,
+                buttons: Ext.Msg.YESNO,
+                icon: Ext.Msg.QUESTION,
+                fn: function(id){
+                    if (id === "yes"){
+                        foundTab.dirty = false;
+                        foundTab.close();
+                        Ext.data.StoreManager.lookup('Executions').remove(record);
+                        Ext.data.StoreManager.lookup('Executions').sync({success:function(batch,options){} });
+                    }
+                }
+            });
         }
 
     },

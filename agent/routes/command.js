@@ -67,7 +67,7 @@ function startLauncher_debug(callback){
 function startLauncher(callback){
     var libPath = path.resolve(__dirname,"../lib")+"/";
     var launcherPath  = path.resolve(__dirname,"../launcher")+"/";
-    launcherProc = spawn(path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe",["-cp",libPath+'*;'+launcherPath+'*',"-Xmx512m","redwood.launcher.Launcher"],{cwd:path.resolve(__dirname,"../bin/")});
+    launcherProc = spawn(path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe",["-cp",libPath+'*;'+launcherPath+'*',"-Xmx512m","redwood.launcher.Launcher"],{env:{PATH:path.resolve(__dirname,"../bin/")},cwd:path.resolve(__dirname,"../bin/")});
     launcherProc.stderr.on('data', function (data) {
         console.log("error:"+data.toString());
         launcherProc = null;
@@ -102,11 +102,11 @@ function startLauncher(callback){
 
 function stopLauncher(callback){
     if (launcherProc != null){
-        //sendLauncherCommand({command:"exit"},function(){
-            launcherProc.kill();
+        sendLauncherCommand({command:"exit"},function(){
+            launcherProc.kill("SIGHUP");
             launcherProc = null;
             callback();
-        //});
+        });
     }
     //if there is runaway launcher try to kill it
     else{
