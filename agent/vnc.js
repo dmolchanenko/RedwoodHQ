@@ -22,6 +22,11 @@ new_client = function(client) {
     var target = net.createConnection(target_port,target_host, function() {
         console.log('connected to target');
     });
+
+    target.on('error',function(err){
+        console.log("Unable to connect to VNC server: "+err);
+    });
+
     target.on('data', function(data) {
         try {
             if (client.protocol === 'base64'){
