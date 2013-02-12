@@ -13,15 +13,16 @@ exports.Post = function(req, res){
     if(command.command == "run action"){
         console.log("running action");
         sendLauncherCommand(command,function(err){
-            res.send("{error:"+err+",success:true}");
+            res.send(JSON.stringify({"error":err,"success":true}));
         });
-
     }
     else if(command.command == "cleanup"){
         console.log("cleaning up");
         stopLauncher(function(){
             cleanUpBinDir(function(){
-                res.send("{error:null,success:true}");
+                cleanUpLibDir(function(){
+                    res.send('{"error":null,"success":true}');
+                })
             });
         });
     }
@@ -29,10 +30,10 @@ exports.Post = function(req, res){
         console.log("starting launcher");
         startLauncher(function(err){
             if (err == null){
-                res.send("{error:"+err+",success:true}");
+                res.send('{"error":null,"success":false}');
             }
             else{
-                res.send("{error:"+err+",success:false}");
+                res.send(JSON.stringify({"error":err,"success":false}));
             }
         });
     }
@@ -91,10 +92,12 @@ function startLauncher(callback){
                         cache = "";
                     }
                 });
+            });
 
-                launcherConn.on('error', function(err) {
-                    callback(err);
-                });
+            launcherConn.on('error', function(err) {
+                console.log("Error connecting to launcher: "+err);
+                //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                callback("Error connecting to launcher: "+err);
             });
         }
     });
@@ -103,7 +106,7 @@ function startLauncher(callback){
 function stopLauncher(callback){
     if (launcherProc != null){
         sendLauncherCommand({command:"exit"},function(){
-            launcherProc.kill("SIGHUP");
+            launcherProc.kill();
             launcherProc = null;
             callback();
         });
@@ -122,6 +125,9 @@ function stopLauncher(callback){
 
 function cleanUpBinDir(callback){
     deleteDir(path.resolve(__dirname,"../bin/"),callback)
+}
+function cleanUpLibDir(callback){
+    deleteDir(path.resolve(__dirname,"../lib/"),callback)
 }
 
 function deleteDir(dir,callback){

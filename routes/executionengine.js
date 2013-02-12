@@ -27,32 +27,57 @@ exports.startexecutionPost = function(req, res){
         variables[variable.name] = variable.value;
     });
 
-    console.log(variables);
-    executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project};
-    getGlobalVars(executionID,function(){
-        testcases.forEach(function(testcase){
-            executions[executionID].testcases[testcase.testcaseID] = testcase;
-        });
-        lockMachines(machines);
-        //random id for compile proc
-        var id;
-        for (var i = 0; i < 24; i++) {
-            id += Math.floor(Math.random() * 10).toString(16);
-        }
-        var compileOut = "";
-        compile.operation({project:req.cookies.project},id,function(data){compileOut = compileOut + data},function(){
-            if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
-                res.contentType('json');
-                res.json({error:"Error, unable to compile scripts."});
+    lockMachines(machines,function(){
+        runBaseStates(req.cookies.project,machines,function(validMachines){
+            machines = validMachines;
+            executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project};
+            getGlobalVars(executionID,function(){
+                testcases.forEach(function(testcase){
+                    executions[executionID].testcases[testcase.testcaseID] = testcase;
+                });
+
+                //random id for compile proc
+                var id;
+                for (var i = 0; i < 24; i++) {
+                    id += Math.floor(Math.random() * 10).toString(16);
+                }
+                var compileOut = "";
+                compile.operation({project:req.cookies.project},id,function(data){compileOut = compileOut + data},function(){
+                    if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
+                        res.contentType('json');
+                        res.json({error:"Error, unable to compile scripts."});
+                    }
+                    else{
+                        res.contentType('json');
+                        res.json({success:true});
+                        executeTestCases(executions[executionID].testcases,executionID);
+                    }
+                });
+            });
+        })
+    });
+
+};
+
+function runBaseStates(project,machines,callback){
+    var returnMachines = [];
+    var count = 0;
+    machines.forEach(function(machine){
+        agentBaseState(project,machines[count].host,machines[count].port,function(err){
+            count++;
+            if (err){
+                updateMachine({_id:db.bson_serializer.ObjectID(machine._id)},{$set:{state:"Error:"+err}})
             }
             else{
-                res.contentType('json');
-                res.json({success:true});
-                executeTestCases(executions[executionID].testcases,executionID);
+                returnMachines.push(machine);
+            }
+            if (count === machines.length){
+                callback(returnMachines)
             }
         });
     });
-};
+}
+
 
 function getGlobalVars(executionID,callback){
     db.collection('variables', function(err, collection) {
@@ -141,23 +166,30 @@ function startTCExecution(id,variables,executionID,callback){
            });
         });
 
-        if (testcase.machines.length == 0){
-            if (callback){
-                callback({error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()});
-            }
-            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Finished",result:"Failed",error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()}});
-            return;
-        }
-
-
-        var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
-
         result.executionID = executionID;
         //result.testcaseName = testcase.dbTestCase.name;
         executions[executionID].currentTestCases[testcase.dbTestCase._id] = {testcase:testcase,result:result,executionTestCaseID:id};
         createResult(result,function(writtenResult){
             result._id = writtenResult[0]._id;
+
+            if (testcase.machines.length == 0){
+                if (callback){
+                    callback({error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()});
+                }
+                updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Finished",result:"Failed",error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()}});
+                result.error = "Unable to find matching machine for this test case.  Roles required are:"+hosts.join();
+                result.status = "Finished";
+                result.result = "Failed";
+                updateResult(result);
+            }
+
         });
+
+        if (testcase.machines.length == 0){
+            return;
+        }
+
+        var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
 
         findNextAction(testcase.actions,variables,function(action){
             executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
@@ -181,18 +213,23 @@ function startTCExecution(id,variables,executionID,callback){
             });
 
             updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id}},foundMachine.host,foundMachine.vncport);
-
+            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+            /*
             if (foundMachine.baseStateRun == true){
                 if (callback) callback();
                 sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
             }
             else{
-                agentBaseState(executions[executionID].project,foundMachine.host,foundMachine.port,function(){
+                agentBaseState(executions[executionID].project,foundMachine.host,foundMachine.port,function(err){
+                    if (err){
+
+                    }
                     foundMachine.baseStateRun = true;
                     if (callback) callback();
                     sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
                 });
             }
+            */
         });
     })
 }
@@ -363,8 +400,13 @@ function agentBaseState(project,agentHost,port,callback){
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"lib",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"lib",function(){
                     syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"launcher",function(){
-                        sendAgentCommand(agentHost,port,{command:"start launcher"},function(){
-                            callback();
+                        sendAgentCommand(agentHost,port,{command:"start launcher"},function(err){
+                            if (err){
+                                callback(err);
+                            }
+                            else{
+                                callback();
+                            }
                         });
                     });
                 })
@@ -373,7 +415,7 @@ function agentBaseState(project,agentHost,port,callback){
     });
 }
 
-function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
+function syncFilesWithAgent_old(agentHost,port,rootPath,destDir,callback){
     var walker = walk.walkSync(rootPath);
 
     var fileCount = 0;
@@ -400,6 +442,47 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
 
     walker.on("end",function(){
         if (fileCount == 0) callback();
+    });
+}
+
+function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
+    var walker = walk.walkSync(rootPath);
+    var fileCount = 0;
+    var files = [];
+
+    var sendFiles = function(){
+        fileCount++;
+        if (!files[fileCount-1]){
+            callback();
+            return;
+        }
+        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,function(){
+
+            if(fileCount === files.length){
+                callback();
+            }
+            else{
+                sendFiles()
+            }
+        });
+    };
+
+    walker.on("file", function (root, fileStats, next) {
+        var path = root.replace(rootPath,"");
+        var dest = "";
+        if (path == ""){
+            dest = destDir +"/"+ fileStats.name;
+        }
+        else{
+            dest = destDir + path+"/"+fileStats.name
+        }
+
+        files.push({file:root+"/"+fileStats.name,dest:dest});
+        console.log(path+"/"+fileStats.name);
+    });
+
+    walker.on("end",function(){
+        sendFiles()
     });
 }
 
@@ -438,8 +521,6 @@ function sendFileToAgent(file,dest,agentHost,port,callback){
     };
 
     var req = http.request(options, function(res) {
-        console.log('STATUS: ' + res.statusCode);
-        console.log('HEADERS: ' + JSON.stringify(res.headers));
         //res.setEncoding('utf8');
         res.on('data', function (chunk) {
             console.log('BODY: ' + chunk);
@@ -448,7 +529,7 @@ function sendFileToAgent(file,dest,agentHost,port,callback){
     });
 
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        console.log('problem with request: ' + e.message+ ' file:'+file);
     });
 
     req.write(message);
@@ -470,12 +551,16 @@ function sendAgentCommand(agentHost,port,command,callback){
     };
 
     var req = http.request(options, function(res) {
-        console.log('STATUS: ' + res.statusCode);
-        console.log('HEADERS: ' + JSON.stringify(res.headers));
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
+            var msg = JSON.parse(chunk);
             console.log('BODY: ' + chunk);
-            if (callback) callback();
+            if(msg.error != null){
+                if (callback) callback(msg.error);
+            }
+            else{
+                if(callback) callback();
+            }
         });
     });
 
@@ -553,37 +638,39 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
     });
 }
 
+function updateMachine(query,update,callback){
+    db.collection('machines', function(err, collection) {
+        collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            if(data != null){
+                realtime.emitMessage("UpdateMachines",data);
+            }
+            if (callback) callback();
+        });
+    });
+}
+
+
 function lockMachines(machines,callback){
     var machineCount = 0;
     machines.forEach(function(machine){
-        db.collection('machines', function(err, collection) {
-            collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{state:"Running Test"}},{safe:true,new:true},function(err,data){
-                if(data != null){
-                    realtime.emitMessage("UpdateMachines",data);
-                }
-                machineCount++;
-                if (machineCount == machines.length){
-                    if (callback) callback();
-                }
-            });
-        });
+        updateMachine({_id:db.bson_serializer.ObjectID(machine._id)},{$set:{state:"Running Test"}},function(){
+            machineCount++;
+            if (machineCount == machines.length){
+                if(callback) callback();
+            }
+        })
     });
 }
 
 function unlockMachines(machines,callback){
     var machineCount = 0;
     machines.forEach(function(machine){
-        db.collection('machines', function(err, collection) {
-            collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{state:""}},{safe:true,new:true},function(err,data){
-                if(data != null){
-                    realtime.emitMessage("UpdateMachines",data);
-                }
-                machineCount++;
-                if (machineCount == machines.length){
-                    if (callback) callback();
-                }
-            });
-        });
+        updateMachine({_id:db.bson_serializer.ObjectID(machine._id)},{$set:{state:""}},function(){
+            machineCount++;
+            if (machineCount == machines.length){
+                if(callback) callback();
+            }
+        })
     });
 }
 

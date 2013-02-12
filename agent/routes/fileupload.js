@@ -5,6 +5,7 @@ var walk = require('walk');
 exports.Post = function(req, res){
     var tmp_path = req.files.file.path;
     var target_path = path.resolve(__dirname,"../"+req.files.file.name);
+    console.log(target_path);
 
     if (req.files.file.name.indexOf("/") != -1){
         var dirs = req.files.file.name.slice(0,req.files.file.name.lastIndexOf("/"));
@@ -26,6 +27,6 @@ exports.Post = function(req, res){
         res.send("{error:null,success:true}");
     });
 
-    console.log(tmp_path);
-    console.log(target_path);
+    //console.log(tmp_path);
+    //console.log(target_path);
 };

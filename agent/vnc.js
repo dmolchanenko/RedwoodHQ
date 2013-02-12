@@ -11,7 +11,7 @@ var argv = require('optimist').argv,
 
 var Buffer = require('buffer').Buffer,
     WebSocketServer = require('ws').Server,
-    webServer, wsServer,
+    webServer, wsServer,vncProc,
     source_host, source_port, target_host, target_port,certFile,keyFile;
 
 
@@ -85,7 +85,7 @@ selectProtocol = function(protocols, callback) {
 };
 
 common.parseConfig(function(){
-    target_host = "localhost";
+    target_host = "127.0.0.1";
     target_port = "5950";
 
     source_host = "localhost";
@@ -116,6 +116,6 @@ common.parseConfig(function(){
 
     //start vnc server
     var vncPath = path.resolve(__dirname,"../vendor/UltraVNC/");
-    launcherProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
+    vncProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
 });
 

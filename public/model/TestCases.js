@@ -31,6 +31,11 @@ Ext.define('Redwood.model.TestCases', {
 
         },
         {
+            name: 'host',
+            type: 'string'
+
+        },
+        {
             name: 'type',
             type: 'string'
         }
