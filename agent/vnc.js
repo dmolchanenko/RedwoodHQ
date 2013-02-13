@@ -116,6 +116,6 @@ common.parseConfig(function(){
 
     //start vnc server
     var vncPath = path.resolve(__dirname,"../vendor/UltraVNC/");
-    vncProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
+    //vncProc = spawn(vncPath+"/winvnc.exe",[],{cwd:vncPath});
 });
 
