@@ -10,10 +10,12 @@ if (process.argv[2] === "--stop"){
         try{
             process.kill(pids.split("\r\n")[0],"SIGTERM");
         }
+        catch(err){}
         setTimeout(function(){
             try{
                 process.kill(pids.split("\r\n")[1],"SIGTERM");
             }
+            catch(err){}
         },3000);
     }
     return;
