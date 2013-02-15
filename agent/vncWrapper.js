@@ -8,10 +8,17 @@ if (process.argv[2] === "--stop"){
     if (fs.existsSync(__dirname+"/agent.vnc.pid")){
         var pids = fs.readFileSync(__dirname+"/agent.vnc.pid").toString();
         fs.unlink(__dirname+"/agent.vnc.pid");
-        process.kill(pids.split("\r\n")[0],"SIGTERM");
+        try{
+            process.kill(pids.split("\r\n")[0],"SIGTERM");
+        }
+        catch(err){}
         setTimeout(function(){
-            process.kill(pids.split("\r\n")[1],"SIGTERM");
-            process.kill(pids.split("\r\n")[2],"SIGTERM");
+            try{
+                process.kill(pids.split("\r\n")[1],"SIGTERM");
+                process.kill(pids.split("\r\n")[2],"SIGTERM");
+            }
+            catch(err){}
+
         },3000);
     }
     return;

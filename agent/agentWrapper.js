@@ -7,9 +7,13 @@ if (process.argv[2] === "--stop"){
     if (fs.existsSync(__dirname+"/agent.pid")){
         var pids = fs.readFileSync(__dirname+"/agent.pid").toString();
         fs.unlink(__dirname+"/agent.pid");
-        process.kill(pids.split("\r\n")[0],"SIGTERM");
+        try{
+            process.kill(pids.split("\r\n")[0],"SIGTERM");
+        }
         setTimeout(function(){
-            process.kill(pids.split("\r\n")[1],"SIGTERM");
+            try{
+                process.kill(pids.split("\r\n")[1],"SIGTERM");
+            }
         },3000);
     }
     return;
@@ -24,17 +28,6 @@ var child = new (forever.Monitor)('app.js', {
     killTree: true,
     'outFile': logPath+'/agent.out.log',
     'errFile': logPath+'/agent.err.log'
-});
-
-child.on('exit', function () {
-});
-
-process.on('SIGTERM',function() {
-    console.log('received SIGTERM');
-    setTimeout(function() {
-        child.kill(true);
-        process.exit(0);
-    }, 1000);
 });
 
 child.start();
