@@ -1,7 +1,7 @@
 var forever = require('forever-monitor');
 var fs = require('fs');
 var path = require('path');
-var logPath = path.resolve(__dirname,"../log");
+var logPath = path.resolve(__dirname,"../logs");
 
 if (process.argv[2] === "--stop"){
     if (fs.existsSync(__dirname+"/agent.pid")){

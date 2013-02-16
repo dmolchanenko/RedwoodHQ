@@ -1,7 +1,7 @@
 var forever = require('forever-monitor');
 var path = require('path');
 var fs = require('fs');
-var logPath = path.resolve(__dirname,"../log");
+var logPath = path.resolve(__dirname,"../logs");
 
 
 if (process.argv[2] === "--stop"){
