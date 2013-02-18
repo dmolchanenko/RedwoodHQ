@@ -26,6 +26,10 @@ exports.initSocket = function(app){
         socket.on('disconnect', function () {
             terminal.closeSession(socket.id);
         });
+
+        socket.on('AddMachines', function (msg) {
+            io.sockets.emit("AddMachines",msg)
+        });
     });
 
 };

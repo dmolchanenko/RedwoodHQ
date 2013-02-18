@@ -2,3 +2,5 @@ node_modules
 bin
 lib
 Java
+agent.pid
+agent.vnc.pid

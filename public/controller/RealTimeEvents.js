@@ -34,9 +34,15 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             var store = Ext.data.StoreManager.lookup("Machines");
             me.updateStore(store,machine);
         });
+
         Ext.socket.on('AddMachines',function(machine){
             var store = Ext.data.StoreManager.lookup("Machines");
             me.addToStore(store,machine);
+        });
+
+        Ext.socket.on('DeleteMachines',function(machine){
+            var store = Ext.data.StoreManager.lookup("Machines");
+            me.removeFromStore(store,machine);
         });
 
         Ext.socket.on('RemoveExecutionTestCase',function(testCase){
@@ -88,7 +94,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
         if (store.find("_id",item._id) == -1){
             var items = store.add(item);
             store.fireEvent("beforesync",{create:items});
-            item[0].phantom = false;
+            items[0].phantom = false;
         }
     }
 

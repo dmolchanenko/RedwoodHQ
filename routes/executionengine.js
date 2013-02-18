@@ -27,10 +27,13 @@ exports.startexecutionPost = function(req, res){
         variables[variable.name] = variable.value;
     });
 
+    var sourceCache = [];
+    cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/src"),sourceCache);
+
     lockMachines(machines,function(){
         runBaseStates(req.cookies.project,machines,function(validMachines){
             machines = validMachines;
-            executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project};
+            executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,sourceCache:sourceCache.reverse()};
             getGlobalVars(executionID,function(){
                 testcases.forEach(function(testcase){
                     executions[executionID].testcases[testcase.testcaseID] = testcase;
@@ -75,6 +78,46 @@ function runBaseStates(project,machines,callback){
                 callback(returnMachines)
             }
         });
+    });
+}
+
+
+function cacheSourceCode(rootPath,cacheArray){
+    var walker = walk.walk(rootPath);
+
+    var fileCount = 0;
+    walker.on("file", function (root, fileStats, next) {
+        if ((fileStats.name.indexOf(".groovy") != -1) || (fileStats.name.indexOf(".java")!= -1)){
+            var stream = fs.ReadStream(root+"/"+fileStats.name);
+            stream.setEncoding('utf8');
+            var cache = "";
+            stream.on('data', function(data) {
+                cache += data;
+                if (cache.indexOf("package ") != -1){
+                    var packageIndex = cache.indexOf("package ")+8;
+                    var packageName = "";
+                    if (fileStats.name.indexOf(".java") != -1){
+                        packageName = cache.substring(packageIndex,cache.indexOf(";",packageIndex));
+                    }
+                    else{
+                        packageName = cache.substring(packageIndex,cache.indexOf("\n",packageIndex));
+                    }
+                    packageName = packageName.replace(";","");
+                    packageName = packageName.replace("\r","");
+                    packageName = packageName.trim();
+                    cacheArray.push({name:fileStats.name,dir:root.replace(rootPath,""),packageName:packageName});
+                    stream.destroy();
+                    next();
+                }
+            });
+            stream.on("end", function(){
+                cacheArray.push({name:fileStats.name,dir:root.replace(rootPath,""),packageName:""});
+                next();
+            })
+        }
+        else{
+            fileCount++;
+        }
     });
 }
 
@@ -266,7 +309,7 @@ exports.actionresultPost = function(req, res){
         execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
     }
 
-    markFinishedResults(testcase.result.children,function(){
+    markFinishedResults(testcase.result.children,execution.sourceCache,function(){
         updateResult(testcase.result);
     });
 
@@ -340,17 +383,18 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     });
 }
 
-function markFinishedResults(results,callback){
+function markFinishedResults(results,sourceCache,callback){
     var count = 0;
     var result = "Passed";
     var status = "Finished";
     results.forEach(function(action){
         if (action.status == "Not Run"){
             if (action.children.length != 0){
-                markFinishedResults(action.children,function(childStatus,childResult,markFinished){
+                markFinishedResults(action.children,sourceCache,function(childStatus,childResult,markFinished){
                     if (markFinished === true){
                         action.status = "Finished";
                         action.result = "Failed";
+                        action.expanded = true;
                         callback("Finished","Failed",true);
                         return;
                     }
@@ -359,7 +403,8 @@ function markFinishedResults(results,callback){
                         status = "Not Run"
                     }
                     if((childStatus == "Finished") && (childResult == "Failed")){
-                        result = "Failed"
+                        result = "Failed";
+                        action.expanded = true;
                     }
                     if(count == action.children.length){
                         action.result = result;
@@ -383,11 +428,57 @@ function markFinishedResults(results,callback){
             }
         }
         else{
+            var returnValue;
             if ((action.executionflow == "Record Error Stop Test Case")&&(action.result == "Failed")){
-                callback("Finished","Failed",true)
+                returnValue = function(){callback("Finished","Failed",true)}
             }
             else{
-                callback("Finished",action.result)
+                returnValue = function(){callback("Finished",action.result)}
+            }
+
+            if(action.result == "Failed"){
+                action.expanded = true;
+            }
+            if(action.trace){
+                var newTrace = "";
+                var traceCount = 0;
+                var traces = action.trace.split(",");
+                traces.forEach(function(line){
+                    traceCount++;
+                    var fileName = line.substring(line.indexOf("(")+1,line.indexOf(":"));
+                    var lineNumber = line.substring(line.indexOf(":")+1,line.indexOf(")"));
+                    var location =  line.substring(0,line.indexOf("("));
+                    location = location.trim();
+                    location = location.replace("[","");
+                    var count = 0;
+                    var found = false;
+                    sourceCache.forEach(function(file){
+                        if (found == true) return;
+                        if ((file.name === fileName)&&(location.indexOf(file.packageName) == 0)){
+                            found = true;
+                            lineNumber = (parseInt(lineNumber,10)-1).toString();
+                            newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;/src"+ file.dir+"/"+file.name +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
+                        }
+                        count++;
+                        if (count == sourceCache.length){
+                            if (found == false){
+                                if (line.indexOf("[") == 0){
+                                    newTrace += line;
+                                }
+                                else{
+                                    newTrace += ",\r\n"+line;
+                                }
+                            }
+                            if (traceCount == traces.length){
+                                action.trace = newTrace;
+                                returnValue();
+                            }
+                        }
+                    });
+                });
+            }
+            else{
+                returnValue();
             }
         }
     });

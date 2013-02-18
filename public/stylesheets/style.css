@@ -43,10 +43,13 @@
     font-weight: normal !important;
 }
 
+.x-redwood-results-cell .x-grid-cell-inner {
+    white-space: normal;
+}
+
 .x-redwood-action-value-cell .x-grid-cell-inner{
     white-space: normal !important;
     word-wrap: break-word !important;
-
 }
 
 .x-redwood-testcase-passed .x-grid-cell{

@@ -25,11 +25,14 @@ Ext.define('Redwood.view.ResultsView', {
         });
         //retultsStore.setRootNode({"text":".","children": [{name:"BLIN",result:"adsf",anything:"adsf"}]});
         retultsStore.setRootNode({"text":".","children": me.dataRecord.children});
-        console.log(me.dataRecord);
         var resultsTree = Ext.create('Ext.tree.Panel', {
             rootVisible: false,
             store: retultsStore,
             //minHeight:600,
+            viewConfig: {
+                markDirty: false,
+                enableTextSelection: true
+            },
             multiSelect: false,
             columns: [
                 {
@@ -62,7 +65,8 @@ Ext.define('Redwood.view.ResultsView', {
                 {
                     header: 'Result',
                     dataIndex: "result",
-                    renderer: function(value,record){
+                    renderer: function(value,meta,record){
+
                         if (value == "Passed"){
                             return "<p style='color:green'>"+value+"</p>"
                         }
@@ -78,14 +82,19 @@ Ext.define('Redwood.view.ResultsView', {
                 {
                     header: 'Error',
                     dataIndex: "error",
-                    renderer: function(value,record){
-                        return "<p style='color:red'>"+value+"</p>"
+                    width:240,
+                    renderer: function(value,meta,record){
+                        meta.tdCls = 'x-redwood-results-cell';
+                        return "<p style='color:red'>"+value+"</p>";
                     }
                 },
                 {
                     header: 'Trace',
                     dataIndex: "trace",
-                    renderer: function(value,record){
+                    flex:1,
+                    //width: 800,
+                    renderer: function(value,meta,record){
+                        meta.tdCls = 'x-redwood-results-cell';
                         return "<p style='color:red'>"+value+"</p>"
                     }
                 }

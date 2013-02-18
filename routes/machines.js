@@ -39,7 +39,7 @@ exports.machinesDelete = function(req, res){
     var id = db.bson_serializer.ObjectID(req.params.id);
     DeleteMachines(app.getDB(),{_id: id},function(err){
         if (!err){
-            realtime.emitMessage("DeleteMachines",req.params.id);
+            realtime.emitMessage("DeleteMachines",{id:req.params.id});
         }
         res.contentType('json');
         res.json({
@@ -58,12 +58,12 @@ exports.machinesPost = function(req, res){
     var data = req.body;
     delete data._id;
     CreateMachines(app.getDB(),data,function(returnData){
-        realtime.emitMessage("AddMachines",returnData);
         res.contentType('json');
         res.json({
             success: true,
             machines: returnData
         });
+        //realtime.emitMessage("AddMachines",returnData);
     });
 };
 

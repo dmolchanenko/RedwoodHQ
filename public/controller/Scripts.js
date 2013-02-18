@@ -1,4 +1,6 @@
 function openScript(path,lineNumber){
+    var tab = Ext.ComponentQuery.query("#mainTabPanel")[0];
+    tab.setActiveTab(tab.down("#ScriptBrowser"));
     Ext.getCmp("ScriptBrowser").fireEvent('scriptEdit',path,parseInt(lineNumber,10));
     //scriptController.onScriptEdit(path,lineNumber);
     return false;

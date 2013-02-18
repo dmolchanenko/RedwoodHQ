@@ -16,6 +16,6 @@ exports.parseConfig = function(callback){
             callback()
         }
     })
-}
+};
 
 

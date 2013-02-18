@@ -52,7 +52,9 @@ Ext.define("Redwood.controller.Machines", {
         var varStore = this.getStore('Machines');
         this.getStore('MachineRoles').sync();
         this.getStore('MachineTags').sync();
-        varStore.sync({success:function(batch,options){} });
+        varStore.sync({success:function(batch,options){
+            Ext.socket.emit('AddMachines', batch.operations[0].records[0].data);
+        } });
 
     },
 
