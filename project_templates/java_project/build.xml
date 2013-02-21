@@ -8,12 +8,16 @@
     <property name="main-class"  value="Redwood"/>
     <property name="build.compiler"  value="modern"/>
 
-    <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc">
-        <classpath>
-            <fileset dir="${lib.dir}">
-                <include name="**/*.jar"/>
-            </fileset>
-        </classpath>
+    <path id="class.path">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="../../../launcher">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="class.path">
     </taskdef>
 
 
@@ -24,7 +28,7 @@
     <target name="compile">
         <mkdir dir="${classes.dir}"/>
         <groovyc srcdir="${src.dir}" destdir="${classes.dir}">
-            <javac debug="on"/>
+            <javac debug="on" classpathref="class.path"/>
         </groovyc>
     </target>
 

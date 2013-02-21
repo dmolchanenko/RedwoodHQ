@@ -15,16 +15,36 @@ Ext.define('Redwood.view.ResultsView', {
             idProperty: 'name',
             fields: [
                 {name: 'name',     type: 'string'},
+                {name: 'paramvalue',     type: 'string'},
                 {name: 'result',     type: 'string'},
                 {name: 'error',     type: 'string'},
                 {name: 'trace',     type: 'string'},
                 {name: 'status',     type: 'string'}
-            ]//,
-            //root: {"text":".","children": [me.dataRecord.children]}
-            //root: [{"text":".","children": [{name:"BLIN",text:"TEXT"}]}]
+            ]
         });
-        //retultsStore.setRootNode({"text":".","children": [{name:"BLIN",result:"adsf",anything:"adsf"}]});
-        retultsStore.setRootNode({"text":".","children": me.dataRecord.children});
+
+        var transformed = me.dataRecord.testcase.children;
+
+        var transform = function(children){
+            children.forEach(function(action){
+                if (!action.paramvalue){
+                    action.icon = "/images/action.png";
+                }
+                if (action.parameters){
+                    action.parameters.forEach(function(parameter){
+                        action.children.unshift({name:parameter.paramname,paramvalue:parameter.paramvalue,leaf:true})
+                    });
+                }
+                if (action.children){
+                    transform(action.children)
+                }
+            });
+        };
+
+        transform(transformed);
+
+        retultsStore.setRootNode({"text":".","children":transformed });
+
         var resultsTree = Ext.create('Ext.tree.Panel', {
             rootVisible: false,
             store: retultsStore,
@@ -39,9 +59,16 @@ Ext.define('Redwood.view.ResultsView', {
                     xtype: 'treecolumn',
                     header: 'Action Name',
                     //flex: 2,
-                    width:400,
+                    width:300,
                     sortable: false,
                     dataIndex: 'name'
+                },
+                {
+                    header: 'Parameter Value',
+                    //flex: 2,
+                    width:120,
+                    sortable: false,
+                    dataIndex: 'paramvalue'
                 },
                 {
                     header: 'Status',
@@ -101,6 +128,57 @@ Ext.define('Redwood.view.ResultsView', {
             ]
         });
 
+        var logStore =  Ext.create('Ext.data.Store', {
+            storeId: "ResultLogs"+this.itemId,
+            idProperty: '_id',
+            fields: [
+                {name: 'actionName',     type: 'string'},
+                {name: 'message',     type: 'string'},
+                {name: 'date',     type: 'date'}
+            ],
+            sorters: [{
+                property : 'date',
+                direction: 'ASC'
+            }],
+            data:[]
+        });
+
+        me.dataRecord.logs.forEach(function(log){
+            var timestamp = log._id.substring(0,8);
+            logStore.add({message:log.message,actionName:log.actionName,date:new Date( parseInt( timestamp, 16 ) * 1000 )})
+        });
+
+        var logGrid = Ext.create('Ext.grid.Panel', {
+            store: logStore,
+            itemId:"executionLogs",
+            selType: 'rowmodel',
+            viewConfig: {
+                markDirty: false,
+                enableTextSelection: true
+            },
+            columns:[
+                {
+                    header: 'Action Name',
+                    dataIndex: 'actionName',
+                    width: 200
+                },
+                {
+                    xtype:"datecolumn",
+                    format:'m/d h:i:s',
+                    header: 'Date',
+                    dataIndex: 'date',
+                    width: 100
+                },
+                {
+                    header: 'Message',
+                    dataIndex: 'message',
+                    flex: 1
+                }
+
+            ]
+
+        });
+
         this.items = [
             {
                 xtype: 'fieldset',
@@ -117,13 +195,13 @@ Ext.define('Redwood.view.ResultsView', {
                         labelStyle: "font-weight: bold",
                         style:"font-weight: bold",
                         itemId:"name",
-                        value:"<p style='font-weight:bold'>"+me.dataRecord.name+"</p>",
+                        value:"<p style='font-weight:bold'>"+me.dataRecord.testcase.name+"</p>",
                         anchor:'90%'
                     },
                     {
                         fieldLabel: 'Status',
                         labelStyle: "font-weight: bold",
-                        value:me.dataRecord.status,
+                        value:me.dataRecord.testcase.status,
                         anchor:'90%',
                         renderer: function (value) {
                             if(value == "Running"){
@@ -144,7 +222,7 @@ Ext.define('Redwood.view.ResultsView', {
                         fieldLabel: "Result",
                         labelStyle: "font-weight: bold",
                         itemId:"result",
-                        value:me.dataRecord.result,
+                        value:me.dataRecord.testcase.result,
                         anchor:'90%',
                         renderer: function(value,field){
                             if (value == "Passed"){
@@ -172,6 +250,19 @@ Ext.define('Redwood.view.ResultsView', {
                 },
                 items:[
                     resultsTree
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Logs',
+                flex: 1,
+                //minHeight:600,
+                collapsible: true,
+                defaults: {
+                    flex: 1
+                },
+                items:[
+                    logGrid
                 ]
             }
         ];

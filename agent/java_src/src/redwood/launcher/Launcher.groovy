@@ -1,7 +1,7 @@
 package redwood.launcher
 
 import groovy.json.JsonSlurper
-import org.codehaus.groovy.runtime.InvokerInvocationException
+import redwood.launcher.*
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,6 +12,19 @@ import org.codehaus.groovy.runtime.InvokerInvocationException
  */
 class Launcher {
 
+    public static output
+
+    private static currentAction
+
+    public static log(String message){
+        def toServer = [:]
+        toServer.command = "Log Message"
+        toServer.message = message
+        toServer.actionName = currentAction.name
+        toServer.resultID = currentAction.resultID
+        this.output<<groovy.json.JsonOutput.toJson(toServer)+"--EOM--"
+    }
+
     public static void main(String[] args){
         def server = new ServerSocket(3002)
         println "launcher running."
@@ -21,38 +34,24 @@ class Launcher {
             server.accept() { socket ->
                     socket.tcpNoDelay = true
                     socket.withStreams { input, output ->
-                        //try {
-                            //def reader = input.newReader()
-                            //println reader.readLine()
-                            input.eachLine() { line ->
-                                println line
-                                def command = new JsonSlurper().parseText(line)
-                                //output << '{"error":null,"status":"started"}--EOM--'
-                                if (command.command == "run action"){
-                                    runAction(command)
-                                    output<<groovy.json.JsonOutput.toJson(command)+"--EOM--"
-                                }
-                                else if (command.command == "exit"){
-                                    println "exiting"
-                                    stopExecution = true;
-                                    //socket.shutdownInput()
-                                    //socket.shutdownOutput()
-                                    socket.close()
-                                    server.close()
-                                    //assert false
-                                    return;
-                                }
-                                //if (line.length() == 0) {
-                                //    throw new GroovyRuntimeException()
-                                //}
+                        this.output = output
+                        input.eachLine() { line ->
+                            println line
+                            def command = new JsonSlurper().parseText(line)
+                            //output << '{"error":null,"status":"started"}--EOM--'
+                            if (command.command == "run action"){
+                                this.currentAction = command
+                                runAction(command)
+                                output<<groovy.json.JsonOutput.toJson(command)+"--EOM--"
                             }
-                        //} catch (GroovyRuntimeException b) { }
-
-                        //output.withWriter { writer ->
-                        //    writer << "HTTP/1.1 200 OK\n"
-                        //    writer << "Content-Type: text/html\n\n"
-                        //    writer << "Hello World!"
-                        //}
+                            else if (command.command == "exit"){
+                                println "exiting"
+                                stopExecution = true;
+                                socket.close()
+                                server.close()
+                                return;
+                            }
+                        }
                     }
             }
         }

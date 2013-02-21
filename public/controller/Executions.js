@@ -50,7 +50,7 @@ Ext.define("Redwood.controller.Executions", {
                     var tab = Ext.create('Redwood.view.ResultsView',{
                         title:"[Test Details] " + obj.testcase.name,
                         closable:true,
-                        dataRecord:obj.testcase,
+                        dataRecord:obj,
                         itemId:obj.testcase._id
                     });
 

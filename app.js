@@ -83,6 +83,7 @@ app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 //start execution
 app.post('/executionengine/startexecution',auth.auth, executionengine.startexecutionPost);
 app.post('/executionengine/actionresult',executionengine.actionresultPost);
+app.post('/executionengine/logmessage',executionengine.logPost);
 
 //heartbeat
 app.post('/heartbeat',heartbeat.heartbeatPost);

@@ -12,8 +12,8 @@ exports.testcasesPut = function(req, res){
         });
     });
 
-    var Tags = require('./actionTags');
-    Tags.CleanUpActionTags(req);
+    var Tags = require('./testcaseTags');
+    Tags.CleanUpTestCaseTags(req);
 };
 
 exports.testcasesGet = function(req, res){
@@ -39,7 +39,7 @@ exports.testcasesDelete = function(req, res){
         });
     });
     var Tags = require('./testcaseTags');
-    Tags.CleanUpActionTags(req);
+    Tags.CleanUpTestCaseTags(req);
 };
 
 exports.testcasesPost = function(req, res){

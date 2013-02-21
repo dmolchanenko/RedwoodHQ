@@ -348,6 +348,7 @@ Ext.define('Redwood.view.ExecutionView', {
             selType: 'rowmodel',
             viewConfig: {
                 markDirty: false,
+                enableTextSelection: true,
                 getRowClass: function(record, index) {
                     //return "x-redwood-action-row";
                     //return "x-redwood-testcase-passed";
@@ -408,24 +409,39 @@ Ext.define('Redwood.view.ExecutionView', {
                     }
                 },
                 {
+                    xtype:"datecolumn",
+                    format:'m/d h:i:s',
                     header: 'Started',
                     dataIndex: 'startdate',
                     width: 100
                 },
                 {
+                    xtype:"datecolumn",
+                    format:'m/d h:i:s',
                     header: 'Finished',
                     dataIndex: 'enddate',
                     width: 100
                 },
                 {
-                    header: 'Time Run',
+                    header: 'Elapsed Time',
                     dataIndex: 'runtime',
-                    width: 75
+                    width: 75,
+                    renderer: function(value,meta,record){
+                        if (value == "") return "";
+                        var hours = Math.floor(parseInt(value,10) / 36e5),
+                            mins = Math.floor((parseInt(value,10) % 36e5) / 6e4),
+                            secs = Math.floor((parseInt(value,10) % 6e4) / 1000);
+                        return hours+"h:"+mins+"m:"+secs+"s";
+                    }
                 },
                 {
                     header: 'Error',
                     dataIndex: 'error',
-                    width: 250
+                    width: 250,
+                    renderer: function(value,meta,record){
+                        meta.tdAttr = 'data-qtip="' + value + '"';
+                        return '<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>';
+                    }
                 },
                 {
                     header: 'Result',

@@ -30,35 +30,37 @@ exports.startexecutionPost = function(req, res){
     var sourceCache = [];
     cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/src"),sourceCache);
 
-    lockMachines(machines,function(){
-        runBaseStates(req.cookies.project,machines,function(validMachines){
-            machines = validMachines;
-            executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,sourceCache:sourceCache.reverse()};
-            getGlobalVars(executionID,function(){
-                testcases.forEach(function(testcase){
-                    executions[executionID].testcases[testcase.testcaseID] = testcase;
-                });
+    //random id for compile proc
+    var id;
+    for (var i = 0; i < 24; i++) {
+        id += Math.floor(Math.random() * 10).toString(16);
+    }
+    var compileOut = "";
+    compile.operation({project:req.cookies.project},id,function(data){compileOut = compileOut + data},function(){
+        if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
+            res.contentType('json');
+            res.json({error:"Error, unable to compile scripts."});
+        }
+        else{
+            res.contentType('json');
+            res.json({success:true});
 
-                //random id for compile proc
-                var id;
-                for (var i = 0; i < 24; i++) {
-                    id += Math.floor(Math.random() * 10).toString(16);
-                }
-                var compileOut = "";
-                compile.operation({project:req.cookies.project},id,function(data){compileOut = compileOut + data},function(){
-                    if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
-                        res.contentType('json');
-                        res.json({error:"Error, unable to compile scripts."});
-                    }
-                    else{
-                        res.contentType('json');
-                        res.json({success:true});
+            lockMachines(machines,function(){
+                runBaseStates(req.cookies.project,machines,function(validMachines){
+                    machines = validMachines;
+                    executions[executionID] = {testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,sourceCache:sourceCache.reverse()};
+                    getGlobalVars(executionID,function(){
+                        testcases.forEach(function(testcase){
+                            executions[executionID].testcases[testcase.testcaseID] = testcase;
+                        });
+
                         executeTestCases(executions[executionID].testcases,executionID);
-                    }
-                });
+                    });
+                })
             });
-        })
+        }
     });
+
 
 };
 
@@ -240,6 +242,7 @@ function startTCExecution(id,variables,executionID,callback){
 
             agentInstructions.name = action.name;
             agentInstructions.script = action.script;
+            agentInstructions.resultID = result._id.__id;
             agentInstructions.parameters = [];
             action.dbAction.parameters.forEach(function(parameter){
                 agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
@@ -255,7 +258,9 @@ function startTCExecution(id,variables,executionID,callback){
                 }
             });
 
-            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id}},foundMachine.host,foundMachine.vncport);
+            var date = new Date();
+            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:date,enddate:"",runtime:""}},foundMachine.host,foundMachine.vncport);
+            testcase.startDate = date;
             sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
             /*
             if (foundMachine.baseStateRun == true){
@@ -276,6 +281,18 @@ function startTCExecution(id,variables,executionID,callback){
         });
     })
 }
+
+exports.logPost = function(req,res){
+    var record = req.body;
+    delete record.command;
+
+    db.collection('executionlogs', function(err, collection) {
+        collection.insert(record, {safe:true},function(err,returnData){
+            res.contentType('json');
+            res.json({success:true});
+        });
+    });
+};
 
 
 exports.actionresultPost = function(req, res){
@@ -356,6 +373,7 @@ exports.actionresultPost = function(req, res){
 
         agentInstructions.name = action.name;
         agentInstructions.script = action.script;
+        agentInstructions.resultID = testcase.result._id.__id;
         agentInstructions.parameters = [];
         action.dbAction.parameters.forEach(function(parameter){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
@@ -370,7 +388,8 @@ exports.actionresultPost = function(req, res){
 //start next test case if there is one
 function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     //updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:testcase.result.result}});
-    updateExecutionTestCase({_id:testcaseId},{$set:{"status":"Finished",result:testcase.result.result,error:testcase.result.error}});
+    var date = new Date();
+    updateExecutionTestCase({_id:testcaseId},{$set:{"status":"Finished",result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate}});
     var count = 0;
     testcase.testcase.machines.forEach(function(machine){
         delete machine.runningTC;
@@ -488,18 +507,20 @@ function markFinishedResults(results,sourceCache,callback){
 function agentBaseState(project,agentHost,port,callback){
     sendAgentCommand(agentHost,port,{command:"cleanup"},function(){
         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"bin",function(){
-            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"lib",function(){
-                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"lib",function(){
-                    syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"launcher",function(){
-                        sendAgentCommand(agentHost,port,{command:"start launcher"},function(err){
-                            if (err){
-                                callback(err);
-                            }
-                            else{
-                                callback();
-                            }
+            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"launcher",function(){
+                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"lib",function(){
+                    syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"lib",function(){
+                        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"launcher",function(){
+                            sendAgentCommand(agentHost,port,{command:"start launcher"},function(err){
+                                if (err){
+                                    callback(err);
+                                }
+                                else{
+                                    callback();
+                                }
+                            });
                         });
-                    });
+                    })
                 })
             })
         });
@@ -673,7 +694,7 @@ function resolveParamValue(value,variables){
             returnNULL = true;
         }
     }
-    var result = value.replace(new RegExp( "\\$\\{([\\w_.-]+)\\}", "g" ),function(a,b){
+    var result = value.replace(new RegExp("\\$\\{([\\w_.-\\s*]+)\\}", "g" ),function(a,b){
         if(b in variables){
             if (variables[b] == "<NULL>"){
                 if (returnNULL == true){
@@ -773,36 +794,42 @@ function findNextAction (actions,variables,callback){
         return parseInt(a.dbAction.order)-parseInt(b.dbAction.order);
     });
 
+    var resolveParams = function(action,callback){
+        var paramVars = {};
+        if ((action.parent.dbAction)&&(action.parent.dbAction.parameters)){
+            action.parent.dbAction.parameters.forEach(function(param){
+                paramVars[param.paramname] = param.paramvalue;
+            });
+        }
+        for (var attrname in variables) { paramVars[attrname] = variables[attrname]; }
+        action.dbAction.parameters.forEach(function(param){
+            param.paramvalue = resolveParamValue(param.paramvalue,paramVars);
+        });
+        callback();
+    };
+
     actions.forEach(function(action){
         order++;
-        //if(action.dbAction.order == order.toString()){
-            if (action.result.status == "Finished"){
-                if (order == actions.length){
-                    if (allDone == false){
-                        callback(null);
-                        allDone = true;
-                    }
-                    return;
+        if (action.result.status == "Finished"){
+            if (order == actions.length){
+                if (allDone == false){
+                    callback(null);
+                    allDone = true;
                 }
                 return;
             }
-            if (action.script){
-                var paramVars = {};
-                if ((action.parent.dbAction)&&(action.parent.dbAction.parameters)){
-                    action.parent.dbAction.parameters.forEach(function(param){
-                        paramVars[param.paramname] = param.paramvalue;
-                    });
-                }
-                for (var attrname in variables) { paramVars[attrname] = variables[attrname]; }
-                action.dbAction.parameters.forEach(function(param){
-                    param.paramvalue = resolveParamValue(param.paramvalue,paramVars);
-                });
+            return;
+        }
+        if (action.script){
+            resolveParams(action,function(){
                 if (allDone == false){
                     callback(action);
                     allDone = true;
                 }
-            }
-            else{
+            });
+        }
+        else{
+            resolveParams(action,function(){
                 findNextAction(action.actions,variables,function(action){
                     if ((action == null) &&(order == actions.length)){
                         if (allDone == false){
@@ -811,24 +838,16 @@ function findNextAction (actions,variables,callback){
                         }
                     }
                     else if (action != null){
-                        var paramVars = {};
-                        if (action.parent.dbAction.parameters){
-                            action.parent.dbAction.parameters.forEach(function(param){
-                                paramVars[param.paramname] = param.paramvalue;
-                            });
-                        }
-                        for (var attrname in variables) { paramVars[attrname] = variables[attrname]; }
-                        action.dbAction.parameters.forEach(function(param){
-                            param.paramvalue = resolveParamValue(param.paramvalue,paramVars);
+                        resolveParams(action,function(){
+                            if (allDone == false){
+                                callback(action);
+                                allDone = true;
+                            }
                         });
-                        if (allDone == false){
-                            callback(action);
-                            allDone = true;
-                        }
                     }
                 });
-            }
-        //}
+            })
+        }
 
     });
 }

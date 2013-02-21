@@ -89,6 +89,9 @@ function startLauncher(callback){
                         if (msg.command == "action finished"){
                             sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                         }
+                        if (msg.command == "Log Message"){
+                            sendLog(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                        }
                         cache = "";
                     }
                 });
@@ -108,7 +111,7 @@ function stopLauncher(callback){
         sendLauncherCommand({command:"exit"},function(){
             launcherProc.kill();
             launcherProc = null;
-            callback();
+            deleteDir(path.resolve(__dirname,"../launcher/"),callback)
         });
     }
     //if there is runaway launcher try to kill it
@@ -118,9 +121,10 @@ function stopLauncher(callback){
             conn.write(JSON.stringify({command:"exit"})+"\r\n");
             setTimeout(function() { callback();}, 1000);
         }).on('error', function(err) {
-                callback();
-            });
+            deleteDir(path.resolve(__dirname,"../launcher/"),callback);
+        });
     }
+
 }
 
 function cleanUpBinDir(callback){
@@ -178,6 +182,34 @@ function sendActionResult(result,host,port){
         hostname: host,
         port: port,
         path: '/executionengine/actionresult',
+        method: 'POST',
+        agent:false,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('BODY: ' + chunk);
+        });
+    });
+
+    req.on('error', function(e) {
+        console.log('problem with request: ' + e.message);
+    });
+
+    // write data to request body
+    req.write(JSON.stringify(result));
+    req.end();
+}
+
+function sendLog(result,host,port){
+    var options = {
+        hostname: host,
+        port: port,
+        path: '/executionengine/logmessage',
         method: 'POST',
         agent:false,
         headers: {
