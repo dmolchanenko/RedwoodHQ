@@ -365,9 +365,14 @@ exports.actionresultPost = function(req, res){
         }
 
         if (req.body.trace){
-            testcase.result.trace = req.body.trace;
+            formatTrace(req.body.trace,execution.sourceCache,function(trace){
+                testcase.result.trace = trace;
+                updateResult(testcase.result);
+            });
         }
-        updateResult(testcase.result);
+        else{
+            updateResult(testcase.result);
+        }
         finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
         return;
     }
@@ -470,6 +475,44 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     });
 }
 
+function formatTrace(trace,sourceCache,callback){
+    var newTrace = "";
+    var traceCount = 0;
+    var traces = trace.split(",");
+    traces.forEach(function(line){
+        traceCount++;
+        var fileName = line.substring(line.indexOf("(")+1,line.indexOf(":"));
+        var lineNumber = line.substring(line.indexOf(":")+1,line.indexOf(")"));
+        var location =  line.substring(0,line.indexOf("("));
+        location = location.trim();
+        location = location.replace("[","");
+        var count = 0;
+        var found = false;
+        sourceCache.forEach(function(file){
+            if (found == true) return;
+            if ((file.name === fileName)&&(location.indexOf(file.packageName) == 0)){
+                found = true;
+                lineNumber = (parseInt(lineNumber,10)-1).toString();
+                newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;/src"+ file.dir+"/"+file.name +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
+            }
+            count++;
+            if (count == sourceCache.length){
+                if (found == false){
+                    if (line.indexOf("[") == 0){
+                        newTrace += line;
+                    }
+                    else{
+                        newTrace += ",\r\n"+line;
+                    }
+                }
+                if (traceCount == traces.length){
+                    callback(newTrace);
+                }
+            }
+        });
+    });
+}
+
 function markFinishedResults(results,sourceCache,callback){
     var count = 0;
     var result = "Passed";
@@ -527,42 +570,10 @@ function markFinishedResults(results,sourceCache,callback){
                 action.expanded = true;
             }
             if(action.trace){
-                var newTrace = "";
-                var traceCount = 0;
-                var traces = action.trace.split(",");
-                traces.forEach(function(line){
-                    traceCount++;
-                    var fileName = line.substring(line.indexOf("(")+1,line.indexOf(":"));
-                    var lineNumber = line.substring(line.indexOf(":")+1,line.indexOf(")"));
-                    var location =  line.substring(0,line.indexOf("("));
-                    location = location.trim();
-                    location = location.replace("[","");
-                    var count = 0;
-                    var found = false;
-                    sourceCache.forEach(function(file){
-                        if (found == true) return;
-                        if ((file.name === fileName)&&(location.indexOf(file.packageName) == 0)){
-                            found = true;
-                            lineNumber = (parseInt(lineNumber,10)-1).toString();
-                            newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;/src"+ file.dir+"/"+file.name +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
-                        }
-                        count++;
-                        if (count == sourceCache.length){
-                            if (found == false){
-                                if (line.indexOf("[") == 0){
-                                    newTrace += line;
-                                }
-                                else{
-                                    newTrace += ",\r\n"+line;
-                                }
-                            }
-                            if (traceCount == traces.length){
-                                action.trace = newTrace;
-                                returnValue();
-                            }
-                        }
-                    });
-                });
+                formatTrace(action.trace,sourceCache,function(trace){
+                    action.trace = trace;
+                    returnValue();
+                })
             }
             else{
                 returnValue();
@@ -800,6 +811,7 @@ function updateResult(result,callback){
             if (callback){
                 callback(err);
             }
+            realtime.emitMessage("UpdateResult",result);
         });
     });
 }
@@ -958,7 +970,7 @@ function GetTestCaseDetails(testcaseID,callback){
                             if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                                 hosts.push(innerAction.host)
                             }
-                            var newActionResult = {parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
+                            var newActionResult = {actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                             lastResultPoint.children.push(newActionResult);
                             var newAction = {result:newActionResult,dbAction:innerAction,parent:lastPoint,actions:[],returnValues:{}};
                             lastPoint.actions.push(newAction);
@@ -988,7 +1000,7 @@ function GetTestCaseDetails(testcaseID,callback){
                         if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                             hosts.push(innerAction.host)
                         }
-                        var newActionResult = {parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
+                        var newActionResult = {actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                         testcaseResults.children.push(newActionResult);
                         var newAction = {dbAction:innerAction,parent:testcaseDetails,result:newActionResult,actions:[]};
                         testcaseDetails.actions.push(newAction);

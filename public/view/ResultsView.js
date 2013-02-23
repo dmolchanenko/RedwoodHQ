@@ -6,6 +6,15 @@ Ext.define('Redwood.view.ResultsView', {
     bodyPadding: 5,
     dataRecord: null,
     viewType: "Results",
+    listeners:{
+        afterrender: function(me){
+            if (me.dataRecord.testcase.script){
+                me.down("#results").hide();
+                me.down("#error").show();
+                me.down("#trace").show();
+            }
+        }
+    },
 
     initComponent: function () {
         var me = this;
@@ -15,6 +24,7 @@ Ext.define('Redwood.view.ResultsView', {
             idProperty: 'name',
             fields: [
                 {name: 'name',     type: 'string'},
+                {name: 'actionid',     type: 'string'},
                 {name: 'paramvalue',     type: 'string'},
                 {name: 'parameters',     type: 'array'},
                 {name: 'result',     type: 'string'},
@@ -25,26 +35,6 @@ Ext.define('Redwood.view.ResultsView', {
         });
 
         var transformed = me.dataRecord.testcase.children;
-        /*
-        var transform = function(children){
-            children.forEach(function(action){
-                if (!action.paramvalue){
-                    action.icon = "/images/action.png";
-                }
-                if (action.parameters){
-                    action.parameters.forEach(function(parameter){
-                        action.children.unshift({name:parameter.paramname,paramvalue:parameter.paramvalue,leaf:true})
-                    });
-                }
-                if (action.children){
-                    transform(action.children)
-                }
-            });
-        };
-
-
-        transform(transformed);
-         */
 
         retultsStore.setRootNode({"text":".","children":transformed });
 
@@ -65,7 +55,10 @@ Ext.define('Redwood.view.ResultsView', {
                     //flex: 2,
                     width:300,
                     sortable: false,
-                    dataIndex: 'name'
+                    dataIndex: 'name',
+                    renderer: function(value,meta,record){
+                        return "<a style= 'color: blue;' href='javascript:openAction(&quot;"+ record.get("actionid") +"&quot;)'>" + value +"</a>";
+                    }
                 },
                 {
                     header: 'Parameters',
@@ -214,7 +207,7 @@ Ext.define('Redwood.view.ResultsView', {
                         labelStyle: "font-weight: bold",
                         style:"font-weight: bold",
                         itemId:"name",
-                        value:"<p style='font-weight:bold'>"+me.dataRecord.testcase.name+"</p>",
+                        value:"<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ me.dataRecord.testcase.testcaseID +"&quot;)'>" + me.dataRecord.testcase.name +"</a>",
                         anchor:'90%'
                     },
                     {
@@ -254,6 +247,28 @@ Ext.define('Redwood.view.ResultsView', {
                                 return value;
                             }
                         }
+                    },
+                    {
+                        fieldLabel: "Error",
+                        labelStyle: "font-weight: bold",
+                        hidden: true,
+                        maxWidth: 500,
+                        itemId:"error",
+                        value:me.dataRecord.testcase.error,
+                        anchor:'90%',
+                        renderer: function(value,field){
+                            return "<p style='font-weight:bold;color:red'>"+value+"</p>"
+                        }
+                    },
+                    {
+                        fieldLabel: "Trace",
+                        labelStyle: "font-weight: bold",
+                        hidden: true,
+                        itemId:"trace",
+                        maxWidth: 500,
+                        minWidth:300,
+                        value:me.dataRecord.testcase.trace,
+                        anchor:'90%'
                     }
 
                 ]
@@ -261,6 +276,7 @@ Ext.define('Redwood.view.ResultsView', {
             {
                 xtype: 'fieldset',
                 title: 'Results',
+                itemId:"results",
                 flex: 1,
                 //minHeight:600,
                 collapsible: true,
@@ -275,6 +291,7 @@ Ext.define('Redwood.view.ResultsView', {
                 xtype: 'fieldset',
                 title: 'Logs',
                 flex: 1,
+                itemId:"logs",
                 //minHeight:600,
                 collapsible: true,
                 defaults: {

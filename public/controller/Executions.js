@@ -84,7 +84,7 @@ Ext.define("Redwood.controller.Executions", {
         if ((executionView === undefined)||(executionView.viewType != "Execution")){
             return;
         }
-        executionView.up("executionsEditor").down("#runExecution").setDisabled(true);
+
         var machines = executionView.getSelectedMachines();
         var testcases = executionView.getSelectedTestCases();
         var status = executionView.getStatus();
@@ -101,6 +101,8 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Msg.alert('Error', "Please select test cases to run the execution against.");
             return;
         }
+        executionView.up("executionsEditor").down("#runExecution").setDisabled(true);
+        executionView.up("executionsEditor").down("#stopExecution").setDisabled(false);
         executionView.down("#executionTestcases").getSelectionModel().deselectAll();
         executionView.down("#executionMachines").getSelectionModel().deselectAll();
 
@@ -113,6 +115,8 @@ Ext.define("Redwood.controller.Executions", {
                     var obj = Ext.decode(response.responseText);
                     if(obj.error != null){
                         Ext.Msg.alert('Error', obj.error);
+                        executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
+                        executionView.up("executionsEditor").down("#stopExecution").setDisabled(true);
                     }
                 }
             });
@@ -288,13 +292,16 @@ Ext.define("Redwood.controller.Executions", {
             if (tab.title.indexOf("[Execution]")==0){
                 if (tab.getStatus() === "Running"){
                     tab.up("executionsEditor").down("#runExecution").setDisabled(true);
+                    tab.up("executionsEditor").down("#stopExecution").setDisabled(false);
                 }
                 else{
                     tab.up("executionsEditor").down("#runExecution").setDisabled(false);
+                    tab.up("executionsEditor").down("#stopExecution").setDisabled(true);
                 }
             }
             else{
                 tab.up("executionsEditor").down("#runExecution").setDisabled(true);
+                tab.up("executionsEditor").down("#stopExecution").setDisabled(true);
             }
         })
     }

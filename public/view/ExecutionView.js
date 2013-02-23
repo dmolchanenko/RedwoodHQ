@@ -467,9 +467,11 @@ Ext.define('Redwood.view.ExecutionView', {
                     me.down("#status").setValue(status);
                     if (status == "Running"){
                         me.up("executionsEditor").down("#runExecution").setDisabled(true);
+                        me.up("executionsEditor").down("#stopExecution").setDisabled(false);
                     }
                     else{
                         me.up("executionsEditor").down("#runExecution").setDisabled(false);
+                        me.up("executionsEditor").down("#stopExecution").setDisabled(true);
                     }
                 });
             }

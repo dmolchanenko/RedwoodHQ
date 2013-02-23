@@ -149,6 +149,7 @@ Ext.define('Redwood.view.Executions', {
                     icon: "images/stop.png",
                     tooltip: "Stop Selected Execution",
                     itemId: "stopExecution",
+                    disabled: true,
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
                         editor.fireEvent('stop');
@@ -157,6 +158,7 @@ Ext.define('Redwood.view.Executions', {
                 {
                     icon: "images/play.png",
                     tooltip: "Run Selected Execution",
+                    disabled: true,
                     itemId: "runExecution",
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');

@@ -1,3 +1,15 @@
+function openTestCase(id){
+    var store = Ext.data.StoreManager.lookup('TestCases');
+    var tab = Ext.ComponentQuery.query("#mainTabPanel")[0];
+    tab.setActiveTab(tab.down("#testcasesBrowser"));
+    var controller = Redwood.app.getController("TestCases");
+    controller.onEditTestCase(store.getById(id));
+    if(!Ext.isIE){
+        return false;
+    }
+}
+
+
 Ext.define("Redwood.controller.TestCases", {
     extend: 'Ext.app.Controller',
 
