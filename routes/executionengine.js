@@ -11,8 +11,25 @@ var compile = require("./compile");
 var realtime = require("../routes/realtime");
 var db;
 
+exports.stopexecutionPost = function(req, res){
+    var execution = executions[req.body.executionID];
+    if(!execution) return;
+    unlockMachines(execution.machines);
+    for(var testcase in execution.currentTestCases){
+        updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+    }
+
+    updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},function(){
+        res.contentType('json');
+        res.json({success:true});
+        delete executions[req.body.executionID];
+    });
+};
+
+
 exports.startexecutionPost = function(req, res){
     db = common.getDB();
+
     if (req.body.testcases.length == 0){
         res.contentType('json');
         res.json({error:"No Test Cases are selected for execution."});
@@ -44,6 +61,7 @@ exports.startexecutionPost = function(req, res){
         else{
             res.contentType('json');
             res.json({success:true});
+            updateExecution({_id:executionID},{$set:{status:"Running"}});
 
             lockMachines(machines,function(){
                 runBaseStates(req.cookies.project,machines,function(validMachines){
@@ -151,6 +169,7 @@ function executeTestCases(testcases,executionID){
     //execution all done
     if (tcArray.length == 0){
         unlockMachines(machines);
+        updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
         delete executions[executionID];
         return;
     }
@@ -236,6 +255,37 @@ function startTCExecution(id,variables,executionID,callback){
 
         var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
 
+        //if test case is a script and NOT an action collection
+        if (testcase.script){
+            //executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
+
+            agentInstructions.name = testcase.name;
+            agentInstructions.script = testcase.script;
+            agentInstructions.resultID = result._id.__id;
+            agentInstructions.parameters = [];
+            /*
+            action.dbAction.parameters.forEach(function(parameter){
+                agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
+                console.log(parameter);
+            });
+            */
+
+            var foundMachine = null;
+            var actionHost = "Default";
+            //if(action.dbAction.host != "") actionHost = action.dbAction.host;
+            testcase.machines.forEach(function(machine){
+                if ((machine.roles.indexOf(actionHost) != -1)&&(foundMachine == null)){
+                    foundMachine = machine;
+                }
+            });
+
+            var date = new Date();
+            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:date,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
+            testcase.startDate = date;
+            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+            return;
+        }
+
         findNextAction(testcase.actions,variables,function(action){
             executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
@@ -259,7 +309,7 @@ function startTCExecution(id,variables,executionID,callback){
             });
 
             var date = new Date();
-            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:date,enddate:"",runtime:""}},foundMachine.host,foundMachine.vncport);
+            updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:date,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
             testcase.startDate = date;
             sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
             /*
@@ -303,6 +353,24 @@ exports.actionresultPost = function(req, res){
     if (!execution) return;
     var testcase = execution.currentTestCases[req.body.testcaseID];
     if (testcase == undefined) return;
+
+    if (testcase.testcase.script){
+        testcase.result.status = "Finished";
+        testcase.result.result = req.body.result;
+        if (req.body.error){
+            testcase.result.error = req.body.error;
+        }
+        else{
+            testcase.result.error = "";
+        }
+
+        if (req.body.trace){
+            testcase.result.trace = req.body.trace;
+        }
+        updateResult(testcase.result);
+        finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
+        return;
+    }
 
     testcase.currentAction.result.status = "Finished";
     testcase.result.status = "Finished";
@@ -364,7 +432,7 @@ exports.actionresultPost = function(req, res){
             }
         });
 
-        updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":""}},foundMachine.host,foundMachine.vncport);
+        updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
         testcase.result.status = "Running";
 
         var agentInstructions = {command:"run action",executionID:req.body.executionID,testcaseID:testcase.testcase.dbTestCase._id};
@@ -389,7 +457,7 @@ exports.actionresultPost = function(req, res){
 function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     //updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:testcase.result.result}});
     var date = new Date();
-    updateExecutionTestCase({_id:testcaseId},{$set:{"status":"Finished",result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate}});
+    updateExecutionTestCase({_id:testcaseId},{$set:{"status":"Finished",result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
     var count = 0;
     testcase.testcase.machines.forEach(function(machine){
         delete machine.runningTC;
@@ -694,7 +762,8 @@ function resolveParamValue(value,variables){
             returnNULL = true;
         }
     }
-    var result = value.replace(new RegExp("\\$\\{([\\w_.-\\s*]+)\\}", "g" ),function(a,b){
+    //var result = value.replace(new RegExp("\\$\\{([\\w_.-\\s*]+)\\}", "g" ),function(a,b){
+    var result = value.replace(new RegExp("\\$\\{([\\s\\w_.-]+)\\}", "g" ),function(a,b){
         if(b in variables){
             if (variables[b] == "<NULL>"){
                 if (returnNULL == true){
@@ -743,6 +812,17 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
                 data.vncport = vncport;
             }
             realtime.emitMessage("UpdateExecutionTestCase",data);
+            if (callback){
+                callback(err);
+            }
+        });
+    });
+}
+
+function updateExecution(query,update,callback){
+    db.collection('executions', function(err, collection) {
+        collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            realtime.emitMessage("UpdateExecutions",data);
             if (callback){
                 callback(err);
             }
@@ -896,8 +976,8 @@ function GetTestCaseDetails(testcaseID,callback){
         collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
             if (testcase.type == "script"){
                 testcaseDetails = {dbTestCase:testcase,script:testcase.script};
-                testcaseResults = {testcaseName:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
-                callback({script:testcase.script});
+                testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
+                callback(testcaseDetails,testcaseResults,[]);
             }
             else{
                 if (testcase.collection.length > 0){

@@ -25,9 +25,27 @@ Ext.define("Redwood.controller.Executions", {
                 celldblclick: this.onDoubleClick,
                 newExecution: this.addExecution,
                 save: this.saveExecution,
-                run: this.runExecution
+                run: this.runExecution,
+                stop: this.stopExecution
             }
 
+        });
+    },
+
+    stopExecution: function(){
+        var executionView = this.tabPanel.getActiveTab();
+        if ((executionView === undefined)||(executionView.viewType != "Execution")){
+            return;
+        }
+        var executionID = executionView.dataRecord.get("_id");
+        if (!executionID) return;
+        Ext.Ajax.request({
+            url:"/executionengine/stopexecution",
+            method:"POST",
+            jsonData : {executionID:executionID},
+            success: function(response) {
+                executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
+            }
         });
     },
 
@@ -66,8 +84,15 @@ Ext.define("Redwood.controller.Executions", {
         if ((executionView === undefined)||(executionView.viewType != "Execution")){
             return;
         }
+        executionView.up("executionsEditor").down("#runExecution").setDisabled(true);
         var machines = executionView.getSelectedMachines();
         var testcases = executionView.getSelectedTestCases();
+        var status = executionView.getStatus();
+        if (status == "Running") {
+            Ext.Msg.alert('Error', "Execution is currently running");
+            return;
+        }
+
         if (machines.length == 0){
             Ext.Msg.alert('Error', "Please select machines to run the execution on.");
             return;
@@ -108,6 +133,7 @@ Ext.define("Redwood.controller.Executions", {
             newExecution = true;
             var id = execution._id;
             delete execution._id;
+            execution.status = "Ready To Run";
             executionView.dataRecord = this.getStore('Executions').add(execution)[0];
             executionView.dataRecord.set("_id",id);
         }
@@ -116,9 +142,12 @@ Ext.define("Redwood.controller.Executions", {
             executionView.dataRecord.set("variables",execution.variables);
             executionView.dataRecord.set("tag",execution.tag);
         }
+
+        if (newExecution == false){
+            if (typeof (callback) === 'function') callback(executionView.dataRecord);
+        }
         this.getStore('Executions').sync({success:function(){
             if (newExecution == false){
-                if (typeof (callback) === 'function') callback(executionView.dataRecord);
                 return;
             }
 
@@ -194,13 +223,15 @@ Ext.define("Redwood.controller.Executions", {
         if(record) {
             Ext.Msg.show({
                 title:'Delete Confirmation',
-                msg: "Are you sure you want to delete '"+ foundTab.title + "' execution?" ,
+                msg: "Are you sure you want to delete '"+ record.get("name") + "' execution?" ,
                 buttons: Ext.Msg.YESNO,
                 icon: Ext.Msg.QUESTION,
                 fn: function(id){
                     if (id === "yes"){
-                        foundTab.dirty = false;
-                        foundTab.close();
+                        if (foundTab){
+                            foundTab.dirty = false;
+                            foundTab.close();
+                        }
                         Ext.data.StoreManager.lookup('Executions').remove(record);
                         Ext.data.StoreManager.lookup('Executions').sync({success:function(batch,options){} });
                     }
@@ -253,5 +284,18 @@ Ext.define("Redwood.controller.Executions", {
                 me.getTetSetNames();
             }
         });
+        this.tabPanel.on("tabchange",function(panel,tab){
+            if (tab.title.indexOf("[Execution]")==0){
+                if (tab.getStatus() === "Running"){
+                    tab.up("executionsEditor").down("#runExecution").setDisabled(true);
+                }
+                else{
+                    tab.up("executionsEditor").down("#runExecution").setDisabled(false);
+                }
+            }
+            else{
+                tab.up("executionsEditor").down("#runExecution").setDisabled(true);
+            }
+        })
     }
 });

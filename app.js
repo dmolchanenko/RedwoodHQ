@@ -82,6 +82,9 @@ app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 
 //start execution
 app.post('/executionengine/startexecution',auth.auth, executionengine.startexecutionPost);
+
+//stop
+app.post('/executionengine/stopexecution',auth.auth, executionengine.stopexecutionPost);
 app.post('/executionengine/actionresult',executionengine.actionresultPost);
 app.post('/executionengine/logmessage',executionengine.logPost);
 

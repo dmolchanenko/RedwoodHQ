@@ -8,6 +8,10 @@ Ext.define('Redwood.model.Executions', {
             type:"string"
         },
         {
+            name:"status",
+            type:"string"
+        },
+        {
             name: 'testset',
             type: 'string'
         },

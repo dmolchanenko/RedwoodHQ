@@ -16,6 +16,7 @@ Ext.define('Redwood.view.ResultsView', {
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'paramvalue',     type: 'string'},
+                {name: 'parameters',     type: 'array'},
                 {name: 'result',     type: 'string'},
                 {name: 'error',     type: 'string'},
                 {name: 'trace',     type: 'string'},
@@ -24,7 +25,7 @@ Ext.define('Redwood.view.ResultsView', {
         });
 
         var transformed = me.dataRecord.testcase.children;
-
+        /*
         var transform = function(children){
             children.forEach(function(action){
                 if (!action.paramvalue){
@@ -41,13 +42,16 @@ Ext.define('Redwood.view.ResultsView', {
             });
         };
 
+
         transform(transformed);
+         */
 
         retultsStore.setRootNode({"text":".","children":transformed });
 
         var resultsTree = Ext.create('Ext.tree.Panel', {
             rootVisible: false,
             store: retultsStore,
+            cls:"x-redwood-alternative-tree-row-even x-redwood-alternative-tree-row-odd",
             //minHeight:600,
             viewConfig: {
                 markDirty: false,
@@ -64,11 +68,26 @@ Ext.define('Redwood.view.ResultsView', {
                     dataIndex: 'name'
                 },
                 {
-                    header: 'Parameter Value',
+                    header: 'Parameters',
                     //flex: 2,
-                    width:120,
+                    width:450,
                     sortable: false,
-                    dataIndex: 'paramvalue'
+                    dataIndex: 'parameters',
+                    renderer: function(value,meta,record){
+                        if (!value) return "";
+                        if (value.length == 0) return "";
+                        var rows = "";
+                        value.forEach(function(param){
+                            rows += '<div style="display:table-row;">'+
+                                    '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b; font-weight: bold;width:100px;white-space: normal;word-wrap: break-word;">'+param.paramname+'</span>'+
+                                    '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b;width:250px;white-space: normal;word-wrap: break-word;">'+param.paramvalue+'</span>'+
+                                '</div>';
+                        });
+                        var table = '<div style="display:table;table-layout: fixed;width: 100%;">'+ rows +'</div>';
+
+                        return table;
+                    }
+                    //dataIndex: 'paramvalue'
                 },
                 {
                     header: 'Status',
@@ -76,13 +95,13 @@ Ext.define('Redwood.view.ResultsView', {
                     dataIndex: 'status',
                     renderer: function (value, meta, record) {
                         if(record.get("host") && (value == "Running")){
-                            return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
+                            return "<a style= 'color: blue;font-weight: bold;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
                         }
                         else if (value == "Finished"){
-                            return "<p style='color:green'>"+value+"</p>";
+                            return "<p style='color:green;font-weight: bold;'>"+value+"</p>";
                         }
                         else if ( value == "Not Run"){
-                            return "<p style='color:#ffb013'>"+value+"</p>";
+                            return "<p style='color:#ffb013;font-weight: bold;'>"+value+"</p>";
                         }
                         else{
                             return value;
@@ -95,10 +114,10 @@ Ext.define('Redwood.view.ResultsView', {
                     renderer: function(value,meta,record){
 
                         if (value == "Passed"){
-                            return "<p style='color:green'>"+value+"</p>"
+                            return "<p style='color:green;font-weight: bold;'>"+value+"</p>"
                         }
                         else if (value == "Failed"){
-                            return "<p style='color:red'>"+value+"</p>"
+                            return "<p style='color:red;font-weight: bold;'>"+value+"</p>"
                         }
                         else{
                             return value;
@@ -112,7 +131,7 @@ Ext.define('Redwood.view.ResultsView', {
                     width:240,
                     renderer: function(value,meta,record){
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p style='color:red'>"+value+"</p>";
+                        return "<p style='color:red;font-weight: bold;'>"+value+"</p>";
                     }
                 },
                 {
@@ -122,7 +141,7 @@ Ext.define('Redwood.view.ResultsView', {
                     //width: 800,
                     renderer: function(value,meta,record){
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p style='color:red'>"+value+"</p>"
+                        return "<p>"+value+"</p>"
                     }
                 }
             ]

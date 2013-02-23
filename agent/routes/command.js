@@ -85,14 +85,16 @@ function startLauncher(callback){
 
                     console.log('data:', data.toString());
                     if (cache.indexOf("--EOM--") != -1){
-                        var msg = JSON.parse(cache.substring(0,cache.length - 7));
+
+                        //var msg = JSON.parse(cache.substring(0,cache.length - 7));
+                        var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
                         if (msg.command == "action finished"){
                             sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                         }
                         if (msg.command == "Log Message"){
                             sendLog(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                         }
-                        cache = "";
+                        cache = cache.substring(cache.indexOf("--EOM--") + 7,cache.length);
                     }
                 });
             });

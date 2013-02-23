@@ -63,3 +63,11 @@
 .x-redwood-testcase-running .x-grid-cell{
     background-color: #ffef5a !important;
 }
+
+.x-redwood-alternative-tree-row-odd .x-grid-row:nth-of-type(odd) .x-grid-cell {
+    background-color: #cdc1bb;
+}
+
+.x-redwood-alternative-tree-row-even .x-grid-row:nth-of-type(even) .x-grid-cell {
+    background-color: #f29191;
+}

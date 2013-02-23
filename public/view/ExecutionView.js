@@ -81,7 +81,7 @@ Ext.define('Redwood.view.ExecutionView', {
             }
         });
 
-        variablesStore.on("beforesync", function(options,eOpts){
+        me.variablesListener = function(options,eOpts){
             if (options.create){
                 options.create.forEach(function(variable){
                     if (variable.get("taskVar") == true){
@@ -115,7 +115,9 @@ Ext.define('Redwood.view.ExecutionView', {
                     }
                 });
             }
-        });
+        };
+
+        variablesStore.on("beforesync",me.variablesListener);
 
         var variablesGrid = new Ext.grid.Panel({
             listeners:{
@@ -214,7 +216,7 @@ Ext.define('Redwood.view.ExecutionView', {
             }
         });
 
-        machinesStore.on("beforesync", function(options,eOpts){
+        me.machinesListener = function(options,eOpts){
             if (options.create){
                 options.create.forEach(function(r){
                     linkedMachineStore.add(r);
@@ -238,7 +240,9 @@ Ext.define('Redwood.view.ExecutionView', {
                     //me.down("#hostMachineColumn").renderer(linkedRecord.get("host"),null,linkedRecord)
                 });
             }
-        });
+        };
+
+        machinesStore.on("beforesync", me.machinesListener);
 
         var machinesGrid = new Ext.grid.Panel({
             store: linkedMachineStore,
@@ -330,6 +334,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'tag',     type: 'array'},
                 {name: 'status',     type: 'string'},
                 {name: 'host',     type: 'string'},
+                {name: 'vncport',     type: 'string'},
                 {name: 'resultID',     type: 'string'},
                 {name: 'result',     type: 'string'},
                 {name: 'startdate',     type: 'date'},
@@ -348,21 +353,11 @@ Ext.define('Redwood.view.ExecutionView', {
             selType: 'rowmodel',
             viewConfig: {
                 markDirty: false,
-                enableTextSelection: true,
-                getRowClass: function(record, index) {
-                    //return "x-redwood-action-row";
-                    //return "x-redwood-testcase-passed";
-                },
-                listeners:{
-                    beforecellmousedown: function(){
-                        //return false;
-                    }
-                }
+                enableTextSelection: true
             },
             selModel: Ext.create('Ext.selection.CheckboxModel', {
                 singleSelect: false,
                 sortable: true,
-                //checkOnly: true,
                 stateful: true,
                 showHeaderCheckbox: true
             }),
@@ -464,6 +459,23 @@ Ext.define('Redwood.view.ExecutionView', {
 
         });
 
+        me.statusListener = function(options,eOpts){
+            if (options.update){
+                options.update.forEach(function(r){
+                    if (r.get("_id") != me.itemId) return;
+                    var status = r.get("status");
+                    me.down("#status").setValue(status);
+                    if (status == "Running"){
+                        me.up("executionsEditor").down("#runExecution").setDisabled(true);
+                    }
+                    else{
+                        me.up("executionsEditor").down("#runExecution").setDisabled(false);
+                    }
+                });
+            }
+        };
+        Ext.data.StoreManager.lookup("Executions").on("beforesync",me.statusListener);
+
 
         this.items = [
             {
@@ -485,7 +497,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         listeners:{
                             change: function(){
                                 if (me.loadingData === false){
-                                    me.markDirty("name");
+                                    me.markDirty();
                                 }
                             }
                         }
@@ -513,7 +525,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         listeners:{
                             change: function(){
                                 if (me.loadingData === false){
-                                    me.markDirty("tags");
+                                    me.markDirty();
                                 }
                             }
                         }
@@ -536,7 +548,7 @@ Ext.define('Redwood.view.ExecutionView', {
                             change: function(combo,newVal,oldVal){
                                 if (me.dataRecord != null) return;
                                 if (me.loadingData === false){
-                                    me.markDirty("testset");
+                                    me.markDirty();
                                 }
                                 var testSet = combo.store.findRecord("_id",newVal);
                                 me.down("#executionTestcases").store.removeAll();
@@ -545,6 +557,21 @@ Ext.define('Redwood.view.ExecutionView', {
                                     me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                 });
 
+                            }
+                        }
+                    },
+                    {
+                        xtype:"displayfield",
+                        fieldLabel: "Status",
+                        labelStyle: "font-weight: bold",
+                        itemId:"status",
+                        anchor:'90%',
+                        renderer: function(value,meta){
+                            if (value == "Ready To Run"){
+                                return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
+                            }
+                            else{
+                                return "<p style='font-weight:bold;color:green'>"+value+"</p>";
                             }
                         }
                     }
@@ -587,6 +614,7 @@ Ext.define('Redwood.view.ExecutionView', {
             me.loadingData = true;
             if (me.dataRecord != null){
                 me.down("#name").setValue(me.dataRecord.get("name"));
+                me.down("#status").setValue(me.dataRecord.get("status"));
                 me.down("#tag").setValue(me.dataRecord.get("tag"));
                 me.down("#testset").setValue(me.dataRecord.get("testset"));
                 me.down("#testset").setDisabled(true);
@@ -600,6 +628,11 @@ Ext.define('Redwood.view.ExecutionView', {
             }
             me.loadingData = false;
             this.down("#name").focus();
+        },
+        beforedestroy: function(me){
+            Ext.data.StoreManager.lookup("Executions").removeListener("beforesync",me.statusListener);
+            Ext.data.StoreManager.lookup("Machines").removeListener("beforesync",me.machinesListener);
+            Ext.data.StoreManager.lookup("Variables").removeListener("beforesync",me.variablesListener);
         }
     },
 
@@ -613,6 +646,10 @@ Ext.define('Redwood.view.ExecutionView', {
             return false;
         }
         return true;
+    },
+
+    getStatus: function(){
+        return this.down("#status").getValue();
     },
 
     getSelectedTestCases: function(){

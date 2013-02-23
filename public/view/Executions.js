@@ -27,6 +27,19 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 width: 200
             },
             {
+                header: 'Status',
+                dataIndex: 'status',
+                width: 100,
+                renderer: function(value,meta,record){
+                    if (value == "Ready To Run"){
+                        return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
+                    }
+                    else{
+                        return "<p style='font-weight:bold;color:green'>"+value+"</p>";
+                    }
+                }
+            },
+            {
                 header: 'Tags',
                 dataIndex: 'tag',
                 width: 400
@@ -133,8 +146,18 @@ Ext.define('Redwood.view.Executions', {
                 },
                 "-",
                 {
+                    icon: "images/stop.png",
+                    tooltip: "Stop Selected Execution",
+                    itemId: "stopExecution",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('stop');
+                    }
+                },
+                {
                     icon: "images/play.png",
                     tooltip: "Run Selected Execution",
+                    itemId: "runExecution",
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
                         editor.fireEvent('run');
