@@ -1,17 +1,16 @@
 .CodeMirror {
     height: inherit;
-}
-
-.CodeMirror-scroll {
-    height: inherit;
     width: inherit;
 }
+
+
 .CodeMirror-activeline {background: #e8f2ff !important;}
 .codemirror-field,
 .codemirror-field tbody,
 .codemirror-field tbody tr,
 .codemirror-field tbody tr td {
     height: inherit !important;
+    width: inherit !important;
 }
 
 .codemirror-field td.x-form-item-body  {

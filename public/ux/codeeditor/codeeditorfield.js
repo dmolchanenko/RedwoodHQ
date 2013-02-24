@@ -4,6 +4,8 @@ Ext.define('Redwood.ux.CodeEditorField', {
     cls: 'codemirror-field',
     fieldLabel: 'Label',
     hideLabel: true,
+    anchor:     '100%',
+    allowBlank: true,
 
     isFullScreen: function(){
         return /\bCodeMirror-fullscreen\b/.test(this.editor.getWrapperElement().className);
@@ -60,6 +62,7 @@ Ext.define('Redwood.ux.CodeEditorField', {
             lineNumbers: true,
             matchBrackets: true,
             autoCloseBrackets: true,
+            anchor:     '100% -20',
             extraKeys:
                 {"Ctrl-S": function(){
                     me.up("scriptBrowser").fireEvent('saveAll',null);
@@ -74,23 +77,15 @@ Ext.define('Redwood.ux.CodeEditorField', {
                 */
             },
             mode: "text/x-groovy",
-            onCursorActivity: function() {
-                //editor.setLineClass(hlLine, null, null);
-                //hlLine = editor.setLineClass(editor.getCursor().line, null, "activeline");
-            },
-            onChange: function(cm,changeOpt){
-                me.onChange(cm,changeOpt);
-                //me.fireEvent('change',cm);
-            },
             onResize: function(){
                 var showing = document.body.getElementsByClassName("CodeMirror-fullscreen")[0];
                 if (!showing) return;
                 showing.CodeMirror.getWrapperElement().style.height = me.winHeight() + "px";
             }
         });
-        var editor = this.editor;
-        //var hlLine = this.editor.setLineClass(0, "activeline");
-        //var hlLine = this.editor.addLineClass(0,"text", "CodeMirror-activeline");
+        this.editor.on("change",function(cm,changeOpt){
+            me.onChange(cm,changeOpt);
+        });
     },
 
     focus: function() {
@@ -124,12 +119,10 @@ Ext.define('Redwood.ux.CodeEditorField', {
 Ext.define('Redwood.ux.EditorPanel', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.codeeditorpanel',
-
-    layout: {
-        type: 'fit'
-    },
+    layout:     'fit',
     preventHeader: true,
-    autoScroll:false,
+    plain:      true,
+    //autoScroll:false,
 
     title:"",
 
