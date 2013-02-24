@@ -36,10 +36,12 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.updateStore(store,execution);
         });
 
-        Ext.socket.on('UpdateResult',function(execution){
-            var store = Ext.data.StoreManager.lookup("Executions");
-            if (store == null) return;
-            me.updateStore(store,execution);
+        Ext.socket.on('UpdateResult',function(result){
+            var controller = Redwood.app.getController("Executions");
+            var foundTab = controller.tabPanel.down("#"+result._id);
+            if (foundTab){
+                foundTab.refreshResult(result);
+            }
         });
 
         Ext.socket.on('UpdateMachines',function(machine){

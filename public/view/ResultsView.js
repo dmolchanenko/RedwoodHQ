@@ -16,10 +16,14 @@ Ext.define('Redwood.view.ResultsView', {
         }
     },
 
+    refreshResult: function(result){
+        this.resultsStore.setRootNode({"text":".","children":result.children});
+    },
+
     initComponent: function () {
         var me = this;
 
-        var retultsStore =  Ext.create('Ext.data.TreeStore', {
+        me.resultsStore =  Ext.create('Ext.data.TreeStore', {
             storeId: "Results"+this.itemId,
             idProperty: 'name',
             fields: [
@@ -36,11 +40,11 @@ Ext.define('Redwood.view.ResultsView', {
 
         var transformed = me.dataRecord.testcase.children;
 
-        retultsStore.setRootNode({"text":".","children":transformed });
+        me.resultsStore.setRootNode({"text":".","children":transformed });
 
         var resultsTree = Ext.create('Ext.tree.Panel', {
             rootVisible: false,
-            store: retultsStore,
+            store: me.resultsStore,
             cls:"x-redwood-alternative-tree-row-even x-redwood-alternative-tree-row-odd",
             //minHeight:600,
             viewConfig: {
