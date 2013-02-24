@@ -156,8 +156,9 @@ Ext.define('Redwood.view.ResultsView', {
         });
 
         me.dataRecord.logs.forEach(function(log){
-            var timestamp = log._id.substring(0,8);
-            logStore.add({message:log.message,actionName:log.actionName,date:new Date( parseInt( timestamp, 16 ) * 1000 )})
+            //var timestamp = log._id.substring(0,8);
+            logStore.add({message:log.message,actionName:log.actionName,date:log.date});
+            //logStore.add({message:log.message,actionName:log.actionName,date:new Date( parseInt( timestamp, 16 ) * 1000 )})
         });
 
         var logGrid = Ext.create('Ext.grid.Panel', {
@@ -184,7 +185,11 @@ Ext.define('Redwood.view.ResultsView', {
                 {
                     header: 'Message',
                     dataIndex: 'message',
-                    flex: 1
+                    flex: 1,
+                    renderer: function(value,meta,record){
+                        meta.tdCls = 'x-redwood-results-cell';
+                        return "<p>"+value+"</p>"
+                    }
                 }
 
             ]

@@ -7,11 +7,13 @@ var launcherProc = null;
 var spawn = require('child_process').spawn;
 var launcherConn = null;
 var common = require('../common');
+var currentAction = null;
 
 exports.Post = function(req, res){
     var command = req.body;
     if(command.command == "run action"){
         console.log("running action");
+        currentAction = command;
         sendLauncherCommand(command,function(err){
             res.send(JSON.stringify({"error":err,"success":true}));
         });
@@ -74,9 +76,12 @@ function startLauncher(callback){
         launcherProc = null;
         callback(data.toString());
     });
+    var cmdCache = "";
     launcherProc.stdout.on('data', function (data) {
+        cmdCache += data.toString();
         console.log('stdout: ' + data.toString());
         if (data.toString().indexOf("launcher running.") != -1){
+            cmdCache = "";
             launcherConn = net.connect(3002, function(){
                 callback(null);
                 var cache = "";
@@ -92,6 +97,7 @@ function startLauncher(callback){
                             sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                         }
                         if (msg.command == "Log Message"){
+                            msg.date=new Date();
                             sendLog(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                         }
                         cache = cache.substring(cache.indexOf("--EOM--") + 7,cache.length);
@@ -104,6 +110,32 @@ function startLauncher(callback){
                 //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                 callback("Error connecting to launcher: "+err);
             });
+        }
+        else{
+            if (cmdCache.indexOf("\r\n") != -1){
+                if (cmdCache.length == 2) {
+                    cmdCache = "";
+                    return;
+                }
+
+                cmdCache.split("\r\n").forEach(function(message,index,array){
+                    if(index == array.length - 1){
+                        if (cmdCache.lastIndexOf("\r\n")+2 !== cmdCache.length){
+                            cmdCache = cmdCache.substring(cmdCache.lastIndexOf("\r\n") + 2,cmdCache.length);
+                        }else{
+                            if (message != ""){
+                                console.log("sending:"+message);
+                                sendLog({message:message,date:new Date(),actionName:currentAction.name,resultID:currentAction.resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                            }
+                            cmdCache = "";
+                        }
+                    }
+                    if (message != ""){
+                        console.log("sending:"+message);
+                        sendLog({message:message,date:new Date(),actionName:currentAction.name,resultID:currentAction.resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                    }
+                });
+            }
         }
     });
 }

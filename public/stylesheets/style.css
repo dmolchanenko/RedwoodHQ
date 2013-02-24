@@ -45,6 +45,7 @@
 
 .x-redwood-results-cell .x-grid-cell-inner {
     white-space: normal;
+    word-wrap: break-word;
 }
 
 .x-redwood-action-value-cell .x-grid-cell-inner{

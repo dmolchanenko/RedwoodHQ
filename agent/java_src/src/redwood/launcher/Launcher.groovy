@@ -36,7 +36,7 @@ class Launcher {
                     socket.withStreams { input, output ->
                         this.output = output
                         input.eachLine() { line ->
-                            println line
+                            //println line
                             def command = new JsonSlurper().parseText(line)
                             //output << '{"error":null,"status":"started"}--EOM--'
                             if (command.command == "run action"){

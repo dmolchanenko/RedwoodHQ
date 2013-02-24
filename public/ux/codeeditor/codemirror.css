@@ -6,7 +6,7 @@
     height: inherit;
     width: inherit;
 }
-.activeline {background: #e8f2ff !important;}
+.CodeMirror-activeline {background: #e8f2ff !important;}
 .codemirror-field,
 .codemirror-field tbody,
 .codemirror-field tbody tr,

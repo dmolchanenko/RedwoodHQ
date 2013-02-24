@@ -56,8 +56,10 @@ Ext.define('Redwood.ux.CodeEditorField', {
         var element = document.getElementById(abstractcomponent.getInputId());
 
         this.editor = CodeMirror.fromTextArea(element, {
+            styleActiveLine: true,
             lineNumbers: true,
             matchBrackets: true,
+            autoCloseBrackets: true,
             extraKeys:
                 {"Ctrl-S": function(){
                     me.up("scriptBrowser").fireEvent('saveAll',null);
@@ -73,8 +75,8 @@ Ext.define('Redwood.ux.CodeEditorField', {
             },
             mode: "text/x-groovy",
             onCursorActivity: function() {
-                editor.setLineClass(hlLine, null, null);
-                hlLine = editor.setLineClass(editor.getCursor().line, null, "activeline");
+                //editor.setLineClass(hlLine, null, null);
+                //hlLine = editor.setLineClass(editor.getCursor().line, null, "activeline");
             },
             onChange: function(cm,changeOpt){
                 me.onChange(cm,changeOpt);
@@ -87,7 +89,8 @@ Ext.define('Redwood.ux.CodeEditorField', {
             }
         });
         var editor = this.editor;
-        var hlLine = this.editor.setLineClass(0, "activeline");
+        //var hlLine = this.editor.setLineClass(0, "activeline");
+        //var hlLine = this.editor.addLineClass(0,"text", "CodeMirror-activeline");
     },
 
     focus: function() {
