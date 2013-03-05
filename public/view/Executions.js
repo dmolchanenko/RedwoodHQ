@@ -67,29 +67,7 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 ]
             }
         ];
-        /*
-        this.dockedItems = [{
-            xtype: 'toolbar',
-            dock: 'top',
-            items: [
-                //'<-',
-                {
-                    iconCls: 'icon-add',
-                    text: 'New Execution'
-                }
-                ,
-                 "-",
-                 {
-                 width: 400,
-                 fieldLabel: 'Search',
-                 labelWidth: 50,
-                 xtype: 'searchfield',
-                 paramNames: ["tag","name"],
-                 store: Ext.data.StoreManager.lookup('Executions')
-                 }
-            ]
-        }];
-        */
+
         this.callParent(arguments);
     }
 });

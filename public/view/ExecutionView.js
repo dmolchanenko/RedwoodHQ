@@ -370,7 +370,8 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'name',
                     flex: 1,
                     renderer: function (value, meta, record) {
-                        if (record.get("status") == "Finished"){
+                        //if (record.get("status") == "Finished"){
+                        if (record.get("resultID")){
                             return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
                         }
                         else{
@@ -657,7 +658,7 @@ Ext.define('Redwood.view.ExecutionView', {
     getSelectedTestCases: function(){
         var testcases = [];
         this.down("#executionTestcases").getSelectionModel().getSelection().forEach(function(testcase){
-            testcases.push({testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id")});
+            testcases.push({testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id"),resultID:testcase.get("resultID")});
         });
 
         return testcases;

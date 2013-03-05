@@ -80,6 +80,7 @@ Ext.define("Redwood.controller.Executions", {
     },
 
     runExecution: function(){
+        var me = this;
         var executionView = this.tabPanel.getActiveTab();
         if ((executionView === undefined)||(executionView.viewType != "Execution")){
             return;
@@ -101,6 +102,15 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Msg.alert('Error', "Please select test cases to run the execution against.");
             return;
         }
+        //close any open results
+        testcases.forEach(function(testcase){
+            if(testcase.resultID){
+                var tab = me.tabPanel.down("#"+testcase.resultID);
+                if (tab){
+                    tab.close();
+                }
+            }
+        });
         executionView.up("executionsEditor").down("#runExecution").setDisabled(true);
         executionView.up("executionsEditor").down("#stopExecution").setDisabled(false);
         executionView.down("#executionTestcases").getSelectionModel().deselectAll();
@@ -289,7 +299,7 @@ Ext.define("Redwood.controller.Executions", {
             }
         });
         this.tabPanel.on("tabchange",function(panel,tab){
-            if (tab.title.indexOf("[Execution]")==0){
+            if (tab.title.indexOf("Execution]") != -1){
                 if (tab.getStatus() === "Running"){
                     tab.up("executionsEditor").down("#runExecution").setDisabled(true);
                     tab.up("executionsEditor").down("#stopExecution").setDisabled(false);

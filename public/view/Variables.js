@@ -139,7 +139,7 @@ Ext.define('Redwood.view.Variables', {
                 header: 'Possible Values',
                 dataIndex: 'possibleValues',
                 //flex: 1,
-                width: 200,
+                width: 400,
                 editor: Ext.create('Ext.ux.ComboFieldGridBox', {
                     //fieldLabel: 'Enter Tags',
                     dataIndex: 'possibleValues',

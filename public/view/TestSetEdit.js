@@ -22,27 +22,31 @@ Ext.apply(Ext.form.field.VTypes, {
 });
 
 Ext.define('Redwood.view.TestSetEdit', {
-    extend: 'Ext.window.Window',
+    extend: 'Ext.panel.Panel',
     alias: 'widget.testsetEdit',
     requiredText: '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>',
-    newTestSet: true,
     testSetData: null,
     defaultFocus: "testsetname",
-    title: 'Test Set Properties',
-    id: "EditTestSet",
-    draggable: true,
-    resizable: true,
-    width: 500,
-    height: 500,
-    layout: 'fit',
-    modal: true,
+    bodyPadding: 5,
+    viewType: "TestSet",
+    listeners:{
+        afterrender: function(me){
+            if (me.testSetData != null){
+                me.down("#testsetname").setValue(me.testSetData.get("name"));
+            }
+        }
+    },
+
+    validate: function(){
+        return this.down("#testsetname").validate();
+    },
 
     initComponent: function () {
         var me = this;
         var testcases = [];
         Ext.data.StoreManager.lookup('TestCases').each(function(testcase){
             var foundTC = false;
-            if (me.newTestSet == false){
+            if (me.testSetData != null){
                 me.testSetData.get("testcases").forEach(function(recordedTestcase){
                     if(recordedTestcase._id === testcase.get("_id")){
                         foundTC = true;
@@ -63,7 +67,43 @@ Ext.define('Redwood.view.TestSetEdit', {
             }
         });
 
-        this.items= {
+        this.items = [{
+            xtype:'textfield',
+            itemId:"testsetname",
+            afterLabelTextTpl: this.requiredText,
+            fieldLabel: 'Test Set Name',
+            name: 'name',
+            width: 300,
+            vtype:'testsetnameTest',
+            allowBlank: false
+        },
+            {
+                xtype:"treepanel",
+                title: 'Test Cases',
+                multiSelect: false,
+                itemId: "testcases",
+                rootVisible: false,
+                store: treeStore,
+                displayField:"name",
+                focused: false,
+                autoScroll:true,
+                listeners: {
+                    checkchange:function(firstNode,checked,eOpt){
+                        //snapshotBrowser.fireEvent('dirChecked',firstNode,checked);
+                    },
+                    selectionchange:function(opt1,selectedRecord,opt3){
+                        //snapshotBrowser.fireEvent("dirSelection",selectedRecord[0]);
+                    },
+                    afteritemcollapse:function(node){
+                        //snapshotBrowser.fireEvent("dirCollapsed",node);
+                    },
+                    afteritemexpand:function(node){
+                        //snapshotBrowser.fireEvent("dirCollapsed",node);
+                    }
+                }
+            }
+        ];
+        this.itemssss= {
             xtype:"form",
             layout:"anchor",
             bodyPadding: 5,
@@ -116,56 +156,10 @@ Ext.define('Redwood.view.TestSetEdit', {
                     handler: function() {
                         this.up('form').up('window').close();
                     }
-                }],
+                }]
 
-            items: [{
-                    xtype:'textfield',
-                    itemId:"testsetname",
-                    afterLabelTextTpl: this.requiredText,
-                    fieldLabel: 'Test Set Name',
-                    name: 'name',
-                    vtype:'testsetnameTest',
-                    allowBlank: false,
-                    listeners: {
-                        specialkey: function(field, e){
-                            if (e.getKey() == e.ENTER) {
-                                this.up('form').down("#submit").handler();
-                            }
-                        }
-                    }
-                },
-                {
-                    xtype:"treepanel",
-                    title: 'Test Cases',
-                    multiSelect: false,
-                    itemId: "testcases",
-                    rootVisible: false,
-                    store: treeStore,
-                    displayField:"name",
-                    focused: false,
-                    autoScroll:true,
-                    listeners: {
-                        checkchange:function(firstNode,checked,eOpt){
-                            //snapshotBrowser.fireEvent('dirChecked',firstNode,checked);
-                        },
-                        selectionchange:function(opt1,selectedRecord,opt3){
-                            //snapshotBrowser.fireEvent("dirSelection",selectedRecord[0]);
-                        },
-                        afteritemcollapse:function(node){
-                            //snapshotBrowser.fireEvent("dirCollapsed",node);
-                        },
-                        afteritemexpand:function(node){
-                            //snapshotBrowser.fireEvent("dirCollapsed",node);
-                        }
-                    }
-                }
-            ]
         };
         this.callParent(arguments);
-        if (me.newTestSet == false){
-            this.down('form').getForm().findField("name").setValue(me.testSetData.get("name"));
-        }
-        this.down('form').getForm().findField("name").focus();
     }
 
 });

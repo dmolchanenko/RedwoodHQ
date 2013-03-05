@@ -143,7 +143,8 @@ function startLauncher(callback){
 function stopLauncher(callback){
     if (launcherProc != null){
         sendLauncherCommand({command:"exit"},function(){
-            launcherProc.kill();
+            process.kill(launcherProc.pid);
+            //launcherProc.kill();
             launcherProc = null;
             deleteDir(path.resolve(__dirname,"../launcher/"),callback)
         });

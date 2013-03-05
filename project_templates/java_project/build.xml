@@ -1,4 +1,4 @@
-<project name="CNN" basedir="." default="main">
+<project name="ProjectName" basedir="." default="main">
 
     <property name="src.dir"     value="src"/>
     <property name="build.dir"   value="build"/>

@@ -90,7 +90,7 @@ Ext.define('Redwood.view.TestCaseView', {
                         allowBlank: true,
                         margin: "0 0 7 0",
                         itemId:"description",
-                        height: 300,
+                        height: 180,
                         anchor:'90%',
                         listeners:{
                             change: function(){

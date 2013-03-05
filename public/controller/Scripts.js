@@ -284,6 +284,7 @@ Ext.define("Redwood.controller.Scripts", {
             var me = this;
 
             path = selection.get("fullpath");
+
             //if (selection.get("cls") != "folder"){
             //    objectType = "script";
             //}
@@ -299,11 +300,20 @@ Ext.define("Redwood.controller.Scripts", {
                 defaultName:selection.get("text"),
                 fn: function(newName){
                     //new path
-                    path = path.substring(0,path.lastIndexOf("/")+1)+newName;
-                    selection.set({text:newName,fullpath:path,icon:me.getIconType(newName)});
+                    var newPath = path.substring(0,path.lastIndexOf("/")+1)+newName;
+                    selection.set({text:newName,fullpath:newPath,icon:me.getIconType(newName)});
                     selection.dirty = false;
                     me.getStore('Scripts').sort();
                     me.treePanel.getSelectionModel().select(selection);
+                    me.tabPanel.items.each(function(tab){
+                        if(tab.path === path){
+                            //tab.itemId = newPath;
+                            tab.path = newPath;
+                            tab.tooltip = newPath;
+                            tab.setTitle(newName);
+                        }
+                    });
+                    //var foundTab = me.tabPanel.down("#"+path);
                 }
             });
             win.show();
@@ -454,7 +464,15 @@ Ext.define("Redwood.controller.Scripts", {
         if (typeof(record) == "string"){
             return;
         }
-        if (this.tabPanel.getComponent(record.get("fullpath")) == undefined){
+
+        var foundTab = null;
+
+        this.tabPanel.items.each(function(tab){
+            if (tab.path === record.get("fullpath")){
+                foundTab = tab;
+            }
+        });
+        if (foundTab == null){
             var editorType = "text";
 
             if (record.get("fullpath").slice(-6) == "groovy"){
@@ -466,6 +484,7 @@ Ext.define("Redwood.controller.Scripts", {
             }
 
             var tab = this.tabPanel.add({
+                path:record.get("fullpath"),
                 editorType:editorType,
                 title:record.get("text"),
                 closable:true,
@@ -484,9 +503,9 @@ Ext.define("Redwood.controller.Scripts", {
                 jsonData : {path:record.get("fullpath")},
                 success: function(response, action) {
                     var obj = Ext.decode(response.responseText);
-                    tab.title = record.get("text");
+                    //tab.title = record.get("text");
                     //tab.up("tab").setTooltip(record.get("fullpath"));
-                    tab.path = record.get("fullpath");
+                    //tab.path = record.get("fullpath");
                     tab.setValue(obj.text);
                     if (typeof(lineNumber) == "number"){
                         tab.setCursor({line:lineNumber,ch:0});
@@ -494,10 +513,13 @@ Ext.define("Redwood.controller.Scripts", {
                     tab.clearDirty();
                 }
             });
+            foundTab = tab;
         }
-        this.tabPanel.setActiveTab(record.get("fullpath"));
+
+        me.tabPanel.setActiveTab(foundTab);
         if (typeof(lineNumber) == "number"){
-            this.tabPanel.getActiveTab().setCursor({line:lineNumber,ch:0});
+            me.tabPanel.getActiveTab().setCursor({line:lineNumber,ch:0});
+            foundTab.focus();
         }
     },
 

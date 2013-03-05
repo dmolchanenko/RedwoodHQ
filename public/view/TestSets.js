@@ -1,20 +1,26 @@
                            
-Ext.define('Redwood.view.TestSets', {
+Ext.define('Redwood.view.TestSetsGrid', {
     extend: 'Ext.grid.Panel',
-    alias: 'widget.testsetsEditor',
+    alias: 'widget.testsetsGrid',
     store: 'TestSets',
     selType: 'rowmodel',
+    title: "[All Test Sets]",
 
     minHeight: 150,
     manageHeight: true,
+    listeners:{
+        celldblclick: function(me,td,cell,record){
+            var editor = this.up('testsetsEditor');
+            editor.fireEvent('testsetEdit',record);
+        }
+    },
     initComponent: function () {
-        var testsetsEditor = this;
+        var me = this;
 
         this.columns = [
             {
                 header: 'Name',
                 dataIndex: 'name',
-                //flex: 1,
                 width: 400
             },
             {
@@ -25,17 +31,14 @@ Ext.define('Redwood.view.TestSets', {
                         icon: 'images/edit.png',  // Use a URL in the icon config
                         tooltip: 'Edit',
                         handler: function(grid, rowIndex, colIndex) {
-                            testsetsEditor.fireEvent('testsetEdit', {
-                                rowIndex: rowIndex,
-                                colIndex: colIndex
-                            });
+                            grid.up("testsetsEditor").fireEvent('testsetEdit', grid.store.getAt(rowIndex));
                         }
                     },
                     {
                         icon: 'images/delete.png',
                         tooltip: 'Delete',
                         handler: function(grid, rowIndex, colIndex) {
-                            testsetsEditor.fireEvent('testsetDelete', {
+                            grid.up("testsetsEditor").fireEvent('testsetDelete', {
                                 rowIndex: rowIndex,
                                 colIndex: colIndex
                             });
@@ -44,29 +47,67 @@ Ext.define('Redwood.view.TestSets', {
                 ]
             }
         ];
+        this.callParent(arguments);
+    }
+});
+
+Ext.define('Redwood.view.TestSets', {
+    extend: 'Ext.panel.Panel',
+    alias: 'widget.testsetsEditor',
+    region:"center",
+    layout: "fit",
+
+    initComponent: function () {
+        this.items=[
+            {
+                xtype: "tabpanel",
+                ui: "red-tab",
+                itemId:"testsetTab",
+                items:[
+                    {
+                        xtype:"testsetsGrid"
+                    }
+                ]
+            }
+        ];
+
 
         this.dockedItems = [{
             xtype: 'toolbar',
             dock: 'top',
             items: [
-                //'<-',
                 {
                     iconCls: 'icon-add',
-                    text: 'Add TestSet'
+                    text: 'New Test Set',
+                    handler: function(widget, event) {
+                        var editor = this.up('testsetsEditor');
+                        editor.fireEvent('newTestSet');
+                    }
                 }
-                /*,
+                ,
+                "-",
+                {
+                    icon: "images/save.gif",
+                    tooltip: "Save Selected Test Set",
+                    handler: function(widget, event) {
+                        var editor = this.up('testsetsEditor');
+                        editor.fireEvent('save');
+                    }
+                },
                 "-",
                 {
                     width: 400,
                     fieldLabel: 'Search',
                     labelWidth: 50,
                     xtype: 'searchfield',
-                    paramNames: ["tag","testsetname","role","name"],
+                    paramNames: ["tag","name"],
                     store: Ext.data.StoreManager.lookup('TestSets')
                 }
-                */
             ]
         }];
         this.callParent(arguments);
     }
+
+
+
 });

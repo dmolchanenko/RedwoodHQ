@@ -46,9 +46,7 @@ class Launcher {
                             }
                             else if (command.command == "exit"){
                                 println "exiting"
-                                stopExecution = true;
-                                socket.close()
-                                server.close()
+                                System.exit(0)
                                 return;
                             }
                         }
