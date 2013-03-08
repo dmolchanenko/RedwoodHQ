@@ -18,17 +18,17 @@ exports.operation = function(msg, id,callback,onFinish){
         //console.log(data.toString());
         callback(data.toString());
     });
+
+    compileProcs[id].proc.stderr.on('data', function(data) {
+        //console.log(data.toString());
+        callback(data.toString());
+    });
     compileProcs[id].proc.on('exit', function(data){
-        //if compile is done do build
-        //if (compileProcs[id].status == "compile"){
-        //    compileProcs[id] = {proc:spawn('ant/bin/ant.bat',['build'],{cwd: "public/automationscripts",timeout:1800000}),status:"build"};
-        //}
-        //else{
+
         delete compileProcs[id];
         if (onFinish){
             onFinish();
         }
-        //}
     });
     callback("");
 
