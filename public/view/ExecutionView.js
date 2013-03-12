@@ -442,7 +442,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Result',
                     dataIndex: 'result',
-                    width: 75,
+                    width: 120,
                     renderer: function(value,record){
                         if (value == "Passed"){
                             return "<p style='color:green'>"+value+"</p>"
@@ -577,6 +577,28 @@ Ext.define('Redwood.view.ExecutionView', {
                                 return "<p style='font-weight:bold;color:green'>"+value+"</p>";
                             }
                         }
+                    },
+                    {
+                        xtype: "checkbox",
+                        fieldLabel: "Ignore Status",
+                        itemId:"ignoreStatus",
+                        anchor:'90%',
+                        listeners:{
+                            afterrender: function(me,eOpt){
+                                Ext.tip.QuickTipManager.register({
+                                    target: me.getEl(),
+                                    //title: 'My Tooltip',
+                                    text: 'Run Test Cases even if Test Case or Action status is Not Automated or Needs Maintanence.',
+                                    //width: 100,
+                                    dismissDelay: 10000 // Hide after 10 seconds hover
+                                });
+                            },
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
                     }
                 ]
             },
@@ -622,6 +644,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#testset").setValue(me.dataRecord.get("testset"));
                 me.down("#testset").setDisabled(true);
                 me.down("#executionTestcases").store.removeAll();
+                me.down("#ignoreStatus").setValue(me.dataRecord.get("ignoreStatus"));;
                 me.dataRecord.get("testcases").forEach(function(testcase){
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
                     testcase.name = originalTC.get("name");
@@ -679,6 +702,7 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.name = this.down("#name").getValue();
         execution.tag = this.down("#tag").getValue();
         execution.testset = this.down("#testset").getValue();
+        execution.ignoreStatus = this.down("#ignoreStatus").getValue();
 
         var variablesStore = this.down("#executionVars").store;
         execution.variables = [];

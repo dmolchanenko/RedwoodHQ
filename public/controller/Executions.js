@@ -88,6 +88,7 @@ Ext.define("Redwood.controller.Executions", {
 
         var machines = executionView.getSelectedMachines();
         var testcases = executionView.getSelectedTestCases();
+        var ignoreStatus = executionView.down("#ignoreStatus").getValue();
         var status = executionView.getStatus();
         if (status == "Running") {
             Ext.Msg.alert('Error', "Execution is currently running");
@@ -120,7 +121,7 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Ajax.request({
                 url:"/executionengine/startexecution",
                 method:"POST",
-                jsonData : {testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
+                jsonData : {ignoreStatus:ignoreStatus,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
                 success: function(response) {
                     var obj = Ext.decode(response.responseText);
                     if(obj.error != null){
@@ -156,6 +157,8 @@ Ext.define("Redwood.controller.Executions", {
             executionView.dataRecord.set("variables",execution.variables);
             executionView.dataRecord.set("tag",execution.tag);
         }
+
+        executionView.dataRecord.set("ignoreStatus",execution.ignoreStatus);
 
         if (newExecution == false){
             if (typeof (callback) === 'function') callback(executionView.dataRecord);
@@ -273,9 +276,18 @@ Ext.define("Redwood.controller.Executions", {
     },
 
     getTetSetNames: function(){
+        var me = this;
         Ext.data.StoreManager.lookup('Executions').each(function(execution){
-            var setName = Ext.data.StoreManager.lookup('TestSets').findRecord("_id", execution.get("testset")).get("name");
-            execution.set("testsetname",setName);
+            var record = Ext.data.StoreManager.lookup('TestSets').findRecord("_id", execution.get("testset"));
+            if (record == null){
+                Ext.data.StoreManager.lookup('TestSets').on("load",function(){
+                    me.getTetSetNames();
+                });
+            }
+            else{
+                var setName = record.get("name");
+                execution.set("testsetname",setName);
+            }
         });
     },
 
@@ -284,7 +296,7 @@ Ext.define("Redwood.controller.Executions", {
         this.executionsEditor = Ext.ComponentQuery.query('executionsEditor')[0];
         this.grid = this.executionsEditor;
         this.tabPanel = Ext.ComponentQuery.query('#executionsTab',this.executionsEditor)[0];
-        this.getTetSetNames();
+        //this.getTetSetNames();
         Ext.data.StoreManager.lookup('Executions').on("load",function(){
             me.getTetSetNames();
         });

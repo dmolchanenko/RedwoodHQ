@@ -265,6 +265,23 @@ Ext.define('Redwood.view.TestCaseView', {
             }
         }
 
+        if (this.down("#status").getValue() == "Automated"){
+            if (this.down("#type").getValue().type == "script"){
+
+                if (this.down("scriptPicker").getValue() == ""){
+                    this.down("scriptPicker").focus();
+                    Ext.Msg.alert('Error', "You must select script for this action.");
+                    return false;
+                }
+            }
+            else{
+                if (this.down("actioncollection").getCollectionData().length == 0){
+                    Ext.Msg.alert('Error', "You must add actions to action collection.");
+                    return false;
+                }
+            }
+        }
+
     },
 
     getTestCaseData: function(){

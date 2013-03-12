@@ -1,3 +1,8 @@
+.x-grey-checked-box{
+    background-position: 0 -26px;
+    background-image: url('../images/checkbox.png');
+}
+
 .x-redwood-tree-unfocused .x-grid-cell{
     border-style: dotted;
     border-color: #101010;

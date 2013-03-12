@@ -14,7 +14,10 @@ Ext.define("Redwood.controller.TestSets", {
                 testsetDelete: this.onTestSetDelete,
                 celldblclick: this.onDoubleClick,
                 newTestSet: this.addTestSet,
-                save: this.saveTestSet
+                save: this.saveTestSet,
+                tcSelChange: this.onTCSelChange,
+                addDir: this.onDirAdd,
+                dirChecked: this.onDirChecked
             }
 
         });
@@ -30,8 +33,8 @@ Ext.define("Redwood.controller.TestSets", {
             var newSet = true;
             newTestSet.name = foundTab.down("#testsetname").getValue();
             newTestSet.testcases = [];
-            foundTab.down("#testcases").store.getRootNode().eachChild(function(testcase){
-                if (testcase.get("checked") == true){
+            foundTab.down("#testcases").store.getRootNode().cascadeBy(function(testcase){
+                if ((testcase.get("leaf") == true) && (testcase.get("checked") == true)){
                     newTestSet.testcases.push({_id:testcase.get("_id")});
                 }
             });
@@ -41,10 +44,10 @@ Ext.define("Redwood.controller.TestSets", {
                 newSet = false;
             }
             else{
-                Ext.data.StoreManager.lookup('TestSets').add(newTestSet);
+                foundTab.testSetData = Ext.data.StoreManager.lookup('TestSets').add(newTestSet)[0];
             }
             foundTab.setTitle("[Test Set] "+newTestSet.name);
-
+            foundTab.dirty = false;
             Ext.data.StoreManager.lookup('TestSets').sync({success:function(batch,options){
                 if (newSet == false){
                     Ext.Ajax.request({
@@ -81,6 +84,7 @@ Ext.define("Redwood.controller.TestSets", {
                 foundTab = tab;
             }
             this.tabPanel.setActiveTab(foundTab);
+            foundTab.initTree();
         }
     },
 

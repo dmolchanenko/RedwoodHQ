@@ -47,6 +47,22 @@ Ext.application({
                     return "You have unsaved changes in one of your test cases.";
                 }
             }
+
+            var allExecutions = Ext.ComponentQuery.query('executionview');
+
+            for (var i=0;i<allExecutions.length;i++){
+                if (allExecutions[i].dirty == true){
+                    return "You have unsaved changes in one of your executions.";
+                }
+            }
+
+            var allTestSets = Ext.ComponentQuery.query('testsetEdit');
+
+            for (var i=0;i<allTestSets.length;i++){
+                if (allTestSets[i].dirty == true){
+                    return "You have unsaved changes in one of your test sets.";
+                }
+            }
         };
         //Ext.FocusManager.enable();
     }
