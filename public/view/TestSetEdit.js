@@ -138,14 +138,18 @@ Ext.define('Redwood.view.TestSetEdit', {
 
     markGrey: function(node,tree){
         var checkBox = Ext.query("input",tree.getView().getNode(node))[0];
-        checkBox.className = "x-grey-checked-box x-tree-checkbox";
-        node.data.greyCheck = true;
+        if (checkBox.className.indexOf("x-tree-checkbox") != -1){
+            checkBox.className = "x-grey-checked-box x-tree-checkbox";
+            node.data.greyCheck = true;
+        }
     },
 
     markWhite: function(node,tree){
         var checkBox = Ext.query("input",tree.getView().getNode(node))[0];
-        checkBox.className = "x-tree-checkbox-checked x-tree-checkbox";
-        node.data.greyCheck = false;
+        if (checkBox.className.indexOf("x-tree-checkbox") != -1){
+            checkBox.className = "x-tree-checkbox-checked x-tree-checkbox";
+            node.data.greyCheck = false;
+        }
     },
 
     markParents: function(node,tree){
