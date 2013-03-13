@@ -33,11 +33,18 @@ Ext.define("Redwood.controller.TestSets", {
             var newSet = true;
             newTestSet.name = foundTab.down("#testsetname").getValue();
             newTestSet.testcases = [];
+            var tempTCs = {};
             foundTab.down("#testcases").store.getRootNode().cascadeBy(function(testcase){
                 if ((testcase.get("leaf") == true) && (testcase.get("checked") == true)){
-                    newTestSet.testcases.push({_id:testcase.get("_id")});
+                    //newTestSet.testcases.push({_id:testcase.get("_id")});
+                    tempTCs[testcase.get("_id")] = testcase.get("_id");
                 }
             });
+
+            for (var type in tempTCs) {
+                var item = {_id:tempTCs[type]};
+                newTestSet.testcases.push(item);
+            }
             if (foundTab.testSetData != null){
                 foundTab.testSetData.set("name", newTestSet.name);
                 foundTab.testSetData.set("testcases",newTestSet.testcases);
