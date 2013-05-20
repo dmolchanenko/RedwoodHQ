@@ -7,6 +7,8 @@ $colorpicker-over-background-color: #deecfd !default;
 // date picker
 $datepicker-base-color: $base-color !default;
 
+
+
 $datepicker-border-color: adjust-color($datepicker-base-color, $hue: 5.926deg, $saturation: 4.444%, $lightness: -57.647%) !default; //#1b376c
 $datepicker-border-width: 1px !default;
 $datepicker-border-style: solid !default;
@@ -17,6 +19,8 @@ $datepicker-next-image: 'shared/right-btn.gif' !default;
 $datepicker-prev-image: 'shared/left-btn.gif' !default;
 $datepicker-month-arrow-image: 'button/s-arrow-light.gif' !default;
 $datepicker-tool-sprite-image: 'tools/tool-sprites.png' !default;
+
+$datepicker-header-height:26px !default;
 
 $datepicker-header-background-color: adjust-color($datepicker-base-color, $hue: 5.768deg, $saturation: 0.419%, $lightness: -52.941%) !default; //#23427c
 $datepicker-header-background-gradient: matte !default;
@@ -38,6 +42,9 @@ $datepicker-th-text-align: right !default;
 $datepicker-td-height: 17px !default;
 
 //item
+$datepicker-body-font-size:ceil($font-size * .9) !default;
+
+
 $datepicker-item-color: #000 !default;
 $m-datepicker-prevday-color:#aaa !default;
 $datepicker-item-border-width: 1px !default;
@@ -62,6 +69,10 @@ $datepicker-footer-background-color: $datepicker-th-background-color !default;
 $datepicker-footer-background-gradient: color_stops(adjust-color($datepicker-base-color, $hue: 0.58deg, $saturation: -2.067%, $lightness: 7.451%), adjust-color($datepicker-base-color, $hue: -0.43deg, $saturation: -4.736%, $lightness: 3.922%) 49%, adjust-color($datepicker-base-color, $hue: -0.175deg, $saturation: -4.204%, $lightness: 1.373%) 51%, adjust-color($datepicker-base-color, $hue: 0.952deg, $saturation: -4.831%, $lightness: 2.353%)) !default;
 $datepicker-footer-border-top-color: $datepicker-th-border-bottom-color !default; //a3bad9
 
+
+$datepicker-monthpicker-font-size:ceil($font-size * .9) !default;
+
+$datepicker-monthpicker-item-height:18px !default;
 $datepicker-monthpicker-height: 167px !default;
 
 $datepicker-monthpicker-item-color: adjust-color($datepicker-base-color, $hue: 3.785deg, $saturation: 18.194%, $lightness: -52.745%) !default; //#15428B

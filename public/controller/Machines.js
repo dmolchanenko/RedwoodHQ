@@ -1,6 +1,6 @@
 function vncToMachine(host,port){
     window.open ("novnc/vnc.html?host="+host+"&port="+port+"&password=admin&connectTimeout=20");
-    if(!Ext.isIE){
+    if(Ext.isChrome){
         return false;
     }
 }

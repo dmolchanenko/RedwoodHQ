@@ -1,3 +1,5 @@
+var realtime = require("./realtime");
+
 exports.actionsPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -5,6 +7,7 @@ exports.actionsPut = function(req, res){
     data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateActions(app.getDB(),data,function(err){
+        realtime.emitMessage("UpdateActions",data);
         res.contentType('json');
         res.json({
             success: !err,
@@ -32,6 +35,7 @@ exports.actionsDelete = function(req, res){
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
     DeleteActions(app.getDB(),{_id: id},function(err){
+        realtime.emitMessage("DeleteActions",{id: req.params.id});
         res.contentType('json');
         res.json({
             success: !err,
@@ -48,6 +52,7 @@ exports.actionsPost = function(req, res){
     delete data._id;
     data.project = req.cookies.project;
     CreateActions(app.getDB(),data,function(returnData){
+        realtime.emitMessage("AddActions",data);
         res.contentType('json');
         res.json({
             success: true,

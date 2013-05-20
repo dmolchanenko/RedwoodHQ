@@ -216,7 +216,8 @@
 
     .#{$prefix}tab-icon-text-left {
         .#{$prefix}tab-inner {
-            padding-left: 20px;
+            //padding-left: 20px; codaxy
+			padding-left:($tab-height - $framepad * 2 - bottom($tab-bottom-border-width)) + 3;
         }
     }
 
@@ -227,13 +228,16 @@
     .#{$prefix}tab-icon {
         position: absolute;
         background-repeat: no-repeat;
-        background-position: 0 -1px;
+        //background-position: 0 -1px; //codaxy
+		background-position:center;
         top: 0;
         left: 0;
         right: auto;
         bottom: 0;
-        width: 18px;
-        height: 18px;
+		//width:18px; codaxy
+		//height:18px;
+        width: $tab-height - $framepad * 2 - bottom($tab-bottom-border-width);
+        height: $tab-height - $framepad * 2 - bottom($tab-bottom-border-width);
     }
 
     // Stop icons being clipped by the bottom of the button element

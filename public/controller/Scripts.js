@@ -3,7 +3,9 @@ function openScript(path,lineNumber){
     tab.setActiveTab(tab.down("#ScriptBrowser"));
     Ext.getCmp("ScriptBrowser").fireEvent('scriptEdit',path,parseInt(lineNumber,10));
     //scriptController.onScriptEdit(path,lineNumber);
-    return false;
+    if(Ext.isChrome){
+        return false;
+    }
 }
 
 

@@ -22,4 +22,4 @@ output_style = :compressed
 load File.join(File.dirname(__FILE__), $ext_path, 'resources', 'themes')
 
 
-#line_comments = false
+line_comments = false

@@ -1,0 +1,123 @@
+﻿
+
+@mixin panel-ui (
+	$custom-ui-name
+) {
+/*
+==============================================================
+===================== start ui-panel =========================
+*/
+
+@include ui-panel(
+	$custom-ui-name,
+
+	$ui-base-color:$custom-ui-base-color,
+
+	$ui-header-text-color:$custom-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-custom-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-custom-border-color-selected,
+
+	$ui-tool-background-color-over:$custom-tool-background-color-hover,
+	$ui-tool-close-background-color:$custom-close-tool-background-color,
+	$ui-tool-close-background-color-over:$custom-close-tool-background-color-hover
+
+);
+
+/*
+======================= end ui-panel =========================
+==============================================================
+*/
+
+
+
+/*
+==============================================================
+=================== start ui-panel-framed ====================
+*/
+
+@include ui-panel-framed(
+	'#{$custom-ui-name}-framed',
+
+	$ui-base-color:$custom-ui-base-color,
+
+	$ui-header-text-color:$custom-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-custom-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-custom-border-color-selected,
+
+	$ui-tool-background-color-over:$custom-tool-background-color-hover,
+	$ui-tool-close-background-color:$custom-close-tool-background-color,
+	$ui-tool-close-background-color-over:$custom-close-tool-background-color-hover
+
+);
+
+
+/*
+==================== end ui-panel-framed =====================
+==============================================================
+*/
+
+}
+
+
+@mixin panel-ui-active (
+	$custom-ui-name
+) {
+
+/*	
+==============================================================
+================= start ui-panel-active ======================
+*/
+
+@include ui-panel-active(
+	$custom-ui-name,
+
+	$ui-base-color:$custom-ui-base-color,
+
+	$ui-header-text-color:$custom-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-custom-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-custom-border-color-selected,
+
+	$ui-tool-background-color-over:$custom-tool-background-color-hover,
+	$ui-tool-close-background-color:$custom-close-tool-background-color,
+	$ui-tool-close-background-color-over:$custom-close-tool-background-color-hover
+
+);	
+
+/*
+==================== end ui-panel-active =====================
+==============================================================
+*/
+
+
+/*	
+==============================================================
+=============== start ui-panel-active-framed =================
+*/
+
+@include ui-panel-active-framed(
+	'#{$custom-ui-name}-framed',
+
+	$ui-base-color:$custom-ui-base-color,
+
+	$ui-header-text-color:$custom-header-text-color,
+
+	$ui-grid-background-color-selected:$grid-row-custom-background-color-selected,
+	$ui-grid-border-color-selected:$grid-row-custom-border-color-selected,
+
+	$ui-tool-background-color-over:$custom-tool-background-color-hover,
+	$ui-tool-close-background-color:$custom-close-tool-background-color,
+	$ui-tool-close-background-color-over:$custom-close-tool-background-color-hover
+
+);	
+	
+
+/*
+================== end ui-panel-active =======================
+==============================================================
+*/
+
+
+}

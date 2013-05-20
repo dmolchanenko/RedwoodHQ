@@ -21,6 +21,8 @@ $grid-header-trigger-height: 22px !default;
 $grid-header-trigger-width: 14px !default;
 $grid-header-color: null !default;
 
+$grid-header-font-size:ceil($font-size * .9) !default;
+
 $m-grid-header-border-color:$base-color !default;
 $m-grid-header-text-shadow:true !default;
 
@@ -42,7 +44,9 @@ $grid-row-wrap-border-width: 1px 0 !default;
 $grid-row-wrap-border-style: solid !default;
 
 //row body
-$grid-row-body-font: normal 11px/13px $font-family !default;
+$grid-row-body-font-size:11px !default;
+$grid-row-body-line-height:$grid-row-body-font-size + 2 !default;
+$grid-row-body-font: normal #{$grid-row-body-font-size}/#{$grid-row-body-line-height} $font-family !default;
 $grid-row-body-padding: 4px !default;
 
 //row cell
@@ -115,3 +119,10 @@ $grid-row-editor-checkbox-margin-left: -4px !default;
 // ===============================
 $grid-cell-editor-field-padding-horizontal: 4px !default;
 $grid-cell-editor-checkbox-padding-top: 3px !default;
+
+
+//===============================
+//========= PAGING BAR ==========
+
+$grid-pagingbar-sprite:'grid/pagingbar-sprite.png' !default;
+$grid-pagingbar-sprite-size:16px !default;

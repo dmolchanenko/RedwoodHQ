@@ -1,0 +1,57 @@
+﻿
+@mixin ui-progress (
+	$custom-ui-name
+) {
+
+/*
+==============================================================
+================ start ui-progress-active ====================
+*/
+
+	@include extjs-progress-ui(
+        $custom-ui-name,
+
+        $ui-background-color: $progress-background-color,
+        $ui-border-color: $progress-bar-custom-base-color,
+
+        $ui-bar-background-color: $progress-bar-custom-base-color,
+
+        $ui-color-front: $progress-text-color-front,
+        $ui-color-back: $progress-text-color-back,
+
+		$ui-bar-background-gradient:$m-progress-bar-background-gradient //add new property
+    )
+
+/*
+================== end ui-progress-active ====================
+==============================================================
+*/
+
+
+}
+
+
+@mixin ui-progress-active (
+	$custom-ui-name
+) {
+
+/*
+==============================================================
+================ start ui-progress-active ====================
+*/
+
+	@include progress-active(
+        '#{$custom-ui-name}-active',
+
+        $ui-border-color-active: $progress-bar-custom-base-color,
+        $ui-bar-background-color-active: $progress-bar-custom-base-color
+
+    )
+
+/*
+================= end ui-progress-active =====================
+==============================================================
+*/
+
+
+}

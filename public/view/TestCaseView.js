@@ -64,6 +64,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 xtype: 'fieldset',
                 title: 'Test Case Details',
                 defaultType: 'textfield',
+                itemId:"testcaseDetails",
                 flex: 1,
                 collapsible: true,
                 defaults: {

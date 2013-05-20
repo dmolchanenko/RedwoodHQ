@@ -1,0 +1,21 @@
+﻿
+@mixin button-overrides {
+	.#{$prefix}btn {
+		.#{$prefix}btn-inner {
+			overflow:visible;
+		}
+		
+		button {
+			overflow:visible;
+		}
+
+	}
+
+
+	@if $extjs-version == "4.0" {
+		 .x-btn button {
+			width: auto;
+		 }
+	}
+
+}

@@ -51,6 +51,13 @@
 			border-top-color:darken($ui-base-color,8);
 		}
 
+		.#{$prefix}panel-header-#{$ui-label}.#{$prefix}accordion-hd {
+			background-color:$ui-base-color !important;
+			border-top-color:$ui-base-color !important;
+		}
+
+
+
 		.#{$prefix}panel-#{$ui-label}.#{$prefix}grid-with-row-lines .#{$prefix}panel-body-#{$ui-label} {
 
 			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
@@ -62,6 +69,31 @@
 		
 		}
 
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}tree-panel .#{$prefix}panel-body-#{$ui-label} {
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {				
+				background-color: $ui-grid-background-color-selected !important;
+			}
+		
+		}
+
+
+
+		@if $extjs-version == "4.0" {
+
+			.#{$prefix}panel-#{$ui-label} .#{$prefix}panel-body-#{$ui-label}.#{$prefix}grid-body  {
+				.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+				.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+					border-color: $ui-grid-border-color-selected !important;
+					background-color: $ui-grid-background-color-selected !important;
+				}
+			
+				.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+					border-top-color: $ui-grid-border-color-selected !important;
+				}
+			}
+		
+		}
 
 }
 
@@ -127,6 +159,34 @@
 		
 		}
 
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}tree-panel .#{$prefix}panel-body-#{$ui-label} {
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {				
+				background-color: $ui-grid-background-color-selected !important;
+			}
+		
+		}
+
+
+
+		@if $extjs-version == "4.0" {
+
+			.#{$prefix}panel-#{$ui-label} .#{$prefix}panel-body-#{$ui-label}.#{$prefix}grid-body  {
+				.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+				.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+					border-color: $ui-grid-border-color-selected !important;
+					background-color: $ui-grid-background-color-selected !important;
+				}
+				
+				.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+					border-top-color: $ui-grid-border-color-selected !important;
+				}
+		
+			}
+		
+		}
+
+
 }
 
 
@@ -189,6 +249,13 @@
 			border-top-color:darken($ui-base-color,8);
 		}
 
+		.#{$prefix}panel-header-#{$ui-label}.#{$prefix}accordion-hd {
+			background-color:$ui-base-color !important;
+			border-top-color:$ui-base-color !important;
+		}
+
+
+
 		.#{$prefix}panel-header-text-#{$ui-label} {
 			  color: $ui-header-text-color;
 		 }
@@ -233,7 +300,7 @@
 		.#{$prefix}panel-header-#{$ui-label}-left,
 		.#{$prefix}panel-header-#{$ui-label}-right {
 			background-color:$ui-base-color;
-			color:	$ui-header-text-color; 
+			color:$ui-header-text-color; 
 		}
 
 
@@ -247,6 +314,33 @@
 			}
 
 		}
+
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}tree-panel .#{$prefix}panel-body-#{$ui-label} {
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {				
+				background-color: $ui-grid-background-color-selected !important;
+			}
+		
+		}
+
+
+		@if $extjs-version == "4.0" {
+
+			.#{$prefix}panel-#{$ui-label} .#{$prefix}panel-body-#{$ui-label}.#{$prefix}grid-body .x-grid-table  {
+				.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+				.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+					border-color: $ui-grid-border-color-selected !important;
+					background-color: $ui-grid-background-color-selected !important;
+				}
+			
+				.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+					border-top-color: $ui-grid-border-color-selected !important;
+				}
+			}
+		
+		}
+
+
 	}
 
 
@@ -389,6 +483,32 @@
 			}
 
 		}
+
+		.#{$prefix}panel-#{$ui-label}.#{$prefix}tree-panel .#{$prefix}panel-body-#{$ui-label} {
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {				
+				background-color: $ui-grid-background-color-selected !important;
+			}
+		
+		}
+
+		@if $extjs-version == "4.0" {
+
+			.#{$prefix}panel-#{$ui-label} .#{$prefix}panel-body-#{$ui-label}.#{$prefix}grid-body .x-grid-table  {
+				.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+				.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+					border-color: $ui-grid-border-color-selected !important;
+					background-color: $ui-grid-background-color-selected !important;
+				}
+			
+				.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+					border-top-color: $ui-grid-border-color-selected !important;
+				}
+			}
+		
+		}
+
+
 	}
 
 }

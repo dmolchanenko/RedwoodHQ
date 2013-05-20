@@ -2,7 +2,7 @@ function openResultDetails(id){
     var controller = Redwood.app.getController("Executions");
     controller.openExecutionDetails(id);
 
-    if(!Ext.isIE){
+    if(Ext.isChrome){
         return false;
     }
 }
@@ -13,7 +13,7 @@ Ext.define("Redwood.controller.Executions", {
 
     models: ['Executions','ExecutionTags'],
     stores: ['Executions','ExecutionTags'],
-    views:  ['Executions','ResultsView'],
+    views:  ['Executions','ResultsView','ActionPicker'],
 
     init: function () {
         this.control({
@@ -89,6 +89,7 @@ Ext.define("Redwood.controller.Executions", {
         var machines = executionView.getSelectedMachines();
         var testcases = executionView.getSelectedTestCases();
         var ignoreStatus = executionView.down("#ignoreStatus").getValue();
+        var retryCount = executionView.down("#retryCount").getValue();
         var status = executionView.getStatus();
         if (status == "Running") {
             Ext.Msg.alert('Error', "Execution is currently running");
@@ -104,7 +105,9 @@ Ext.define("Redwood.controller.Executions", {
             return;
         }
         //close any open results
+        //add retry count as well
         testcases.forEach(function(testcase){
+            testcase.retryCount = parseInt(retryCount);
             if(testcase.resultID){
                 var tab = me.tabPanel.down("#"+testcase.resultID);
                 if (tab){
@@ -155,6 +158,7 @@ Ext.define("Redwood.controller.Executions", {
         else{
             executionView.dataRecord.set("name",execution.name);
             executionView.dataRecord.set("variables",execution.variables);
+            executionView.dataRecord.set("machines",execution.machines);
             executionView.dataRecord.set("tag",execution.tag);
         }
 

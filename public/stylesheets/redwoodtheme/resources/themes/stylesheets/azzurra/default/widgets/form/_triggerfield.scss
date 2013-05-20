@@ -8,7 +8,7 @@
     }
 
     .#{$prefix}form-trigger {
-        background-image: theme-background-image($theme-name, 'form/trigger.gif');
+        background-image: theme-background-image($theme-name, $form-trigger-sprite);
 		background-position: 0 0;
 
 		width: $form-trigger-width;
@@ -90,37 +90,40 @@
     }
 
     .#{$prefix}form-date-trigger {
-        background-image: theme-background-image($theme-name, 'form/date-trigger.gif');
+        background-image: theme-background-image($theme-name, $form-data-trigger-sprite);
     }
 
     $spinner-btn-height: $form-trigger-height / 2;
     .#{$prefix}form-trigger-wrap {
         .#{$prefix}form-spinner-up,
         .#{$prefix}form-spinner-down {
-            background-image: theme-background-image($theme-name, 'form/spinner.gif');
+            background-image: theme-background-image($theme-name, $form-spiner-sprite);
 
             width: $form-trigger-width !important;
             height: $spinner-btn-height !important;
 
             font-size: 0; /*for IE*/
 
-            border-bottom: 0;
+            border-bottom: $form-trigger-border-bottom;
         }
         .#{$prefix}form-spinner-down {
-            background-position: 0 (-$spinner-btn-height);
+            background-position: 0 ($form-spiner-down-background-position);
+			
         }
+
+
     }
     .#{$prefix}form-trigger-wrap-focus .#{$prefix}form-spinner-down {
-        background-position: -($form-trigger-width * 3) (-$spinner-btn-height);
+        background-position: -($form-trigger-width * 3) ($form-spiner-down-background-position);
     }
     .#{$prefix}form-trigger-wrap .#{$prefix}form-spinner-down-over {
-        background-position: (-$form-trigger-width) (-$spinner-btn-height);
+        background-position: (-$form-trigger-width) ($form-spiner-down-background-position);
     }
     .#{$prefix}form-trigger-wrap-focus .#{$prefix}form-spinner-down-over {
-        background-position: -($form-trigger-width * 4) (-$spinner-btn-height);
+        background-position: -($form-trigger-width * 4) ($form-spiner-down-background-position);
     }
     .#{$prefix}form-trigger-wrap .#{$prefix}form-spinner-down-click {
-        background-position: -($form-trigger-width * 2) (-$spinner-btn-height);
+        background-position: -($form-trigger-width * 2) ($form-spiner-down-background-position);
     }
 
 
@@ -129,24 +132,24 @@
         .#{$prefix}form-trigger-wrap {
             .#{$prefix}form-spinner-up,
             .#{$prefix}form-spinner-down {
-               background-image: theme-background-image($theme-name, 'form/spinner-small.gif');
+               background-image: theme-background-image($theme-name, $form-spiner-toolbar-sprite);
                 height: $spinner-btn-height !important;
             }
             .#{$prefix}form-spinner-down {
-                background-position: 0 (-$spinner-btn-height);
+                background-position: 0 ($form-spiner-toolbar-down-background-position);
             }
         }
         .#{$prefix}form-trigger-wrap-focus .#{$prefix}form-spinner-down {
-            background-position: -($form-trigger-width * 3) (-$spinner-btn-height);
+            background-position: -($form-trigger-width * 3) ($form-spiner-toolbar-down-background-position);
         }
         .#{$prefix}form-trigger-wrap .#{$prefix}form-spinner-down-over {
-            background-position: (-$form-trigger-width) (-$spinner-btn-height);
+            background-position: (-$form-trigger-width) ($form-spiner-toolbar-down-background-position);
         }
         .#{$prefix}form-trigger-wrap-focus .#{$prefix}form-spinner-down-over {
-            background-position: -($form-trigger-width * 4) (-$spinner-btn-height);
+            background-position: -($form-trigger-width * 4) ($form-spiner-toolbar-down-background-position);
         }
         .#{$prefix}form-trigger-wrap .#{$prefix}form-spinner-down-click {
-            background-position: -($form-trigger-width * 2) (-$spinner-btn-height);
+            background-position: -($form-trigger-width * 2) ($form-spiner-toolbar-down-background-position);
         }
     }
 
@@ -164,10 +167,10 @@
 
 
     .#{$prefix}form-clear-trigger {
-        background-image: theme-background-image($theme-name, 'form/clear-trigger.png'); //codaxy: replace *.gif with *.png
+        background-image: theme-background-image($theme-name, $form-clear-trigger-sprite ); 
     }
     .#{$prefix}form-search-trigger {
-        background-image: theme-background-image($theme-name, 'form/search-trigger.png'); //codaxy: replace *.gif with *.png
+        background-image: theme-background-image($theme-name, $form-search-trigger-sprite );
     }
 
     @if $include-ie {

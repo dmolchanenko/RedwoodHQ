@@ -29,7 +29,7 @@
     .#{$prefix}datepicker-header {
         position: relative;
 
-        height: 26px;
+        height: $datepicker-header-height;
 
         @if $datepicker-header-background-gradient {
             @include background-gradient($datepicker-header-background-color, $datepicker-header-background-gradient);
@@ -184,7 +184,7 @@
 
             zoom: 1;
 
-            font: normal ceil($font-size * .9) $font-family;
+            font: normal $datepicker-body-font-size $font-family;
             color: $datepicker-item-color;
             text-decoration: none;
             text-align: right;
@@ -291,11 +291,11 @@
 
         margin: 4px 0 5px 0;
 
-        font: normal ceil($font-size * .9) $font-family;
+        font: normal $datepicker-monthpicker-font-size $font-family;
         text-align: center;
         vertical-align: middle;
 
-        height: 18px;
+        height: $datepicker-monthpicker-item-height;
         width: 43px;
 
         border: 0 none;

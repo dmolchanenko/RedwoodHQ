@@ -12,6 +12,7 @@ exports.operation = function(msg, id,callback,onFinish){
     var antDir = path.resolve(__dirname,"../vendor/ant/bin/")+"/";
     var javaDir = path.resolve(__dirname,"../vendor/Java");
     compileProcs[id] = {proc:spawn(antDir+'ant.bat',['clean','compile','jar'],{cwd: buildDir,timeout:1800000,env:{JAVA_HOME:javaDir}}),status:"compile"};
+    //compileProcs[id] = {proc:spawn(antDir+'ant.bat',['clean','compile','jar'],{cwd: buildDir,timeout:1800000,env:{JAVA_HOME:javaDir,_JAVACMD:javaDir+"\\bin\\java.exe -version:1.7+"}}),status:"compile"};
     console.log(antDir);
     console.log(buildDir);
     compileProcs[id].proc.stdout.on('data', function(data) {

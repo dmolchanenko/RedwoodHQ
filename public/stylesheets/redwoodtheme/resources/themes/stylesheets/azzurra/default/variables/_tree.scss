@@ -1,11 +1,136 @@
-$tree-elbow-height: 20px !default;
-$tree-elbow-width: 16px !default;
+
+
+
+
+$tree-size:null !default;
+
+
+
+
 $tree-checkbox-margin-top: 4px !default;
 $tree-checkbox-margin-right: 3px !default;
 $tree-icon-margin-top: 2px !default;
 $tree-icon-margin-right: 3px !default;
 $grid-cell-treecolumn-editor-field-padding-horizontal: 1px !default;
 
-$m-tree-row-background-color:$base-color !default;
-$m-tree-row-background-color-over:darken($base-color,3) !default;
-$m-tree-row-background-color-selected:darken($base-color,7) !default;
+
+
+@function tree-size-height($size) {
+	@if $size == small {
+		@return 20px;
+	} @else if $size == medium {
+		@return 30px;
+	} @else if $size == large {
+		@return 36px;
+	} @else {
+		@if $theme-scale-factor < 1.2 {
+			@return 20px;		
+		}
+		@else if $theme-scale-factor >= 1.2 and $theme-scale-factor < 1.4 {
+			@return 30px;		
+		}
+		@else if $theme-scale-factor >= 1.4 {
+			@return 36px;
+		}	
+	}
+}
+
+@function tree-size-width($size) {
+	@if $size == small {
+		@return 16px;
+	} @else if $size == medium {
+		@return 24px
+	} @else if $size == large {
+		@return 32px;
+	} @else {
+		@if $theme-scale-factor < 1.2 {
+			@return 16px;		
+		}
+		@else if $theme-scale-factor >= 1.2 and $theme-scale-factor < 1.4 {
+			@return 24px;		
+		}
+		@else if $theme-scale-factor >= 1.4 {
+			@return 32px;
+		}	
+	}
+}
+
+@function tree-icons-sprite($size) {
+	@if $size == small {
+		@return 'tree/icons-small.png';
+	
+	} @else if $size == medium {
+		@return 'tree/icons-medium.png';
+	} @else if $size == large {
+		@return 'tree/icons-large.png';
+	} @else {
+		@if $theme-scale-factor < 1.2 {
+			@return 'tree/icons-small.png';		
+		}
+		@else if $theme-scale-factor >= 1.2 and $theme-scale-factor < 1.4 {
+			@return 'tree/icons-medium.png';		
+		}
+		@else if $theme-scale-factor >= 1.4 {
+			@return 'tree/icons-large.png';
+		}	
+	}
+}
+
+
+@function tree-elbows-sprite($size) {
+	@if $size == small {
+		@return 'tree/all-elbows-small.png';
+	}
+	@else if $size == medium {
+		@return 'tree/all-elbows-medium.png';
+	} @else if $size == large {
+		@return 'tree/all-elbows-large.png';
+	}  @else {
+		@if $theme-scale-factor < 1.2 {
+			@return 'tree/all-elbows-small.png';		
+		}
+		@else if $theme-scale-factor >= 1.2 and $theme-scale-factor < 1.4 {
+			@return 'tree/all-elbows-medium.png';	
+		}
+		@else if $theme-scale-factor >= 1.4 {
+			@return 'tree/all-elbows-large.png';
+		}	
+	}
+	
+
+}
+
+@function tree-arrows-sprite($size) {
+
+	@if $size == small {
+		@return 'tree/arrows.png';
+	}
+	@else if $size == medium {
+		@return 'tree/arrows-medium.png';
+	} @else if $size == large {
+		@return 'tree/arrows-large.png';
+	}  @else {
+		@if $theme-scale-factor < 1.2 {
+			@return 'tree/arrows-small.png';		
+		}
+		@else if $theme-scale-factor >= 1.2 and $theme-scale-factor < 1.4 {
+			@return 'tree/arrows-medium.png';	
+		}
+		@else if $theme-scale-factor >= 1.4 {
+			@return 'tree/arrows-large.png';
+		}	
+	}
+	
+
+}
+
+
+
+
+	$tree-elbow-height: tree-size-height($tree-size) !default;
+	$tree-elbow-width: tree-size-width($tree-size) !default;
+
+	$tree-elbow-sprite: tree-elbows-sprite($tree-size) !default;
+	$tree-icons-sprite: tree-icons-sprite($tree-size) !default;
+
+	$tree-arrows-sprite:tree-arrows-sprite($tree-size) !default;

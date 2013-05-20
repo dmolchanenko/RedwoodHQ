@@ -21,7 +21,12 @@
 				&>.#{$prefix}tab-bar-bottom .#{$prefix}tab {	
 					border-top-color:$ui-base-tab-background-color-active !important;
 				}
-	
+
+
+				&>.#{$prefix}tab-bar .#{$prefix}tab-over {
+					background-color:lighten($ui-base-tab-background-color-active,15);
+				}
+
 				&>.#{$prefix}tab-bar .#{$prefix}tab-active {
 					background-color: $ui-base-tab-background-color-active;
 					border-color: $ui-base-tab-background-color-active !important;
@@ -114,6 +119,66 @@
 				
 			}
 
+
+			@if $extjs-version == "4.0" {
+				div.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-body {
+		
+
+						.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+						.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+							border-color: $ui-grid-row-border-color-selected !important;
+							background-color: $ui-grid-row-background-color-selected !important;
+
+						}
+						
+						.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+							border-top-color: $ui-grid-row-border-color-selected !important;
+						
+						}	
+				}
+
+				div.#{$prefix}tabpanel-child {
+						.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-body {
+
+							.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+							.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+								border-color: $ui-grid-row-border-color-selected !important;
+								background-color: $ui-grid-row-background-color-selected !important;
+
+							}
+							
+							.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+								border-top-color: $ui-grid-row-border-color-selected !important;
+						
+						}	
+					}
+
+				}
+
+
+				div.#{$prefix}tabpanel-child .#{$prefix}tabpanel-child {
+						.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-body {
+
+							.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+							.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+								border-color: $ui-grid-row-border-color-selected !important;
+								background-color: $ui-grid-row-background-color-selected !important;
+
+							}
+							
+							.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+								border-top-color: $ui-grid-row-border-color-selected !important;
+						
+							}
+								
+						}
+
+				
+				}
+			
+			}
+
+
 		
 
 	} @else {
@@ -156,6 +221,10 @@
 					border-bottom-color:transparent !important;
 				}
 
+				&>.#{$prefix}tab-bar .#{$prefix}tab-over {
+					background-color:lighten($ui-base-tab-background-color-active,10);
+				}
+
 				&>.#{$prefix}tab-bar-bottom .#{$prefix}tab-active {	
 					border-bottom-color:$ui-base-tab-background-color-active !important;
 				}
@@ -165,6 +234,8 @@
 					background-color: $ui-base-tab-background-color-active;
 					border-color: $ui-base-tab-background-color-active !important;
 				}
+
+
 
 				&>.#{$prefix}tab-bar .#{$prefix}tab-bar-strip-default-plain {
 					background-color: $ui-base-tab-background-color-active;
@@ -215,6 +286,65 @@
 					}	
 				}
 			}
+
+
+			@if $extjs-version == "4.0" {
+				div.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-body {
+		
+
+						.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+						.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+							border-color: $ui-grid-row-border-color-selected !important;
+							background-color: $ui-grid-row-background-color-selected !important;
+
+						}
+						
+						.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+							border-top-color: $ui-grid-row-border-color-selected !important;
+						
+						}	
+				}
+
+				div.#{$prefix}tabpanel-child {
+						.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-body {
+
+							.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+							.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+								border-color: $ui-grid-row-border-color-selected !important;
+								background-color: $ui-grid-row-background-color-selected !important;
+
+							}
+							
+							.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+								border-top-color: $ui-grid-row-border-color-selected !important;
+						
+							}	
+					}
+
+				}
+
+
+				div.#{$prefix}tabpanel-child .#{$prefix}tabpanel-child {
+						.#{$prefix}panel-#{$ui-name} .#{$prefix}grid-body {
+
+							.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+							.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+								border-color: $ui-grid-row-border-color-selected !important;
+								background-color: $ui-grid-row-background-color-selected !important;
+
+							}
+							
+							.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+								border-top-color: $ui-grid-row-border-color-selected !important;
+						
+							}	
+						}
+
+				
+				}
+			
+			}
+
 
 			}		
 		}

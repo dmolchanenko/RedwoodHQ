@@ -3,9 +3,9 @@ var adminStore = Ext.create('Ext.data.TreeStore', {
         expanded: true,
         children: [
             //{ text: "Variables", leaf: true },
-            //{ text: "Machines", leaf: true,icon:"images/pc.png" },
             { text: "Users", leaf: true,icon:"images/user_go.png" },
-            { text: "Projects", leaf: true,icon:"images/project.png" }
+            { text: "Projects", leaf: true,icon:"images/project.png" },
+            { text: "Licence", leaf: true,icon:"images/pc.png" }
         ]
     }
 });
@@ -238,6 +238,10 @@ Ext.define('Redwood.view.Viewport', {
                             {
                                 xtype: "projectsEditor",
                                 itemId: "Projects"
+                            } ,
+                            {
+                                xtype: "licenseEditor",
+                                itemId: "License"
                             }
 
 

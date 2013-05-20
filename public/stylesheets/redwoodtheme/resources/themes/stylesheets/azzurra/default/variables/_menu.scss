@@ -17,6 +17,7 @@ $menu-link-padding: 6px 2px 3px 32px !default;
 
 //text
 $menu-text-color: #222 !default;
+$menu-text-size:ceil($font-size * .9) !default;
 
 //icons
 $menu-icon-arrow: 'menu/menu-parent.gif' !default;

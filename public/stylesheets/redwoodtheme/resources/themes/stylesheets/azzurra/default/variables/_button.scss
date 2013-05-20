@@ -5,7 +5,7 @@ $button-icon-spacing: 4px !default;
 $button-small-border-radius: 3px !default;
 $button-small-border-width: 1px !default;
 $button-small-padding: 2px !default;
-$button-small-text-padding: 4px;
+$button-small-text-padding: 4px !default;
 $button-small-font-size: ceil($font-size * .9) !default; //11px
 $button-small-font-size-over: $button-small-font-size !default;
 $button-small-font-size-focus: $button-small-font-size-over !default;

@@ -1,5 +1,15 @@
 ﻿@mixin grid-row-correction () {
 	
+	.#{$prefix}column-header-inner {
+		.#{$prefix}column-header-text {
+			font-size:$grid-header-font-size;
+		}
+	}
+	.#{$prefix}grid-rowwrap-div {
+		.#{$prefix}grid-rowbody {
+			font:$grid-row-body-font;
+		}
+	}
 	.#{$prefix}grid-row {
 		.#{$prefix}grid-cell,
 		.#{$prefix}grid-rowwrap-div {
@@ -29,6 +39,35 @@
 		}
 	
 	}
+
+
+
+
+
+	@if $extjs-version == "4.0" {
+		.#{$prefix}grid-row {
+			.#{$prefix}grid-cell
+			 {
+				border-top-width:1px;
+
+
+				&[class*="#{$prefix}grid-cell-treecolumn"] {
+					border-top-width:0px;
+				}
+			}
+		}
+
+		.#{$prefix}grid-row-selected+.#{$prefix}grid-row {
+			.#{$prefix}grid-cell {
+				border-top-color:$grid-row-cell-selected-border-color;
+	
+			}
+	
+	}
+
+
+	}
+
 }
 
 @mixin grid-cell-selected {

@@ -1,4 +1,14 @@
 ﻿
+@mixin tabbar-overrides {
+	.x-tab-default-over {
+		background-color:$tab-base-color-over;
+	}
+
+	.x-tab-default-active {
+		background-color:$tab-base-color-active;
+	}
+}
+
 @mixin tab-bar-border-correction {
 	.#{$prefix}tab {	
 		border:none;
@@ -38,7 +48,7 @@
 	}
 
 	.#{$prefix}tab:first-child {
-		margin-left:2px !important;
+		margin-left:1px !important;
 	}
 
 }

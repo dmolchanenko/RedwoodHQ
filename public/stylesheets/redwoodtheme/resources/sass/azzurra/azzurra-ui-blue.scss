@@ -1,50 +1,119 @@
-@import "compass/css3";
+﻿@import "compass/css3";
 @import "blueprint/typography";
 
 
-@import 'azzurra/colors';
-@import 'azzurra/variables';
+@import 'azzurra/custom/functions';
+
+@import 'variables.scss';
+
+@import 'azzurra/custom/variables';
 
 $azzurra-core:false;
+
+$custom-ui:'blue';
+$custom-ui-base-color:#6badf6;
+$custom-ui-base-color-dark:#1979ca;
+
+$custom-scale-factor:1;
+
+
+//====================================//
+//============== PANEL ===============//
+//====================================//
+
+$custom-header-text-color:lighten($color,1);
+
+//====================================//
+//============== WINDOW ==============//
+//====================================//
+
+$window-custom-background-color:$custom-ui-base-color;
+$window-custom-header-text-color:$custom-header-text-color;
+
+//====================================//
+//============== GRID ================//
+//====================================//
+
+$grid-row-custom-background-color-selected:lighten($custom-ui-base-color,10);
+$grid-row-custom-border-color-selected:darken($grid-row-custom-background-color-selected,8);
+
+
+//====================================//
+//============== TOOLS ===============//
+//====================================//
+
+$custom-tool-background-color-hover:darken($custom-ui-base-color,5);
+$custom-close-tool-background-color: darken(#c75050,1.5);
+$custom-close-tool-background-color-hover: lighten($custom-close-tool-background-color,3);
+
+
+//====================================//
+//============== BUTTON ==============//
+//====================================//
+
+$button-custom-background-color:$custom-ui-base-color-dark;
+$button-custom-background-color-over:lighten($button-custom-background-color,3);
+$button-custom-background-color-pressed:darken($button-custom-background-color,5);
+$button-custom-background-color-disabled:lighten($button-custom-background-color,12.5);
+$button-custom-background-color-focus:$button-custom-background-color-over;
+
+$button-custom-border-color:darken($button-custom-background-color,2);
+$button-custom-border-color-over:darken($button-custom-background-color-over,2);
+$button-custom-border-color-pressed:darken($button-custom-background-color-pressed,2);
+$button-custom-border-color-disabled:$button-custom-background-color-disabled;
+$button-custom-border-color-focus:$button-custom-border-color-over;
+
+$button-custom-color:white;
+$button-custom-color-over:$button-custom-color;
+$button-custom-color-focus:$button-custom-color;
+$button-custom-color-pressed:$button-custom-color;
+$button-custom-color-disabled:adjust-color($button-custom-color,$lightness:20%);
+
+//toolbar
+
+$button-toolbar-custom-background-color-over:darken($custom-ui-base-color,7);
+$button-toolbar-custom-background-color-focus:$button-toolbar-custom-background-color-over;
+$button-toolbar-custom-background-color-pressed:darken($button-toolbar-custom-background-color-over,5);
+
+$button-toolbar-custom-border-color-over:darken($button-toolbar-custom-background-color-over,5);
+$button-toolbar-custom-border-color-focus:$button-toolbar-custom-border-color-over;
+$button-toolbar-custom-border-color-pressed:darken($button-toolbar-custom-background-color-pressed,5);
+
+
+
+
+
+
+
+//====================================//
+//=============== TAB ================//
+//====================================//
+
+$tab-custom-base-color:$custom-ui-base-color-dark;
+
+//====================================//
+//============= PROGRESS =============//
+//====================================//
+
+$progress-bar-custom-base-color:$custom-ui-base-color-dark;
+
 
 @import 'azzurra/default/all';
 @import 'azzurra/custom/overrides/all';
 @import 'azzurra/custom/ui/all';
 
+@include ui-button('#{$custom-ui}-button');
+@include ui-button-active('#{$custom-ui}-button-active');
 
-// You may remove any of the following modules that you
-// do not use in order to create a smaller css file.
-
-	@include blue-button;
-	@include blue-button-active;
-
-	@include blue-panel;
-	@include blue-panel-framed;
-	@include blue-panel-active;
-	@include blue-panel-active-framed;
-
-	@include blue-progress;
-	@include blue-progress-active;
-
-	@include blue-window;
-	@include blue-window-active;
-
-	@include blue-tab;
-	@include blue-tab-active;
+@include panel-ui($custom-ui-name:'#{$custom-ui}-panel');
+@include panel-ui-active($custom-ui-name:'#{$custom-ui}-panel-active');
 
 
+@include ui-progress($custom-ui-name:'#{$custom-ui}-progress');
+@include ui-progress-active($custom-ui-name:'#{$custom-ui}-progress-active');
 
-// This line changes the location of your images when creating UIs to be relative instead of within the ExtJS directory.
-// You MUST set this to true/string value if you are creating new UIs + supporting legacy browsers.
-// This only applies to new UIs. It does not apply to default component images (i.e. when changing $base-color)
-// The value can either be true, in which case the image path will be "../images/"
-// or a string, of where the path is
-$relative-image-path-for-uis: false; // defaults to "../images/" when true
+@include ui-window-active ($custom-ui-name:'#{$custom-ui}-window-active');
+@include ui-window ($custom-ui-name:'#{$custom-ui}-window');
 
-
-
-
-
-
-
-
+@include ui-tab($custom-ui-name:'#{$custom-ui}-tab');
+@include ui-tab-active($custom-ui-name:'#{$custom-ui}-tab-active');

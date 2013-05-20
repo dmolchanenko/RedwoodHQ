@@ -4,7 +4,7 @@ function openTestCase(id){
     tab.setActiveTab(tab.down("#testcasesBrowser"));
     var controller = Redwood.app.getController("TestCases");
     controller.onEditTestCase(store.getById(id));
-    if(!Ext.isIE){
+    if(Ext.isChrome){
         return false;
     }
 }
@@ -64,6 +64,7 @@ Ext.define("Redwood.controller.TestCases", {
 
             this.tabPanel.add(tab);
             foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
+            tab.down("#testcaseDetails").collapse();
         }
         this.tabPanel.setActiveTab(foundIndex);
 

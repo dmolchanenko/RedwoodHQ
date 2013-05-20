@@ -6,7 +6,7 @@ Ext.application({
     autoCreateViewport: true,
 
     controllers: [
-        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions'],
+        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions','License'],
     launch: function(){
         Redwood.app = this;
         Ext.clipboard = {};
@@ -21,6 +21,10 @@ Ext.application({
         };
         Ext.tip.QuickTipManager.init();
         Ext.socket = io.connect('http://'+ document.location.host);
+
+        Ext.socket.on("reconnecting",function(data){
+            console.log(data)
+        });
         this.getController("RealTimeEvents").startEvents();
         window.onbeforeunload = function(){
             console.log("SCRIPT");

@@ -1,0 +1,17 @@
+﻿
+@mixin tree-overrides {
+
+	@if $extjs-version == "4.0" {
+		.#{$prefix}tree-panel {
+			.#{$prefix}grid-cell-inner {
+				padding:0 6px;
+			}
+		
+		}
+		
+	
+	}
+
+
+
+}

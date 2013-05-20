@@ -1,0 +1,53 @@
+﻿
+@mixin ui-tab (
+	$custom-ui-name
+) {
+/*
+==============================================================
+===================== start ui-tab ===========================
+*/
+	@include tab-ui (
+		$custom-ui-name,
+
+		$ui-active:false,
+
+		$ui-base-tab-background-color-active:$tab-custom-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-custom-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-custom-border-color-selected
+	);
+/*
+======================= end ui-tab ===========================
+==============================================================
+*/
+}
+
+
+
+@mixin ui-tab-active (
+	$custom-ui-name
+) {
+/*
+==============================================================
+================= start ui-tab-active ========================
+*/
+
+	@include tab-ui (
+		$custom-ui-name,
+
+		$ui-active:true,
+
+		$ui-base-tab-background-color-active:$tab-custom-base-color,
+
+		$ui-grid-row-background-color-selected:$grid-row-custom-background-color-selected,
+		$ui-grid-row-border-color-selected:$grid-row-custom-border-color-selected
+	);
+
+/*
+=================== end ui-tab-active ========================
+==============================================================
+*/
+}
+
+
+

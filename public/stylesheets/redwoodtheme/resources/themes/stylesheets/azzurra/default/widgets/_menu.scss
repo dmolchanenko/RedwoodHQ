@@ -94,7 +94,7 @@
     }
 
     .#{$prefix}menu-item-text {
-        font-size: ceil($font-size * .9);
+        font-size: $menu-text-size;
         color: $menu-text-color;
     }
 

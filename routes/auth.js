@@ -1,6 +1,7 @@
 var sessions = {};
 var projects =  require('../routes/projects');
 var userState =  require('../routes/userStates');
+var realtime = require("./realtime");
 
 exports.loginPage = function(req,res){
     res.redirect('/login.html');
@@ -10,6 +11,7 @@ exports.logIn = function (req,res,next){
     verifyUser(req.body.username,req.body.password,function(userFound){
         if (userFound){
             require('crypto').randomBytes(20, function(ex, buf) {
+                realtime.emitMessage("Login",req.body.username);
                 var token = buf.toString('hex');
                 sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000)};
                 res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: false});

@@ -4,7 +4,7 @@ function openAction(id){
     tab.setActiveTab(tab.down("#actionsBrowser"));
     var controller = Redwood.app.getController("Actions");
     controller.onEditAction(store.getById(id));
-    if(!Ext.isIE){
+    if(Ext.isChrome){
         return false;
     }
 }
@@ -14,7 +14,7 @@ Ext.define("Redwood.controller.Actions", {
 
     models: ['Actions',"ActionTags",'MethodFinder'],
     stores: ['Actions',"ActionTags"],
-    views:  ['Actions','ScriptPicker'],
+    views:  ['Actions','ScriptPicker','ActionPicker'],
 
     init: function () {
         this.control({
@@ -23,12 +23,22 @@ Ext.define("Redwood.controller.Actions", {
                 newAction: this.onNewAction,
                 saveAction: this.onSaveAction,
                 editAction: this.onEditAction,
-                deleteAction: this.onDeleteAction
+                deleteAction: this.onDeleteAction,
+                cloneAction: this.onCloneAction
             }
         });
     },
 
-   onDeleteAction:function(){
+    onCloneAction:function(){
+        var actionView = this.tabPanel.getActiveTab();
+        if (actionView === undefined){
+            return;
+        }
+
+
+    },
+
+    onDeleteAction:function(){
         var actionView = this.tabPanel.getActiveTab();
         if (actionView === undefined){
             return;
@@ -52,7 +62,6 @@ Ext.define("Redwood.controller.Actions", {
         });
     },
     onEditAction: function(record){
-        //if (this.tabPanel.getComponent(record.get("name")) === undefined){
         var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.ActionView',{
@@ -63,10 +72,10 @@ Ext.define("Redwood.controller.Actions", {
             });
 
             this.tabPanel.add(tab);
-            var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
+            foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
+            tab.down("#actionDetails").collapse();
         }
         this.tabPanel.setActiveTab(foundIndex);
-        //this.tabPanel.setActiveTab(record.get("name"));
 
     },
 

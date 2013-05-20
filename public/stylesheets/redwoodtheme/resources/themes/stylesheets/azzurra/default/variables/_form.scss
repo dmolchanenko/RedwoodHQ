@@ -151,6 +151,7 @@ $form-label-font: $form-label-font-weight $form-label-font-size $form-label-font
 $form-checkbox-image: 'form/checkbox.gif' !default;
 $form-checkbox-size: 13px !default;
 
+$checkbox-vertical-align:-1px !default;
 
 // @class Ext.form.field.Radio
 
@@ -189,7 +190,14 @@ $form-trigger-border-bottom-color-pressed: null !default;
 
 $form-trigger-icon-background-position: 7px 6px !default;
 
-
+$form-trigger-sprite:'form/trigger.gif' !default;
+$form-data-trigger-sprite:'form/date-trigger.gif' !default;
+$form-spiner-sprite:'form/spinner.png' !default;
+$form-spiner-toolbar-sprite:'form/spinner-small.gif' !default;
+$form-clear-trigger-sprite:'form/clear-trigger.png' !default;
+$form-search-trigger-sprite:'form/search-trigger.png' !default;
+$form-spiner-down-background-position:-15px !default;
+$form-spiner-toolbar-down-background-position:-16px !default;
 // @class Ext.form.FieldSet
 
 $fieldset-header-font-size: ceil($font-size * .9) !default;

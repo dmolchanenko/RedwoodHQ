@@ -9,7 +9,7 @@
 
     .#{$prefix}form-checkbox,
     .#{$prefix}form-radio {
-        vertical-align: -1px;
+        vertical-align: $checkbox-vertical-align;
 
         width: $form-checkbox-size;
         height: $form-checkbox-size;

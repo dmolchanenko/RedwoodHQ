@@ -160,6 +160,10 @@
 		}
 
 		
+		.#{$prefix}tab-bar .#{$prefix}tab-over {
+			background-color:lighten($ui-tab-base-color,15);
+		}
+
 		.#{$prefix}tab-bar .#{$prefix}tab-top-active {
 			background-color: $ui-tab-base-color;
 			border:1px solid $ui-tab-base-color;
@@ -209,4 +213,24 @@
 
 	}
 	
+
+	@if $extjs-version == "4.0" {
+		/*marko*/		
+		#{$window-class}.#{$prefix}window-#{$ui-name} .#{$prefix}grid-body {
+			//grid selected
+			.#{$prefix}grid-row-selected .#{$prefix}grid-cell,
+			.#{$prefix}grid-row-selected .#{$prefix}grid-rowwrap-div {
+				border-color: $ui-grid-row-border-color-selected !important;
+				background-color: $ui-grid-row-background-color-selected !important;
+			}
+
+			.#{$prefix}grid-row-selected+.#{$prefix}grid-row .#{$prefix}grid-cell {
+				border-top-color: $ui-grid-row-border-color-selected !important;
+			}
+		}	
+	}
+
+
+
+
 }

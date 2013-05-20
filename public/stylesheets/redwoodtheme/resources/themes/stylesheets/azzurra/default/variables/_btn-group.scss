@@ -9,7 +9,8 @@ $btn-group-inner-border-width: 1px !default;
 $btn-group-inner-border-color: adjust-color($base-color, $saturation: -9%, $lightness: 8.5%) !default;
 
 $btn-group-header-margin: 2px 2px 0 2px !default;
-$btn-group-header-font: normal ceil($font-size * .9) $font-family !default;
+$btn-group-header-font-size:ceil($font-size * .9) !default;
+$btn-group-header-font: normal $btn-group-header-font-size $font-family !default;
 $btn-group-header-color: adjust-color($base-color, $hue: 2.6deg, $saturation: -9%, $lightness: -38.5%) !default;
 $btn-group-header-padding: 1px 0 !default;
 $btn-group-header-background-color: adjust-color($base-color, $hue: -2deg, $saturation: 5%, $lightness: 1%) !default;

@@ -32,6 +32,17 @@ var deleteAction = Ext.create('Ext.Action', {
     }
 });
 
+var cloneAction = Ext.create('Ext.Action', {
+    icon: 'images/clone.png',
+    //text: 'Delete',
+    itemId: "cloneAction",
+    tooltip: "Clone Selected Action",
+    handler: function(widget, event) {
+        var editor = this.up('actions');
+        editor.fireEvent('cloneAction');
+    }
+});
+
 function formatAction(val,metaData,record) {
      return '<img src="images/action.png" align="top"> '+val;
      //return '<img src="images/action.png"><span>' + val + '</span>';
@@ -67,7 +78,8 @@ Ext.define('Redwood.view.Actions', {
                     ddGroup: "actionDrop"
                     //dragGroup: 'firstGridDDGroup',
                     //dropGroup: 'secondGridDDGroup'
-                }
+                },
+                markDirty: false
             },
             listeners:{
                 itemdblclick: function(me, record, element, node_index, event) {
@@ -162,7 +174,8 @@ Ext.define('Redwood.view.Actions', {
                         newAction,
                         saveAction,
                         " ",
-                        deleteAction
+                        deleteAction,
+                        cloneAction
                     ]
                 },
                 items:[

@@ -1,0 +1,22 @@
+﻿version 1.1.1
+
+	- small redesign for tabpanel 
+	- ui support for toolbar buttons
+	- ui support for accordion items
+	- ui support for treeGrid selection
+	- grid-row-height corection for azzurra-medium and azzurra-large
+	- tree arrows icon for azzurra-medium and azzurra-large
+	- button corection for extjs 4.0.7
+
+version 1.1.0
+
+	- SCSS reorganization, simpler ui creation 
+	- new @theme-scale-factor variable
+	- better 4.0.7 support
+	- support for azzurra-medium and azzurra-large theme variations
+	- minor bugfixing
+	- new icons for tree and trigger fields
+
+version 1.0.1
+
+	- Corrected path for 'tab-white-close.gif' 

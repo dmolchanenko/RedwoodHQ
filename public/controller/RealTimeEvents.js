@@ -20,11 +20,36 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             }
         });
 
+        Ext.socket.on('Login',function(username){
+            if (username === Ext.util.Cookies.get('username')){
+                Ext.Msg.show({
+                    title:'Invalid Session',
+                    msg: 'This user was logged on somewhere else, this session is invalid.',
+                    buttons: Ext.Msg.OK,
+                    icon: Ext.Msg.ERROR,
+                    fn: function(id){
+                        window.location.reload(true);
+                    }
+                })
+            }
+        });
+
+
         Ext.socket.on('newProject',function(project){
             me.addToStore(Ext.data.StoreManager.lookup('Projects'),project);
         });
 
         Ext.socket.on('UpdateExecutionTestCase',function(testCase){
+            if (testCase.baseState == true){
+                var controller = Redwood.app.getController("Executions");
+                var foundTab = controller.tabPanel.down("#"+testCase.executionID);
+                if (foundTab){
+                    var record = foundTab.down("#executionMachines").store.findRecord("baseStateTCID",testCase._id);
+                    record.set("result",testCase.result);
+                    record.set("resultID",testCase.resultID);
+                    //foundTab.refreshResult(result);
+                }
+            }
             var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
             if (store == null) return;
             me.updateStore(store,testCase);
@@ -57,6 +82,21 @@ Ext.define("Redwood.controller.RealTimeEvents", {
         Ext.socket.on('DeleteMachines',function(machine){
             var store = Ext.data.StoreManager.lookup("Machines");
             me.removeFromStore(store,machine);
+        });
+
+        Ext.socket.on('UpdateActions',function(action){
+            var store = Ext.data.StoreManager.lookup("Actions");
+            me.updateStore(store,action);
+        });
+
+        Ext.socket.on('AddActions',function(action){
+            var store = Ext.data.StoreManager.lookup("Actions");
+            me.addToStore(store,action);
+        });
+
+        Ext.socket.on('DeleteActions',function(action){
+            var store = Ext.data.StoreManager.lookup("Actions");
+            me.removeFromStore(store,action);
         });
 
         Ext.socket.on('RemoveExecutionTestCase',function(testCase){

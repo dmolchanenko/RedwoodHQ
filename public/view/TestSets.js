@@ -5,7 +5,6 @@ Ext.define('Redwood.view.TestSetsGrid', {
     store: 'TestSets',
     selType: 'rowmodel',
     title: "[All Test Sets]",
-
     minHeight: 150,
     manageHeight: true,
     listeners:{
@@ -16,6 +15,19 @@ Ext.define('Redwood.view.TestSetsGrid', {
     },
     initComponent: function () {
         var me = this;
+
+        this.tbar = {
+            items:[
+                {
+                    width: 400,
+                    fieldLabel: 'Search',
+                    labelWidth: 50,
+                    xtype: 'searchfield',
+                    paramNames: ["tag","name"],
+                    store: Ext.data.StoreManager.lookup('TestSets')
+                }
+            ]
+        };
 
         this.columns = [
             {
@@ -93,15 +105,6 @@ Ext.define('Redwood.view.TestSets', {
                         var editor = this.up('testsetsEditor');
                         editor.fireEvent('save');
                     }
-                },
-                "-",
-                {
-                    width: 400,
-                    fieldLabel: 'Search',
-                    labelWidth: 50,
-                    xtype: 'searchfield',
-                    paramNames: ["tag","name"],
-                    store: Ext.data.StoreManager.lookup('TestSets')
                 }
             ]
         }];

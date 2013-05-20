@@ -305,6 +305,7 @@ Ext.define('Redwood.view.ActionView', {
                 title: 'Action Details',
                 defaultType: 'textfield',
                 flex: 1,
+                itemId:"actionDetails",
                 //layout:"hBox",
                 //align : 'stretch',
                 //pack  : 'start',

@@ -184,15 +184,21 @@ Ext.define('Redwood.view.ExecutionView', {
         var machines = [];
         var machinesStore = Ext.data.StoreManager.lookup('Machines');
         machinesStore.each(function(machine){
-            var foundMachine = false;
+            //var foundMachine = false;
+            var baseState = null;
+            var baseStateTCID = null;
             if ((me.dataRecord != null)&&(me.dataRecord.get("machines"))){
                 me.dataRecord.get("machines").forEach(function(recordedMachine){
                     if(recordedMachine._id === machine.get("_id")){
-                        foundMachine = recordedMachine.selected;
+                        baseState = recordedMachine.baseState;
+                        baseStateTCID = recordedMachine.baseStateTCID;
+                        result = recordedMachine.result;
+                        resultID = recordedMachine.resultID;
                     }
                 })
             }
-            machines.push({host:machine.get("host"),tag:machine.get("tag"),state:machine.get("state"),description:machine.get("description"),roles:machine.get("roles"),port:machine.get("port"),vncport:machine.get("vncport"),_id:machine.get("_id"),selected:foundMachine})
+            if (baseStateTCID == null) baseStateTCID = Ext.uniqueId();
+            machines.push({host:machine.get("host"),tag:machine.get("tag"),state:machine.get("state"),result:result,resultID:resultID,baseState:baseState,baseStateTCID:baseStateTCID,description:machine.get("description"),roles:machine.get("roles"),port:machine.get("port"),vncport:machine.get("vncport"),_id:machine.get("_id")})
         });
 
         var linkedMachineStore =  new Ext.data.Store({
@@ -202,13 +208,17 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'port',     type: 'string'},
                 {name: 'tag',     type: 'array'},
                 {name: 'state',     type: 'string'},
+                {name: 'baseState',     type: 'string'},
+                {name: 'resultID',     type: 'string'},
+                {name: 'baseStateTCID',     type: 'string'},
+                {name: 'result',     type: 'string'},
                 {name: 'description',     type: 'string'},
                 {name: 'roles',     type: 'array'},
                 {name: '_id',     type: 'string'}
             ],
             data: machines,
             listeners:{
-                datachanged:function(){
+                update:function(){
                     if (me.loadingData === false){
                         me.markDirty();
                     }
@@ -315,6 +325,64 @@ Ext.define('Redwood.view.ExecutionView', {
                     header: 'Description',
                     dataIndex: 'description',
                     flex: 1
+                },
+                {
+                    header: "Base State Result",
+                    dataIndex: "result",
+                    width: 120,
+                    renderer: function(value,style,record){
+
+                        if (value == "Passed"){
+                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                            //return "<p style='color:green'>"+value+"</p>"
+                        }
+                        else if (value == "Failed"){
+                            return "<a style= 'color: red;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                            //return "<p style='color:red'>"+value+"</p>"
+                        }
+                        else{
+                            return value;
+                        }
+
+                    }
+                },
+                {
+                    header: 'Machine Base State',
+                    dataIndex: "baseState",
+                    width:200,
+                    listeners:{
+                        render: function(me,eOpts){
+                            console.log("blin");
+                        }
+                    },
+                    renderer:  function(value,metaData,record, rowIndex, colIndex, store, view){
+                        if (value){
+                            var actionName = Ext.data.StoreManager.lookup('Actions').getById(value).get("name");
+                            var url = "<a style= 'color: red;' href='javascript:openAction(&quot;"+ record.get("baseState") +"&quot;)'>" + actionName +"</a>";
+                            return url;
+                        }
+                        else{
+                            return value
+                        }
+                    },
+                    editor: {
+                        xtype: "actionpicker",
+                        itemId: "actionpicker",
+                        width: 400,
+                        plugins:[
+                            Ext.create('Ext.ux.SearchPlugin')
+                        ],
+                        paramNames:["tag","name"],
+                        store: Ext.data.StoreManager.lookup('ActionsCombo'),
+                        autoSelect:true,
+                        forceSelection:true,
+                        queryMode: 'local',
+                        triggerAction: 'all',
+                        lastQuery: '',
+                        typeAhead: false,
+                        displayField: 'name',
+                        valueField: '_id'
+                    }
                 },
                 {
                     header: 'Tags',
@@ -565,8 +633,8 @@ Ext.define('Redwood.view.ExecutionView', {
                     },
                     {
                         xtype:"displayfield",
-                        fieldLabel: "Status",
-                        labelStyle: "font-weight: bold",
+                        fieldLabel: "State",
+                        //labelStyle: "font-weight: bold",
                         itemId:"status",
                         anchor:'90%',
                         renderer: function(value,meta){
@@ -575,6 +643,30 @@ Ext.define('Redwood.view.ExecutionView', {
                             }
                             else{
                                 return "<p style='font-weight:bold;color:green'>"+value+"</p>";
+                            }
+                        }
+                    },
+                    {
+                        xtype: 'numberfield',
+                        width: 150,
+                        //anchor: "90%",
+                        itemId: "retryCount",
+                        fieldLabel: 'Retry Count',
+                        value: 0,
+                        maxValue: 99,
+                        minValue: 0,
+                        listeners:{
+                            afterrender: function(me,eOpt){
+                                Ext.tip.QuickTipManager.register({
+                                    target: me.getEl(),
+                                    text: 'Number of times to re-run failed test cases.',
+                                    dismissDelay: 10000 // Hide after 10 seconds hover
+                                });
+                            },
+                            blur: function(me){
+                                if (me.getValue() === null){
+                                    me.setValue(0)
+                                }
                             }
                         }
                     },
@@ -644,12 +736,14 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#testset").setValue(me.dataRecord.get("testset"));
                 me.down("#testset").setDisabled(true);
                 me.down("#executionTestcases").store.removeAll();
-                me.down("#ignoreStatus").setValue(me.dataRecord.get("ignoreStatus"));;
+                me.down("#ignoreStatus").setValue(me.dataRecord.get("ignoreStatus"));
                 me.dataRecord.get("testcases").forEach(function(testcase){
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
-                    testcase.name = originalTC.get("name");
-                    testcase.tag = originalTC.get("tag");
-                    me.down("#executionTestcases").store.add(testcase);
+                    if (originalTC != null){
+                        testcase.name = originalTC.get("name");
+                        testcase.tag = originalTC.get("tag");
+                        me.down("#executionTestcases").store.add(testcase);
+                    }
                 });
             }
             me.loadingData = false;
@@ -714,6 +808,12 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.testcases = [];
         testcasesStore.each(function(item){
             execution.testcases.push(item.data);
+        });
+
+        var machinesStore = this.down("#executionMachines").store;
+        execution.machines = [];
+        machinesStore.each(function(item){
+            execution.machines.push(item.data);
         });
         return execution;
     }

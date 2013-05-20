@@ -20,6 +20,14 @@ Ext.define('Redwood.model.Executions', {
             type: 'string'
         },
         {
+            name: 'resultID',
+            type: 'string'
+        },
+        {
+            name: 'baseStateTCID',
+            type: 'string'
+        },
+        {
             name: 'testsetname',
             type: 'string'
         },
@@ -29,6 +37,10 @@ Ext.define('Redwood.model.Executions', {
         },
         {
             name: 'variables',
+            type: 'array'
+        },
+        {
+            name: 'machines',
             type: 'array'
         },
         {
