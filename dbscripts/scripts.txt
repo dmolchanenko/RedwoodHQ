@@ -1,5 +1,5 @@
 var automationframework = connect('localhost:27017/automationframework');
-var user = { "name" : "Administrator", "password" : "b8d9d1bdbfd8396aa77c3a437cceae37", "tag" : [ ], "role" : "Admin", "username" : "admin", "_id" : ObjectId("4fbbc35646b3d6c406000003") }
+var user = { "name" : "Administrator", "password" : "b8d9d1bdbfd8396aa77c3a437cceae37", "tag" : [ ], "role" : "Admin", "username" : "admin", "_id" : ObjectId("4fbbc35646b3d6c406000003") };
 automationframework.users.save(user);
-var project = { "name" : "Sample", language: "Java/Groovy", "_id" : ObjectId("50cb849e52ad4f5427000002") }
+var project = { "name" : "Sample", language: "Java/Groovy", "_id" : ObjectId("50cb849e52ad4f5427000002") };
 automationframework.projects.save(project);
