@@ -39,6 +39,9 @@ exports.executiontestcasesDelete = function(req, res){
 exports.executiontestcasesPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
+    data.forEach(function(testcase){
+        testcase.project = req.cookies.project;
+    });
     CreateExecutionTestCases(app.getDB(),data,function(){
         res.contentType('json');
         res.json({

@@ -56,7 +56,7 @@ common.initDB(27017,function(){
                                         console.log("");
                                         GetColData("executiontestcases",function(actions){
                                             actions.forEach(function(action){
-                                                console.log("automationframework.executiontestcases.save("+ParseID(JSON.stringify(action),0)+");");
+                                                console.log("automationframework.executiontestcases.save("+JSON.stringify(action).replace('"project":"Selenium"','"project":projectName')+");");
                                                 //console.log("automationframework.executions.save("+JSON.stringify(action)+");")
                                             });
                                             console.log("");
