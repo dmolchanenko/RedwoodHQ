@@ -16,9 +16,9 @@ class Browser{
       Driver = new FirefoxDriver();
     }
     else if (params.Browser == "Chrome"){
-      //def service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
-      //service.start();
-      //Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome());
+      def service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
+      service.start();
+      Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome());
     }
     else{
       Driver = new InternetExplorerDriver();
