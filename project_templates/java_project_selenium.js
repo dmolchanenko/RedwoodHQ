@@ -21,3 +21,11 @@ automationframework.executions.save({"_id":"1361857529222-5871-9037","ignoreStat
 automationframework.executions.save({"_id":"1361901569053-17791-3624","baseStateTCID":"","ignoreStatus":false,"machines":[{"host":"dmitri-pc","vncport":"3006","port":"5009","tag":["qualification","aga","sadfasdf"],"state":"","baseState":"","resultID":"","baseStateTCID":"1368565105431-15257-14964","result":"","description":"host name is:Dmitri-PC","roles":["Default"],"_id":"5116ada4a5c8d4f00d000002"},{"host":"192.168.220.128","vncport":"3006","port":"5009","tag":[""],"state":"","baseState":"","resultID":"","baseStateTCID":"1368565105431-20116-8801","result":"","description":"host name is:SilkDevSQLVS2","roles":["Default"],"_id":"5117db04898578bc2f000001"},{"host":"10.20.7.103","vncport":"3006","port":"5009","tag":"","state":"","baseState":"","resultID":"","baseStateTCID":"1368565105432-389-21342","result":"","description":"host name is:Dmitri-PC","roles":["Default"],"_id":"514798379c05dd140f000002"}],"name":"Amazon Smoke Test","project":projectName,"resultID":"","status":"Ready To Run","tag":[],"testset":"512cf7fd281b8c041a000047","testsetname":"Amazon Shopping","variables":[{"name":"Browser","value":"Firefox","tag":[""],"possibleValues":["Internet Explorer","Firefox","Chrome"],"_id":"512c53ee281b8c041a00002b"}]});
 
 automationframework.variables.save({"tag":[""],"name":"Browser","value":"<NULL>","taskVar":true,"possibleValues":["Internet Explorer","Firefox","Chrome"],"project":projectName,"_id":ObjectId("512c53ee281b8c041a00002b")});
+
+automationframework.actionTags.save({"value":"selenium","project":projectName,"_id":ObjectId("512c4aed281b8c041a00000d")});
+automationframework.actionTags.save({"value":"google","project":projectName,"_id":ObjectId("512c526f281b8c041a000027")});
+automationframework.actionTags.save({"value":"amazon","project":projectName,"_id":ObjectId("512cf6be281b8c041a000040")});
+automationframework.actionTags.save({"value":"search","project":projectName,"_id":ObjectId("512cf6be281b8c041a000042")});
+automationframework.actionTags.save({"value":"cart","project":projectName,"_id":ObjectId("512cfb95281b8c041a00004f")});
+
+automationframework.testcaseTags.save({"value":"amazon","project":projectName,"_id":ObjectId("5143aba1bbdf99f432000004")});
