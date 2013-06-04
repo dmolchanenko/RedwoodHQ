@@ -52,7 +52,7 @@ exports.actionsPost = function(req, res){
     delete data._id;
     data.project = req.cookies.project;
     CreateActions(app.getDB(),data,function(returnData){
-        realtime.emitMessage("AddActions",data);
+        //realtime.emitMessage("AddActions",data);
         res.contentType('json');
         res.json({
             success: true,

@@ -30,6 +30,14 @@ exports.initSocket = function(app){
         socket.on('AddMachines', function (msg) {
             io.sockets.emit("AddMachines",msg)
         });
+
+        socket.on('AddActions', function (msg) {
+            io.sockets.emit("AddActions",msg)
+        });
+
+        socket.on('AddTestCases', function (msg) {
+            io.sockets.emit("AddTestCases",msg)
+        });
     });
 
 };

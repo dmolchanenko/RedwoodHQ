@@ -99,6 +99,21 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,action);
         });
 
+        Ext.socket.on('UpdateTestCases',function(action){
+            var store = Ext.data.StoreManager.lookup("TestCases");
+            me.updateStore(store,action);
+        });
+
+        Ext.socket.on('AddTestCases',function(action){
+            var store = Ext.data.StoreManager.lookup("TestCases");
+            me.addToStore(store,action);
+        });
+
+        Ext.socket.on('DeleteTestCases',function(action){
+            var store = Ext.data.StoreManager.lookup("TestCases");
+            me.removeFromStore(store,action);
+        });
+
         Ext.socket.on('RemoveExecutionTestCase',function(testCase){
             var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
             if (store == null) return;

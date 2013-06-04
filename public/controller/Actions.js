@@ -90,6 +90,9 @@ Ext.define("Redwood.controller.Actions", {
         var action = actionView.getActionData();
         if (actionView.dataRecord === null){
             actionView.dataRecord = this.getStore('Actions').add(action)[0];
+            this.getStore('Actions').sync({success:function(batch,options){
+                Ext.socket.emit('AddActions', batch.operations[0].records[0].data);
+            }});
         }
         else{
             actionView.dataRecord.set("collection",action.collection);
@@ -100,8 +103,9 @@ Ext.define("Redwood.controller.Actions", {
             actionView.dataRecord.set("tag",action.tag);
             actionView.dataRecord.set("params",action.params);
             actionView.dataRecord.set("script",action.script);
+            this.getStore('Actions').sync();
         }
-        this.getStore('Actions').sync();
+
         this.getStore('ActionTags').sync();
         actionView.setTitle(action.name);
         actionView.dirty = false;

@@ -81,6 +81,9 @@ Ext.define("Redwood.controller.TestCases", {
         var testcase = testcaseView.getTestCaseData();
         if (testcaseView.dataRecord === null){
             testcaseView.dataRecord = this.getStore('TestCases').add(testcase)[0];
+            this.getStore('TestCases').sync({success:function(batch,options){
+                Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
+            }});
         }
         else{
             testcaseView.dataRecord.set("collection",testcase.collection);
@@ -90,8 +93,8 @@ Ext.define("Redwood.controller.TestCases", {
             testcaseView.dataRecord.set("tag",testcase.tag);
             testcaseView.dataRecord.set("type",testcase.type);
             testcaseView.dataRecord.set("script",testcase.script);
+            this.getStore('TestCases').sync();
         }
-        this.getStore('TestCases').sync();
         this.getStore('TestCaseTags').sync();
         testcaseView.setTitle(testcase.name);
         testcaseView.dirty = false;
