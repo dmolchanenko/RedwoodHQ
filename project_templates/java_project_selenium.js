@@ -29,3 +29,6 @@ automationframework.actionTags.save({"value":"search","project":projectName,"_id
 automationframework.actionTags.save({"value":"cart","project":projectName,"_id":ObjectId("512cfb95281b8c041a00004f")});
 
 automationframework.testcaseTags.save({"value":"amazon","project":projectName,"_id":ObjectId("5143aba1bbdf99f432000004")});
+
+automationframework.executiontestcases.save({"name":"Find PrimaTest in Google","tag":[],"status":"Not Run","host":"","vncport":"","resultID":"","result":"","startdate":null,"enddate":null,"runtime":"","error":"","_id":"1370382648715-8910-10638","testcaseID":"512c4bc5281b8c041a000010","executionID":"1370382646773-21025-16604","project":projectName});
+automationframework.executiontestcases.save({"name":"Add Star Trek to Cart","tag":["amazon"],"status":"Not Run","host":"","vncport":"","resultID":"","result":"","startdate":null,"enddate":null,"runtime":"","error":"","_id":"1370382677272-29684-24169","testcaseID":"512cf7e4281b8c041a000046","executionID":"1370382670801-26323-8371","project":projectName});
