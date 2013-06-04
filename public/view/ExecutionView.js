@@ -354,7 +354,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     width:200,
                     listeners:{
                         render: function(me,eOpts){
-                            console.log("blin");
+                            //console.log("blin");
                         }
                     },
                     renderer:  function(value,metaData,record, rowIndex, colIndex, store, view){
