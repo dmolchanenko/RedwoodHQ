@@ -6,6 +6,7 @@ import org.openqa.selenium.ie.InternetExplorerDriver
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeDriverService
 import org.openqa.selenium.remote.RemoteWebDriver
+import org.openqa.selenium.remote.DesiredCapabilities
 
 class Browser{
   
