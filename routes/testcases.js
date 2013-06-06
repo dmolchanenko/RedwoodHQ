@@ -1,3 +1,5 @@
+var realtime = require("./realtime");
+
 exports.testcasesPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
