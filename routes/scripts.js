@@ -1,11 +1,29 @@
 var fs = require('fs');
-var common = require('../common');
 var git = require('../gitinterface/gitcommands');
+var common = require('../common');
+var users = require('./users');
 var path = require('path');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
+var spawn = require('child_process').spawn;
+
+exports.scriptsPush = function(req,res){
+    git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+        res.contentType('json');
+        res.json({success:true});
+    });
+    //GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
+};
+
+exports.scriptsPull = function(req,res){
+    git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+        res.contentType('json');
+        res.json({success:true});
+    });
+    //GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
+};
 
 exports.scriptsGet = function(req, res){
-    GetScripts(rootDir+req.cookies.project,function(data){
+    GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
         res.contentType('json');
         res.json(data);
         /*
@@ -40,37 +58,82 @@ exports.scriptsCopy = function(req, res){
 };
 
 
-exports.CreateNewProject = function(projectName,language,callback){
+exports.CreateNewProject = function(projectName,language,template,callback){
     var templatePath = "";
     if(language == "Java/Groovy"){
-        templatePath = path.resolve(__dirname,"../project_templates/java_project");
+        template = "java_project_selenium";
+        //if (template == "Selenium") template = "java_project_selenium";
+        templatePath = path.resolve(__dirname,"../project_templates/"+template);
     }
     var common = require('../common');
     var files = [];
     common.walkDir(templatePath,function(){
         var newProjectPath = path.resolve(__dirname,"../public/automationscripts/"+projectName);
         fs.mkdirSync(newProjectPath);
-        files.forEach(function(file,index,array){
-            var destName = file.replace(templatePath,"");
-            destName = newProjectPath+destName;
-            console.log(destName);
+        var adminBranch = newProjectPath + "/admin";
+        fs.mkdirSync(adminBranch);
+        var masterBranch = newProjectPath + "/master.git";
+        fs.mkdirSync(masterBranch);
 
-            if (fs.statSync(file).isDirectory()){
-                fs.mkdirSync(destName);
-            }
-            else{
-                var data = "";
-                if (file.indexOf("build.xml") != -1){
-                    data = fs.readFileSync(file,"utf8");
-                    data = data.replace('<project name="ProjectName"','<project name="'+ projectName +'"');
-                }
-                else{
-                    data = fs.readFileSync(file);
-                }
-                fs.writeFileSync(destName,data);
-            }
+        git.initBare(masterBranch,function(){
+            git.clone(adminBranch,masterBranch,function(){
+                files.forEach(function(file,index,array){
+                    var destName = file.replace(templatePath,"");
+                    destName = adminBranch+destName;
+                    console.log(destName);
+
+                    if (fs.statSync(file).isDirectory()){
+                        fs.mkdirSync(destName);
+                    }
+                    else{
+                        var data = "";
+                        if (file.indexOf("build.xml") != -1){
+                            data = fs.readFileSync(file,"utf8");
+                            data = data.replace('<project name="ProjectName"','<project name="'+ projectName +'"');
+                        }
+                        else{
+                            data = fs.readFileSync(file);
+                        }
+                        fs.writeFileSync(destName,data);
+                    }
+                });
+
+                git.add(adminBranch,".",function(){
+                    git.commit(adminBranch,"",function(){
+                        git.push(adminBranch,function(){
+                            users.getAllUsers(function(users){
+                                users.forEach(function(user){
+                                    if (user.username !== "admin"){
+                                        fs.mkdirSync(newProjectPath + "/" + user.username);
+                                        git.clone(newProjectPath + "/" + user.username,masterBranch,function(){
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"src") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"src");
+                                            }
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
+                                            }
+                                        });
+                                    }
+                                });
+                                var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000})
+                                mongoScript.stdout.on('data', function (data) {
+                                    console.log('stdout: ' + data);
+                                });
+
+                                mongoScript.stderr.on('data', function (data) {
+                                    console.log('stderr: ' + data);
+                                });
+
+                                mongoScript.on('exit', function (code) {
+                                    callback();
+                                });
+                            });
+                        })
+                    })
+                });
+            });
         });
-        callback();
+
 
     },function(file){files.push(file)})
 };

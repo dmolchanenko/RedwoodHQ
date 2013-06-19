@@ -1,8 +1,91 @@
 var spawn = require('child_process').spawn;
 var path = require('path');
 
-exports.add = function(workdir,file,callback){
+exports.initBare = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['--bare','init'],{cwd: workdir,timeout:300000});
 
+    git.stdout.on('data', function (data) {
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        callback();
+    });
+};
+
+exports.init = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['init'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        callback();
+    });
+};
+
+exports.push = function(workdir,callback){
+    console.log("push");
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['push','origin','master'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        callback();
+    });
+};
+
+exports.pull = function(workdir,callback){
+    console.log("push");
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['pull','origin','master'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        callback();
+    });
+};
+
+exports.clone = function(workdir,dirToClone,callback){
+    console.log("clone");
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['clone',dirToClone,'.'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        if(callback) callback();
+    });
+};
+
+exports.add = function(workdir,file,callback){
+    console.log("add");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['add',file],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
@@ -19,7 +102,7 @@ exports.add = function(workdir,file,callback){
 };
 
 exports.commit = function(workdir,file,callback){
-
+    console.log("commit");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit',file,'-m','auto comment'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {

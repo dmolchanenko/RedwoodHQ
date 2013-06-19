@@ -40,23 +40,22 @@ exports.startexecutionPost = function(req, res){
     var machines = req.body.machines;
     var variables = {};
     var testcases = req.body.testcases;
-    var retryCount = req.body.retryCount;
 
     req.body.variables.forEach(function(variable){
         variables[variable.name] = variable.value;
     });
 
     var sourceCache = [];
-    cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/src"),sourceCache);
+    cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/src"),sourceCache);
 
-    executions[executionID] = {ignoreStatus:ignoreStatus,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,sourceCache:sourceCache.reverse()};
+    executions[executionID] = {ignoreStatus:ignoreStatus,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,sourceCache:sourceCache.reverse()};
     //random id for compile proc
     var id;
     for (var i = 0; i < 24; i++) {
         id += Math.floor(Math.random() * 10).toString(16);
     }
     var compileOut = "";
-    compile.operation({project:req.cookies.project},id,function(data){compileOut = compileOut + data},function(){
+    compile.operation({project:req.cookies.project,username:req.cookies.username},id,function(data){compileOut = compileOut + data},function(){
         if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
             res.contentType('json');
             res.json({error:"Error, unable to compile scripts."});
@@ -249,7 +248,7 @@ function executeTestCases(testcases,executionID){
 }
 
 function startTCExecution(id,variables,executionID,callback){
-    GetTestCaseDetails(id,function(testcase,result,hosts){
+    GetTestCaseDetails(id,executionID,function(testcase,result,hosts){
         createResult(result,function(writtenResult){
             result._id = writtenResult[0]._id;
             result.executionID = executionID;
@@ -318,7 +317,7 @@ function startTCExecution(id,variables,executionID,callback){
                 if (machine.runBaseState === true){
                     return;
                 }
-                agentBaseState(executions[executionID].project,machines[count].host,machines[count].port,function(err){
+                agentBaseState(executions[executionID].project+"/"+executions[executionID].username,machines[count].host,machines[count].port,function(err){
                     if (errorFound == true){
                         return;
                     }
@@ -379,6 +378,7 @@ function startTCExecution(id,variables,executionID,callback){
                         }
 
                         findNextAction(testcase.actions,variables,function(action){
+                            if (!executions[executionID]) return;
                             executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
 
@@ -655,7 +655,8 @@ function markFinishedResults(results,sourceCache,callback){
                     }
                     count++;
                     if (childStatus == "Not Run"){
-                        status = "Not Run"
+                        status = "Not Run";
+                        result = "";
                     }
                     if((childStatus == "Finished") && (childResult == "Failed")){
                         result = "Failed";
@@ -1046,6 +1047,19 @@ function findNextAction (actions,variables,callback){
 
     actions.forEach(function(action){
         order++;
+        if (action.runAction == false){
+            //callback(null);
+            //allDone = true;
+            //action.result.status = "Finished";
+            if (order == actions.length){
+                if (allDone == false){
+                    callback(null);
+                    allDone = true;
+                }
+                return;
+            }
+            return;
+        }
         if (action.result.status == "Finished"){
             if (order == actions.length){
                 if (allDone == false){
@@ -1089,7 +1103,7 @@ function findNextAction (actions,variables,callback){
 }
 
 
-function GetTestCaseDetails(testcaseID,callback){
+function GetTestCaseDetails(testcaseID,executionID,callback){
     var testcaseDetails = {};
     var testcaseResults = {};
     var hosts = [];
@@ -1152,7 +1166,24 @@ function GetTestCaseDetails(testcaseID,callback){
                         }
                         var newActionResult = {actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                         testcaseResults.children.push(newActionResult);
-                        var newAction = {dbAction:innerAction,parent:testcaseDetails,result:newActionResult,actions:[]};
+                        console.log(executions[executionID].testcases[testcaseID]);
+                        var runAction = true;
+                        if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
+                            var endAction = 99999;
+                            if ((executions[executionID].testcases[testcaseID].endAction)&&(executions[executionID].testcases[testcaseID].endAction != "")){
+                                endAction = parseInt(executions[executionID].testcases[testcaseID].endAction)
+                            }
+                            if (parseInt(executions[executionID].testcases[testcaseID].startAction) <= endAction){
+                                if ((parseInt(executions[executionID].testcases[testcaseID].startAction) <= parseInt(innerAction.order)) && (endAction >= parseInt(innerAction.order))){
+
+                                }
+                                else{
+                                    runAction = false;
+                                }
+                            }
+                        }
+
+                        var newAction = {dbAction:innerAction,parent:testcaseDetails,result:newActionResult,actions:[],runAction:runAction};
                         testcaseDetails.actions.push(newAction);
                         getActionDetails(innerAction,newAction,newActionResult,function(){
                             if (!--pending) callback(testcaseDetails,testcaseResults,hosts);

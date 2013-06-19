@@ -1,5 +1,12 @@
+var license = require("./license");
+var app =  require('../common');
+var fs = require('fs');
+var git = require('../gitinterface/gitcommands');
+var path = require('path');
+var common = require("../common");
+var spawn = require('child_process').spawn;
+
 exports.usersPut = function(req, res){
-    var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
@@ -15,7 +22,6 @@ exports.usersPut = function(req, res){
 };
 
 exports.usersGet = function(req, res){
-    var app =  require('../common');
     GetUsers(app.getDB(),{},function(data){
         res.contentType('json');
         res.json({
@@ -26,12 +32,11 @@ exports.usersGet = function(req, res){
 };
 
 exports.usersDelete = function(req, res){
-    var app =  require('../common');
     //DeleteUsers(app.getDB(),{_id: req.params.id},function(err){
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
-    if (db.username == "admin") return;
-    DeleteUsers(app.getDB(),{_id: id},function(err){
+    if (req.body.username == "admin") return;
+    DeleteUsers(app.getDB(),{_id: id,username:req.body.username},function(err){
         res.contentType('json');
         res.json({
             success: !err,
@@ -43,7 +48,6 @@ exports.usersDelete = function(req, res){
 };
 
 exports.usersPost = function(req, res){
-    var app =  require('../common');
     var data = req.body;
     delete data._id;
     CreateUsers(app.getDB(),data,function(returnData){
@@ -55,13 +59,66 @@ exports.usersPost = function(req, res){
     });
 };
 
+
+exports.canAddUser = function(req, res){
+    license.numberOfUsers(function(numberOfUsers){
+        app.getDB().collection('users', function(err, collection) {
+            collection.find({}, {}, function(err, cursor) {
+                var validUsers = 0;
+                cursor.each(function(err, user) {
+                    if(user == null) {
+                        if (validUsers <= numberOfUsers){
+                            res.contentType('json');
+                            res.json({
+                                success: true,
+                                ableToAdd: true
+                            });
+                        }
+                        else{
+                            res.contentType('json');
+                            res.json({
+                                success: true,
+                                ableToAdd: false
+                            });
+                        }
+                        return;
+                    }
+                    if(user.enabled != false){
+                        validUsers++;
+                    }
+                });
+            })
+        });
+    })
+};
+
 function CreateUsers(db,data,callback){
     db.collection('users', function(err, collection) {
         var hash = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
         data.password = hash;
         data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
-            callback(returnData);
+            db.collection('projects',function(err,collection){
+                collection.find({},{},function(err,cursor){
+                    cursor.each(function(err, project) {
+                        if(project == null) {
+                            callback(returnData);
+                            return;
+                        }
+                        var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
+                        var masterBranch = projectPath + "/master.git";
+                        fs.mkdirSync(projectPath + "/" + returnData[0].username);
+                        git.clone(projectPath + "/" + returnData[0].username,masterBranch,function(){
+                            if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"src") == false){
+                                fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"src");
+                            }
+                            if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"bin") == false){
+                                fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"bin");
+                            }
+                        });
+                    });
+                });
+            });
         });
     });
 }
@@ -96,11 +153,50 @@ function UpdateUsers(db,data,callback){
 function DeleteUsers(db,data,callback){
     db.collection('users', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
-            callback(err);
+            db.collection('projects',function(err,collection){
+                collection.find({},{},function(err,cursor){
+                    cursor.each(function(err, project) {
+                        if(project == null) {
+                            callback(err);
+                            return;
+                        }
+                        var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
+                        var userPath = path.resolve(__dirname,"../public/automationscripts/"+project.name+"/"+data.username);
+                        var delDir = spawn("rmdir",['/S','/Q',userPath],{cwd: projectPath,timeout:300000});
+
+                        /*
+                        var toDelete = [];
+                        common.walkDir(projectPath,function(){
+                            toDelete.reverse();
+                            toDelete.push(projectPath);
+                            toDelete.forEach(function(file,index,array){
+                                try{
+                                    if (fs.statSync(file).isDirectory()){
+                                        fs.rmdirSync(file);
+                                    }
+                                    else{
+                                        fs.unlinkSync(file);
+                                    }
+                                }
+                                catch(exception){
+                                    console.log(exception);
+                                }
+                            });
+                        },function(file){
+                            toDelete.push(file);
+                        });
+                      */
+                    });
+                });
+            });
         });
     });
 
 }
+
+exports.getAllUsers = function(callback){
+    GetUsers(app.getDB(),{},callback)
+};
 
 function GetUsers(db,query,callback){
     var users = [];

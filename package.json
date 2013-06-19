@@ -9,5 +9,6 @@
     , "nodeunit": ">=0.7.4"
     , "socket.io": ">=0.9.6"
     , "walk" : "2.2.1"
+    , "optimist" : "0.5.2"
   }
 }

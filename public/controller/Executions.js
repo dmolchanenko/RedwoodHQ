@@ -54,6 +54,7 @@ Ext.define("Redwood.controller.Executions", {
         Ext.Ajax.request({
             url:"/results/"+id,
             method:"GET",
+            disableCaching:true,
             success: function(response) {
                 var obj = Ext.decode(response.responseText);
                 if(obj.error != null){

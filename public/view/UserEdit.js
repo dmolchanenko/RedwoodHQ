@@ -68,17 +68,32 @@ Ext.define('Redwood.view.UserEdit', {
                                 record.set("password",form.getFieldValues().firstpassword);
                             }
                             form.updateRecord();
+                            Ext.data.StoreManager.lookup('UserTags').sync();
+                            Ext.data.StoreManager.lookup('Users').sync();
                         }else{
-                            var newUser = {};
-                            newUser.name = form.getFieldValues().name;
-                            newUser.tag = form.getFieldValues().tag;
-                            newUser.password = form.getFieldValues().firstpassword;
-                            newUser.username = form.getFieldValues().username;
-                            newUser.role = form.getFieldValues().role;
-                            Ext.data.StoreManager.lookup('Users').add(newUser);
+                            Ext.Ajax.request({
+                                url:"/canadduser",
+                                method:"POST",
+                                success: function(response) {
+                                    var obj = Ext.decode(response.responseText);
+                                    if(obj.ableToAdd === true){
+                                        var newUser = {};
+                                        newUser.name = form.getFieldValues().name;
+                                        newUser.tag = form.getFieldValues().tag;
+                                        newUser.password = form.getFieldValues().firstpassword;
+                                        newUser.username = form.getFieldValues().username;
+                                        newUser.role = form.getFieldValues().role;
+                                        Ext.data.StoreManager.lookup('Users').add(newUser);
+                                        Ext.data.StoreManager.lookup('UserTags').sync();
+                                        Ext.data.StoreManager.lookup('Users').sync();
+                                    }
+                                    else{
+                                        Ext.Msg.show({title: "License Error",msg:"Unable to add new user, license limit is reached.",iconCls:'error',buttons : Ext.MessageBox.OK});
+                                    }
+                                }
+                            });
                         }
-                        Ext.data.StoreManager.lookup('UserTags').sync();
-                        Ext.data.StoreManager.lookup('Users').sync();
+
                         //this.up('form').up('window').close();
                         window.close();
                     }
@@ -131,6 +146,7 @@ Ext.define('Redwood.view.UserEdit', {
                     forceSelection: true,
                     editable: false,
                     allowBlank: false,
+                    value:"User",
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {

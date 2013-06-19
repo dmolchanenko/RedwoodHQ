@@ -61,6 +61,7 @@ exports.auth = function(req,res,next){
         if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
             if (req.cookies.project == undefined){
                 res.redirect("/login");
+                return;
             }
             else{
                 return next();

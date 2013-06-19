@@ -220,9 +220,14 @@ Ext.define('Redwood.view.ExecutionView', {
             ],
             data: machines,
             listeners:{
-                update:function(){
+                update:function(store, record, operation, modifiedFieldNames){
+
                     if (me.loadingData === false){
-                        me.markDirty();
+                        modifiedFieldNames.forEach(function(field){
+                            if (field === "baseState"){
+                                me.markDirty();
+                            }
+                        });
                     }
                 }
             }
@@ -407,6 +412,8 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'vncport',     type: 'string'},
                 {name: 'resultID',     type: 'string'},
                 {name: 'result',     type: 'string'},
+                {name: 'startAction',     type: 'string'},
+                {name: 'endAction',     type: 'string'},
                 {name: 'startdate',     type: 'date'},
                 {name: 'enddate',     type: 'date'},
                 {name: 'runtime',     type: 'string'},
@@ -434,6 +441,10 @@ Ext.define('Redwood.view.ExecutionView', {
             minHeight: 150,
             manageHeight: true,
             flex: 1,
+            plugins: [
+                Ext.create('Ext.grid.plugin.CellEditing', {
+                    clicksToEdit: 1
+            })],
             columns:[
                 {
                     header: 'Name',
@@ -441,12 +452,23 @@ Ext.define('Redwood.view.ExecutionView', {
                     flex: 1,
                     renderer: function (value, meta, record) {
                         //if (record.get("status") == "Finished"){
+                        //if (record.get("resultID")){
+                        //    return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                        //}
+                        //else{
+                        //    return value;
+                        //}
+                        //console.log(value);
+
                         if (record.get("resultID")){
-                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                            if(value.indexOf("<a style") == -1){
+                                record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>");
+                            }
+                            //return value;
+                            //return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
                         }
-                        else{
-                            return value;
-                        }
+                            //record.set("name")
+                        return value;
 
                     }
                 },
@@ -454,6 +476,36 @@ Ext.define('Redwood.view.ExecutionView', {
                     header: 'Tags',
                     dataIndex: 'tag',
                     width: 200
+                },
+                {
+                    header: 'Start Action',
+                    dataIndex: 'startAction',
+                    width: 100,
+                    editor: {
+                        xtype: 'textfield',
+                        maskRe: /^\d+$/,
+                        allowBlank: true,
+                        listeners:{
+                            focus: function(){
+                                this.selectText();
+                            }
+                        }
+                    }
+                },
+                {
+                    header: 'End Action',
+                    dataIndex: 'endAction',
+                    width: 100,
+                    editor: {
+                        xtype: 'textfield',
+                        maskRe: /^\d+$/,
+                        allowBlank: true,
+                        listeners:{
+                            focus: function(){
+                                this.selectText();
+                            }
+                        }
+                    }
                 },
                 {
                     header: 'Status',
@@ -505,8 +557,12 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'error',
                     width: 250,
                     renderer: function(value,meta,record){
-                        meta.tdAttr = 'data-qtip="' + value + '"';
-                        return '<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>';
+                        if(value.indexOf("<div style") == -1){
+                            meta.tdAttr = 'data-qtip="' + value + '"';
+                            record.set("error",'<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>');
+                        }
+                        return value
+
                     }
                 },
                 {
@@ -777,7 +833,7 @@ Ext.define('Redwood.view.ExecutionView', {
     getSelectedTestCases: function(){
         var testcases = [];
         this.down("#executionTestcases").getSelectionModel().getSelection().forEach(function(testcase){
-            testcases.push({testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id"),resultID:testcase.get("resultID")});
+            testcases.push({testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id"),resultID:testcase.get("resultID"),startAction:testcase.get("startAction"),endAction:testcase.get("endAction")});
         });
 
         return testcases;

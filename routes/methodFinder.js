@@ -7,7 +7,7 @@ var spawn = require('child_process').spawn;
 exports.methodFinderPost = function(req,res){
     var path = "";
     if(req.body.id == "root"){
-        path = rootDir+req.cookies.project+"/src";
+        path = rootDir+req.cookies.project+"/"+req.cookies.username+"/src";
         FindFiles(path,function(files){
             res.contentType('json');
             res.json([{text:"src",fullpath:path,expanded:true,children:files}]);
@@ -114,6 +114,8 @@ function FindMethods(path,classname,callback){
     var methods = [];
     var err = false;
     //var proc = spawn("vendor/Java/bin/java.exe",["-cp",'utils/lib/*;vendor/groovy/*;utils/*',"MethodList",path,classname]);
+    //console.log ('"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"');
+    //var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",'"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"',"MethodList",path,classname]);
     var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,classname]);
     proc.stderr.on('data', function (data) {
         console.log(data.toString());

@@ -1,3 +1,21 @@
+var pushAction = Ext.create('Ext.Action', {
+    icon: 'images/install.png',
+    tooltip: "Push Changes to Master Brunch",
+    margin: "0 3 0 3",
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('pushChanges');
+    }
+});
+
+var pullAction = Ext.create('Ext.Action', {
+    icon: 'images/uninstall.png',
+    tooltip: "Pull Latest Changes From Master Brunch",
+    margin: "0 3 0 3",
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('pullChanges');
+    }
+});
+
 var copyAction = Ext.create('Ext.Action', {
     icon: 'images/page_copy.png',
     tooltip: "Copy File/Folder",
@@ -505,6 +523,8 @@ Ext.define('Redwood.view.ScriptBrowser', {
                 "-",
                 compileAction,
                 "-",
+                pushAction,
+                pullAction,
                 "->",
                 findText,
                 findPrev,

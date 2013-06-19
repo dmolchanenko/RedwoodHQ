@@ -3,14 +3,13 @@ var common = require("../common");
 var fs = require('fs');
 var path = require('path');
 var realtime = require("../routes/realtime");
+var app =  require('../common');
 
 exports.allProjects = function(callback){
-    var app =  require('../common');
     GetProjects(app.getDB(),{},callback);
 };
 
 exports.projectsPut = function(req, res){
-    var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
@@ -24,7 +23,6 @@ exports.projectsPut = function(req, res){
 };
 
 exports.projectsGet = function(req, res){
-    var app =  require('../common');
     GetProjects(app.getDB(),{},function(data){
         res.contentType('json');
         res.json({
@@ -35,7 +33,6 @@ exports.projectsGet = function(req, res){
 };
 
 exports.projectsDelete = function(req, res){
-    var app =  require('../common');
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
     DeleteProjects(app.getDB(),{_id: id},req.body.name,function(err){
@@ -49,26 +46,31 @@ exports.projectsDelete = function(req, res){
 };
 
 exports.projectsPost = function(req, res){
-    var app =  require('../common');
     var data = req.body;
     delete data._id;
-    CreateProjects(app.getDB(),data,function(returnData){
-        scripts.CreateNewProject(data.name,data.language,function(){
-            res.contentType('json');
-            res.json({
-                success: true,
-                projects: returnData
-            });
-            realtime.emitMessage("newProject",returnData[0]);
+    CreateProjects(data,true,function(returnData){
+        res.contentType('json');
+        res.json({
+            success: true,
+            projects: returnData
         });
     });
 };
 
-function CreateProjects(db,data,callback){
-    db.collection('projects', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+exports.projectCreate = function(data,callback){
+    CreateProjects(data,false,callback);
+};
+
+function CreateProjects(data,emit,callback){
+    app.getDB().collection('projects', function(err, collection) {
+        data._id = app.getDB().bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
-            callback(returnData);
+            scripts.CreateNewProject(data.name,data.language,data.template,function(){
+                callback(returnData);
+                if (emit == true){
+                    realtime.emitMessage("newProject",returnData[0]);
+                }
+            });
         });
     });
 }
@@ -102,21 +104,30 @@ function DeleteProjects(db,data,projectName,callback){
         });
     });
     var projectPath = path.resolve(__dirname,"../public/automationscripts/"+projectName);
+    var delDir = spawn("rmdir",['/S','/Q',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+    /*
     var toDelete = [];
     common.walkDir(projectPath,function(){
         toDelete.reverse();
         toDelete.push(projectPath);
         toDelete.forEach(function(file,index,array){
-            if (fs.statSync(file).isDirectory()){
-                fs.rmdirSync(file);
+            try{
+                if (fs.statSync(file).isDirectory()){
+                    fs.rmdirSync(file);
+                }
+                else{
+                    fs.unlinkSync(file);
+
+                }
             }
-            else{
-                fs.unlinkSync(file);
+            catch(exception){
+                console.log(exception);
             }
         });
     },function(file){
         toDelete.push(file);
     });
+    */
     callback();
 }
 

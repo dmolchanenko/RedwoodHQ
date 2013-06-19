@@ -33,7 +33,8 @@ var express = require('express')
   , executionengine = require('./routes/executionengine')
   , heartbeat = require('./routes/heartbeat')
   , results = require('./routes/results')
-  , methodFinder = require('./routes/methodFinder');
+  , methodFinder = require('./routes/methodFinder')
+  , license = require('./routes/license');
 
 
 var app = express.createServer(
@@ -67,6 +68,9 @@ app.configure('production', function(){
 // Routes
 app.post('/login',auth.logIn,auth.logInSucess);
 app.get('/login',auth.loginPage);
+
+app.post('/license',auth.auth,license.licensePost);
+app.get('/license',auth.auth,license.licenseGet);
 
 app.get('/',auth.auth, routes.index);
 app.get('/index.html',auth.auth,function(req,res){res.sendfile('index.html');});
@@ -149,6 +153,7 @@ app.get('/users', auth.auth, users.usersGet);
 app.put('/users/:id',auth.auth, users.usersPut);
 app.post('/users',auth.auth, users.usersPost);
 app.del('/users/:id',auth.auth, users.usersDelete);
+app.post('/canadduser',auth.auth, users.canAddUser);
 
 //testsets
 app.get('/testsets', auth.auth, testsets.testsetsGet);
@@ -176,6 +181,8 @@ app.post('/userTags',auth.auth, userTags.userTagsPost);
 app.get('/scripts/root',auth.auth, scripts.scriptsGet);
 app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
 app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
+app.post('/scripts/push',auth.auth, scripts.scriptsPush);
+app.post('/scripts/pull',auth.auth, scripts.scriptsPull);
 
 //script
 app.post('/script/get',auth.auth, script.scriptGet);

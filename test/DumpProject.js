@@ -107,6 +107,7 @@ function GetColData(collectionName,callback){
                 }
                 //data._id = "ObjectId(\""+data._id+"\")";
                 //delete data._id;
+                //allRecords.push("var data.name")
                 allRecords.push(data);
                 //console.log(JSON.stringify(data));
                 //actions.push(action);

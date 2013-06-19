@@ -39,7 +39,9 @@ Ext.define("Redwood.controller.Scripts", {
                 replace: this.onReplace,
                 replaceAll: this.onReplaceAll,
                 uploadFile: this.onUpload,
-                compile: this.onCompile
+                compile: this.onCompile,
+                pushChanges: this.onPushChanges,
+                pullChanges: this.onPullChanges
 
             },
             'scriptBrowser button': {
@@ -50,8 +52,31 @@ Ext.define("Redwood.controller.Scripts", {
 
     compileEventAttached: false,
 
+    onPushChanges: function(){
+        Ext.Ajax.request({
+            url:"/scripts/push",
+            method:"POST",
+            jsonData : {},
+            success: function(response) {
+
+            }
+        });
+    },
+
+    onPullChanges: function(){
+        var me = this;
+        Ext.Ajax.request({
+            url:"/scripts/pull",
+            method:"POST",
+            jsonData : {},
+            success: function(response) {
+                me.getStore('Scripts').reload();
+            }
+        });
+    },
+
     onCompile: function(){
-        Ext.socket.emit('compile', {project:Ext.util.Cookies.get("project")});
+        Ext.socket.emit('compile', {project:Ext.util.Cookies.get("project"),username:Ext.util.Cookies.get("username")});
         var me = this;
 
         var output = me.scriptBrowser.down("#compileOutput");
