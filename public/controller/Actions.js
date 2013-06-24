@@ -13,7 +13,7 @@ Ext.define("Redwood.controller.Actions", {
     extend: 'Ext.app.Controller',
 
     models: ['Actions',"ActionTags",'MethodFinder'],
-    stores: ['Actions',"ActionTags"],
+    stores: ['Actions',"ActionTags","ActionsTree"],
     views:  ['Actions','ScriptPicker','ActionPicker'],
 
     init: function () {
@@ -126,6 +126,35 @@ Ext.define("Redwood.controller.Actions", {
     onActionsRender: function(){
         this.actionsPanel = Ext.ComponentQuery.query('actions')[0];
         this.tabPanel = Ext.ComponentQuery.query('#actionstab',this.actionsPanel)[0];
+
+        var actionsStore = Ext.data.StoreManager.lookup('Actions');
+        var treeActionsStore = Ext.data.StoreManager.lookup('ActionsTree');
+        var tags = [];
+        var tagStore = Ext.data.StoreManager.lookup('ActionTags');
+        tagStore.each(function(tag){
+            tags.push({name:tag.get("value"),allowDrag:false,tagValue:tag.get("value"),_id:tag.get("_id"),leaf:false,children:[]});
+        });
+
+        var actions = [];
+        actionsStore.each(function(action){
+            if(action.get("tag").length > 0){
+                action.get("tag").forEach(function(tagInTC){
+                    tags.forEach(function(tag){
+                        if (tag.name === tagInTC){
+                            tag.children.push({name:action.get("name"),_id:action.get("_id"),leaf:true})
+                        }
+                    })
+                });
+            }
+            else{
+                actions.push({name:action.get("name"),_id:action.get("_id"),leaf:true})
+            }
+
+        });
+
+        tags.concat(actions).forEach(function(node){
+            treeActionsStore.getRootNode().appendChild(node);
+        });
     }
 
 

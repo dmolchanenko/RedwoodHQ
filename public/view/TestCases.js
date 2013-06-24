@@ -61,7 +61,9 @@ Ext.define('Redwood.view.TestCases', {
             }
             if (options.destroy){
                 options.destroy.forEach(function(r){
-                    actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                    if (r != null){
+                        actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                    }
                 });
             }
             if (options.update){
@@ -141,6 +143,36 @@ Ext.define('Redwood.view.TestCases', {
             }
         };
 
+        var actionListTree = {
+            xtype: 'treepanel',
+            multiSelect: false,
+            hideCollapseTool: true,
+            rootVisible: false,
+            store: Ext.data.StoreManager.lookup('ActionsTree'),
+            width: 206,
+            title: "Actions Tree",
+            focused: false,
+            hideHeaders: true,
+            displayField:"name",
+            viewConfig: {
+                markDirty: false,
+                plugins: {
+                    ptype: 'treeviewdragdrop',
+                    enableDrag: true,
+                    enableDrop: false,
+                    ddGroup: "actionDrop"
+                }
+            },
+            listeners:{
+                itemdblclick: function(me, record, element, node_index, event) {
+                    //if (!record.get("tagValue")){
+                        //var found = Ext.data.StoreManager.lookup('Actions').findRecord("_id",record.get("_id"));
+                        //me.up('actions').fireEvent('editAction',found);
+                    //}
+                }
+            }
+        };
+
         var testCaseListFlat = {
             //region: 'west',
             //split:true,
@@ -193,7 +225,7 @@ Ext.define('Redwood.view.TestCases', {
                 width: 206,
                 collapseDirection: "left",
                 collapsible: true,
-                items:[testCaseListFlat,actionListFlat]
+                items:[testCaseListFlat,actionListFlat,actionListTree]
 
             },
             {

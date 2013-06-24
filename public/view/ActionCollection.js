@@ -153,6 +153,7 @@ Ext.define('Redwood.view.ActionCollection', {
             },
             listeners: {
                 beforedrop: function( node, data, overModel, dropPosition, dropHandler){
+                    if (data.records[0].get("leaf") === false) return false;
                     var actionSelected = null;
                     //if store is empty
                     if(me.store.getRootNode().childNodes.length == 1){
@@ -681,6 +682,10 @@ Ext.define('Redwood.view.ActionCollection', {
 
             if (e.record.get("parametertype") === "Array of String"){
                 var data = [];
+
+                if(typeof e.record.get("paramvalue") ==  "string"){
+                    e.record.set("paramvalue",[])
+                }
 
                 e.record.get("paramvalue").forEach(function(value){
                     data.push({text:Ext.util.Format.htmlEncode(value),paramvalue:value});

@@ -87,16 +87,28 @@ Ext.define("Redwood.controller.RealTimeEvents", {
         Ext.socket.on('UpdateActions',function(action){
             var store = Ext.data.StoreManager.lookup("Actions");
             me.updateStore(store,action);
+            store = Ext.data.StoreManager.lookup("ActionsCombo");
+            me.updateStore(store,action);
+            store = Ext.data.StoreManager.lookup("ActionsTree");
+            store.updateActions([action]);
         });
 
         Ext.socket.on('AddActions',function(action){
             var store = Ext.data.StoreManager.lookup("Actions");
             me.addToStore(store,action);
+            store = Ext.data.StoreManager.lookup("ActionsCombo");
+            me.addToStore(store,action);
+            store = Ext.data.StoreManager.lookup("ActionsTree");
+            store.addActions([action]);
         });
 
         Ext.socket.on('DeleteActions',function(action){
             var store = Ext.data.StoreManager.lookup("Actions");
             me.removeFromStore(store,action);
+            store = Ext.data.StoreManager.lookup("ActionsCombo");
+            me.removeFromStore(store,action);
+            store = Ext.data.StoreManager.lookup("ActionsTree");
+            store.deleteActions([action]);
         });
 
         Ext.socket.on('UpdateTestCases',function(action){

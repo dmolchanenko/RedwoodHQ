@@ -58,11 +58,12 @@ Ext.define('Redwood.view.Actions', {
     initComponent: function () {
 
         var actionListFlat = {
-            region: 'west',
-            split:true,
+            //region: 'west',
+            //split:true,
             xtype: 'grid',
-            collapseDirection: "left",
-            collapsible: true,
+            hideCollapseTool: true,
+            //collapseDirection: "left",
+            //collapsible: true,
             multiSelect: false,
             id:"actionsGrid",
             store: Ext.data.StoreManager.lookup('Actions'),
@@ -113,17 +114,20 @@ Ext.define('Redwood.view.Actions', {
         };
 
         var actionListTree = {
-            xtype: 'grid',
+            xtype: 'treepanel',
             multiSelect: false,
-            id:"actionsTreeGrid",
+            hideCollapseTool: true,
+            rootVisible: false,
             store: Ext.data.StoreManager.lookup('ActionsTree'),
             width: 206,
             title: "Actions Tree",
             focused: false,
             hideHeaders: true,
+            displayField:"name",
             viewConfig: {
+                markDirty: false,
                 plugins: {
-                    ptype: 'gridviewdragdrop',
+                    ptype: 'treeviewdragdrop',
                     enableDrag: true,
                     enableDrop: false,
                     ddGroup: "actionDrop"
@@ -131,37 +135,28 @@ Ext.define('Redwood.view.Actions', {
             },
             listeners:{
                 itemdblclick: function(me, record, element, node_index, event) {
-                    me.up('actions').fireEvent('editAction',record);
-                }
-            },
-            columns: [
-                {
-                    dataIndex: 'name',
-                    flex: 1,
-                    renderer: formatAction
-                }
-            ],
-
-            tbar: {
-                xtype: 'toolbar',
-                dock: 'top',
-                items: [
-                    {
-                        width: 200,
-                        //fieldLabel: 'Search',
-                        //labelWidth: 50,
-                        xtype: 'searchfield',
-                        paramNames: ["tag","name"],
-                        store: Ext.data.StoreManager.lookup('Actions')
+                    if (!record.get("tagValue")){
+                        var found = Ext.data.StoreManager.lookup('Actions').findRecord("_id",record.get("_id"));
+                        me.up('actions').fireEvent('editAction',found);
                     }
-                ]
-
+                }
             }
         };
 
 
         this.items=[
-            actionListFlat,
+            {
+                xtype:"panel",
+                layout: "accordion",
+                region: 'west',
+                split:true,
+                width: 206,
+                collapseDirection: "left",
+                hideHeaders: true,
+                collapsible: true,
+                items:[actionListFlat,actionListTree]
+
+            },
             {
                 xtype:"panel",
                 region:"center",

@@ -192,7 +192,7 @@ Ext.define('Redwood.view.TestSetEdit', {
             tags.push({name:tag.get("value"),_id:tag.get("_id"),leaf:false,checked:false,children:[]});
         });
 
-        Ext.data.StoreManager.lookup('TestCases').each(function(testcase){
+        Ext.data.StoreManager.lookup('TestCases').query("name",/.*/).each(function(testcase){
             var foundTC = false;
             if (me.testSetData != null){
                 me.testSetData.get("testcases").forEach(function(recordedTestcase){
