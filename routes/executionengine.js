@@ -950,6 +950,12 @@ function updateResult(result,callback){
 function updateExecutionTestCase(query,update,machineHost,vncport,callback){
     db.collection('executiontestcases', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            if (data == null){
+                if (callback){
+                    callback(err);
+                }
+                return;
+            }
             if (machineHost){
                 data.host = machineHost;
                 data.vncport = vncport;
