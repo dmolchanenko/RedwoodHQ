@@ -95,9 +95,11 @@ function licenseInfo(path,callback){
     var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/',"LicenseInfo",path]);
     var returnData = "";
     proc.stderr.on('data', function (data) {
+        console.log(data.toString());
         returnData = returnData + data.toString();
     });
     proc.stdout.on('data', function (data) {
+        console.log(data.toString());
         returnData = returnData + data.toString();
     });
 
