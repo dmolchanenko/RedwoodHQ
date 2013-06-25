@@ -31,16 +31,36 @@ Ext.define("Redwood.controller.Actions", {
 
     onCloneAction:function(){
         var actionView = this.tabPanel.getActiveTab();
-        if (actionView === undefined){
+        var me = this;
+        if (actionView === null){
+            return;
+        }
+        if (actionView.dirty === true){
+            Ext.Msg.show({title: "Clone Error",msg:"Please save any changes before cloning the action.",iconCls:'error',buttons : Ext.MessageBox.OK});
             return;
         }
 
+        Ext.Msg.prompt('Name', 'Please enter new action name:', function(btn, text){
+            if (btn == 'ok'){
+                if(me.getStore('Actions').find("name",text) != -1){
+                    Ext.Msg.show({title: "Clone Error",msg:"Action name should be unique.",iconCls:'error',buttons : Ext.MessageBox.OK});
+                    return;
+                }
+                var action = actionView.getActionData();
+                action.name = text;
+                me.getStore('Actions').add(action);
+                me.getStore('Actions').sync({success:function(batch,options){
+                    Ext.socket.emit('AddActions', batch.operations[0].records[0].data);
+                }});
+                console.log(action);
+            }
+        });
 
     },
 
     onDeleteAction:function(){
         var actionView = this.tabPanel.getActiveTab();
-        if (actionView === undefined){
+        if (actionView === null){
             return;
         }
         if (actionView.title === "[New Action]"){
@@ -81,7 +101,7 @@ Ext.define("Redwood.controller.Actions", {
 
     onSaveAction: function(){
         var actionView = this.tabPanel.getActiveTab();
-        if (actionView === undefined){
+        if (actionView === null){
             return;
         }
         if (actionView.validate(this.getStore('Actions')) === false){
