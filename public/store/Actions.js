@@ -30,6 +30,8 @@ Ext.define('Redwood.store.Actions', {
             if (me.initialLoad == false){
                 me.initialLoad = true;
 
+                Ext.data.StoreManager.lookup('ActionsTree').initialLoad();
+
                 //create another store for actions combo box
                 //keep two stores in sync
                 var actionsStore = me;

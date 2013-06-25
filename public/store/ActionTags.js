@@ -2,7 +2,9 @@ Ext.define('Redwood.store.ActionTags', {
     extend: 'Ext.data.Store',
     model: 'Redwood.model.ActionTags',
 
-    autoLoad: true,
+    autoLoad: {
+        callback: function(){Ext.data.StoreManager.lookup('ActionsTree').initialLoad();}
+    },
     autoSync: false,
 
     proxy: {
