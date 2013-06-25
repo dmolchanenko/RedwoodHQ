@@ -24,14 +24,46 @@ Ext.define("Redwood.controller.TestCases", {
                 newTestCase: this.onNewTestCase,
                 saveTestCase: this.onSaveTestCase,
                 editTestCase: this.onEditTestCase,
-                deleteTestCase: this.onDeleteTestCase
+                deleteTestCase: this.onDeleteTestCase,
+                cloneTestCase: this.onCloneTestCase
             }
         });
     },
 
+    onCloneTestCase:function(){
+        var testcaseView = this.tabPanel.getActiveTab();
+        var me = this;
+        if (testcaseView === null){
+            return;
+        }
+        if (testcaseView.dirty === true){
+            Ext.Msg.show({title: "Clone Error",msg:"Please save any changes before cloning selected test case.",iconCls:'error',buttons : Ext.MessageBox.OK});
+            return;
+        }
+
+        Ext.Msg.prompt('Name', 'Please enter new test case name:', function(btn, text){
+            if (btn == 'ok'){
+                /*
+                if(me.getStore('TestCases').find("name",text) != -1){
+                    Ext.Msg.show({title: "Clone Error",msg:"Test Case name should be unique.",iconCls:'error',buttons : Ext.MessageBox.OK});
+                    return;
+                }
+                */
+                var testCase = testcaseView.getTestCaseData();
+                testCase.name = text;
+                var newTestCase = me.getStore('TestCases').add(testCase)[0];
+                me.getStore('TestCases').sync({success:function(batch,options){
+                    Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
+                }});
+                me.onEditTestCase(newTestCase);
+            }
+        });
+
+    },
+
     onDeleteTestCase:function(){
         var testcaseView = this.tabPanel.getActiveTab();
-        if (testcaseView === undefined){
+        if (testcaseView === null){
             return;
         }
         if (testcaseView.title === "[New TestCase]"){
@@ -72,7 +104,7 @@ Ext.define("Redwood.controller.TestCases", {
 
     onSaveTestCase: function(){
         var testcaseView = this.tabPanel.getActiveTab();
-        if (testcaseView === undefined){
+        if (testcaseView === null){
             return;
         }
         if (testcaseView.validate(this.getStore('TestCases')) === false){

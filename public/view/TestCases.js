@@ -29,6 +29,17 @@ var deleteTestCase = Ext.create('Ext.Action', {
     }
 });
 
+var cloneTestCase = Ext.create('Ext.Action', {
+    icon: 'images/clone.png',
+    //text: 'Delete',
+    itemId: "cloneTestCase",
+    tooltip: "Clone Selected Test Case",
+    handler: function(widget, event) {
+        var editor = this.up('testcases');
+        editor.fireEvent('cloneTestCase');
+    }
+});
+
 function formatAction(val,metaData,record) {
     return '<img src="images/action.png" align="top"> '+val;
 }
@@ -239,7 +250,9 @@ Ext.define('Redwood.view.TestCases', {
                         newTestCase,
                         saveTestCase,
                         " ",
-                        deleteTestCase
+                        deleteTestCase,
+                        "-",
+                        cloneTestCase
                     ]
                 },
                 items:[

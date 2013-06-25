@@ -36,7 +36,7 @@ Ext.define("Redwood.controller.Actions", {
             return;
         }
         if (actionView.dirty === true){
-            Ext.Msg.show({title: "Clone Error",msg:"Please save any changes before cloning the action.",iconCls:'error',buttons : Ext.MessageBox.OK});
+            Ext.Msg.show({title: "Clone Error",msg:"Please save any changes before cloning selected action.",iconCls:'error',buttons : Ext.MessageBox.OK});
             return;
         }
 
@@ -48,11 +48,11 @@ Ext.define("Redwood.controller.Actions", {
                 }
                 var action = actionView.getActionData();
                 action.name = text;
-                me.getStore('Actions').add(action);
+                var newAction = me.getStore('Actions').add(action)[0];
                 me.getStore('Actions').sync({success:function(batch,options){
                     Ext.socket.emit('AddActions', batch.operations[0].records[0].data);
                 }});
-                console.log(action);
+                me.onEditAction(newAction);
             }
         });
 

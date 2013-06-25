@@ -170,6 +170,7 @@ Ext.define('Redwood.view.Actions', {
                         saveAction,
                         " ",
                         deleteAction,
+                        "-",
                         cloneAction
                     ]
                 },
