@@ -459,15 +459,15 @@ Ext.define('Redwood.view.ExecutionView', {
                         //else{
                         //    return value;
                         //}
-
-                        if (record.get("resultID")){
-                            if(value.indexOf("<a style") == -1){
-                                record.set("tempName",value);
-                                record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>");
-                            }
+                        //console.log(value);
+                        //if (record.get("resultID")){
+                            //if(value.indexOf("<a style") == -1){
+                                //record.set("tempName",value);
+                                //record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>");
+                            //}
                             //return value;
                             //return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
-                        }
+                        //}
                             //record.set("name")
                         return value;
 
@@ -513,7 +513,9 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'status',
                     width: 100,
                     renderer: function (value, meta, record) {
-                        record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + record.get("tempName") +"</a>");
+                        if(record.get("resultID") != ""){
+                            record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + record.get("tempName") +"</a>");
+                        }
 
                         if(record.get("host") && (value == "Running")){
                             return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
@@ -802,6 +804,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
                     if (originalTC != null){
                         testcase.name = originalTC.get("name");
+                        testcase.tempName = originalTC.get("name");
                         testcase.tag = originalTC.get("tag");
                         me.down("#executionTestcases").store.add(testcase);
                     }
