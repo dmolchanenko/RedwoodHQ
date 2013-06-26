@@ -43,7 +43,7 @@ Ext.define('Redwood.view.LicenseEditor', {
                     {
                         xtype: "textarea",
                         height: 260,
-                        width: 400,
+                        width: 450,
                         margin: "0 0 7 0",
                         itemId: "licenseText"
 

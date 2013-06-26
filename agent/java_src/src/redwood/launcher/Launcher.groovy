@@ -58,6 +58,9 @@ class Launcher {
     public static def runAction(action){
         action["result"] = "Passed"
         try{
+            if (action.script == ""){
+                assert false, "Script was not assigned to the action."
+            }
             def methodName = action.script.tokenize(".")[-1]
             def className = action.script[0..(action.script.lastIndexOf(".")-1)]
             def params = [:]

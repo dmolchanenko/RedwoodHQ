@@ -406,6 +406,7 @@ Ext.define('Redwood.view.ExecutionView', {
             storeId: "ExecutionTCs"+this.itemId,
             fields: [
                 {name: 'name',     type: 'string'},
+                {name: 'tempName',     type: 'string'},
                 {name: 'tag',     type: 'array'},
                 {name: 'status',     type: 'string'},
                 {name: 'host',     type: 'string'},
@@ -458,10 +459,10 @@ Ext.define('Redwood.view.ExecutionView', {
                         //else{
                         //    return value;
                         //}
-                        //console.log(value);
 
                         if (record.get("resultID")){
                             if(value.indexOf("<a style") == -1){
+                                record.set("tempName",value);
                                 record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>");
                             }
                             //return value;
@@ -512,6 +513,8 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'status',
                     width: 100,
                     renderer: function (value, meta, record) {
+                        record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + record.get("tempName") +"</a>");
+
                         if(record.get("host") && (value == "Running")){
                             return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
                         }

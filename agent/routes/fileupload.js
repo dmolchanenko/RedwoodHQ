@@ -17,15 +17,20 @@ exports.Post = function(req, res){
             parent = parent + dir+"/";
         });
     }
-    fs.rename(tmp_path, target_path, function(err) {
-        if (err){
-            res.send('{error:"'+err+'"}');
-            console.log("ERROR:"+err);
-            fs.unlink(tmp_path);
-            return;
-        }
-        res.send("{error:null,success:true}");
-    });
+    try{
+        fs.rename(tmp_path, target_path, function(err) {
+            if (err){
+                res.send('{error:"'+err+'"}');
+                console.log("ERROR:"+err);
+                fs.unlink(tmp_path);
+                return;
+            }
+            res.send("{error:null,success:true}");
+        });
+    }
+    catch(exception){
+        console.log("EXCEPTION while renaming file:"+target_path+"   "+exception);
+    }
 
     //console.log(tmp_path);
     //console.log(target_path);

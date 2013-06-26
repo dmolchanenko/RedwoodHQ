@@ -898,6 +898,10 @@ function sendAgentCommand(agentHost,port,command,callback){
 
 function resolveParamValue(value,variables){
     var returnNULL = false;
+    if (typeof value != "string"){
+        return value;
+    }
+
     if (value.length > 4){
         if ((value.indexOf("$\{") == 0) &&(value.charAt(value.length -1) == "}") && (value.split("}").length > 1))
         {
@@ -1076,7 +1080,7 @@ function findNextAction (actions,variables,callback){
             }
             return;
         }
-        if (action.script){
+        if ((action.script)||((action.actions.length == 0) && ((!action.script)))){
             resolveParams(action,function(){
                 if (allDone == false){
                     callback(action);
@@ -1128,6 +1132,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 if (action.type == "script")
                 {
                     lastPoint.script = action.script;
+                    lastPoint.type = action.type;
                     lastResultPoint.script = action.script;
                     lastResultPoint.leaf = true;
                     cb();
@@ -1172,7 +1177,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                         }
                         var newActionResult = {actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                         testcaseResults.children.push(newActionResult);
-                        console.log(executions[executionID].testcases[testcaseID]);
+
                         var runAction = true;
                         if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
                             var endAction = 99999;
@@ -1197,7 +1202,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     });
                 }
                 else{
-                    callback(null);
+                    callback({dbTestCase:testcase,actions:[]},{name:testcase.name,testcaseID:testcase._id,children:[]},[]);
                 }
             }
         })
