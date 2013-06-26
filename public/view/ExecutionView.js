@@ -37,8 +37,8 @@ Ext.define('Redwood.view.ExecutionView', {
                             me.destroy();
                         }
                         if (id == "yes"){
-                            var editor = me.up('actions');
-                            editor.fireEvent('saveExectuion');
+                            var editor = me.up('executionsEditor');
+                            editor.fireEvent('save');
                             me.destroy();
                         }
                     }
