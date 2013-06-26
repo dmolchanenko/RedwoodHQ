@@ -5,6 +5,7 @@ import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.ie.InternetExplorerDriver
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeDriverService
+import org.openqa.selenium.ie.InternetExplorerDriverService
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.remote.DesiredCapabilities
 
@@ -24,7 +25,9 @@ class Browser{
       Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome());
     }
     else{
-      Driver = new InternetExplorerDriver();
+      def service = new InternetExplorerDriverService.Builder().usingPort(9516).usingDriverExecutable(new File("iedriverserver.exe")).build()
+      service.start();
+      Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome());
     }
     
     if (params.URL){

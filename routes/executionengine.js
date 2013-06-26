@@ -1166,6 +1166,9 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                             });
                         });
                     }
+                    else{
+                        cb();
+                    }
                 }
             });
         });
