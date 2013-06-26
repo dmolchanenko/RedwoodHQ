@@ -23,7 +23,7 @@ exports.licenseGet = function(req, res){
                         success: true,
                         response: response,
                         licenseText:"",
-                        users:"1"
+                        users:"Trial"
                     });
                 }
             });
@@ -33,7 +33,7 @@ exports.licenseGet = function(req, res){
             res.json({
                 success: true,
                 response: "LICENSE_VALID",
-                users:"1"
+                users:"Trial"
             });
         }
 
@@ -78,12 +78,12 @@ exports.numberOfUsers = function(callback){
                     callback(parseInt(users));
                 }
                 else{
-                    callback(1)
+                    callback(0)
                 }
             });
         }
         else{
-            callback(1)
+            callback(0)
         }
 
     });
