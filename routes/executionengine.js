@@ -277,6 +277,19 @@ function startTCExecution(id,variables,executionID,callback){
                 finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
                 return;
             }
+
+            //if there is nothing to execute just finish the TC
+            if (((testcase.dbTestCase.type === "collection")&&(testcase.actions.length == 0)) || ((testcase.dbTestCase.type === "script")&&(testcase.dbTestCase.script == ""))){
+                if (callback){
+                    callback();
+                }
+                result.status = "Finished";
+                result.result = "Passed";
+                updateResult(result);
+                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                return;
+            }
+
             //updateExecutionTestCase({_id:testcases[0]._id.executionTestCaseID},{$set:{"status":"Running"}});
             var machines = executions[executionID].machines;
 
@@ -310,9 +323,10 @@ function startTCExecution(id,variables,executionID,callback){
                 return;
             }
 
-            var returnMachines = [];
             var count = 0;
             var errorFound = false;
+
+
             machines.forEach(function(machine){
                 if (machine.runBaseState === true){
                     return;
@@ -323,11 +337,9 @@ function startTCExecution(id,variables,executionID,callback){
                     }
                     count++;
                     if (err){
-                        //updateMachine({_id:db.bson_serializer.ObjectID(machine._id)},{$set:{state:"Error:"+err}})
                         if (callback){
                             callback({error:err});
                         }
-                        //updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Finished",result:"Failed",resultID:result._id,error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()}});
                         result.error = err;
                         result.status = "Finished";
                         result.result = "Failed";
