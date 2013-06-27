@@ -65,9 +65,9 @@ exports.CleanUpTestCaseTags = function(req){
     var callback = function(tags){
         db.collection('testcases', function(err, collection) {
             tags.forEach(function(tag, index, array){
-                collection.find({tag:tag.value}).count(function(err,number){
+                collection.find({project:req.cookies.project,tag:tag.value}).count(function(err,number){
                     if (number == 0){
-                        DeleteTestCaseTags(db,tag);
+                        DeleteTestCaseTags(db,{value:tag.value,project:req.cookies.project});
                     }
                 });
             });

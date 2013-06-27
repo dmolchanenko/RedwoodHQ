@@ -64,9 +64,9 @@ exports.CleanUpUserTags = function(){
     var callback = function(tags){
         db.collection('users', function(err, collection) {
             tags.forEach(function(tag, index, array){
-                collection.find({tag:tag.value}).count(function(err,number){
+                collection.find({project:req.cookies.project,tag:tag.value}).count(function(err,number){
                     if (number == 0){
-                        DeleteUserTags(db,tag);
+                        DeleteUserTags(db,{value:tag.value,project:req.cookies.project});
                     }
                 });
             });

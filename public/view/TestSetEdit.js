@@ -217,6 +217,14 @@ Ext.define('Redwood.view.TestSetEdit', {
 
         });
 
+        for(var i=0; i<tags.length; i++) {
+            if(tags[i].children.length == 0){
+                tags.splice(i, 1);
+                i--;
+            }
+        }
+
+
         var treeStore =  new Ext.data.TreeStore({
             fields: [
                 {name: 'name',     type: 'string'},

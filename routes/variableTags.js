@@ -65,9 +65,9 @@ exports.CleanUpVariableTags = function(req){
     var callback = function(tags){
         db.collection('variables', function(err, collection) {
             tags.forEach(function(tag, index, array){
-                collection.find({tag:tag.value}).count(function(err,number){
+                collection.find({project:req.cookies.project,tag:tag.value}).count(function(err,number){
                     if (number == 0){
-                        DeleteVariableTags(db,tag);
+                        DeleteVariableTags(db,{value:tag.value,project:req.cookies.project});
                     }
                 });
             });
