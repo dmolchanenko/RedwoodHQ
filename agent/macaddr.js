@@ -24,7 +24,9 @@ var find_addresses = function(cb) {
                             if (!results) {
                                 results = [];
                             }
-                            results.push(match);
+                            if (match != "127.0.0.1"){
+                                results.push(match);
+                            }
                         }
                     }
                 }
