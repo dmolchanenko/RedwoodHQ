@@ -445,7 +445,15 @@ Ext.define('Redwood.view.ExecutionView', {
             plugins: [
                 Ext.create('Ext.grid.plugin.CellEditing', {
                     clicksToEdit: 1
+
             })],
+            listeners:{
+                edit: function(editor, e ){
+                    if ((e.field == "endAction") &&(e.value != "") &&(e.record.get("startAction") == "")){
+                        e.record.set("startAction",1);
+                    }
+                }
+            },
             columns:[
                 {
                     header: 'Name',
