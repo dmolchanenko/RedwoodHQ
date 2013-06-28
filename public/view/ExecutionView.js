@@ -452,6 +452,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     if ((e.field == "endAction") &&(e.value != "") &&(e.record.get("startAction") == "")){
                         e.record.set("startAction",1);
                     }
+                    testcasesGrid.getSelectionModel().select([e.record]);
                 }
             },
             columns:[
