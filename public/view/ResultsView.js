@@ -29,6 +29,7 @@ Ext.define('Redwood.view.ResultsView', {
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'actionid',     type: 'string'},
+                {name: 'order',     type: 'string'},
                 {name: 'paramvalue',     type: 'string'},
                 {name: 'parameters',     type: 'array'},
                 {name: 'result',     type: 'string'},
@@ -54,6 +55,22 @@ Ext.define('Redwood.view.ResultsView', {
             multiSelect: false,
             columns: [
                 {
+                    header: 'Order',
+                    width:40,
+                    sortable: false,
+                    dataIndex: 'order',
+                    renderer: function(value,meta,record){
+                        //return "<a style= 'color: blue;' href='javascript:openAction(&quot;"+ record.get("actionid") +"&quot;)'>" + value +"</a>";
+                        if (record.get("parentId") == "root"){
+                            return value;
+                        }
+                        else{
+                            return "";
+                        }
+                    }
+                },
+
+                {
                     xtype: 'treecolumn',
                     header: 'Action Name',
                     //flex: 2,
@@ -64,6 +81,7 @@ Ext.define('Redwood.view.ResultsView', {
                         return "<a style= 'color: blue;' href='javascript:openAction(&quot;"+ record.get("actionid") +"&quot;)'>" + value +"</a>";
                     }
                 },
+
                 {
                     header: 'Parameters',
                     //flex: 2,

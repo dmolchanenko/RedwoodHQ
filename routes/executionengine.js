@@ -1157,7 +1157,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                             if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                                 hosts.push(innerAction.host)
                             }
-                            var newActionResult = {actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
+                            var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                             lastResultPoint.children.push(newActionResult);
                             var newAction = {result:newActionResult,dbAction:innerAction,parent:lastPoint,actions:[],returnValues:{}};
                             lastPoint.actions.push(newAction);
@@ -1190,10 +1190,18 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                         if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                             hosts.push(innerAction.host)
                         }
-                        var newActionResult = {actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
+                        var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
                         testcaseResults.children.push(newActionResult);
 
                         var runAction = true;
+
+                        //if start action is greater than all actions don't execute anything
+                        if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
+                            callback({dbTestCase:testcase,actions:[]},{name:testcase.name,testcaseID:testcase._id,children:[]},[]);
+                            return;
+                        }
+
+
                         if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
                             var endAction = 99999;
                             if ((executions[executionID].testcases[testcaseID].endAction)&&(executions[executionID].testcases[testcaseID].endAction != "")){
