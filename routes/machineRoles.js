@@ -1,7 +1,7 @@
 
 exports.machineRolesGet = function(req, res){
     var app =  require('../common');
-    GetMachineRoles(app.getDB(),{},function(data){
+    GetMachineRoles(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -14,6 +14,7 @@ exports.machineRolesPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
+    data.project = req.cookies.project;
     CreateMachineRoles(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({

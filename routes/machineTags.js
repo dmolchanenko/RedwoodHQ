@@ -1,7 +1,7 @@
 
 exports.machineTagsGet = function(req, res){
     var app =  require('../common');
-    GetMachineTags(app.getDB(),{},function(data){
+    GetMachineTags(app.getDB(),{project:req.cookies.project},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -14,6 +14,7 @@ exports.machineTagsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
+    data.project = req.cookies.project;
     CreateMachineTags(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({

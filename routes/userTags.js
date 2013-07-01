@@ -57,16 +57,16 @@ function GetUserTags(db,query,callback){
     })
 }
 
-exports.CleanUpUserTags = function(req){
+exports.CleanUpUserTags = function(){
     var app =  require('../common');
     var db = app.getDB();
 
     var callback = function(tags){
         db.collection('users', function(err, collection) {
             tags.forEach(function(tag, index, array){
-                collection.find({project:req.cookies.project,tag:tag.value}).count(function(err,number){
+                collection.find({tag:tag.value}).count(function(err,number){
                     if (number == 0){
-                        DeleteUserTags(db,{value:tag.value,project:req.cookies.project});
+                        DeleteUserTags(db,{value:tag.value});
                     }
                 });
             });
