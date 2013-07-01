@@ -395,8 +395,12 @@ function startTCExecution(id,variables,executionID,callback){
                         callback();
                         findNextAction(testcase.actions,variables,function(action){
                             if (!executions[executionID]) return;
-                            executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
+                            if(action == null){
+                                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                                return;
+                            }
 
+                            executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
                             agentInstructions.name = action.name;
                             agentInstructions.script = action.script;
@@ -1192,12 +1196,6 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,children:[]};
                     var pending = testcase.collection.length;
 
-                    //if start action is greater than all actions don't execute anything
-                    if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
-                        callback({dbTestCase:testcase,actions:[]},{name:testcase.name,testcaseID:testcase._id,children:[]},[]);
-                        return;
-                    }
-
                     testcase.collection.forEach(function(innerAction){
                         if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                             hosts.push(innerAction.host)
@@ -1207,9 +1205,11 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
                         var runAction = true;
 
-
-
-                        if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
+                        //if start action is greater than all actions don't execute anything
+                        if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
+                            runAction = false;
+                        }
+                        else if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
                             var endAction = 99999;
                             if ((executions[executionID].testcases[testcaseID].endAction)&&(executions[executionID].testcases[testcaseID].endAction != "")){
                                 endAction = parseInt(executions[executionID].testcases[testcaseID].endAction)

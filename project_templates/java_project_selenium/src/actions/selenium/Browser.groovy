@@ -39,6 +39,7 @@ class Browser{
       }
       
     }
+    Driver.manage().window().maximize();
     Driver.manage().timeouts().implicitlyWait(10, java.util.concurrent.TimeUnit.SECONDS);
     
     
