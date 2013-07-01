@@ -52,7 +52,7 @@ Ext.define("Redwood.controller.Actions", {
                 me.getStore('Actions').sync({success:function(batch,options){
                     Ext.socket.emit('AddActions', batch.operations[0].records[0].data);
                 }});
-                me.onEditAction(newAction);
+                me.onEditAction(newAction,false);
             }
         });
 
@@ -81,7 +81,7 @@ Ext.define("Redwood.controller.Actions", {
             }
         });
     },
-    onEditAction: function(record){
+    onEditAction: function(record,collapse){
         var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.ActionView',{
@@ -93,7 +93,9 @@ Ext.define("Redwood.controller.Actions", {
 
             this.tabPanel.add(tab);
             foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
-            tab.down("#actionDetails").collapse();
+            if(!collapse == false){
+                tab.down("#actionDetails").collapse();
+            }
         }
         this.tabPanel.setActiveTab(foundIndex);
 

@@ -55,7 +55,7 @@ Ext.define("Redwood.controller.TestCases", {
                 me.getStore('TestCases').sync({success:function(batch,options){
                     Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
                 }});
-                me.onEditTestCase(newTestCase);
+                me.onEditTestCase(newTestCase,false);
             }
         });
 
@@ -84,7 +84,7 @@ Ext.define("Redwood.controller.TestCases", {
             }
         });
     },
-    onEditTestCase: function(record){
+    onEditTestCase: function(record,collapse){
         var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.TestCaseView',{
@@ -96,7 +96,9 @@ Ext.define("Redwood.controller.TestCases", {
 
             this.tabPanel.add(tab);
             foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
-            tab.down("#testcaseDetails").collapse();
+            if(!collapse == false){
+                tab.down("#testcaseDetails").collapse();
+            }
         }
         this.tabPanel.setActiveTab(foundIndex);
 
