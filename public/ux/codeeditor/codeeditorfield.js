@@ -161,7 +161,8 @@ Ext.define('Redwood.ux.EditorPanel', {
                             me.destroy();
                         }
                         if (id == "yes"){
-                            me.fireEvent('saveAll');
+                            //me.fireEvent('saveAll');
+                            me.up('scriptBrowser').fireEvent('saveAll');
                             me.destroy();
                         }
                     }
