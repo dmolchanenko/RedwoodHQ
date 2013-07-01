@@ -223,11 +223,13 @@ Ext.define('Redwood.view.ExecutionView', {
                 update:function(store, record, operation, modifiedFieldNames){
 
                     if (me.loadingData === false){
-                        modifiedFieldNames.forEach(function(field){
-                            if (field === "baseState"){
-                                me.markDirty();
-                            }
-                        });
+                        if (modifiedFieldNames){
+                            modifiedFieldNames.forEach(function(field){
+                                if (field === "baseState"){
+                                    me.markDirty();
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -241,7 +243,7 @@ Ext.define('Redwood.view.ExecutionView', {
             }
             if (options.destroy){
                 options.destroy.forEach(function(r){
-                    linkedMachineStore.remove(linkedMachineStore.findRecord("_id", r.get("_id")));
+                    if (r) linkedMachineStore.remove(linkedMachineStore.findRecord("_id", r.get("_id")));
                 });
             }
             if (options.update){
