@@ -392,6 +392,7 @@ function startTCExecution(id,variables,executionID,callback){
                             return;
                         }
 
+                        callback();
                         findNextAction(testcase.actions,variables,function(action){
                             if (!executions[executionID]) return;
                             executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
@@ -1144,7 +1145,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     testcaseDetails.statusError = "One ore more actions inside the test case are not in automated state.";
                     lastResultPoint.error = "Action " + action.status;
                 }
-                lastResultPoint.expanded = true;
+                lastResultPoint.expanded = false;
                 if (action.type == "script")
                 {
                     lastPoint.script = action.script;
@@ -1161,7 +1162,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                             if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                                 hosts.push(innerAction.host)
                             }
-                            var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
+                            var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
                             lastResultPoint.children.push(newActionResult);
                             var newAction = {result:newActionResult,dbAction:innerAction,parent:lastPoint,actions:[],returnValues:{}};
                             lastPoint.actions.push(newAction);
@@ -1190,20 +1191,22 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     testcaseDetails = {dbTestCase:testcase,actions:[]};
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,children:[]};
                     var pending = testcase.collection.length;
+
+                    //if start action is greater than all actions don't execute anything
+                    if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
+                        callback({dbTestCase:testcase,actions:[]},{name:testcase.name,testcaseID:testcase._id,children:[]},[]);
+                        return;
+                    }
+
                     testcase.collection.forEach(function(innerAction){
                         if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                             hosts.push(innerAction.host)
                         }
-                        var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",children:[],executionflow:innerAction.executionflow};
+                        var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
                         testcaseResults.children.push(newActionResult);
 
                         var runAction = true;
 
-                        //if start action is greater than all actions don't execute anything
-                        if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
-                            callback({dbTestCase:testcase,actions:[]},{name:testcase.name,testcaseID:testcase._id,children:[]},[]);
-                            return;
-                        }
 
 
                         if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
