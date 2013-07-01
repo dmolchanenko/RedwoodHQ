@@ -57,7 +57,7 @@ function GetUserTags(db,query,callback){
     })
 }
 
-exports.CleanUpUserTags = function(){
+exports.CleanUpUserTags = function(req){
     var app =  require('../common');
     var db = app.getDB();
 

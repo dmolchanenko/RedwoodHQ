@@ -244,7 +244,7 @@ function executeTestCases(testcases,executionID){
             }
         });
     };
-    nextTC();
+    if (count == 0) nextTC();
 }
 
 function startTCExecution(id,variables,executionID,callback){
@@ -265,9 +265,9 @@ function startTCExecution(id,variables,executionID,callback){
                     error = "Test Case is not Automated"
                 }
 
-                if (callback){
-                    callback({error:error});
-                }
+                //if (callback){
+                //    callback({error:error});
+                //}
                 result.error = error;
                 result.status = "Finished";
                 //result.result = testcase.dbTestCase.status;
@@ -280,9 +280,9 @@ function startTCExecution(id,variables,executionID,callback){
 
             //if there is nothing to execute just finish the TC
             if (((testcase.dbTestCase.type === "collection")&&(testcase.actions.length == 0)) || ((testcase.dbTestCase.type === "script")&&(testcase.dbTestCase.script == ""))){
-                if (callback){
-                    callback();
-                }
+                //if (callback){
+                //    callback();
+                //}
                 result.status = "Finished";
                 result.result = "Passed";
                 updateResult(result);
@@ -297,10 +297,12 @@ function startTCExecution(id,variables,executionID,callback){
                 return a.roles.length - b.roles.length;
             });
 
-            hosts.push("Default");
+            //hosts.push("Default");
             var reservedHosts = [];
             testcase.machines = [];
-            machines.forEach(function(machine){
+            console.log(machines);
+            console.log(hosts);
+            machines.forEach(function(machine,index){
                 hosts.forEach(function(host){
                    if((machine.roles.indexOf(host) != -1)&& (reservedHosts.indexOf(host) == -1) &&((machine.runningTC == undefined)||(machine.runningTC == testcase))){
                        machine.runningTC = testcase;
@@ -310,10 +312,11 @@ function startTCExecution(id,variables,executionID,callback){
                });
             });
 
+
             if (testcase.machines.length == 0){
-                if (callback){
-                    callback({error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()});
-                }
+                //if (callback){
+                //    callback({error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()});
+                //}
                 //updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Finished",result:"Failed",resultID:result._id,error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()}});
                 result.error = "Unable to find matching machine for this test case.  Roles required are:"+hosts.join();
                 result.status = "Finished";
@@ -337,9 +340,9 @@ function startTCExecution(id,variables,executionID,callback){
                     }
                     count++;
                     if (err){
-                        if (callback){
-                            callback({error:err});
-                        }
+                        //if (callback){
+                        //    callback({error:err});
+                        //}
                         result.error = err;
                         result.status = "Finished";
                         result.result = "Failed";
@@ -359,9 +362,9 @@ function startTCExecution(id,variables,executionID,callback){
                         if (testcase.dbTestCase.type === "script"){
                             //executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
                             if ((testcase.script == "") || (!testcase.script)){
-                                if (callback){
-                                    callback({error:"Test Case does not have a script assigned"});
-                                }
+                                //if (callback){
+                                //    callback({error:"Test Case does not have a script assigned"});
+                                //}
                                 result.error = "Test Case does not have a script assigned";
                                 result.status = "Finished";
                                 result.result = "Failed";
@@ -658,6 +661,7 @@ function markFinishedResults(results,sourceCache,callback){
         if (action.status == "Not Run"){
             if (action.children.length != 0){
                 markFinishedResults(action.children,sourceCache,function(childStatus,childResult,markFinished){
+                    action.expanded = false;
                     if (markFinished === true){
                         action.status = "Finished";
                         action.result = "Failed";

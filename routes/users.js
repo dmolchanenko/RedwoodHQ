@@ -18,7 +18,7 @@ exports.usersPut = function(req, res){
         });
     });
     var Tags = require('./userTags');
-    Tags.CleanUpUserTags();
+    Tags.CleanUpUserTags(req);
 };
 
 exports.usersGet = function(req, res){
@@ -44,7 +44,7 @@ exports.usersDelete = function(req, res){
         });
     });
     var Tags = require('./userTags');
-    Tags.CleanUpUserTags();
+    Tags.CleanUpUserTags(req);
 };
 
 exports.usersPost = function(req, res){

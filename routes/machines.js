@@ -17,9 +17,9 @@ exports.machinesPut = function(req, res){
     });
 
     var Tags = require('./machineTags');
-    Tags.CleanUpMachineTags();
+    Tags.CleanUpMachineTags(req);
     var Roles = require('./machineRoles');
-    Roles.CleanUpMachineRoles();
+    Roles.CleanUpMachineRoles(req);
 };
 
 exports.machinesGet = function(req, res){
@@ -48,9 +48,9 @@ exports.machinesDelete = function(req, res){
         });
     });
     var Tags = require('./machineTags');
-    Tags.CleanUpMachineTags();
+    Tags.CleanUpMachineTags(req);
     var Roles = require('./machineRoles');
-    Roles.CleanUpMachineRoles();
+    Roles.CleanUpMachineRoles(req);
 };
 
 exports.machinesPost = function(req, res){

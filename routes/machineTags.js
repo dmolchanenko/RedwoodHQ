@@ -57,7 +57,7 @@ function GetMachineTags(db,query,callback){
     })
 }
 
-exports.CleanUpMachineTags = function(){
+exports.CleanUpMachineTags = function(req){
     var app =  require('../common');
     var db = app.getDB();
 

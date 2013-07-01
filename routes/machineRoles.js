@@ -57,7 +57,7 @@ function GetMachineRoles(db,query,callback){
     })
 }
 
-exports.CleanUpMachineRoles = function(){
+exports.CleanUpMachineRoles = function(req){
     var app =  require('../common');
     var db = app.getDB();
 
@@ -65,9 +65,9 @@ exports.CleanUpMachineRoles = function(){
         db.collection('machines', function(err, collection) {
             roles.forEach(function(role, index, array){
                 if (role.value != 'Default'){
-                    collection.find({roles:role.value}).count(function(err,number){
+                    collection.find({project:req.cookies.project,roles:role.value}).count(function(err,number){
                         if (number == 0){
-                            DeleteMachineRoles(db,role);
+                            DeleteMachineRoles(db,{value:role.value,project:req.cookies.project});
                         }
                     });
                 }
