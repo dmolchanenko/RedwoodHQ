@@ -52,6 +52,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             }
             var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
             if (store == null) return;
+            testCase.tempName = testCase.name;
             me.updateStore(store,testCase);
         });
 

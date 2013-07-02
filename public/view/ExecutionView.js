@@ -243,7 +243,7 @@ Ext.define('Redwood.view.ExecutionView', {
             }
             if (options.destroy){
                 options.destroy.forEach(function(r){
-                    if (r) linkedMachineStore.remove(linkedMachineStore.findRecord("_id", r.get("_id")));
+                    linkedMachineStore.remove(linkedMachineStore.findRecord("_id", r.get("_id")));
                 });
             }
             if (options.update){
