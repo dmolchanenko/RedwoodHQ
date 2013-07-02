@@ -116,6 +116,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
                 header: 'Name',
                 dataIndex: 'name',
                 //flex: 1,
+                sortable: false,
                 width: 350,
                 editor: {
                     xtype: 'textfield',
@@ -131,6 +132,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
             },
             {
                 header: "Parameter Type",
+                sortable: false,
                 dataIndex: "parametertype",
                 width:100,
                 editor: {
@@ -152,6 +154,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
             {
                 header: 'Possible Values',
                 dataIndex: 'possiblevalues',
+                sortable: false,
                 //width: 350,
                 flex: 1,
                 maxWidth:915,
@@ -177,6 +180,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
             {
                 xtype: 'actioncolumn',
                 menuDisabled:true,
+                sortable: false,
                 width: 75,
                 items: [
                     {
