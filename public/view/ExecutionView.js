@@ -288,7 +288,6 @@ Ext.define('Redwood.view.ExecutionView', {
                 Ext.create('Ext.grid.plugin.CellEditing', {
                 clicksToEdit: 1
             })],
-
             minHeight: 150,
             manageHeight: true,
             flex: 1,
@@ -383,8 +382,8 @@ Ext.define('Redwood.view.ExecutionView', {
                         ],
                         paramNames:["tag","name"],
                         store: Ext.data.StoreManager.lookup('ActionsCombo'),
-                        autoSelect:true,
-                        forceSelection:true,
+                        autoSelect:false,
+                        forceSelection:false,
                         queryMode: 'local',
                         triggerAction: 'all',
                         lastQuery: '',
