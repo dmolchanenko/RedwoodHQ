@@ -580,9 +580,14 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     var updateExecution = function(){updateExecutionTestCase({_id:testcaseId},{$set:{"status":"Finished",resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});}
     //update machine base state result
     if(execution.cachedTCs){
-        updateExecutionMachine(executionID,testcase.testcase.machines[0]._id,testcase.result.result,testcase.result._id.__id,function(){
+        if (testcase.testcase.machines.length > 0){
+            updateExecutionMachine(executionID,testcase.testcase.machines[0]._id,testcase.result.result,testcase.result._id.__id,function(){
+                updateExecution();
+            });
+        }
+        else{
             updateExecution();
-        });
+        }
         //updateExecutionMachine({testcase.testcase.machines[0]._id)},{$set:{result:testcase.result.result,resultID:testcase.result._id.__id}});
     }
     else{
