@@ -298,6 +298,11 @@ Ext.define('Redwood.view.ExecutionView', {
                 stateful: true,
                 showHeaderCheckbox: true
             }),
+            listeners:{
+                edit: function(editor, e ){
+                    machinesGrid.getSelectionModel().select([e.record]);
+                }
+            },
             columns:[
                 {
                     header: 'Host Name/IP',
