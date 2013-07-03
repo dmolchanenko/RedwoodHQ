@@ -69,8 +69,8 @@ Ext.define("Redwood.controller.Machines", {
         blank = store.add({
             tags: [],
             host: 'newHost',
-            port: '3001',
-            vncport: '3002',
+            port: '5009',
+            vncport: '3006',
             description:'',
             roles: ['Default']
             //vmName: ''
