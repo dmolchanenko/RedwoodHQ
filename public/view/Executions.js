@@ -84,6 +84,14 @@ Ext.define('Redwood.view.Executions', {
                 xtype: "tabpanel",
                 ui: "red-tab",
                 itemId:"executionsTab",
+                plugins: [
+                    Ext.create('Ext.ux.TabCloseMenu', {
+
+                    }),
+                    Ext.create('Ext.ux.TabReorderer', {
+
+                    })
+                ],
                 items:[
                     {
                         xtype:"executionsgrid",
