@@ -39,7 +39,11 @@ Ext.define('Redwood.store.Actions', {
                 var actionsCombo = Ext.create('Ext.data.ArrayStore', {
                     storeId: 'ActionsCombo',
                     model:"Redwood.model.Actions",
-                    data:[]
+                    data:[],
+                    sorters: [{
+                        property : 'name',
+                        direction: 'ASC'
+                    }]
                 });
 
                 actionsStore.on("beforesync", function(options,eOpts){
