@@ -162,7 +162,7 @@ Ext.define('Redwood.ux.EditorPanel', {
                         }
                         if (id == "yes"){
                             //me.fireEvent('saveAll');
-                            me.up('scriptBrowser').fireEvent('saveAll');
+                            me.up('scriptBrowser').fireEvent('saveAll',null);
                             me.destroy();
                         }
                     }
