@@ -64,11 +64,11 @@ common.parseConfig(function(){
         console.log('stderr: ' + data);
     });
 
+    setTimeout(function(){
+        fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
+    },40000);
 });
 
 
 
 
-setTimeout(function(){
-    fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
-},40000);
