@@ -4,6 +4,7 @@ var path = require('path');
 var dbPath =  __dirname + "/vendor/MongoDB/bin/mongod.exe";
 var logPath = __dirname + "/logs";
 var common = require('./common');
+var dataPath = __dirname + "/data/db";
 
 if (process.argv[2] === "--stop"){
     if (fs.existsSync(__dirname+"/app.pid")){
@@ -38,7 +39,7 @@ common.parseConfig(function(){
         'errFile': logPath+'/app.err.log'
     });
 
-    var dbChild = forever.start([ dbPath,"--port",common.Config.DBPort ], {
+    var dbChild = forever.start([ dbPath,"--port",common.Config.DBPort,"--dbpath",dataPath], {
         max : 1,
         silent : false,
         'outFile': logPath+'/db.out.log',
