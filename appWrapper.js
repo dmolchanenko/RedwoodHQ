@@ -39,7 +39,7 @@ common.parseConfig(function(){
         'errFile': logPath+'/app.err.log'
     });
 
-    var dbChild = forever.start([ dbPath,"--port",common.Config.DBPort,"--dbpath",dataPath], {
+    var dbChild = forever.start([ dbPath,"--port",common.Config.DBPort,"--dbpath",dataPath,"--journal"], {
         max : 1,
         silent : false,
         'outFile': logPath+'/db.out.log',
