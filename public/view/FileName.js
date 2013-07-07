@@ -67,7 +67,14 @@ Ext.define('Redwood.view.FileName', {
                                 var method;
                                 if (window.operationType == "new"){
                                     method = "POST";
-                                    jsonData = {path:path+"/"+form.getFieldValues().fileName,text:""};
+                                    var fileName = form.getFieldValues().fileName;
+                                    var text = "";
+                                    if ((fileName.indexOf("groovy", fileName.length - 6) !== -1) || (fileName.indexOf("java", fileName.length - 4) !== -1)){
+                                        var packageStr = path.substr(path.lastIndexOf("/src/")+5,path.length-1);
+                                        packageStr = packageStr.replace(/\//g,".");
+                                        text = "package " + packageStr + "\r\n";
+                                    }
+                                    jsonData = {path:path+"/"+fileName,text:text};
                                 }
                                 else{
                                     method = "PUT";
