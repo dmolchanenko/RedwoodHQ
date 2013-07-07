@@ -45,6 +45,19 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 width: 400
             },
             {
+                header: 'Lock',
+                dataIndex: 'locked',
+                width: 35,
+                renderer: function(value,record){
+                    if (value == true){
+                        return '<img src="images/lock_ok.png" data-qtip="Execution Locked"/>'
+                    }
+                    else{
+                        return '<img src="images/lock_open.png" data-qtip="Execution Unlocked" />'
+                    }
+                }
+            },
+            {
                 xtype: 'actioncolumn',
                 width: 50,
                 items: [

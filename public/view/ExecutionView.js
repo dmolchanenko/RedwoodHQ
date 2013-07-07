@@ -600,7 +600,6 @@ Ext.define('Redwood.view.ExecutionView', {
                         else{
                             return value;
                         }
-
                     }
                 }
             ]
