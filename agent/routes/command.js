@@ -146,7 +146,9 @@ function stopLauncher(callback){
             try{
                 process.kill(launcherProc.pid);
             }
-            catch(exception){}
+            catch(exception){
+                console.log(exception);
+            }
             //launcherProc.kill();
             launcherProc = null;
             deleteDir(path.resolve(__dirname,"../launcher/"),callback)

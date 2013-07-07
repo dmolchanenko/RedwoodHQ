@@ -92,8 +92,16 @@ Ext.define("Redwood.controller.Executions", {
         var ignoreStatus = executionView.down("#ignoreStatus").getValue();
         var retryCount = executionView.down("#retryCount").getValue();
         var status = executionView.getStatus();
+        var locked =  false;
+        if (executionView.down("#locked").getText() == "Unlock") locked = true;
+
         if (status == "Running") {
             Ext.Msg.alert('Error', "Execution is currently running");
+            return;
+        }
+
+        if (locked == true) {
+            Ext.Msg.alert('Error', "Unable to run locked executions");
             return;
         }
 
@@ -160,6 +168,7 @@ Ext.define("Redwood.controller.Executions", {
             executionView.dataRecord.set("name",execution.name);
             executionView.dataRecord.set("variables",execution.variables);
             executionView.dataRecord.set("machines",execution.machines);
+            executionView.dataRecord.set("locked",execution.locked);
             executionView.dataRecord.set("tag",execution.tag);
         }
 

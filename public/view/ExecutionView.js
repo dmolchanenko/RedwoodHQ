@@ -344,6 +344,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: "result",
                     width: 120,
                     renderer: function(value,style,record){
+                        //style.tdAttr = 'data-qtip="' + record.get("error") + '"';
 
                         if (value == "Passed"){
                             return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
@@ -577,11 +578,11 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'error',
                     width: 250,
                     renderer: function(value,meta,record){
-                        if(value.indexOf("<div style") == -1){
+                        //if(value.indexOf("<div style") == -1){
                             meta.tdAttr = 'data-qtip="' + value + '"';
-                            record.set("error",'<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>');
-                        }
-                        return value
+                        //    record.set("error",'<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>');
+                        //}
+                        return '<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>'
 
                     }
                 },
@@ -769,6 +770,27 @@ Ext.define('Redwood.view.ExecutionView', {
                                 }
                             }
                         }
+                    },
+                    {
+                        xtype: 'button',
+                        cls: 'x-btn-text-icon',
+                        icon: 'images/lock_open.png',
+                        itemId: "locked",
+                        text: 'Lock',
+                        iconAlign: "right",
+                        handler: function(btn) {
+                            if(btn.getText() == "Lock"){
+                                btn.setText("Unlock");
+                                btn.setIcon("images/lock_ok.png")
+                            }
+                            else{
+                                btn.setText("Lock");
+                                btn.setIcon("images/lock_open.png")
+                            }
+                            if (me.loadingData === false){
+                                me.markDirty();
+                            }
+                        }
                     }
                 ]
             },
@@ -815,6 +837,15 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#testset").setDisabled(true);
                 me.down("#executionTestcases").store.removeAll();
                 me.down("#ignoreStatus").setValue(me.dataRecord.get("ignoreStatus"));
+                if (me.dataRecord.get("locked") == true){
+                    me.down("#locked").setIcon("images/lock_ok.png");
+                    me.down("#locked").setText("Unlock");
+                }
+                else{
+                    me.down("#locked").setIcon("images/lock_open.png");
+                    me.down("#locked").setText("Lock");
+                }
+
                 me.dataRecord.get("testcases").forEach(function(testcase){
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
                     if (originalTC != null){
@@ -876,6 +907,13 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.tag = this.down("#tag").getValue();
         execution.testset = this.down("#testset").getValue();
         execution.ignoreStatus = this.down("#ignoreStatus").getValue();
+
+        if (this.down("#locked").getText() == "Lock"){
+            execution.locked = false;
+        }
+        else{
+            execution.locked = true;
+        }
 
         var variablesStore = this.down("#executionVars").store;
         execution.variables = [];

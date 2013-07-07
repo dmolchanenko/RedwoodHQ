@@ -148,6 +148,7 @@ exports.executionsTestSetUpdatePost = function(req, res){
                 if(execution == null) {
                     return;
                 }
+                if (execution.locked == true) return;
                 updateExecution(execution._id);
             });
         })

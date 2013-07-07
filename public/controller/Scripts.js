@@ -448,7 +448,7 @@ Ext.define("Redwood.controller.Scripts", {
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
         var total = 0;
         if (allScripts.length == 0){
-            if (callback != null) callback();
+            if (callback) callback();
             return;
         }
         Ext.each(allScripts, function(script, index) {
@@ -461,7 +461,7 @@ Ext.define("Redwood.controller.Scripts", {
                         script.clearDirty();
                         total++;
                         if (total == allScripts.length){
-                            if (callback != null) callback();
+                            if (callback) callback();
                         }
                     }
                 });
@@ -469,7 +469,7 @@ Ext.define("Redwood.controller.Scripts", {
             else{
                 total++;
                 if (total == allScripts.length){
-                    if (callback != null) callback();
+                    if (callback) callback();
                 }
             }
         });
