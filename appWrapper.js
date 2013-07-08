@@ -5,6 +5,7 @@ var dbPath =  __dirname + "/vendor/MongoDB/bin/mongod.exe";
 var logPath = __dirname + "/logs";
 var common = require('./common');
 var dataPath = __dirname + "/data/db";
+var storedPids = [];
 
 if (process.argv[2] === "--stop"){
     if (fs.existsSync(__dirname+"/app.pid")){
@@ -65,7 +66,19 @@ common.parseConfig(function(){
         console.log('stderr: ' + data);
     });
 
+    process.on('exit', function() {
+        try{
+            process.kill(storedPids[0]);
+        }catch(err){}
+        try{
+            process.kill(storedPids[1]);
+        }catch(err){}
+
+    });
+
     setTimeout(function(){
+        storedPids.push(dbChild.child.pid);
+        storedPids.push(appChild.child.pid);
         fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
     },40000);
 });
