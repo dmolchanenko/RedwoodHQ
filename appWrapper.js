@@ -77,6 +77,10 @@ common.parseConfig(function(){
     });
 
     setTimeout(function(){
+        console.log(process.pid);
+        console.log(dbChild.child.pid);
+        console.log(appChild.child.pid);
+
         storedPids.push(dbChild.child.pid);
         storedPids.push(appChild.child.pid);
         fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
