@@ -37,14 +37,16 @@ common.parseConfig(function(){
         options: [],
         killTree: true,
         'outFile': logPath+'/app.out.log',
-        'errFile': logPath+'/app.err.log'
+        'errFile': logPath+'/app.err.log',
+        pidFile: "app.pid"
     });
 
     var dbChild = forever.start([ dbPath,"--port",common.Config.DBPort,"--dbpath",dataPath,"--journal"], {
         max : 1,
         silent : false,
         'outFile': logPath+'/db.out.log',
-        'errFile': logPath+'/db.err.log'
+        'errFile': logPath+'/db.err.log',
+        pidFile: "db.pid"
     });
 
     var dbStarted = false;
@@ -76,6 +78,7 @@ common.parseConfig(function(){
 
     });
 
+    /*
     setTimeout(function(){
         console.log(process.pid);
         console.log(dbChild.child.pid);
@@ -85,6 +88,7 @@ common.parseConfig(function(){
         storedPids.push(appChild.child.pid);
         fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
     },40000);
+    */
 });
 
 
