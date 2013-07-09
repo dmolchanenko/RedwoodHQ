@@ -37,16 +37,16 @@ common.parseConfig(function(){
         options: [],
         killTree: true,
         'outFile': logPath+'/app.out.log',
-        'errFile': logPath+'/app.err.log',
-        pidFile: "app.pid"
+        'errFile': logPath+'/app.err.log'
+        //pidFile: "app.pid"
     });
 
     var dbChild = forever.start([ dbPath,"--port",common.Config.DBPort,"--dbpath",dataPath,"--journal"], {
         max : 1,
         silent : false,
         'outFile': logPath+'/db.out.log',
-        'errFile': logPath+'/db.err.log',
-        pidFile: "db.pid"
+        'errFile': logPath+'/db.err.log'
+        //pidFile: "db.pid"
     });
 
     var dbStarted = false;
@@ -58,6 +58,9 @@ common.parseConfig(function(){
             if (dbOut.indexOf("waiting for connections on port") != -1){
                 dbStarted = true;
                 appChild.start();
+                setTimeout(function(){
+                    fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
+                },10000);
             }
             //console.log('stdout: ' + data);
             //console.log('stdout: ' + data);
