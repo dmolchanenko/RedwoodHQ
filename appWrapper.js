@@ -14,13 +14,17 @@ if (process.argv[2] === "--stop"){
         try{
             process.kill(pids.split("\r\n")[0],"SIGTERM");
         }
-        catch(err){}
+        catch(err){
+            console.log(err);
+        }
         setTimeout(function(){
             try{
                 process.kill(pids.split("\r\n")[1],"SIGTERM");
                 process.kill(pids.split("\r\n")[2],"SIGTERM");
             }
-            catch(err){}
+            catch(err){
+                console.log(err);
+            }
         },3000);
     }
     return;
