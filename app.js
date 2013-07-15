@@ -186,8 +186,10 @@ app.post('/scripts/pull',auth.auth, scripts.scriptsPull);
 
 //script
 app.post('/script/get',auth.auth, script.scriptGet);
+app.post('/script/resolveconflict',auth.auth, script.resolveConflict);
 app.post('/script',auth.auth, script.scriptPost);
 app.put('/script',auth.auth, script.scriptPut);
+app.post('/script/mergeinfo',auth.auth, script.mergeInfo);
 
 //folder
 app.post('/folder',auth.auth, folder.folderPost);

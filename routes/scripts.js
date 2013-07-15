@@ -16,8 +16,14 @@ exports.scriptsPush = function(req,res){
 
 exports.scriptsPull = function(req,res){
     git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-        res.contentType('json');
-        res.json({success:true});
+        git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+            var files = [];
+            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                files = filesInConflict.split("\n",filesInConflict.match(/\n/).length);
+            }
+            res.contentType('json');
+            res.json({success:true,conflicts:files});
+        })
     });
     //GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
 };
@@ -56,7 +62,6 @@ exports.scriptsCopy = function(req, res){
         }
     });
 };
-
 
 exports.CreateNewProject = function(projectName,language,template,callback){
     var templatePath = "";
@@ -206,13 +211,19 @@ function CopyScripts(scripts,destDir,callback){
 }
 
 function GetScripts(rootDir,callback){
-    walkDir(rootDir, function(err, results) {
-        if (err) {
-            callback({error:err});
+    git.filesInConflict(rootDir,function(filesInConflict){
+        var files = [];
+        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+            files = filesInConflict.split("\n",filesInConflict.match(/\n/).length);
         }
-        else{
-            callback(results);
-        }
+        walkDir(rootDir,files, function(err, results) {
+            if (err) {
+                callback({error:err});
+            }
+            else{
+                callback(results);
+            }
+        });
     });
 }
 
@@ -248,7 +259,7 @@ function DeleteScripts(scripts,callback){
 }
 
 
-var walkDir = function(dir, done) {
+var walkDir = function(dir,filesInConflict, done) {
     var results = [];
     fs.readdir(dir, function(err, list) {
         if (err) return done(err);
@@ -257,6 +268,7 @@ var walkDir = function(dir, done) {
         list.forEach(function(file) {
             var result = {};
             result.text = file;
+            result.name = file;
             result.fullpath = dir + '/' + file;
             file = dir + '/' + file;
             fs.stat(file, function(err, stat) {
@@ -275,11 +287,25 @@ var walkDir = function(dir, done) {
                         result.cls = "folder";
                     }
                     results.push(result);
-                    walkDir(file, function(err, res) {
+                    walkDir(file, filesInConflict,function(err, res) {
                         result.children = res;
                         if (!--pending) done(null, results);
                     });
                 } else {
+                    //if (filesInConflict.indexOf(result.text))
+                    var match = common.ArrayIndexOf(filesInConflict,function(a){
+                        if(result.fullpath.indexOf(a) != -1){
+                            return true
+                        }
+                        else{
+                            return false
+                        }
+                    });
+                    if (match != -1){
+                        result.text = '<span style="color:red">' + result.text + '</span>';
+                        result.qtip = 'This file is in conflict!\r\nPlease resolve.';
+                        result.inConflict = true;
+                    }
                     result.fileType = "file";
                     if (file.slice(-6) == "groovy"){
                         result.icon = "images/fileTypeGroovy.png";

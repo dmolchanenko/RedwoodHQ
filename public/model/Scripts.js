@@ -25,6 +25,15 @@ Ext.define('Redwood.model.Scripts', {
         },{
             name: 'fullpath',
             type: 'string'
+        },{
+            name: 'inConflict',
+            type: 'boolean'
+        },{
+            name: 'name',
+            type: 'string'
+        },{
+            name: 'qtip',
+            type: 'string'
         }
     ]
 

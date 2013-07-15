@@ -1,6 +1,8 @@
 var fs = require('fs');
 var p = require('path');
 var git = require('../gitinterface/gitcommands');
+var path = require('path');
+var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 
 exports.scriptGet = function(req, res){
     var sent = false;
@@ -14,6 +16,22 @@ exports.scriptGet = function(req, res){
             res.json({text:data});
         }
         sent = true;
+    });
+};
+
+exports.mergeInfo = function(req,res){
+    var workDir = rootDir+req.cookies.project+"/"+req.cookies.username;
+    var relativePath = req.body.path.replace(workDir+"/","");
+    git.showFileContents(workDir,relativePath,"HEAD",function(mine){
+        git.showFileContents(rootDir+req.cookies.project+"/"+"master.git",relativePath,"HEAD",function(theirs){
+            res.json({mine:mine,theirs:theirs});
+        });
+    });
+};
+
+exports.resolveConflict = function(req, res){
+    ResolveConflict(req.body.path,req.body.text,function(){
+        res.json({error:null});
     });
 };
 
@@ -43,6 +61,21 @@ function UpdateScript(path,data,callback){
         var gitInfo = git.getGitInfo(path);
         git.commit(gitInfo.path,gitInfo.fileName,function(){
             callback(null)
+        });
+    })
+}
+
+function ResolveConflict(path,data,callback){
+    fs.writeFile(path,data,'utf8',function(err){
+        if (err) {
+            callback({error:err});
+            return;
+        }
+        var gitInfo = git.getGitInfo(path);
+        git.add(gitInfo.path,gitInfo.fileName,function(){
+            git.commit(gitInfo.path,"",function(){
+                callback(null)
+            });
         });
     })
 }

@@ -24,3 +24,11 @@
      width: 100%;
      z-index: 9999;
  }
+
+.CodeMirror-diff, .CodeMirror-diff .CodeMirror {
+    height: inherit;
+}
+
+.CodeMirror-diff-pane {
+    height: 100%;
+}
