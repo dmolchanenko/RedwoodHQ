@@ -1,6 +1,44 @@
 var spawn = require('child_process').spawn;
 var path = require('path');
 
+exports.filesInConflict = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['diff','--name-only','--diff-filter=U'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+exports.showFileContents = function(workdir,file,version,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['show','HEAD:'+file],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.initBare = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['--bare','init'],{cwd: workdir,timeout:300000});
 
@@ -138,11 +176,6 @@ exports.delete = function(workdir,callback){
 exports.commits = function(workdir,file,versionInfo){
 
 };
-
-exports.show = function(workdir,file,versionInfo){
-
-};
-
 
 exports.getGitInfo = function (path){
     var FileName = path.slice(path.lastIndexOf("/")+1);
