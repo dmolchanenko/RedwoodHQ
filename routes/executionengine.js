@@ -495,7 +495,9 @@ exports.actionresultPost = function(req, res){
     testcase.currentAction.result.status = "Finished";
     testcase.result.status = "Finished";
     testcase.currentAction.result.result = req.body.result;
-    testcase.result.result = req.body.result;
+    if (testcase.result.result != "Failed"){
+        testcase.result.result = req.body.result;
+    }
     if (req.body.error){
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
