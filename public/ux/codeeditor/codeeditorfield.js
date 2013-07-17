@@ -88,6 +88,16 @@ Ext.define('Redwood.ux.CodeEditorField', {
         });
     },
 
+    focusArea: function(){
+        var lineCount = this.editor.lineCount();
+        if (lineCount >= 2){
+            this.editor.setCursor({line:2,ch:0});
+        }
+        else{
+            this.editor.setCursor({line:1,ch:0});
+        }
+    },
+
     focus: function() {
         this.editor.focus();
     },
@@ -112,6 +122,10 @@ Ext.define('Redwood.ux.CodeEditorField', {
         }
 
         return this.callParent(arguments);
+    },
+
+    refresh: function(){
+        this.editor.refresh();
     }
 
 });
@@ -181,6 +195,10 @@ Ext.define('Redwood.ux.EditorPanel', {
         //this.setTitle(this.title);
     },
 
+    focusArea: function(){
+        this.down('codeeditorfield').focusArea();
+    },
+
     focus: function() {
         this.down('codeeditorfield').focus();
     },
@@ -195,6 +213,10 @@ Ext.define('Redwood.ux.EditorPanel', {
 
     reset: function() {
         this.down('codeeditorfield').setValue('');
+    },
+
+    refresh: function(){
+        this.down('codeeditorfield').refresh();
     },
 
     setCursor: function(pos){

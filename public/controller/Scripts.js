@@ -149,9 +149,21 @@ Ext.define("Redwood.controller.Scripts", {
                         Ext.each(allScripts,function(script){
                             me.treePanel.getRootNode().cascadeBy(function(node) {
                                 if (node.get("fullpath").indexOf(script.path) != -1){
-                                    script.close();
+                                    //script.close();
                                     node.parentNode.expand();
-                                    me.onScriptEdit(node);
+                                    script.node = node;
+                                    //me.onScriptEdit(node);
+                                    Ext.Ajax.request({
+                                        url:"/script/get",
+                                        method:"POST",
+                                        jsonData : {path:script.path},
+                                        success: function(response, action) {
+                                            var obj = Ext.decode(response.responseText);
+                                            script.setValue(obj.text);
+                                            script.clearDirty();
+                                            script.refreshNeeded = true;
+                                        }
+                                    });
                                 }
                             });
                         });

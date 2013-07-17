@@ -497,6 +497,10 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     listeners: {
                         tabchange: function(tabPanel,newCard,oldCard,eOpts){
                             newCard.focus();
+                            if(newCard.refreshNeeded == true) {
+                                newCard.focusArea();
+                                newCard.refreshNeeded = false;
+                            }
                         },
                         render: function(me){
                             me.el.on("click",function(){
