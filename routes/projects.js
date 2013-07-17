@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var realtime = require("../routes/realtime");
 var app =  require('../common');
+var spawn = require('child_process').spawn;
 
 exports.allProjects = function(callback){
     GetProjects(app.getDB(),{},callback);

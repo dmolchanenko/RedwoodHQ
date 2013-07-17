@@ -82,6 +82,7 @@ Ext.define('Redwood.view.UserEdit', {
                                         newUser.tag = form.getFieldValues().tag;
                                         newUser.password = form.getFieldValues().firstpassword;
                                         newUser.username = form.getFieldValues().username;
+                                        newUser.email = form.getFieldValues().email;
                                         newUser.role = form.getFieldValues().role;
                                         Ext.data.StoreManager.lookup('Users').add(newUser);
                                         Ext.data.StoreManager.lookup('UserTags').sync();
@@ -129,6 +130,22 @@ Ext.define('Redwood.view.UserEdit', {
                     fieldLabel: 'First/Last Name',
                     name: 'name',
                     allowBlank: false,
+                    listeners: {
+                        specialkey: function(field, e){
+                            if (e.getKey() == e.ENTER) {
+                                this.up('form').down("#submit").handler();
+                            }
+                        }
+                    }
+                },
+                {
+                    xtype:'textfield',
+                    afterLabelTextTpl: this.requiredText,
+                    fieldLabel: 'E-mail',
+                    name: 'email',
+                    allowBlank: false,
+                    regex:/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
+                    regexText: "Invalid e-mail address",
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {

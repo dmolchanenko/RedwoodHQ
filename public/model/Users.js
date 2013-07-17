@@ -23,6 +23,9 @@ Ext.define('Redwood.model.Users', {
         }, {
             name: '_id',
             type: 'string'
+        }, {
+            name: 'email',
+            type: 'string'
         }
     ]
 });

@@ -136,6 +136,7 @@ function UpdateUsers(db,data,callback){
             u.role = data.role;
             u.name = data.name;
             u.tag = data.tag;
+            u.email = data.email;
             u._id = data._id;
             if(data.password){
                 u.password = data.password;
