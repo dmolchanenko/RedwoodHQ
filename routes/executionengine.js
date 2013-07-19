@@ -518,10 +518,6 @@ exports.actionresultPost = function(req, res){
         execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
     }
 
-    markFinishedResults(testcase.result.children,execution.sourceCache,function(){
-        updateResult(testcase.result);
-    });
-
     var actionFlow = testcase.currentAction.dbAction.executionflow;
     if (req.body.result == "Failed"){
         if (actionFlow == "Record Error Stop Test Case"){
@@ -540,6 +536,10 @@ exports.actionresultPost = function(req, res){
             testcase.result.error = "";
         }
     }
+
+    markFinishedResults(testcase.result.children,execution.sourceCache,function(){
+        updateResult(testcase.result);
+    });
 
     findNextAction(testcase.testcase.actions,execution.variables,function(action){
         if(action == null){
@@ -1175,6 +1175,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                             if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                                 hosts.push(innerAction.host)
                             }
+                            if(lastPoint.dbAction.executionflow == "Ignore Error Continue Test Case"){innerAction.executionflow = "Ignore Error Continue Test Case"}
                             var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
                             lastResultPoint.children.push(newActionResult);
                             var newAction = {result:newActionResult,dbAction:innerAction,parent:lastPoint,actions:[],returnValues:{}};
