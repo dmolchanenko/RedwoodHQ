@@ -132,7 +132,9 @@ function startLauncher(callback){
                     }
                     if (message != ""){
                         console.log("sending:"+message);
-                        sendLog({message:message,date:new Date(),actionName:currentAction.name,resultID:currentAction.resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                        if(currentAction){
+                            sendLog({message:message,date:new Date(),actionName:currentAction.name,resultID:currentAction.resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                        }
                     }
                 });
             }

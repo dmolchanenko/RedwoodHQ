@@ -42,7 +42,8 @@ Ext.define('Redwood.view.Viewport', {
                     items:[
                         {
                             xtype:"box",
-                            html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood HQ</h1>'
+                            html: '<img border="0" width="80" height="auto" style="margin:0 auto;" src="../images/rwhq.png" alt="RedwoodHQ logo">'
+                            //html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood HQ</h1>'
                         },
                         "->",
                         {

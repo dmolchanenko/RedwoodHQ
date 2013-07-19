@@ -334,7 +334,7 @@ function startTCExecution(id,variables,executionID,callback){
                 if (machine.runBaseState === true){
                     return;
                 }
-                agentBaseState(executions[executionID].project+"/"+executions[executionID].username,machines[count].host,machines[count].port,function(err){
+                agentBaseState(executions[executionID].project+"/"+executions[executionID].username,machine.host,machine.port,function(err){
                     if (errorFound == true){
                         return;
                     }
@@ -347,7 +347,9 @@ function startTCExecution(id,variables,executionID,callback){
                         result.status = "Finished";
                         result.result = "Failed";
                         updateResult(result);
-                        finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                        if (executions[executionID]){
+                            finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                        }
                         return;
                     }
                     else{

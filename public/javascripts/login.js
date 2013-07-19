@@ -10,6 +10,7 @@ Ext.onReady(function() {
 
         xtype: 'form',
         layout: 'form',
+        ui: "green-panel",
         style: "margin: 0px auto 0px auto;",
         collapsible: false,
         id: 'loginForm',
