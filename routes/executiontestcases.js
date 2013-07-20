@@ -1,3 +1,5 @@
+var realtime = require("./realtime");
+
 exports.executiontestcasesPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -58,6 +60,7 @@ function CreateExecutionTestCases(db,data,callback){
             collection.insert(data[i], {safe:true},function(err,returnData){
                 count++;
                 if (count == data.length){
+                    realtime.emitMessage("AddExecutionTestCase",data);
                     if (callback) callback();
                 }
                 //callback(returnData);
@@ -79,6 +82,7 @@ function UpdateExecutionTestCases(db,data,callback){
 function DeleteExecutionTestCases(db,data,callback){
     db.collection('executiontestcases', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("RemoveExecutionTestCase",{id:data._id,executionID:data.executionID});
             if (callback) callback(err);
         });
     });

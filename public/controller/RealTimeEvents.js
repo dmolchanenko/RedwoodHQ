@@ -112,14 +112,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             store.deleteActions([action]);
         });
 
-        Ext.socket.on('UpdateTestCases',function(action){
+        Ext.socket.on('UpdateTestCases',function(testCase){
             var store = Ext.data.StoreManager.lookup("TestCases");
-            me.updateStore(store,action);
+            me.updateStore(store,testCase);
         });
 
-        Ext.socket.on('AddTestCases',function(action){
+        Ext.socket.on('AddTestCases',function(testCase){
             var store = Ext.data.StoreManager.lookup("TestCases");
-            me.addToStore(store,action);
+            me.addToStore(store,testCase);
         });
 
         Ext.socket.on('DeleteTestCases',function(action){
@@ -141,15 +141,27 @@ Ext.define("Redwood.controller.RealTimeEvents", {
         });
 
         Ext.socket.on('AddExecutionTestCase',function(testCase){
-            var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
-            if (store == null) return;
+            var addToStore = function(testcase,tcStore){
+                var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
+                if (originalTC != null){
+                    testcase.name = originalTC.get("name");
+                    testcase.tempName = originalTC.get("name");
+                    testcase.tag = originalTC.get("tag");
+                    tcStore.add(testcase);
+                }
+            };
+            var store;
             if (testCase instanceof Array){
+                store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase[0].executionID);
+                if (store == null) return;
                 testCase.forEach(function(item){
-                    me.addToStore(store,item);
+                    addToStore(item,store);
                 });
             }
             else{
-                me.addToStore(store,testCase);
+                store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
+                if (store == null) return;
+                addToStore(testCase,store);
             }
         });
     },
