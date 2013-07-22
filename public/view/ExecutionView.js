@@ -411,6 +411,7 @@ Ext.define('Redwood.view.ExecutionView', {
 
         var executionTCStore =  new Ext.data.Store({
             storeId: "ExecutionTCs"+this.itemId,
+            //groupField: 'status',
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'tempName',     type: 'string'},
@@ -432,10 +433,54 @@ Ext.define('Redwood.view.ExecutionView', {
             data: []
         });
 
+
+        var updateTotals = function(store){
+            var lastScrollPos = null;
+            if (me.getEl()){
+                lastScrollPos = me.getEl().dom.children[0].scrollTop;
+            }
+            var passed = store.query("result","Passed").length;
+            var failed = store.query("result","Failed").length;
+            var notRun = store.query("status","Not Run").length;
+            var running = store.query("status","Running").length;
+            me.down("#totalPassed").setRawValue(passed);
+            me.down("#totalFailed").setRawValue(failed);
+            me.down("#totalNotRun").setRawValue(notRun+running);
+            me.down("#totalTestCases").setRawValue(notRun+failed+passed+running);
+            if (lastScrollPos != null) {
+                me.getEl().dom.children[0].scrollTop = lastScrollPos;
+            }
+        };
+
+        executionTCStore.on("datachanged",function(store){
+            updateTotals(store);
+        });
+
+        executionTCStore.on("beforesync",function(options){
+            if (options.update){
+                updateTotals(executionTCStore);
+            }
+        });
+
         var testcasesGrid = new Ext.grid.Panel({
             store: executionTCStore,
             itemId:"executionTestcases",
             selType: 'rowmodel',
+            tbar:{
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [
+                    {
+                        width: 400,
+                        fieldLabel: 'Search',
+                        labelWidth: 50,
+                        xtype: 'searchfield',
+                        paramNames: ["tempName","tag"],
+                        //paramNames: ["tempName","tag","status","result"],
+                        store: executionTCStore
+                    }
+                ]
+            },
             viewConfig: {
                 markDirty: false,
                 enableTextSelection: true
@@ -800,6 +845,72 @@ Ext.define('Redwood.view.ExecutionView', {
                 collapsible: true,
                 items:[
                     variablesGrid
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Execution Totals',
+                flex: 1,
+                collapsible: true,
+                layout:"hbox",
+                defaults: {
+                    margin: '0 10 0 5',
+                    labelWidth: "60px",
+                    labelStyle: "font-weight: bold"
+                },
+                items:[
+                    {
+                        xtype:"displayfield",
+                        fieldLabel: "Total",
+                        itemId:"totalTestCases",
+                        value: "999",
+                        renderer: function(value,meta){
+                            return "<p style='font-weight:bold;color:blue'>"+value+"</p>";
+                        }
+
+                    },
+                    {
+                        xtype:"displayfield",
+                        fieldLabel: "Passed",
+                        itemId:"totalPassed",
+                        value: "999",
+                        renderer: function(value,meta){
+                            if (value == "0"){
+                                return value
+                            }
+                            else{
+                                return "<p style='font-weight:bold;color:green'>"+value+"</p>";
+                            }
+                        }
+                    },
+                    {
+                        xtype:"displayfield",
+                        fieldLabel: "Failed",
+                        itemId:"totalFailed",
+                        value: "999",
+                        renderer: function(value,meta){
+                            if (value == "0"){
+                                return value;
+                            }
+                            else{
+                                return "<p style='font-weight:bold;color:red'>"+value+"</p>";
+                            }
+                        }
+                    },
+                    {
+                        xtype:"displayfield",
+                        fieldLabel: "Not Run",
+                        itemId:"totalNotRun",
+                        value: "999",
+                        renderer: function(value,meta){
+                            if (value == "0"){
+                                return value;
+                            }
+                            else{
+                                return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
+                            }
+                        }
+                    }
                 ]
             },
             {
