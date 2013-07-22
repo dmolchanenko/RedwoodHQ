@@ -142,12 +142,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('AddExecutionTestCase',function(testCase){
             var addToStore = function(testcase,tcStore){
-                var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
-                if (originalTC != null){
-                    testcase.name = originalTC.get("name");
-                    testcase.tempName = originalTC.get("name");
-                    testcase.tag = originalTC.get("tag");
-                    tcStore.add(testcase);
+                if (addToStore.find("testcaseID",testcase.testcaseID) == -1){
+                    var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
+                    if (originalTC != null){
+                        testcase.name = originalTC.get("name");
+                        testcase.tempName = originalTC.get("name");
+                        testcase.tag = originalTC.get("tag");
+                        tcStore.add(testcase);
+                    }
                 }
             };
             var store;
