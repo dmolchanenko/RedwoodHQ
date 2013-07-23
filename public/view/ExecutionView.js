@@ -701,7 +701,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                         else{
                             metadata.style = 'background-image: url(images/note_pinned.png);background-position: center; background-repeat: no-repeat;';
-                            metadata.tdAttr = 'data-qtip="' + value + '"';
+                            metadata.tdAttr = 'data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
                             return "";
                             //return '<div ext:qtip="' + value + '"/>';
                             //return "<img src='images/note_pinned.png'/>";
