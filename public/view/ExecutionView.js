@@ -436,7 +436,8 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
 
-        var updateTotals = function(store){
+        me.updateTotals = function(store){
+            if(me.dontTotal == true) return;
             var lastScrollPos = null;
             if (me.getEl()){
                 lastScrollPos = me.getEl().dom.children[0].scrollTop;
@@ -455,12 +456,12 @@ Ext.define('Redwood.view.ExecutionView', {
         };
 
         executionTCStore.on("datachanged",function(store){
-            updateTotals(store);
+            me.updateTotals(store);
         });
 
         executionTCStore.on("beforesync",function(options){
             if (options.update){
-                updateTotals(executionTCStore);
+                me.updateTotals(executionTCStore);
             }
         });
 
@@ -701,7 +702,8 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                         else{
                             metadata.style = 'background-image: url(images/note_pinned.png);background-position: center; background-repeat: no-repeat;';
-                            metadata.tdAttr = 'data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
+                            metadata.tdAttr = 'data-qalign="tl-tl?" data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
+                            //metadata.tdAttr = 'data-qwidth=500 data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
                             return "";
                             //return '<div ext:qtip="' + value + '"/>';
                             //return "<img src='images/note_pinned.png'/>";
@@ -804,6 +806,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         listeners:{
                             change: function(combo,newVal,oldVal){
                                 if (me.dataRecord != null) return;
+                                me.dontTotal = true;
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -813,7 +816,8 @@ Ext.define('Redwood.view.ExecutionView', {
                                     var testcase = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcaseId._id);
                                     me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                 });
-
+                                me.dontTotal = false;
+                                me.updateTotals(executionTCStore);
                             }
                         }
                     },
