@@ -44,9 +44,17 @@ exports.scriptsGet = function(req, res){
 };
 
 exports.scriptsDelete = function(req, res){
-    DeleteScripts(req.body,function(err){
-        res.json({error:null});
+    req.body.forEach(function(script, index, array){
+        git.delete(rootDir+req.cookies.project+"/"+req.cookies.username,script.fullpath,function(){
+            git.commit(rootDir+req.cookies.project+"/"+req.cookies.username,"",function(){
+                res.json({error:null});
+            })
+        })
     });
+
+    //DeleteScripts(req.body,function(err){
+    //    res.json({error:null});
+    //});
 };
 
 exports.scriptsCopy = function(req, res){
@@ -228,6 +236,38 @@ function GetScripts(rootDir,callback){
 }
 
 function DeleteScripts(scripts,callback){
+    scripts.forEach(function(script, index, array){
+        git.delete()
+        if (script.cls == "folder"){
+            var toDelete = [];
+            common.walkDir(script.fullpath,function(){
+                toDelete.reverse();
+                toDelete.push(script.fullpath);
+                toDelete.forEach(function(file,index,array){
+                    if (fs.statSync(file).isDirectory()){
+                        fs.rmdirSync(file);
+                    }
+                    else{
+                        fs.unlinkSync(file);
+                    }
+                });
+            },function(file){
+                toDelete.push(file);
+            });
+        }
+        else{
+            fs.unlinkSync(script.fullpath);
+        }
+        if (index == array.length -1){
+            var gitInfo = git.getGitInfo(script.fullpath);
+            git.delete(gitInfo.path,function(){
+                callback();
+            });
+        }
+    });
+}
+
+function DeleteScripts_old(scripts,callback){
     scripts.forEach(function(script, index, array){
         if (script.cls == "folder"){
             var toDelete = [];
