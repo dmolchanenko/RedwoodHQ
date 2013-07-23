@@ -133,6 +133,7 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onPullChanges: function(){
+        var me = this;
         Ext.MessageBox.show({
             msg: 'Pulling changes from master branch, please wait...',
             progressText: 'Pulling...',
@@ -144,6 +145,7 @@ Ext.define("Redwood.controller.Scripts", {
         var me = this;
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
         allScripts = allScripts.concat(Ext.ComponentQuery.query('mergepanel'));
+        var expandedNodes = me.getExpandedNodes(me.treePanel.getRootNode());
 
         var foundDirty = false;
         Ext.each(allScripts, function(script, index) {
@@ -170,16 +172,18 @@ Ext.define("Redwood.controller.Scripts", {
                         message = "Code was successfully pulled from the main branch.";
                     }
                     me.getStore('Scripts').reload({callback:function(){
+                        me.expandNodes(expandedNodes);
                         Ext.each(allScripts,function(script){
                             var foundIt = false;
                             me.treePanel.getRootNode().cascadeBy(function(node) {
                                 if (node.get("fullpath").indexOf(script.path) != -1){
                                     foundIt = true;
                                     //script.close();
-                                    node.parentNode.expand();
+                                    //node.parentNode.expand();
                                     if (node.get("inConflict") == true){
                                         script.close();
                                         me.onScriptEdit(node);
+                                        node.parentNode.expand();
                                     }
                                     else{
                                         script.node = node;
@@ -202,6 +206,7 @@ Ext.define("Redwood.controller.Scripts", {
                         });
                     }});
                     Ext.MessageBox.hide();
+
                     Ext.Msg.alert('Success', message);
                 }
             });
@@ -386,6 +391,36 @@ Ext.define("Redwood.controller.Scripts", {
         terminalWin.show();
     },
 
+    getExpandedNodes: function(root){
+        var expandedNodes = [];
+        var isExpanded = function(node){
+            if (node.isExpanded()){
+                if (!node.isRoot()){
+                    expandedNodes.push(node.get("fullpath"));
+                }
+                node.eachChild(function(child){
+                    isExpanded(child);
+                });
+            }
+        };
+        isExpanded(root);
+        return expandedNodes.reverse();
+    },
+
+    expandNodes: function(nodes,callback){
+        var me = this;
+        nodes.forEach(function(node,index,array){
+            var toExpand = me.treePanel.getRootNode().findChild("fullpath",node,true);
+            if (toExpand){
+                me.treePanel.getRootNode().findChild("fullpath",node,true).expand();
+            }
+            if (array.length-1 == index){
+                if(callback) callback();
+            }
+        });
+
+    },
+
     onPaste: function(){
         if(this.treePanel.getSelectionModel().getSelection().length == 1){
             var me = this;
@@ -399,19 +434,7 @@ Ext.define("Redwood.controller.Scripts", {
                 }
             });
 
-            var expandedNodes = [];
-            var isExpanded = function(node){
-                if (node.isExpanded()){
-                    if (!node.isRoot()){
-                        expandedNodes.push(node.get("fullpath"));
-                    }
-                    node.eachChild(function(child){
-                        isExpanded(child);
-                    });
-                }
-            };
-            isExpanded(this.treePanel.getRootNode());
-            expandedNodes.reverse();
+            var expandedNodes = me.getExpandedNodes(this.treePanel.getRootNode());
 
             Ext.Ajax.request({
                 url:"/scripts/copy",
@@ -423,6 +446,7 @@ Ext.define("Redwood.controller.Scripts", {
                         Ext.Msg.alert('Error', obj.error);
                     }
                     else{
+                        /*
                         var expandAll = function(store){
                             expandedNodes.forEach(function(node,index,array){
                                 var toExpand = me.treePanel.getRootNode().findChild("fullpath",node,true);
@@ -440,9 +464,22 @@ Ext.define("Redwood.controller.Scripts", {
                             });
 
                         };
+
+                        me.getStore('Scripts').on("load",expandAll);
+                         */
+                        var expandAll = function(store){
+                            me.expandNodes(expandedNodes,function(){
+                                var destNode = me.treePanel.getRootNode().findChild("fullpath",path,true);
+                                if (destNode){
+                                    me.treePanel.getSelectionModel().select(destNode);
+                                    destNode.expand();
+                                }
+                                store.removeListener("load",expandAll);
+                            });
+                        };
+
                         me.getStore('Scripts').on("load",expandAll);
                         me.getStore('Scripts').load();
-                        //newNode.parentNode.expand();
                     }
 
                 }
