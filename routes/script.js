@@ -97,7 +97,9 @@ function CreateScript(path,data,callback){
                 else{
                     var gitInfo = git.getGitInfo(path);
                     git.add(gitInfo.path,gitInfo.fileName,function(){
-                        callback(null)
+                        git.commit(gitInfo.path,gitInfo.fileName,function(){
+                            callback(null)
+                        });
                     });
                 }
             })
