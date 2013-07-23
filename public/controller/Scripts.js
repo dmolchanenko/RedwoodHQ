@@ -102,7 +102,31 @@ Ext.define("Redwood.controller.Scripts", {
             });
         }
         else{
-            doPush();
+            var foundConflict = false;
+            me.treePanel.getRootNode().cascadeBy(function(node) {
+                var openInConflict = false;
+                if(node.get("inConflict") == true){
+                    if ((foundConflict == true) &&(openInConflict == false)) return false;
+                    if (openInConflict == true){
+                        me.onScriptEdit(node);
+                        return;
+                    }
+                    foundConflict = true;
+                    Ext.Msg.show({
+                        title:'Error',
+                        msg: "It appears you have files in conflict.  Would you like to resolve them now?",
+                        buttons: Ext.Msg.YESNO,
+                        icon: Ext.Msg.QUESTION,
+                        fn: function(id){
+                            if (id == "yes"){
+                                openInConflict = true;
+                                me.onScriptEdit(node);
+                            }
+                        }
+                    });
+                }
+            });
+            if(foundConflict == false) doPush();
         }
 
 
@@ -147,8 +171,10 @@ Ext.define("Redwood.controller.Scripts", {
                     }
                     me.getStore('Scripts').reload({callback:function(){
                         Ext.each(allScripts,function(script){
+                            var foundIt = false;
                             me.treePanel.getRootNode().cascadeBy(function(node) {
                                 if (node.get("fullpath").indexOf(script.path) != -1){
+                                    foundIt = true;
                                     //script.close();
                                     node.parentNode.expand();
                                     if (node.get("inConflict") == true){
@@ -172,6 +198,7 @@ Ext.define("Redwood.controller.Scripts", {
                                     }
                                 }
                             });
+                            if (foundIt == false) script.close();
                         });
                     }});
                     Ext.MessageBox.hide();
