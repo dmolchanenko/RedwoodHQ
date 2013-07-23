@@ -161,7 +161,8 @@ Ext.define('Redwood.view.ActionCollection', {
                     }
                     //if empty row
                     else if ((overModel.get("actionname")=="") && (overModel.parentNode.isRoot() == true)){
-                        actionSelected = overModel.store.findRecord("rowOrder",overModel.get("rowOrder")-1)
+                        //actionSelected = overModel.store.findRecord("rowOrder",overModel.get("rowOrder")-1)
+                        actionSelected = overModel.store.getRootNode().findChild("rowOrder",overModel.get("rowOrder")-1)
                     }
                     else if(overModel.parentNode.isRoot() == true){
                         actionSelected = overModel;
