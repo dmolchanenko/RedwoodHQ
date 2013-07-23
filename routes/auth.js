@@ -7,6 +7,20 @@ exports.loginPage = function(req,res){
     res.redirect('/login.html');
 };
 
+exports.loadSessions = function(){
+    var app =  require('../common');
+    var db = app.getDB();
+    db.collection('sessions', function(err, collection) {
+        collection.find({}, {}, function(err, cursor) {
+            cursor.each(function(err, session) {
+                if(session != null) {
+                    sessions[session.username] = {sessionid:session.sessionid,expires:session.expires};
+                }
+            });
+        })
+    })
+};
+
 exports.logIn = function (req,res,next){
     verifyUser(req.body.username,req.body.password,function(userFound){
         if (userFound){
@@ -14,6 +28,7 @@ exports.logIn = function (req,res,next){
                 realtime.emitMessage("Login",req.body.username);
                 var token = buf.toString('hex');
                 sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000)};
+                storeSession(req.body.username,token,new Date(Date.now() + 2592000000));
                 res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: false});
                 res.cookie('username', req.body.username, {maxAge: 2592000000, httpOnly: false });
                 return next();
@@ -70,6 +85,16 @@ exports.auth = function(req,res,next){
     }
     res.redirect("/login");
 };
+
+function storeSession(username,sessionid,expires){
+    var app =  require('../common');
+    var db = app.getDB();
+    db.collection('sessions', function(err, collection) {
+        collection.save({username:username,sessionid:sessionid,expires:expires},{safe:true},function(err){
+            if (err) console.warn(err.message);
+        });
+    });
+}
 
 function verifyUser(username,password,callback){
     var hash = require('crypto').createHmac('md5',"redwood").update(password).digest('hex');

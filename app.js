@@ -205,6 +205,7 @@ app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 common.parseConfig(function(){
     common.initDB(common.Config.DBPort,function(){
         common.cleanUpExecutions();
+        auth.loadSessions();
     });
 
     realtime.initSocket(app);

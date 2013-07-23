@@ -23,8 +23,16 @@ Ext.application({
         Ext.socket = io.connect('http://'+ document.location.host);
 
         Ext.socket.on("reconnecting",function(data){
-            console.log(data)
+            Ext.MessageBox.show({
+                msg: 'Connection to server lost, attempting to reconnect...',
+                progressText: 'Connecting...',
+                width:300,
+                wait:true,
+                waitConfig: {interval:200}
+            });
         });
+        Ext.socket.on('connect', function(){if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();});
+
         this.getController("RealTimeEvents").startEvents();
         window.onbeforeunload = function(){
             console.log("SCRIPT");
