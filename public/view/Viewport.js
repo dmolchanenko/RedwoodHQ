@@ -97,6 +97,33 @@ Ext.define('Redwood.view.Viewport', {
 
                                 }
                             }
+                        },
+                        "-",
+                        {
+                            xtype:"button",
+                            text: Ext.util.Cookies.get("username",""),
+                            arrowAlign: 'right',
+                            menu: [
+                                {
+                                    text: 'Logout',
+                                    handler : function() {
+                                        Ext.Msg.show({
+                                            title:'Logout Confirmation',
+                                            msg: 'Are you sure you want to change logout?<br>Please note that all unsaved changes will be lost.',
+                                            buttons: Ext.Msg.YESNO,
+                                            icon: Ext.Msg.QUESTION,
+                                            fn: function(id){
+                                                if (id == "yes"){
+                                                    Ext.util.Cookies.set("sessionid","");
+                                                    window.location.reload(true);
+                                                }
+                                            }
+                                        });
+
+                                    }
+                                }
+                            ]
+
                         }
                     ]
 
