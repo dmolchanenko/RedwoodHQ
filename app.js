@@ -140,6 +140,7 @@ app.post('/executiontags',auth.auth, executionTags.executionTagsPost);
 //executiontestcases
 app.get('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesGet);
 app.put('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesPut);
+app.put('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPutArray);
 app.post('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPost);
 app.post('/executiontestcases/udatetestset',auth.auth, executiontestcases.executionsTestSetUpdatePost);
 app.del('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesDelete);

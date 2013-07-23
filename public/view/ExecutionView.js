@@ -8,6 +8,7 @@ Ext.define('Redwood.view.ExecutionView', {
     dirty: false,
     loadingData: true,
     viewType: "Execution",
+    noteChanged: false,
 
     initComponent: function () {
         var me = this;
@@ -427,6 +428,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'enddate',     type: 'date'},
                 {name: 'runtime',     type: 'string'},
                 {name: 'error',     type: 'string'},
+                {name: 'note',     type: 'string'},
                 {name: '_id',     type: 'string'},
                 {name: 'testcaseID',     type: 'string'}
             ],
@@ -478,6 +480,35 @@ Ext.define('Redwood.view.ExecutionView', {
                         paramNames: ["tempName","tag"],
                         //paramNames: ["tempName","tag","status","result"],
                         store: executionTCStore
+                    },"->",
+                    {
+                        icon: 'images/note_add.png',
+                        tooltip:"Add Note to Selected Test Cases",
+                        handler: function(){
+                            if(testcasesGrid.getSelectionModel().getSelection().length == 0){
+                                Ext.Msg.alert('Error', "Please select test cases you want to attach note to.");
+                                return;
+                            }
+                            var win = Ext.create('Redwood.view.TestCaseNote',{
+                                onNoteSave:function(note){
+                                    testcasesGrid.getSelectionModel().getSelection().forEach(function(testcase){
+                                        testcase.set("note",note);
+                                        me.markDirty();
+                                        me.noteChanged = true;
+                                    });
+                                }
+                            });
+                            win.show();
+                        }
+                    },"-","",
+                    {
+                        width: 400,
+                        fieldLabel: 'Search Notes',
+                        labelWidth: 80,
+                        xtype: 'searchfield',
+                        paramNames: ["note"],
+                        //paramNames: ["tempName","tag","status","result"],
+                        store: executionTCStore
                     }
                 ]
             },
@@ -505,6 +536,19 @@ Ext.define('Redwood.view.ExecutionView', {
                         e.record.set("startAction",1);
                     }
                     testcasesGrid.getSelectionModel().select([e.record]);
+                },
+                cellclick: function(grid, td, cellIndex, record, tr, rowIndex, e ) {
+                    if (cellIndex == 11){
+                        var win = Ext.create('Redwood.view.TestCaseNote',{
+                            value: record.get("note"),
+                            onNoteSave:function(note){
+                                record.set("note",note);
+                                me.markDirty();
+                                me.noteChanged = true;
+                            }
+                        });
+                        win.show();
+                    }
                 }
             },
             columns:[
@@ -646,6 +690,23 @@ Ext.define('Redwood.view.ExecutionView', {
                             return value;
                         }
                     }
+                },
+                {
+                    header: 'Note',
+                    dataIndex: 'note',
+                    width: 50,
+                    renderer: function(value,metadata,record){
+                        if (value == ""){
+                            return value;
+                        }
+                        else{
+                            metadata.style = 'background-image: url(images/note_pinned.png);background-position: center; background-repeat: no-repeat;';
+                            metadata.tdAttr = 'data-qtip="' + value + '"';
+                            return "";
+                            //return '<div ext:qtip="' + value + '"/>';
+                            //return "<img src='images/note_pinned.png'/>";
+                        }
+                    }
                 }
             ]
 
@@ -656,7 +717,9 @@ Ext.define('Redwood.view.ExecutionView', {
                 options.update.forEach(function(r){
                     if (r.get("_id") != me.itemId) return;
                     var status = r.get("status");
+                    var lastScrollPos = me.getEl().dom.children[0].scrollTop;
                     me.down("#status").setValue(status);
+                    me.getEl().dom.children[0].scrollTop = lastScrollPos;
                     if (status == "Running"){
                         me.up("executionsEditor").down("#runExecution").setDisabled(true);
                         me.up("executionsEditor").down("#stopExecution").setDisabled(false);

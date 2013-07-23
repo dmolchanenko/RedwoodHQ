@@ -13,7 +13,7 @@ Ext.define("Redwood.controller.Executions", {
 
     models: ['Executions','ExecutionTags'],
     stores: ['Executions','ExecutionTags'],
-    views:  ['Executions','ResultsView','ActionPicker'],
+    views:  ['Executions','ResultsView','ActionPicker','TestCaseNote'],
 
     init: function () {
         this.control({
@@ -178,25 +178,40 @@ Ext.define("Redwood.controller.Executions", {
             if (typeof (callback) === 'function') callback(executionView.dataRecord);
         }
         this.getStore('Executions').sync({success:function(){
-            if (newExecution == false){
-                return;
+            if ((newExecution == false) &&(executionView.noteChanged == true)){
+                execution.testcases.forEach(function(testcase){
+                    testcase.executionID = executionView.dataRecord.get("_id");
+                });
+
+                Ext.Ajax.request({
+                    url:"/executiontestcases",
+                    method:"PUT",
+                    jsonData : execution.testcases,
+                    success: function(response) {
+                        //if(obj.error != null){
+                        //    Ext.Msg.alert('Error', obj.error);
+                        //}
+                    }
+                });
+            }
+            else  if (newExecution == true){
+                execution.testcases.forEach(function(testcase){
+                    testcase.executionID = executionView.dataRecord.get("_id");
+                });
+                Ext.Ajax.request({
+                    url:"/executiontestcases",
+                    method:"POST",
+                    jsonData : execution.testcases,
+                    success: function(response) {
+                        var obj = Ext.decode(response.responseText);
+                        if (typeof (callback) === 'function') callback(executionView.dataRecord);
+                        if(obj.error != null){
+                            Ext.Msg.alert('Error', obj.error);
+                        }
+                    }
+                });
             }
 
-            execution.testcases.forEach(function(testcase){
-                testcase.executionID = executionView.dataRecord.get("_id");
-            });
-            Ext.Ajax.request({
-                url:"/executiontestcases",
-                method:"POST",
-                jsonData : execution.testcases,
-                success: function(response) {
-                    var obj = Ext.decode(response.responseText);
-                    if (typeof (callback) === 'function') callback(executionView.dataRecord);
-                    if(obj.error != null){
-                        Ext.Msg.alert('Error', obj.error);
-                    }
-                }
-            });
         }});
         this.getStore('ExecutionTags').sync();
 

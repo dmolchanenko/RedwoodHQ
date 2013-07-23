@@ -14,6 +14,25 @@ exports.executiontestcasesPut = function(req, res){
     });
 };
 
+exports.executiontestcasesPutArray = function(req, res){
+    var app =  require('../common');
+    var db = app.getDB();
+    var data = req.body;
+    var count = 0;
+    for (var i = 0;i<data.length;i++){
+        //data[i]._id = db.bson_serializer.ObjectID(data[i]._id);
+        UpdateExecutionTestCases(app.getDB(),data[i],function(err){
+            count++;
+            if(count == data.length){
+                res.contentType('json');
+                res.json({
+                    success: !err
+                });
+            }
+        });
+    }
+};
+
 exports.executiontestcasesGet = function(req, res){
     var app =  require('../common');
     GetTestCases(app.getDB(),{executionID:req.params.id},function(data){
