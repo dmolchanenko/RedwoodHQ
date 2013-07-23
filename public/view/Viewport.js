@@ -109,7 +109,7 @@ Ext.define('Redwood.view.Viewport', {
                                     handler : function() {
                                         Ext.Msg.show({
                                             title:'Logout Confirmation',
-                                            msg: 'Are you sure you want to change logout?<br>Please note that all unsaved changes will be lost.',
+                                            msg: 'Are you sure you want to logout?<br>Please note that all unsaved changes will be lost.',
                                             buttons: Ext.Msg.YESNO,
                                             icon: Ext.Msg.QUESTION,
                                             fn: function(id){

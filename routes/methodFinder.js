@@ -6,30 +6,30 @@ var spawn = require('child_process').spawn;
 
 exports.methodFinderPost = function(req,res){
     var path = "";
-    if(req.body.id == "root"){
+    if(req.body.node == "root"){
         path = rootDir+req.cookies.project+"/"+req.cookies.username+"/src";
         FindFiles(path,function(files){
             res.contentType('json');
             res.json([{text:"src",fullpath:path,expanded:true,children:files}]);
         });
     }
-    else if (req.body.id.slice(-6) == ".class"){
-        var filepath = req.body.id.substring(0,req.body.id.lastIndexOf("/"));
-        var classname = req.body.id.substring(req.body.id.lastIndexOf("/")+1,req.body.id.length);
+    else if (req.body.node.slice(-6) == ".class"){
+        var filepath = req.body.node.substring(0,req.body.node.lastIndexOf("/"));
+        var classname = req.body.node.substring(req.body.node.lastIndexOf("/")+1,req.body.node.length);
         classname = classname.replace(".class","");
         FindMethods(filepath,classname,function(methods){
             res.contentType('json');
             res.json(methods);
         });
     }
-    else if ((req.body.id.slice(-6) == "groovy")||(req.body.id.slice(-4) == "java")){
-        FindClasses(req.body.id,function(classes){
+    else if ((req.body.node.slice(-6) == "groovy")||(req.body.node.slice(-4) == "java")){
+        FindClasses(req.body.node,function(classes){
             res.contentType('json');
             res.json(classes);
         });
     }
     else{
-        FindFiles(req.body.id,function(files){
+        FindFiles(req.body.node,function(files){
             res.contentType('json');
             res.json(files);
         });
