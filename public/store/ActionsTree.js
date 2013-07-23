@@ -131,6 +131,7 @@ Ext.define('Redwood.store.ActionsTree', {
                 actionTags = action.tag;
             }
             me.getRootNode().eachChild(function(node){
+                if (!node) return;
                 if(node.get("tagValue")){
                     var foundAction = node.findChild("_id",actionID);
                     if (foundAction != null){
