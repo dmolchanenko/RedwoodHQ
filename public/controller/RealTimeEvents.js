@@ -142,7 +142,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('AddExecutionTestCase',function(testCase){
             var addToStore = function(testcase,tcStore){
-                if (addToStore.find("testcaseID",testcase.testcaseID) == -1){
+                if (tcStore.find("testcaseID",testcase.testcaseID) == -1){
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
                     if (originalTC != null){
                         testcase.name = originalTC.get("name");
