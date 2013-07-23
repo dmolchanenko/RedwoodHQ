@@ -60,7 +60,7 @@ exports.scriptsDelete = function(req, res){
 exports.scriptsCopy = function(req, res){
     //prevent multiple errors from sending
     var sent = false;
-    CopyScripts(req.body.scripts,req.body.destDir,function(err){
+    CopyScripts(req.body.scripts,req.body.destDir,rootDir+req.cookies.project+"/"+req.cookies.username,function(err){
         if (sent) return;
         sent = true;
         if (err){
@@ -151,7 +151,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
     },function(file){files.push(file)})
 };
 
-function CopyScripts(scripts,destDir,callback){
+function CopyScripts(scripts,destDir,projectDir,callback){
     var errFound = false;
     var lastLoop = false;
     scripts.forEach(function(script, index, array){
@@ -190,6 +190,13 @@ function CopyScripts(scripts,destDir,callback){
                                 callback(err);
                                 errFound = true;
                             }
+                            else{
+                                git.add(projectDir,writeDir,function(){
+                                    git.commit(projectDir,writeDir,function(){
+                                        //callback(null)
+                                    });
+                                });
+                            }
                         });
                     })
                 }
@@ -204,11 +211,18 @@ function CopyScripts(scripts,destDir,callback){
                 errFound = true;
                 return;
             }
-            fs.writeFileSync(destDir+"/"+name,data,function(err){
+            fs.writeFile(destDir+"/"+name,data,function(err){
                 if (err){
                     callback(err);
                     errFound = true;
                     return;
+                }
+                else{
+                    git.add(projectDir,destDir+"/"+name,function(){
+                        git.commit(projectDir,destDir+"/"+name,function(){
+                            //callback(null)
+                        });
+                    });
                 }
             });
             if((lastLoop)&& (errFound == false)){

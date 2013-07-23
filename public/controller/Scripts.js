@@ -151,19 +151,25 @@ Ext.define("Redwood.controller.Scripts", {
                                 if (node.get("fullpath").indexOf(script.path) != -1){
                                     //script.close();
                                     node.parentNode.expand();
-                                    script.node = node;
-                                    //me.onScriptEdit(node);
-                                    Ext.Ajax.request({
-                                        url:"/script/get",
-                                        method:"POST",
-                                        jsonData : {path:script.path},
-                                        success: function(response, action) {
-                                            var obj = Ext.decode(response.responseText);
-                                            script.setValue(obj.text);
-                                            script.clearDirty();
-                                            script.refreshNeeded = true;
-                                        }
-                                    });
+                                    if (node.get("inConflict") == true){
+                                        script.close();
+                                        me.onScriptEdit(node);
+                                    }
+                                    else{
+                                        script.node = node;
+                                        //me.onScriptEdit(node);
+                                        Ext.Ajax.request({
+                                            url:"/script/get",
+                                            method:"POST",
+                                            jsonData : {path:script.path},
+                                            success: function(response, action) {
+                                                var obj = Ext.decode(response.responseText);
+                                                script.setValue(obj.text);
+                                                script.clearDirty();
+                                                script.refreshNeeded = true;
+                                            }
+                                        });
+                                    }
                                 }
                             });
                         });
@@ -523,8 +529,18 @@ Ext.define("Redwood.controller.Scripts", {
                             jsonData : scripts,
                             success: function(response, action) {
                                 for (var i=0;selection.length > i;i++){
+                                    if (selection[i].hasChildNodes()){
+                                        selection[i].cascadeBy(function(node){
+                                            if (!node.hasChildNodes()){
+                                                me.tabPanel.remove(node.get("fullpath"));
+                                            }
+                                        });
+
+                                    }
+                                    else{
+                                        me.tabPanel.remove(selection[i].get("fullpath"));
+                                    }
                                     selection[i].remove();
-                                    me.tabPanel.remove(selection[i].get("fullpath"));
                                 }
                             }
                         });

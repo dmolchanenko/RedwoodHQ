@@ -1,5 +1,6 @@
 var spawn = require('child_process').spawn;
 var path = require('path');
+var fs = require('fs');
 
 exports.filesInConflict = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['diff','--name-only','--diff-filter=U'],{cwd: workdir,timeout:300000});
@@ -158,7 +159,14 @@ exports.commit = function(workdir,file,callback){
 
 exports.delete = function(workdir,file,callback){
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['rm','-r','-f',file],{cwd: workdir,timeout:300000});
+    var stats = fs.lstatSync(file);
+    var git = null;
+    if (stats.isDirectory() == true){
+        git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['rm','-r',file],{cwd: workdir,timeout:300000});
+    }
+    else{
+        git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['rm','-f',file],{cwd: workdir,timeout:300000});
+    }
 
     git.stdout.on('data', function (data) {
         console.log('stdout: ' + data);
