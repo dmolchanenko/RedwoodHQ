@@ -75,6 +75,25 @@ exports.initBare = function(workdir,callback){
     });
 };
 
+exports.setGitUser = function(workdir,userName,eMail,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['config','user.name',userName],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        var git2  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['config','user.email',eMail],{cwd: workdir,timeout:300000});
+        git2.on('exit', function (code) {
+            if (callback) callback();
+        });
+    });
+};
+
 exports.init = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['init'],{cwd: workdir,timeout:300000});
 
