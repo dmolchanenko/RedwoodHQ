@@ -139,7 +139,7 @@ Ext.define('Redwood.view.TestCaseView', {
                         store:Ext.data.StoreManager.lookup('TestCaseTags'),
                         valueField:"value",
                         queryMode: 'local',
-                        maskRe: /[a-z_0-9]/,
+                        maskRe: /[a-z_0-9_A-Z]/,
                         removeOnDblClick:true,
                         itemId:"tag",
                         listeners:{

@@ -2,7 +2,7 @@ Ext.apply(Ext.form.field.VTypes, {
     tagTest: function(val,field){
         return true;
     },
-    tagTestMask: /[a-z_0-9]/
+    tagTestMask: /[a-z_0-9_A-Z]/
 });
 
 Ext.apply(Ext.form.field.VTypes, {

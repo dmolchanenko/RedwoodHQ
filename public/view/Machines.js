@@ -102,7 +102,7 @@ Ext.define('Redwood.view.Machines', {
                     store:Ext.data.StoreManager.lookup('MachineTags'),
                     valueField:"value",
                     queryMode: 'local',
-                    maskRe: /[a-z_0-9]/,
+                    maskRe: /[a-z_0-9_A-Z]/,
                     removeOnDblClick:true
                 })
             },
