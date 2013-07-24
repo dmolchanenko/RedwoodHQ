@@ -43,7 +43,8 @@ Ext.define("Redwood.controller.Variables", {
 
     },
 
-    afterVariableEdit: function(evtData){
+    afterVariableEdit: function(evtData,row){
+        row.record.dirty = true;
         var varStore = this.getStore('Variables');
         this.getStore('VariableTags').sync();
         //varStore.sync({success:function(batch,options){Ext.data.StoreManager.lookup('Variables').load();} });

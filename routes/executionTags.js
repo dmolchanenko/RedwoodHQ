@@ -1,3 +1,5 @@
+var realtime = require("./realtime");
+
 exports.executionTagsGet = function(req, res){
     var app =  require('../common');
     GetExecutionTags(app.getDB(),{project:req.cookies.project},function(data){
@@ -20,6 +22,9 @@ exports.executionTagsPost = function(req, res){
             success: true,
             tags: returnData
         });
+        returnData.forEach(function(data){
+            realtime.emitMessage("AddExecutionTags",data);
+        });
     });
 };
 
@@ -35,6 +40,7 @@ function CreateExecutionTags(db,data,callback){
 function DeleteExecutionTags(db,data,callback){
     db.collection('executionTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("DeleteExecutionTags",data);
             if (callback != undefined){
                 callback(err);
             }

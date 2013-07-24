@@ -1,3 +1,5 @@
+var realtime = require("./realtime");
+
 exports.variablesPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -5,6 +7,7 @@ exports.variablesPut = function(req, res){
     data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateVariables(app.getDB(),data,function(err){
+        realtime.emitMessage("UpdateVariables",data);
         res.contentType('json');
         res.json({
             success: !err,
@@ -33,6 +36,7 @@ exports.variablesDelete = function(req, res){
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
     DeleteVariables(app.getDB(),{_id: id},function(err){
+        realtime.emitMessage("DeleteVariables",{id: req.params.id});
         res.contentType('json');
         res.json({
             success: !err,
@@ -54,6 +58,7 @@ exports.variablesPost = function(req, res){
             success: true,
             variables: returnData
         });
+        realtime.emitMessage("AddVariables",data);
     });
 };
 

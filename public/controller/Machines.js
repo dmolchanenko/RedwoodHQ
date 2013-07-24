@@ -48,7 +48,8 @@ Ext.define("Redwood.controller.Machines", {
 
     },
 
-    afterEdit: function(evtData){
+    afterEdit: function(evtData,row){
+        row.record.dirty = true;
         var varStore = this.getStore('Machines');
         this.getStore('MachineRoles').sync();
         this.getStore('MachineTags').sync();

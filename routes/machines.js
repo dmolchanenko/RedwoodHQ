@@ -14,12 +14,13 @@ exports.machinesPut = function(req, res){
             success: !err,
             machines: req.body
         });
+
+        var Tags = require('./machineTags');
+        Tags.CleanUpMachineTags(req);
+        var Roles = require('./machineRoles');
+        Roles.CleanUpMachineRoles(req);
     });
 
-    var Tags = require('./machineTags');
-    Tags.CleanUpMachineTags(req);
-    var Roles = require('./machineRoles');
-    Roles.CleanUpMachineRoles(req);
 };
 
 exports.machinesGet = function(req, res){

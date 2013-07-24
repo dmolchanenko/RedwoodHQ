@@ -58,7 +58,7 @@ Ext.define("Redwood.controller.Users", {
 
     },
 
-    afterUserEdit: function(evtData){
+    afterUserEdit: function(evtData,row){
         var varStore = this.getStore('Users');
         this.getStore('UserTags').sync();
         varStore.sync({success:function(batch,options){} });

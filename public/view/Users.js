@@ -10,6 +10,10 @@ Ext.define('Redwood.view.Users', {
     initComponent: function () {
         var usersEditor = this;
 
+        this.viewConfig = {
+            markDirty: false
+        };
+
         this.columns = [
             {
                 header: 'User ID',

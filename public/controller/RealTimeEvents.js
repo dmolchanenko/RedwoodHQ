@@ -56,12 +56,6 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.updateStore(store,testCase);
         });
 
-        Ext.socket.on('UpdateExecutions',function(execution){
-            var store = Ext.data.StoreManager.lookup("Executions");
-            if (store == null) return;
-            me.updateStore(store,execution);
-        });
-
         Ext.socket.on('UpdateResult',function(result){
             var controller = Redwood.app.getController("Executions");
             var foundTab = controller.tabPanel.down("#"+result._id);
@@ -78,6 +72,90 @@ Ext.define("Redwood.controller.RealTimeEvents", {
         Ext.socket.on('AddMachines',function(machine){
             var store = Ext.data.StoreManager.lookup("Machines");
             me.addToStore(store,machine);
+        });
+
+        Ext.socket.on('AddActionTags',function(actionTag){
+            var store = Ext.data.StoreManager.lookup("ActionTags");
+            me.addToStore(store,actionTag);
+        });
+
+        Ext.socket.on('DeleteActionTags',function(actionTag){
+            var store = Ext.data.StoreManager.lookup("ActionTags");
+            var record = store.findRecord("value",actionTag.value);
+            if(record) store.remove(record);
+            store.removed = [];
+        });
+
+        Ext.socket.on('AddExecutionTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("ExecutionTags");
+            me.addToStore(store,tag);
+        });
+
+        Ext.socket.on('DeleteExecutionTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("ExecutionTags");
+            var record = store.findRecord("value",tag.value);
+            if(record) store.remove(record);
+            store.removed = [];
+        });
+
+        Ext.socket.on('AddMachineTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("MachineTags");
+            me.addToStore(store,tag);
+        });
+
+        Ext.socket.on('DeleteMachineTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("MachineTags");
+            var record = store.findRecord("value",tag.value);
+            if(record) store.remove(record);
+            store.removed = [];
+        });
+
+        Ext.socket.on('AddMachineRoles',function(tag){
+            var store = Ext.data.StoreManager.lookup("MachineRoles");
+            me.addToStore(store,tag);
+        });
+
+        Ext.socket.on('DeleteMachineRoles',function(tag){
+            var store = Ext.data.StoreManager.lookup("MachineRoles");
+            var record = store.findRecord("value",tag.value);
+            if(record) store.remove(record);
+            store.removed = [];
+        });
+
+        Ext.socket.on('AddTestCaseTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("TestCaseTags");
+            me.addToStore(store,tag);
+        });
+
+        Ext.socket.on('DeleteTestCaseTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("TestCaseTags");
+            var record = store.findRecord("value",tag.value);
+            if(record) store.remove(record);
+            store.removed = [];
+        });
+
+        Ext.socket.on('AddUserTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("UserTags");
+            me.addToStore(store,tag);
+        });
+
+        Ext.socket.on('DeleteUserTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("UserTags");
+            var record = store.findRecord("value",tag.value);
+            if(record) store.remove(record);
+            store.removed = [];
+        });
+
+        Ext.socket.on('AddVariableTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("VariableTags");
+            me.addToStore(store,tag);
+        });
+
+        Ext.socket.on('DeleteVariableTags',function(tag){
+            var store = Ext.data.StoreManager.lookup("VariableTags");
+            var record = store.findRecord("value",tag.value);
+            if(record) store.remove(record);
+            store.removed = [];
         });
 
         Ext.socket.on('DeleteMachines',function(machine){
@@ -124,6 +202,66 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('DeleteTestCases',function(action){
             var store = Ext.data.StoreManager.lookup("TestCases");
+            me.removeFromStore(store,action);
+        });
+
+        Ext.socket.on('UpdateUsers',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Users");
+            me.updateStore(store,testCase);
+        });
+
+        Ext.socket.on('AddUsers',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Users");
+            me.addToStore(store,testCase);
+        });
+
+        Ext.socket.on('DeleteUsers',function(action){
+            var store = Ext.data.StoreManager.lookup("Users");
+            me.removeFromStore(store,action);
+        });
+
+        Ext.socket.on('UpdateTestSets',function(set){
+            var store = Ext.data.StoreManager.lookup("TestSets");
+            me.updateStore(store,set);
+        });
+
+        Ext.socket.on('AddTestSets',function(set){
+            var store = Ext.data.StoreManager.lookup("TestSets");
+            me.addToStore(store,set);
+        });
+
+        Ext.socket.on('DeleteTestSets',function(set){
+            var store = Ext.data.StoreManager.lookup("TestSets");
+            me.removeFromStore(store,set);
+        });
+
+        Ext.socket.on('UpdateExecutions',function(execution){
+            var store = Ext.data.StoreManager.lookup("Executions");
+            me.updateStore(store,execution);
+        });
+
+        Ext.socket.on('AddExecutions',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Executions");
+            me.addToStore(store,testCase);
+        });
+
+        Ext.socket.on('DeleteExecutions',function(action){
+            var store = Ext.data.StoreManager.lookup("Executions");
+            me.removeFromStore(store,action);
+        });
+
+        Ext.socket.on('UpdateVariables',function(execution){
+            var store = Ext.data.StoreManager.lookup("Variables");
+            me.updateStore(store,execution);
+        });
+
+        Ext.socket.on('AddVariables',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Variables");
+            me.addToStore(store,testCase);
+        });
+
+        Ext.socket.on('DeleteVariables',function(action){
+            var store = Ext.data.StoreManager.lookup("Variables");
             me.removeFromStore(store,action);
         });
 

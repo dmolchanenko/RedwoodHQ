@@ -7,7 +7,7 @@ exports.testcasesPut = function(req, res){
     data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateTestCases(app.getDB(),data,function(err){
-        realtime.emitMessage("UpdateTestCases",{id: req.params.id});
+        realtime.emitMessage("UpdateTestCases",data);
         res.contentType('json');
         res.json({
             success: !err,

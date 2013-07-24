@@ -1,7 +1,8 @@
+var realtime = require("./realtime");
 
 exports.machineRolesGet = function(req, res){
     var app =  require('../common');
-    GetMachineRoles(app.getDB(),{project:req.cookies.project},function(data){
+    GetMachineRoles(app.getDB(),{},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -14,12 +15,14 @@ exports.machineRolesPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
-    data.project = req.cookies.project;
     CreateMachineRoles(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
             success: true,
             roles: returnData
+        });
+        returnData.forEach(function(data){
+            realtime.emitMessage("AddMachineRoles",data);
         });
     });
 };
@@ -36,6 +39,7 @@ function CreateMachineRoles(db,data,callback){
 function DeleteMachineRoles(db,data,callback){
     db.collection('machineRoles', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("DeleteMachineRoles",data);
             if (callback != undefined){
                 callback(err);
             }
@@ -66,9 +70,9 @@ exports.CleanUpMachineRoles = function(req){
         db.collection('machines', function(err, collection) {
             roles.forEach(function(role, index, array){
                 if (role.value != 'Default'){
-                    collection.find({project:req.cookies.project,roles:role.value}).count(function(err,number){
+                    collection.find({roles:role.value}).count(function(err,number){
                         if (number == 0){
-                            DeleteMachineRoles(db,{value:role.value,project:req.cookies.project});
+                            DeleteMachineRoles(db,{value:role.value});
                         }
                     });
                 }

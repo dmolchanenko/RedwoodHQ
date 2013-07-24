@@ -181,6 +181,7 @@ Ext.define("Redwood.controller.Executions", {
             executionView.dataRecord.set("machines",execution.machines);
             executionView.dataRecord.set("locked",execution.locked);
             executionView.dataRecord.set("tag",execution.tag);
+            executionView.dataRecord.dirty = true;
         }
 
         executionView.dataRecord.set("ignoreStatus",execution.ignoreStatus);

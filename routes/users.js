@@ -5,12 +5,14 @@ var git = require('../gitinterface/gitcommands');
 var path = require('path');
 var common = require("../common");
 var spawn = require('child_process').spawn;
+var realtime = require("./realtime");
 
 exports.usersPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
     UpdateUsers(app.getDB(),data,function(err){
+        realtime.emitMessage("UpdateUsers",data);
         res.contentType('json');
         res.json({
             success: !err,
@@ -37,6 +39,7 @@ exports.usersDelete = function(req, res){
     var id = db.bson_serializer.ObjectID(req.params.id);
     if (req.body.username == "admin") return;
     DeleteUsers(app.getDB(),{_id: id,username:req.body.username},function(err){
+        realtime.emitMessage("DeleteUsers",{id: id.__id,username:req.body.username});
         res.contentType('json');
         res.json({
             success: !err,
@@ -51,11 +54,14 @@ exports.usersPost = function(req, res){
     var data = req.body;
     delete data._id;
     CreateUsers(app.getDB(),data,function(returnData){
+        delete returnData.password;
         res.contentType('json');
         res.json({
             success: true,
             users: returnData
         });
+
+        realtime.emitMessage("AddUsers",data);
     });
 };
 
@@ -163,7 +169,9 @@ function DeleteUsers(db,data,callback){
                         }
                         var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
                         var userPath = path.resolve(__dirname,"../public/automationscripts/"+project.name+"/"+data.username);
-                        var delDir = spawn("rmdir",['/S','/Q',userPath],{cwd: projectPath,timeout:300000});
+
+                        var delDir = spawn(path.resolve(__dirname,'../vendor/Git/bin/rm.exe'),['-rf',userPath],{cwd: projectPath,timeout:300000});
+                        //var delDir = spawn("rmdir",['/S','/Q',userPath],{cwd: projectPath,timeout:300000});
 
                         /*
                         var toDelete = [];

@@ -1,3 +1,5 @@
+var realtime = require("./realtime");
+
 exports.testsetsPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -5,6 +7,7 @@ exports.testsetsPut = function(req, res){
     data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateTestSets(app.getDB(),data,function(err){
+        realtime.emitMessage("UpdateTestSets",data);
         res.contentType('json');
         res.json({
             success: !err,
@@ -29,6 +32,7 @@ exports.testsetsDelete = function(req, res){
     var db = app.getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
     DeleteTestSets(app.getDB(),{_id: id},function(err){
+        realtime.emitMessage("DeleteTestSets",{id: req.params.id});
         res.contentType('json');
         res.json({
             success: !err,
@@ -48,6 +52,7 @@ exports.testsetsPost = function(req, res){
             success: true,
             testsets: returnData
         });
+        realtime.emitMessage("AddTestSet",data);
     });
 };
 

@@ -1,3 +1,4 @@
+var realtime = require("./realtime");
 
 exports.actionTagsGet = function(req, res){
     var app =  require('../common');
@@ -21,6 +22,9 @@ exports.actionTagsPost = function(req, res){
             success: true,
             tags: returnData
         });
+        returnData.forEach(function(data){
+            realtime.emitMessage("AddActionTags",data);
+        });
     });
 };
 
@@ -36,6 +40,7 @@ function CreateActionTags(db,data,callback){
 function DeleteActionTags(db,data,callback){
     db.collection('actionTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("DeleteActionTags",data);
             if (callback != undefined){
                 callback(err);
             }

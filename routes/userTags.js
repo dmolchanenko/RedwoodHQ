@@ -1,3 +1,4 @@
+var realtime = require("./realtime");
 
 exports.userTagsGet = function(req, res){
     var app =  require('../common');
@@ -20,6 +21,9 @@ exports.userTagsPost = function(req, res){
             success: true,
             tags: returnData
         });
+        returnData.forEach(function(data){
+            realtime.emitMessage("AddUserTags",data);
+        });
     });
 };
 
@@ -35,6 +39,7 @@ function CreateUserTags(db,data,callback){
 function DeleteUserTags(db,data,callback){
     db.collection('userTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("DeleteUserTags",data);
             if (callback != undefined){
                 callback(err);
             }

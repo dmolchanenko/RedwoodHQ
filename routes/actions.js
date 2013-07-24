@@ -7,12 +7,12 @@ exports.actionsPut = function(req, res){
     data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateActions(app.getDB(),data,function(err){
-        realtime.emitMessage("UpdateActions",data);
         res.contentType('json');
         res.json({
             success: !err,
             actions: req.body
         });
+        realtime.emitMessage("UpdateActions",data);
     });
 
     var Tags = require('./actionTags');

@@ -126,6 +126,7 @@ Ext.define("Redwood.controller.Actions", {
             actionView.dataRecord.set("tag",action.tag);
             actionView.dataRecord.set("params",action.params);
             actionView.dataRecord.set("script",action.script);
+            actionView.dataRecord.dirty = true;
             this.getStore('Actions').sync();
         }
 

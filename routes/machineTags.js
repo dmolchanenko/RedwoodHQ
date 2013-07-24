@@ -1,7 +1,8 @@
+var realtime = require("./realtime");
 
 exports.machineTagsGet = function(req, res){
     var app =  require('../common');
-    GetMachineTags(app.getDB(),{project:req.cookies.project},function(data){
+    GetMachineTags(app.getDB(),{},function(data){
         res.contentType('json');
         res.json({
             success: true,
@@ -14,12 +15,15 @@ exports.machineTagsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
     delete data._id;
-    data.project = req.cookies.project;
+    //data.project = req.cookies.project;
     CreateMachineTags(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
             success: true,
             tags: returnData
+        });
+        returnData.forEach(function(data){
+            realtime.emitMessage("AddMachineTags",data);
         });
     });
 };
@@ -36,6 +40,7 @@ function CreateMachineTags(db,data,callback){
 function DeleteMachineTags(db,data,callback){
     db.collection('machineTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("DeleteMachineTags",data);
             if (callback != undefined){
                 callback(err);
             }
@@ -65,9 +70,9 @@ exports.CleanUpMachineTags = function(req){
     var callback = function(tags){
         db.collection('machines', function(err, collection) {
             tags.forEach(function(tag, index, array){
-                collection.find({project:req.cookies.project,tag:tag.value}).count(function(err,number){
+                collection.find({tag:tag.value}).count(function(err,number){
                     if (number == 0){
-                        DeleteMachineTags(db,{value:tag.value,project:req.cookies.project});
+                        DeleteMachineTags(db,{value:tag.value});
                     }
                 });
             });

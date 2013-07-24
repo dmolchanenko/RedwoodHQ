@@ -1,3 +1,4 @@
+var realtime = require("./realtime");
 
 exports.variableTagsGet = function(req, res){
     var app =  require('../common');
@@ -21,6 +22,9 @@ exports.variableTagsPost = function(req, res){
             success: true,
             tags: returnData
         });
+        returnData.forEach(function(data){
+            realtime.emitMessage("AddVariableTags",data);
+        });
     });
 };
 
@@ -36,6 +40,7 @@ function CreateVariableTags(db,data,callback){
 function DeleteVariableTags(db,data,callback){
     db.collection('variableTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("DeleteVariableTags",data);
             if (callback != undefined){
                 callback(err);
             }

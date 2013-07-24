@@ -178,6 +178,10 @@ exports.commit = function(workdir,file,callback){
 
 exports.delete = function(workdir,file,callback){
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
+    if (fs.existsSync(file) == false){
+        callback();
+        return;
+    }
     var stats = fs.lstatSync(file);
     var git = null;
     if (stats.isDirectory() == true){

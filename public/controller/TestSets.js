@@ -48,6 +48,7 @@ Ext.define("Redwood.controller.TestSets", {
             if (foundTab.testSetData != null){
                 foundTab.testSetData.set("name", newTestSet.name);
                 foundTab.testSetData.set("testcases",newTestSet.testcases);
+                foundTab.testSetData.dirty = true;
                 newSet = false;
             }
             else{

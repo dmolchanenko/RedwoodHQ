@@ -16,6 +16,10 @@ Ext.define('Redwood.view.TestSetsGrid', {
     initComponent: function () {
         var me = this;
 
+        this.viewConfig = {
+            markDirty: false
+        };
+
         this.tbar = {
             items:[
                 {

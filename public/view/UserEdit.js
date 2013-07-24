@@ -63,8 +63,9 @@ Ext.define('Redwood.view.UserEdit', {
                     if (form.isValid()) {
                         var window = this.up('window');
                         if (window.newUser == false){
+                            var record = form.getRecord();
+                            record.dirty = true;
                             if (form.getFieldValues().firstpassword != "**********************"){
-                                var record = form.getRecord();
                                 record.set("password",form.getFieldValues().firstpassword);
                             }
                             form.updateRecord();

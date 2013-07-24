@@ -1,3 +1,5 @@
+var realtime = require("./realtime");
+
 exports.executionsPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -5,14 +7,15 @@ exports.executionsPut = function(req, res){
     //data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateExecutions(app.getDB(),data,function(err){
+        realtime.emitMessage("UpdateExecutions",data);
         res.contentType('json');
         res.json({
             success: !err,
             executions: req.body
         });
+        var Tags = require('./executionTags');
+        Tags.CleanUpExecutionTags(req);
     });
-    var Tags = require('./executionTags');
-    Tags.CleanUpExecutionTags(req);
 };
 
 exports.executionsGet = function(req, res){
@@ -31,6 +34,7 @@ exports.executionsDelete = function(req, res){
     var db = app.getDB();
     //var id = db.bson_serializer.ObjectID(req.params.id);
     DeleteExecutions(app.getDB(),{_id: req.params.id},function(err){
+        realtime.emitMessage("DeleteExecutions",{id: req.params.id});
         res.contentType('json');
         res.json({
             success: !err,
@@ -52,6 +56,7 @@ exports.executionsPost = function(req, res){
             success: true,
             executions: returnData
         });
+        realtime.emitMessage("AddExecutions",data);
     });
 };
 

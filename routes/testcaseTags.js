@@ -1,3 +1,4 @@
+var realtime = require("./realtime");
 
 exports.testcaseTagsGet = function(req, res){
     var app =  require('../common');
@@ -21,6 +22,9 @@ exports.testcaseTagsPost = function(req, res){
             success: true,
             tags: returnData
         });
+        returnData.forEach(function(data){
+            realtime.emitMessage("AddTestCaseTags",data);
+        });
     });
 };
 
@@ -36,6 +40,7 @@ function CreateTestCaseTags(db,data,callback){
 function DeleteTestCaseTags(db,data,callback){
     db.collection('testcaseTags', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
+            realtime.emitMessage("DeleteTestCaseTags",data);
             if (callback != undefined){
                 callback(err);
             }
