@@ -2,8 +2,10 @@ Ext.define('Redwood.store.TestCaseTags', {
     extend: 'Ext.data.Store',
     model: 'Redwood.model.TestCaseTags',
 
-    autoLoad: true,
     autoSync: false,
+    autoLoad: {
+        callback: function(){Ext.data.StoreManager.lookup('TestCaseTree').initialLoad();}
+    },
 
     proxy: {
         type: 'rest',

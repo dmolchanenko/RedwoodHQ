@@ -184,6 +184,30 @@ Ext.define('Redwood.view.TestCases', {
             }
         };
 
+        var testCaseListTree = {
+            xtype: 'treepanel',
+            multiSelect: false,
+            hideCollapseTool: true,
+            rootVisible: false,
+            store: Ext.data.StoreManager.lookup('TestCaseTree'),
+            width: 206,
+            title: "Test Case Tree",
+            focused: false,
+            hideHeaders: true,
+            displayField:"name",
+            viewConfig: {
+                markDirty: false
+            },
+            listeners:{
+                itemdblclick: function(me, record, element, node_index, event) {
+                    if (!record.get("tagValue")){
+                        var found = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",record.get("_id"));
+                        me.up('testcases').fireEvent('editTestCase',found);
+                    }
+                }
+            }
+        };
+
         var testCaseListFlat = {
             //region: 'west',
             //split:true,
@@ -236,7 +260,7 @@ Ext.define('Redwood.view.TestCases', {
                 width: 206,
                 collapseDirection: "left",
                 collapsible: true,
-                items:[testCaseListFlat,actionListFlat,actionListTree]
+                items:[testCaseListFlat,testCaseListTree,actionListFlat,actionListTree]
 
             },
             {

@@ -14,7 +14,7 @@ Ext.define("Redwood.controller.TestCases", {
     extend: 'Ext.app.Controller',
 
     models: ['TestCases',"TestCaseTags"],
-    stores: ['TestCases',"TestCaseTags"],
+    stores: ['TestCases',"TestCaseTags","TestCaseTree"],
     views:  ['TestCases'],
 
     init: function () {

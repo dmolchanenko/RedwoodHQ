@@ -4,12 +4,22 @@ Ext.define('Redwood.store.TestCases', {
 
     autoLoad: true,
     autoSync: false,
+    initialLoad: false,
     sorters: [{
 
         property : 'name',
         direction: 'ASC'
 
     }],
+    listeners:{
+        load: function(me){
+            if (me.initialLoad == false){
+                me.initialLoad = true;
+
+                Ext.data.StoreManager.lookup('TestCaseTree').initialLoad();
+            }
+        }
+    },
 
     proxy: {
         type: 'rest',
