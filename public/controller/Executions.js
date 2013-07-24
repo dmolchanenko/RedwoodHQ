@@ -113,6 +113,17 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Msg.alert('Error', "Please select test cases to run the execution against.");
             return;
         }
+
+        var machinesRunning = false;
+        machines.forEach(function(machine){
+            if(machine.state == "Running") machinesRunning = true;
+        });
+
+        if (machinesRunning == true){
+            Ext.Msg.alert('Error', "Please select machines to run the execution on.");
+            return;
+        }
+
         //close any open results
         //add retry count as well
         testcases.forEach(function(testcase){
