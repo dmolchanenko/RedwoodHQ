@@ -147,7 +147,7 @@ Ext.define('Redwood.store.ActionsTree', {
                     }
                     else{
                         if(actionTags.indexOf(node.get("name")) != -1){
-                            node.appendChild({name:actionName,_id:actionID,leaf:true})
+                            if (node.indexOfId(actionID) == -1) node.appendChild({name:actionName,_id:actionID,leaf:true})
                         }
                     }
                 }
@@ -166,13 +166,13 @@ Ext.define('Redwood.store.ActionsTree', {
             actionTags.forEach(function(tag){
                 var missingTag = me.getRootNode().findChild("tagValue",tag);
                 if(missingTag == null){
-                    me.getRootNode().appendChild({name:tag,allowDrag:false,tagValue:tag,leaf:false,children:[{name:actionName,_id:actionID,leaf:true}]});
+                    if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:tag,allowDrag:false,tagValue:tag,leaf:false,children:[{name:actionName,_id:actionID,leaf:true}]});
                 }
             });
 
             if (actionTags.length == 0){
                 if(me.getRootNode().findChild("_id",actionID) == null){
-                    me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true})
+                    if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true})
                 }
             }
         });
