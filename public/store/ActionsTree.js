@@ -101,15 +101,15 @@ Ext.define('Redwood.store.ActionsTree', {
                 actionTags.forEach(function(tagInAction){
                     var foundTag = me.getRootNode().findChild("tagValue",tagInAction);
                     if (foundTag == null){
-                        me.getRootNode().appendChild({name:tagInAction,allowDrag:false,tagValue:tagInAction,leaf:false,children:[{name:actionName,_id:actionID,leaf:true}]});
+                        if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:tagInAction,allowDrag:false,tagValue:tagInAction,leaf:false,children:[{name:actionName,_id:actionID,leaf:true}]});
                     }
                     else{
-                        foundTag.appendChild({name:actionName,_id:actionID,leaf:true})
+                        if (foundTag.indexOfId(actionID) == -1) foundTag.appendChild({name:actionName,_id:actionID,leaf:true})
                     }
                 });
             }
             else{
-                me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true})
+                if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true})
             }
         });
     }
