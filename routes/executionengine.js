@@ -1157,6 +1157,8 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                                 hosts.push(innerAction.host)
                             }
                             if(lastPoint.dbAction.executionflow == "Ignore Error Continue Test Case"){innerAction.executionflow = "Ignore Error Continue Test Case"}
+                            if((lastPoint.dbAction.executionflow == "Record Error Continue Test Case")&&(innerAction.executionflow != "Ignore Error Continue Test Case"))
+                            {innerAction.executionflow = "Record Error Continue Test Case"}
                             var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
                             lastResultPoint.children.push(newActionResult);
                             var newAction = {result:newActionResult,dbAction:innerAction,parent:lastPoint,actions:[],returnValues:{}};
