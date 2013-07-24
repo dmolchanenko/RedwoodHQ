@@ -77,8 +77,14 @@ Ext.define("Redwood.controller.Scripts", {
                 method:"POST",
                 jsonData : {},
                 success: function(response) {
+                    me.treePanel.getRootNode().cascadeBy(function(node) {
+                        if(node.get("text").indexOf("<span") != -1){
+                            node.set("text",node.get("name"));
+                            node.set("qtip","");
+                        }
+                    });
                     Ext.MessageBox.hide();
-                    Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.")
+                    Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
                 }
             });
         };
@@ -649,6 +655,7 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onScriptSave: function(callback){
+        var me = this;
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
         allScripts = allScripts.concat(Ext.ComponentQuery.query('mergepanel'));
         var total = 0;
@@ -665,6 +672,8 @@ Ext.define("Redwood.controller.Scripts", {
                         jsonData : {path:script.path,text:script.getValue()},
                         success: function(response, action) {
                             script.clearDirty();
+                            script.node.set("text",'<span style="color:blue">' + script.node.get("name") + '</span>');
+                            script.node.set("qtip",'This file is not yet pushed.');
                             total++;
                             if (total == allScripts.length){
                                 if (callback) callback();
