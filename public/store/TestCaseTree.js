@@ -12,8 +12,10 @@ Ext.define('Redwood.store.TestCaseTree', {
     },
 
     loadedData:true,
+    icon:"images/testcase.png",
 
     initialLoad: function(){
+        var me = this;
         var testCasesStore = Ext.data.StoreManager.lookup('TestCases');
         var tagStore = Ext.data.StoreManager.lookup('TestCaseTags');
         this.loadedData = true;
@@ -33,13 +35,13 @@ Ext.define('Redwood.store.TestCaseTree', {
                 action.get("tag").forEach(function(tagInTC){
                     tags.forEach(function(tag){
                         if (tag.name === tagInTC){
-                            tag.children.push({name:action.get("name"),_id:action.get("_id"),leaf:true})
+                            tag.children.push({name:action.get("name"),_id:action.get("_id"),leaf:true,icon:me.icon})
                         }
                     })
                 });
             }
             else{
-                testCases.push({name:action.get("name"),_id:action.get("_id"),leaf:true})
+                testCases.push({name:action.get("name"),_id:action.get("_id"),leaf:true,icon:me.icon})
             }
 
         });
@@ -100,7 +102,7 @@ Ext.define('Redwood.store.TestCaseTree', {
                 tags.forEach(function(tagInAction){
                     var foundTag = me.getRootNode().findChild("tagValue",tagInAction);
                     if (foundTag == null){
-                        if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:tagInAction,allowDrag:false,tagValue:tagInAction,leaf:false,children:[{name:name,_id:ID,leaf:true}]});
+                        if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:tagInAction,allowDrag:false,tagValue:tagInAction,leaf:false,children:[{name:name,_id:ID,leaf:true,icon:me.icon}]});
                     }
                     else{
                         if (foundTag.indexOfId(ID) == -1) foundTag.appendChild({name:name,_id:ID,leaf:true})
@@ -108,7 +110,7 @@ Ext.define('Redwood.store.TestCaseTree', {
                 });
             }
             else{
-                if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:name,_id:ID,leaf:true})
+                if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:name,_id:ID,leaf:true,icon:me.icon})
             }
         });
     }
@@ -146,7 +148,7 @@ Ext.define('Redwood.store.TestCaseTree', {
                     }
                     else{
                         if(tags.indexOf(node.get("name")) != -1){
-                            if (node.indexOfId(ID) == -1) node.appendChild({name:name,_id:ID,leaf:true})
+                            if (node.indexOfId(ID) == -1) node.appendChild({name:name,_id:ID,leaf:true,icon:me.icon})
                         }
                     }
                 }
@@ -165,13 +167,13 @@ Ext.define('Redwood.store.TestCaseTree', {
             tags.forEach(function(tag){
                 var missingTag = me.getRootNode().findChild("tagValue",tag);
                 if(missingTag == null){
-                    if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:tag,allowDrag:false,tagValue:tag,leaf:false,children:[{name:name,_id:ID,leaf:true}]});
+                    if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:tag,allowDrag:false,tagValue:tag,leaf:false,children:[{name:name,_id:ID,leaf:true,icon:me.icon}]});
                 }
             });
 
             if (tags.length == 0){
                 if(me.getRootNode().findChild("_id",ID) == null){
-                    if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:name,_id:ID,leaf:true})
+                    if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:name,_id:ID,leaf:true,icon:me.icon})
                 }
             }
         });

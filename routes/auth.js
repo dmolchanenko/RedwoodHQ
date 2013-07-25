@@ -96,6 +96,16 @@ function storeSession(username,sessionid,expires){
     });
 }
 
+function storeProject(username,project,expires){
+    var app =  require('../common');
+    var db = app.getDB();
+    db.collection('users', function(err, collection) {
+        collection.findAndModify({username:username},{},{$set:{selectedProject:project}},{safe:true,new:false},function(err,data){
+            if (err) console.warn(err.message);
+        });
+    });
+}
+
 function verifyUser(username,password,callback){
     var hash = require('crypto').createHmac('md5',"redwood").update(password).digest('hex');
     var app =  require('../common');

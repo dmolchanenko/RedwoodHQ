@@ -40,11 +40,8 @@ var cloneTestCase = Ext.create('Ext.Action', {
     }
 });
 
-function formatAction(val,metaData,record) {
-    return '<img src="images/action.png" align="top"> '+val;
-}
 function formatTestCase(val,metaData,record) {
-    return '<img src="images/action.png" align="top"> '+val;
+    return '<img src="images/testcase.png" align="top"> '+val;
 }
 
 Ext.define('Redwood.view.TestCases', {
