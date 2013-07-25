@@ -52,7 +52,7 @@ exports.testsetsPost = function(req, res){
             success: true,
             testsets: returnData
         });
-        realtime.emitMessage("AddTestSet",data);
+        realtime.emitMessage("AddTestSets",data);
     });
 };
 
