@@ -44,8 +44,8 @@ var cloneAction = Ext.create('Ext.Action', {
 });
 
 function formatAction(val,metaData,record) {
-     return '<img src="images/action.png" align="top"> '+val;
-     //return '<img src="images/action.png"><span>' + val + '</span>';
+    metaData.tdAttr = 'data-qtip="' + record.get("description") + '"';
+    return '<img src="images/action.png" align="top"> '+val;
 }
 
 Ext.define('Redwood.view.Actions', {

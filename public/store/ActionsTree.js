@@ -36,13 +36,13 @@ Ext.define('Redwood.store.ActionsTree', {
                 action.get("tag").forEach(function(tagInTC){
                     tags.forEach(function(tag){
                         if (tag.name === tagInTC){
-                            tag.children.push({name:action.get("name"),_id:action.get("_id"),leaf:true,icon:me.icon})
+                            tag.children.push({name:action.get("name"),_id:action.get("_id"),leaf:true,icon:me.icon,qtip:action.get("description")})
                         }
                     })
                 });
             }
             else{
-                actions.push({name:action.get("name"),_id:action.get("_id"),leaf:true,icon:me.icon})
+                actions.push({name:action.get("name"),_id:action.get("_id"),leaf:true,icon:me.icon,qtip:action.get("description")})
             }
 
         });
@@ -87,31 +87,34 @@ Ext.define('Redwood.store.ActionsTree', {
             var actionTags;
             var actionID;
             var actionName;
+            var actionDescription;
 
             if (action.get){
                 actionTags = action.get("tag");
                 actionID = action.get("_id");
                 actionName = action.get("name");
+                actionDescription = action.get("description");
             }
             else{
                 actionTags = action.tag;
                 actionID = action._id;
                 actionName = action.name;
+                actionDescription = action.description;
             }
             //actionsCombo.add(r);
             if(actionTags.length > 0){
                 actionTags.forEach(function(tagInAction){
                     var foundTag = me.getRootNode().findChild("tagValue",tagInAction);
                     if (foundTag == null){
-                        if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:tagInAction,allowDrag:false,tagValue:tagInAction,leaf:false,children:[{name:actionName,_id:actionID,leaf:true,icon:me.icon}]});
+                        if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:tagInAction,allowDrag:false,tagValue:tagInAction,leaf:false,children:[{name:actionName,_id:actionID,leaf:true,icon:me.icon,qtip:actionDescription}]});
                     }
                     else{
-                        if (foundTag.indexOfId(actionID) == -1) foundTag.appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon})
+                        if (foundTag.indexOfId(actionID) == -1) foundTag.appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon,qtip:actionDescription})
                     }
                 });
             }
             else{
-                if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon})
+                if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon,qtip:actionDescription})
             }
         });
     }
@@ -122,15 +125,19 @@ Ext.define('Redwood.store.ActionsTree', {
             var actionName;
             var actionTags;
             var actionID;
+            var actionDescription;
+
             if (action.get){
                 actionID = action.get("_id");
                 actionName = action.get("name");
                 actionTags = action.get("tag");
+                actionDescription = action.get("description");
             }
             else{
                 actionID = action._id;
                 actionName = action.name;
                 actionTags = action.tag;
+                actionDescription = action.description;
             }
             me.getRootNode().eachChild(function(node){
                 if (!node) return;
@@ -145,11 +152,12 @@ Ext.define('Redwood.store.ActionsTree', {
                         }
                         else{
                             foundAction.set("name",actionName)
+                            foundAction.set("qtip",actionDescription)
                         }
                     }
                     else{
                         if(actionTags.indexOf(node.get("name")) != -1){
-                            if (node.indexOfId(actionID) == -1) node.appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon})
+                            if (node.indexOfId(actionID) == -1) node.appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon,qtip:actionDescription})
                         }
                     }
                 }
@@ -160,6 +168,7 @@ Ext.define('Redwood.store.ActionsTree', {
                         }
                         else{
                             node.set("name",actionName)
+                            node.set("qtip",actionDescription)
                         }
                     }
                 }
@@ -168,13 +177,13 @@ Ext.define('Redwood.store.ActionsTree', {
             actionTags.forEach(function(tag){
                 var missingTag = me.getRootNode().findChild("tagValue",tag);
                 if(missingTag == null){
-                    if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:tag,allowDrag:false,tagValue:tag,leaf:false,children:[{name:actionName,_id:actionID,leaf:true,icon:me.icon}]});
+                    if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:tag,allowDrag:false,tagValue:tag,leaf:false,children:[{name:actionName,_id:actionID,leaf:true,icon:me.icon,qtip:actionDescription}]});
                 }
             });
 
             if (actionTags.length == 0){
                 if(me.getRootNode().findChild("_id",actionID) == null){
-                    if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon})
+                    if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon,qtip:actionDescription})
                 }
             }
         });
