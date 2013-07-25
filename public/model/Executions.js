@@ -48,6 +48,10 @@ Ext.define('Redwood.model.Executions', {
             type: 'array'
         },
         {
+            name: 'lastRunDate',
+            type: 'date'
+        },
+        {
             name: '_id',
             type: 'string'
         }

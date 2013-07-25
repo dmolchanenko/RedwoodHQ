@@ -63,7 +63,7 @@ exports.startexecutionPost = function(req, res){
         else{
             res.contentType('json');
             res.json({success:true});
-            updateExecution({_id:executionID},{$set:{status:"Running"}});
+            updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
 
             lockMachines(machines,executionID,function(){
                 getGlobalVars(executionID,function(){

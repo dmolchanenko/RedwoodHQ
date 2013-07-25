@@ -45,6 +45,13 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 width: 400
             },
             {
+                xtype:"datecolumn",
+                header: 'Last Run',
+                dataIndex: 'lastRunDate',
+                format:'m/d h:i:s',
+                width: 100
+            },
+            {
                 header: 'Lock',
                 dataIndex: 'locked',
                 width: 35,
