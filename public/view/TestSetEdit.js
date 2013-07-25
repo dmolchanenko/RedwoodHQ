@@ -31,6 +31,8 @@ Ext.define('Redwood.view.TestSetEdit', {
     viewType: "TestSet",
     dirty: false,
     loadingData: true,
+    //layout: 'fit',
+    autoScroll:true,
     listeners:{
         afterrender: function(me){
             if (me.testSetData != null){

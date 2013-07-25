@@ -413,6 +413,12 @@ Ext.define('Redwood.view.ExecutionView', {
         var executionTCStore =  new Ext.data.Store({
             storeId: "ExecutionTCs"+this.itemId,
             //groupField: 'status',
+            sorters: [{
+
+                property : 'tempName',
+                direction: 'ASC'
+
+            }],
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'tempName',     type: 'string'},
@@ -436,12 +442,39 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
 
-        me.updateTotals = function(store){
-            if(me.dontTotal == true) return;
-            var lastScrollPos = null;
-            if (me.getEl()){
-                lastScrollPos = me.getEl().dom.children[0].scrollTop;
+        me.updateTotals = function(totals){
+            if(totals.passed){
+                var passed =  parseInt(me.down("#totalPassed").getValue());
+                passed = passed + totals.passed;
+                me.down("#totalPassed").setRawValue(passed);
             }
+
+            if (totals.failed){
+                var failed =  parseInt(me.down("#totalFailed").getValue());
+                failed = failed + totals.failed;
+                me.down("#totalFailed").setRawValue(failed);
+            }
+
+            if (totals.notRun){
+                var notRun =  parseInt(me.down("#totalNotRun").getValue());
+                notRun = notRun + totals.notRun;
+                me.down("#totalNotRun").setRawValue(notRun);
+            }
+
+            if (totals.total){
+                var total =  parseInt(me.down("#totalTestCases").getValue());
+                total = total + totals.total;
+                me.down("#totalTestCases").setRawValue(total);
+            }
+
+
+        };
+
+        me.initialTotals = function(store){
+            //var lastScrollPos = null;
+            //if (me.getEl()){
+            //    lastScrollPos = me.getEl().dom.children[0].scrollTop;
+            //}
             var passed = store.query("result","Passed").length;
             var failed = store.query("result","Failed").length;
             var notRun = store.query("status","Not Run").length;
@@ -450,18 +483,18 @@ Ext.define('Redwood.view.ExecutionView', {
             me.down("#totalFailed").setRawValue(failed);
             me.down("#totalNotRun").setRawValue(notRun+running);
             me.down("#totalTestCases").setRawValue(notRun+failed+passed+running);
-            if (lastScrollPos != null) {
-                me.getEl().dom.children[0].scrollTop = lastScrollPos;
-            }
+            //if (lastScrollPos != null) {
+            //    me.getEl().dom.children[0].scrollTop = lastScrollPos;
+            //}
         };
 
         executionTCStore.on("datachanged",function(store){
-            me.updateTotals(store);
+            //me.updateTotals(store);
         });
 
         executionTCStore.on("beforesync",function(options){
             if (options.update){
-                me.updateTotals(executionTCStore);
+                //me.updateTotals(executionTCStore);
             }
         });
 
@@ -702,7 +735,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                         else{
                             metadata.style = 'background-image: url(images/note_pinned.png);background-position: center; background-repeat: no-repeat;';
-                            metadata.tdAttr = 'data-qalign="tl-tl?" data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
+                            //metadata.tdAttr = 'data-qalign="tl-tl?" data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
                             //metadata.tdAttr = 'data-qwidth=500 data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
                             return "";
                             //return '<div ext:qtip="' + value + '"/>';
@@ -817,7 +850,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                     me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                 });
                                 me.dontTotal = false;
-                                me.updateTotals(executionTCStore);
+                                me.initialTotals(executionTCStore);
                             }
                         }
                     },
@@ -1034,6 +1067,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 });
             }
             me.loadingData = false;
+            me.initialTotals(me.down("#executionTestcases").store);
             this.down("#name").focus();
         },
         beforedestroy: function(me){

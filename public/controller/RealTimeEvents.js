@@ -39,23 +39,6 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.addToStore(Ext.data.StoreManager.lookup('Projects'),project);
         });
 
-        Ext.socket.on('UpdateExecutionTestCase',function(testCase){
-            if (testCase.baseState == true){
-                var controller = Redwood.app.getController("Executions");
-                var foundTab = controller.tabPanel.down("#"+testCase.executionID);
-                if (foundTab){
-                    var record = foundTab.down("#executionMachines").store.findRecord("baseStateTCID",testCase._id);
-                    record.set("result",testCase.result);
-                    record.set("resultID",testCase.resultID);
-                    //foundTab.refreshResult(result);
-                }
-            }
-            var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
-            if (store == null) return;
-            if (testCase.name) testCase.tempName = testCase.name;
-            me.updateStore(store,testCase);
-        });
-
         Ext.socket.on('UpdateResult',function(result){
             var controller = Redwood.app.getController("Executions");
             var foundTab = controller.tabPanel.down("#"+result._id);
@@ -271,22 +254,107 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,action);
         });
 
+        Ext.socket.on('UpdateExecutionTestCase',function(testCase){
+            var foundTab = null;
+            var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
+            if (store == null) return;
+            var controller = Redwood.app.getController("Executions");
+            var record = null;
+
+            if (testCase.baseState == true){
+                foundTab = controller.tabPanel.down("#"+testCase.executionID);
+                if (foundTab){
+                    record = foundTab.down("#executionMachines").store.findRecord("baseStateTCID",testCase._id);
+                    record.set("result",testCase.result);
+                    record.set("resultID",testCase.resultID);
+                    //foundTab.refreshResult(result);
+                }
+            }
+            else{
+                foundTab = controller.tabPanel.down("#"+testCase.executionID);
+                if (foundTab){
+                    record = store.findRecord("_id",testCase._id);
+                    if (testCase.name) testCase.tempName = testCase.name;
+                    if(!record) return;
+
+                    if(record.get("status") != testCase.status){
+                        if(testCase.status == "Finished"){
+                            if(testCase.result == "Passed"){
+                                foundTab.updateTotals({notRun:-1,passed:1});
+                            }
+                            else{
+                                foundTab.updateTotals({notRun:-1,failed:1});
+                            }
+                        }
+                        else if(record.get("status") == "Finished"){
+                            if(record.get("result") == "Passed"){
+                                foundTab.updateTotals({passed:-1,notRun:1});
+                            }
+                            else{
+                                foundTab.updateTotals({failed:-1,notRun:1});
+                            }
+                        }
+                    }
+                    for(var propt in testCase){
+                        if (propt != "_id"){
+                            record.set(propt,testCase[propt]);
+                        }
+                    }
+                    store.fireEvent("beforesync",{update:[record]});
+
+                }
+            }
+        });
+
         Ext.socket.on('RemoveExecutionTestCase',function(testCase){
             var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
             if (store == null) return;
+            var controller = Redwood.app.getController("Executions");
+
+
+            var removeTC = function(test){
+                var record = store.findRecord("_id",test.id);
+                if(!record)return;
+
+                var foundTab = controller.tabPanel.down("#"+testCase.executionID);
+                if (foundTab){
+                    if(record.get("status") == "Finished"){
+                        if(testCase.result == "Passed"){
+                            foundTab.updateTotals({total:-1,passed:-1});
+                        }
+                        else{
+                            foundTab.updateTotals({total:-1,failed:-1});
+                        }
+                    }
+                    else{
+                        foundTab.updateTotals({total:-1,notRun:-1});
+                    }
+
+                }
+                store.remove(record);
+                store.fireEvent("beforesync",{destroy:[record]});
+            };
+
             if (testCase instanceof Array){
                 testCase.forEach(function(item){
                     me.removeFromStore(store,item);
+                    removeTC(item);
                 });
             }
             else{
-                me.removeFromStore(store,testCase);
+                removeTC(testCase);
             }
         });
 
         Ext.socket.on('AddExecutionTestCase',function(testCase){
+            var controller = Redwood.app.getController("Executions");
+
             var addToStore = function(testcase,tcStore){
                 if (tcStore.find("testcaseID",testcase.testcaseID) == -1){
+                    var foundTab = controller.tabPanel.down("#"+testcase.executionID);
+                    if (foundTab){
+                        foundTab.updateTotals({total:1,notRun:1});
+                    }
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
                     if (originalTC != null){
                         testcase.name = originalTC.get("name");

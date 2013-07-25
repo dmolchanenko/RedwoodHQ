@@ -19,7 +19,7 @@ exports.initSocket = function(app){
         });
         socket.on("compile",function(msg){
             compile.operation(msg,socket.id,function(response){
-                console.log(response);
+                //console.log(response);
                 io.sockets.socket(socket.id).emit("compile",response);
             })
         });
@@ -43,7 +43,7 @@ exports.initSocket = function(app){
 };
 
 exports.emitMessage = function (channel,msg){
-    console.log(channel);
-    console.log(msg);
+    //console.log(channel);
+    //console.log(msg);
     io.sockets.emit(channel,msg)
 };
