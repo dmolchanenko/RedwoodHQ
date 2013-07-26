@@ -502,6 +502,7 @@ Ext.define('Redwood.view.ExecutionView', {
             store: executionTCStore,
             itemId:"executionTestcases",
             selType: 'rowmodel',
+            overflowY: 'auto',
             tbar:{
                 xtype: 'toolbar',
                 dock: 'top',
@@ -554,7 +555,8 @@ Ext.define('Redwood.view.ExecutionView', {
                 singleSelect: false,
                 sortable: true,
                 stateful: true,
-                showHeaderCheckbox: true
+                showHeaderCheckbox: true,
+                listeners: {}
             }),
             minHeight: 150,
             manageHeight: true,
@@ -1069,7 +1071,22 @@ Ext.define('Redwood.view.ExecutionView', {
             me.loadingData = false;
             me.initialTotals(me.down("#executionTestcases").store);
             this.down("#name").focus();
+
+            me.on("beforecontainermousedown",function(){
+                //if (me.getEl()){
+                //me.lastScrollPos = me.getEl().dom.children[0].scrollTop;
+                //console.log(me.lastScrollPos)
+                //}
+            });
+
+            me.down("#executionTestcases").getSelectionModel().on("selectionchange",function(){
+                //if(me.lastScrollPos != null){
+                //    me.getEl().dom.children[0].scrollTop =  me.lastScrollPos;
+                //    me.lastScrollPos = null;
+                //}
+            })
         },
+
         beforedestroy: function(me){
             Ext.data.StoreManager.lookup("Executions").removeListener("beforesync",me.statusListener);
             Ext.data.StoreManager.lookup("Machines").removeListener("beforesync",me.machinesListener);

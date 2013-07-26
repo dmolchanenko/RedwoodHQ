@@ -774,6 +774,7 @@ Ext.define("Redwood.controller.Scripts", {
                         if (typeof(lineNumber) == "number"){
                             tab.setCursor({line:lineNumber,ch:0});
                         }
+                        tab.clearHistory();
                         tab.clearDirty();
                     }
                 });

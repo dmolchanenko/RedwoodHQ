@@ -116,6 +116,10 @@ Ext.define('Redwood.ux.CodeEditorField', {
         return this.callParent(arguments);
     },
 
+    clearHistory: function() {
+        this.editor.clearHistory();
+    },
+
     setValue: function(value) {
         if (this.editor) {
             this.editor.setValue(value);
@@ -221,6 +225,12 @@ Ext.define('Redwood.ux.EditorPanel', {
 
     setCursor: function(pos){
         this.down('codeeditorfield').editor.setCursor(pos);
+    },
+
+    clearHistory: function(pos){
+        this.down('codeeditorfield').editor.clearHistory(pos);
     }
+
+
 
 });

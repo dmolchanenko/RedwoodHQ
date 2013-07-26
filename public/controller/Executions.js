@@ -159,6 +159,11 @@ Ext.define("Redwood.controller.Executions", {
 
     saveExecution: function(callback){
         var executionView = this.tabPanel.getActiveTab();
+
+        if (executionView.dirty == false) {
+            if(callback) callback(executionView.dataRecord);
+            return;
+        }
         if ((executionView === undefined)||(executionView.viewType != "Execution")){
             return;
         }
