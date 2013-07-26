@@ -71,6 +71,7 @@ function startLauncher(callback){
     var libPath = path.resolve(__dirname,"../lib")+"/";
     var launcherPath  = path.resolve(__dirname,"../launcher")+"/";
     launcherProc = spawn(path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe",["-cp",libPath+'*;'+launcherPath+'*',"-Xmx512m","redwood.launcher.Launcher"],{env:{PATH:path.resolve(__dirname,"../bin/")},cwd:path.resolve(__dirname,"../bin/")});
+    fs.writeFileSync(__dirname+"/launcher.pid",launcherProc.pid);
     launcherProc.stderr.on('data', function (data) {
         console.log("error:"+data.toString());
         launcherProc = null;
@@ -165,6 +166,11 @@ function stopLauncher(callback){
         }).on('error', function(err) {
             deleteDir(path.resolve(__dirname,"../launcher/"),callback);
         });
+    }
+
+    if (fs.existsSync(__dirname+"/launcher.pid") == true){
+        var pid = fs.readFileSync(__dirname+"/launcher.pid").toString();
+        process.kill(pid,"SIGTERM");
     }
 
 }
