@@ -162,7 +162,7 @@ Ext.define('Redwood.view.ResultsView', {
             ]
         });
 
-        var logStore =  Ext.create('Ext.data.Store', {
+        this.logStore =  Ext.create('Ext.data.Store', {
             storeId: "ResultLogs"+this.itemId,
             idProperty: '_id',
             fields: [
@@ -179,12 +179,12 @@ Ext.define('Redwood.view.ResultsView', {
 
         me.dataRecord.logs.forEach(function(log){
             //var timestamp = log._id.substring(0,8);
-            logStore.add({message:log.message,actionName:log.actionName,date:log.date});
+            me.logStore.add({message:log.message,actionName:log.actionName,date:log.date});
             //logStore.add({message:log.message,actionName:log.actionName,date:new Date( parseInt( timestamp, 16 ) * 1000 )})
         });
 
         var logGrid = Ext.create('Ext.grid.Panel', {
-            store: logStore,
+            store: me.logStore,
             itemId:"executionLogs",
             selType: 'rowmodel',
             viewConfig: {

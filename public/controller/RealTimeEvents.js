@@ -254,6 +254,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,action);
         });
 
+        Ext.socket.on('AddExecutionLog',function(log){
+            var controller = Redwood.app.getController("Executions");
+            var foundTab = controller.tabPanel.down("#"+log.resultID);
+            if (foundTab){
+                foundTab.logStore.add(log);
+            }
+        });
+
         Ext.socket.on('UpdateExecutionTestCase',function(testCase){
             var foundTab = null;
             var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);

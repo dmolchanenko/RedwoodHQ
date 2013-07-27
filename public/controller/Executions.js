@@ -61,7 +61,7 @@ Ext.define("Redwood.controller.Executions", {
                     Ext.Msg.alert('Error', obj.error);
                 }
                 else{
-                    var foundTab = me.tabPanel.down("#"+obj.testcase._id);
+                    var foundTab = me.tabPanel.down("#"+id);
                     if (foundTab != null){
                         me.tabPanel.setActiveTab(foundTab);
                         return;
@@ -70,7 +70,7 @@ Ext.define("Redwood.controller.Executions", {
                         title:"[Test Details] " + obj.testcase.name,
                         closable:true,
                         dataRecord:obj,
-                        itemId:obj.testcase._id
+                        itemId:id
                     });
 
                     me.tabPanel.add(tab);

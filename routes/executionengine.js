@@ -441,6 +441,7 @@ exports.logPost = function(req,res){
         collection.insert(record, {safe:true},function(err,returnData){
             res.contentType('json');
             res.json({success:true});
+            realtime.emitMessage("AddExecutionLog",record);
         });
     });
 };
