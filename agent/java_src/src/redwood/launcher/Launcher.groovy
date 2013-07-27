@@ -16,6 +16,8 @@ class Launcher {
 
     private static currentAction
 
+    public static def globals = [:]
+
     public static log(String message){
         def toServer = [:]
         toServer.command = "Log Message"
@@ -58,6 +60,9 @@ class Launcher {
     public static def runAction(action){
         action["result"] = "Passed"
         try{
+            if (action.globals){
+                globals = action.globals
+            }
             if (action.script == ""){
                 assert false, "Script was not assigned to the action."
             }

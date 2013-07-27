@@ -281,12 +281,6 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             else{
                 foundTab = controller.tabPanel.down("#"+testCase.executionID);
                 record = store.findRecord("_id",testCase._id);
-                for(var propt in testCase){
-                    if (propt != "_id"){
-                        record.set(propt,testCase[propt]);
-                    }
-                }
-                store.fireEvent("beforesync",{update:[record]});
 
                 if (foundTab){
                     if (testCase.name) testCase.tempName = testCase.name;
@@ -311,6 +305,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                         }
                     }
                 }
+
+                for(var propt in testCase){
+                    if ((propt != "_id")&&(propt != "tempName")){
+                        record.set(propt,testCase[propt]);
+                    }
+                }
+                //record.set(name)
+                store.fireEvent("beforesync",{update:[record]});
             }
         });
 
