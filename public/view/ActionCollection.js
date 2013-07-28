@@ -331,6 +331,11 @@ Ext.define('Redwood.view.ActionCollection', {
                     if ((me.markDirty)&&(me.loadingData == false)){
                         me.markDirty()
                     }
+                },
+                update:function(){
+                    if ((me.markDirty)&&(me.loadingData == false)){
+                        me.markDirty()
+                    }
                 }
             },
             root: {
