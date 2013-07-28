@@ -960,6 +960,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 newAction.icon = Ext.BLANK_IMAGE_URL;
                 newAction.expanded = true;
                 newAction.executionflow = action.executionflow;
+                newAction.returnvalue = action.returnvalue;
                 newAction.children = [];
                 newAction.order =  (parseInt(action.order,10) + orderAdjustment).toString(10);
                 //newAction.order = action.order;
@@ -1238,6 +1239,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     });
                     newAction.actionname = actionToClone.actionname;
                     newAction.executionflow = actionToClone.executionflow;
+                    newAction.returnvalue = actionToClone.returnvalue;
                     newAction.host = actionToClone.host;
                     newAction.actionid = actionToClone.actionid;
                     newAction.icon = actionToClone.icon;
@@ -1277,6 +1279,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             });
                             newAction.actionname = actionToClone.actionname;
                             newAction.executionflow = actionToClone.executionflow;
+                            newAction.returnvalue = actionToClone.returnvalue;
                             newAction.host = actionToClone.host;
                             newAction.actionid = actionToClone.actionid;
                             newAction.icon = actionToClone.icon;
@@ -1349,6 +1352,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             });
                             newAction.actionname = actionToClone.actionname;
                             newAction.executionflow = actionToClone.executionflow;
+                            newAction.returnvalue = actionToClone.returnvalue;
                             newAction.host = actionToClone.host;
                             newAction.actionid = actionToClone.actionid;
                             newAction.icon = actionToClone.icon;
