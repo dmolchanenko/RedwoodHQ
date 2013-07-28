@@ -60,8 +60,8 @@ class Launcher {
     public static def runAction(action){
         action["result"] = "Passed"
         try{
-            if (action.globals){
-                globals = action.globals
+            if (action.testcaseName){
+                globals.testcaseName = action.testcaseName
             }
             if (action.script == ""){
                 assert false, "Script was not assigned to the action."

@@ -347,6 +347,7 @@ function startTCExecution(id,variables,executionID,callback){
                         return;
                     }
                     agentInstructions.name = testcase.name;
+                    agentInstructions.testcaseName = testcase.name;
                     agentInstructions.script = testcase.script;
                     agentInstructions.resultID = result._id.__id;
                     agentInstructions.parameters = [];
@@ -376,6 +377,7 @@ function startTCExecution(id,variables,executionID,callback){
                     executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
                     agentInstructions.name = action.name;
+                    agentInstructions.testcaseName = testcase.dbTestCase.name;
                     agentInstructions.script = action.script;
                     agentInstructions.resultID = result._id.__id;
                     agentInstructions.parameters = [];
@@ -551,6 +553,7 @@ exports.actionresultPost = function(req, res){
         execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
 
         agentInstructions.name = action.name;
+        agentInstructions.testcaseName = testcase.testcase.dbTestCase.name;
         agentInstructions.script = action.script;
         agentInstructions.resultID = testcase.result._id.__id;
         agentInstructions.parameters = [];
