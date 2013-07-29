@@ -16,6 +16,8 @@ class Launcher {
 
     private static currentAction
 
+    public static returnValues = [:]
+
     public static def globals = [:]
 
     public static log(String message){
@@ -63,6 +65,7 @@ class Launcher {
             if (action.testcaseName){
                 globals.testcaseName = action.testcaseName
             }
+
             if (action.script == ""){
                 assert false, "Script was not assigned to the action."
             }
@@ -82,6 +85,9 @@ class Launcher {
 
             def returnValue = Class.forName(className).newInstance()."$methodName"(params)
             if (returnValue){
+                if(action.returnValueName){
+                    returnValues."$action.returnValueName" = returnValue
+                }
                 action["returnValue"] = returnValue
             }
 

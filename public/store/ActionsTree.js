@@ -10,6 +10,13 @@ Ext.define('Redwood.store.ActionsTree', {
         expanded: true,
         children: []
     },
+    sorters: [{
+
+        property : 'name',
+        direction: 'ASC'
+
+    }],
+    sortOnLoad:true,
 
     loadedData:true,
     icon:"images/action.png",
@@ -50,6 +57,7 @@ Ext.define('Redwood.store.ActionsTree', {
         tags.concat(actions).forEach(function(node){
             treeActionsStore.getRootNode().appendChild(node);
         });
+        me.sort();
     },
 
     deleteActions: function(records){
@@ -117,6 +125,7 @@ Ext.define('Redwood.store.ActionsTree', {
                 if (me.getRootNode().indexOfId(actionID) == -1) me.getRootNode().appendChild({name:actionName,_id:actionID,leaf:true,icon:me.icon,qtip:actionDescription})
             }
         });
+        me.sort();
     }
     ,
     updateActions: function(records){
@@ -187,5 +196,6 @@ Ext.define('Redwood.store.ActionsTree', {
                 }
             }
         });
+        me.sort();
     }
 });

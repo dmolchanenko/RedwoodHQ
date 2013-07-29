@@ -100,12 +100,54 @@ function DeleteProjects(db,data,projectName,callback){
             });
         });
     });
+    db.collection('testcases', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
     db.collection('variables', function(err, collection) {
         collection.remove({project:projectName},{safe:true},function(err) {
         });
     });
+
+    db.collection('actionTags', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('executions', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('executionTags', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('testcaseTags', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('testsets', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('variableTags', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('executionTags', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
     var projectPath = path.resolve(__dirname,"../public/automationscripts/"+projectName);
-    var delDir = spawn("rmdir",['/S','/Q',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+    var delDir = spawn(path.resolve(__dirname,'../vendor/Git/bin/rm.exe'),['-rf',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+    //var delDir = spawn("rmdir",['/S','/Q',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
     /*
     var toDelete = [];
     common.walkDir(projectPath,function(){

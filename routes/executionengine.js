@@ -377,6 +377,7 @@ function startTCExecution(id,variables,executionID,callback){
                     executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
                     agentInstructions.name = action.name;
+                    agentInstructions.returnValueName = action.dbAction.returnvalue;
                     agentInstructions.testcaseName = testcase.dbTestCase.name;
                     agentInstructions.script = action.script;
                     agentInstructions.resultID = result._id.__id;
@@ -553,6 +554,7 @@ exports.actionresultPost = function(req, res){
         execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
 
         agentInstructions.name = action.name;
+        agentInstructions.returnValueName = action.dbAction.returnvalue;
         agentInstructions.testcaseName = testcase.testcase.dbTestCase.name;
         agentInstructions.script = action.script;
         agentInstructions.resultID = testcase.result._id.__id;

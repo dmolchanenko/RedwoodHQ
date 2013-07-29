@@ -10,6 +10,12 @@ Ext.define('Redwood.store.TestCaseTree', {
         expanded: true,
         children: []
     },
+    sorters: [{
+
+        property : 'name',
+        direction: 'ASC'
+
+    }],
 
     loadedData:true,
     icon:"images/testcase.png",
@@ -49,6 +55,7 @@ Ext.define('Redwood.store.TestCaseTree', {
         tags.concat(testCases).forEach(function(node){
             treeTestCaseStore.getRootNode().appendChild(node);
         });
+        me.sort();
     },
 
     delete: function(records){
@@ -113,6 +120,7 @@ Ext.define('Redwood.store.TestCaseTree', {
                 if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:name,_id:ID,leaf:true,icon:me.icon})
             }
         });
+        me.sort();
     }
     ,
     update: function(records){
@@ -177,5 +185,6 @@ Ext.define('Redwood.store.TestCaseTree', {
                 }
             }
         });
+        me.sort();
     }
 });
