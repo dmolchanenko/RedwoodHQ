@@ -99,6 +99,7 @@ Ext.define('Redwood.view.Executions', {
     layout: "fit",
 
     initComponent: function () {
+        var me = this;
         this.items=[
             {
                 xtype: "tabpanel",
@@ -135,6 +136,7 @@ Ext.define('Redwood.view.Executions', {
                 {
                     iconCls: 'icon-add',
                     text: 'New Execution',
+                    itemId:"newExecution",
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
                         editor.fireEvent('newExecution');
@@ -144,6 +146,7 @@ Ext.define('Redwood.view.Executions', {
                 "-",
                 {
                     icon: "images/save.gif",
+                    itemId:"saveExecution",
                     tooltip: "Save Selected Execution",
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
@@ -176,6 +179,7 @@ Ext.define('Redwood.view.Executions', {
                     fieldLabel: 'Search',
                     labelWidth: 50,
                     xtype: 'searchfield',
+                    itemId:"searchExecution",
                     paramNames: ["tag","name"],
                     store: Ext.data.StoreManager.lookup('Executions')
                 }

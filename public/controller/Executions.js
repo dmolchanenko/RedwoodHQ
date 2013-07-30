@@ -356,8 +356,15 @@ Ext.define("Redwood.controller.Executions", {
                 me.getTetSetNames();
             }
         });
+        this.executionsEditor.down("#runExecution").hide();
+        this.executionsEditor.down("#stopExecution").hide();
+        this.executionsEditor.down("#saveExecution").hide();
         this.tabPanel.on("tabchange",function(panel,tab){
             if (tab.title.indexOf("Execution]") != -1){
+                tab.up("executionsEditor").down("#runExecution").show();
+                tab.up("executionsEditor").down("#stopExecution").show();
+                tab.up("executionsEditor").down("#saveExecution").show();
+                tab.up("executionsEditor").down("#searchExecution").hide();
                 if (tab.getStatus() === "Running"){
                     tab.up("executionsEditor").down("#runExecution").setDisabled(true);
                     tab.up("executionsEditor").down("#stopExecution").setDisabled(false);
@@ -367,9 +374,19 @@ Ext.define("Redwood.controller.Executions", {
                     tab.up("executionsEditor").down("#stopExecution").setDisabled(true);
                 }
             }
+            else if(tab.title.indexOf("Test Details]") != -1){
+                tab.up("executionsEditor").down("#runExecution").hide();
+                tab.up("executionsEditor").down("#stopExecution").hide();
+                tab.up("executionsEditor").down("#saveExecution").hide();
+                tab.up("executionsEditor").down("#searchExecution").hide();
+            }
             else{
-                tab.up("executionsEditor").down("#runExecution").setDisabled(true);
-                tab.up("executionsEditor").down("#stopExecution").setDisabled(true);
+                tab.up("executionsEditor").down("#runExecution").hide();
+                tab.up("executionsEditor").down("#stopExecution").hide();
+                tab.up("executionsEditor").down("#saveExecution").hide();
+                tab.up("executionsEditor").down("#searchExecution").show();
+                //tab.up("executionsEditor").down("#runExecution").setDisabled(true);
+                //tab.up("executionsEditor").down("#stopExecution").setDisabled(true);
             }
         })
     }
