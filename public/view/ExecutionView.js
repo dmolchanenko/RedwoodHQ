@@ -447,18 +447,21 @@ Ext.define('Redwood.view.ExecutionView', {
                 var passed =  parseInt(me.down("#totalPassed").getValue());
                 passed = passed + totals.passed;
                 me.down("#totalPassed").setRawValue(passed);
+                me.chartStore.findRecord("name","Passed").set("data",passed);
             }
 
             if (totals.failed){
                 var failed =  parseInt(me.down("#totalFailed").getValue());
                 failed = failed + totals.failed;
                 me.down("#totalFailed").setRawValue(failed);
+                me.chartStore.findRecord("name","Failed").set("data",failed);
             }
 
             if (totals.notRun){
                 var notRun =  parseInt(me.down("#totalNotRun").getValue());
                 notRun = notRun + totals.notRun;
                 me.down("#totalNotRun").setRawValue(notRun);
+                me.chartStore.findRecord("name","Not Run").set("data",notRun);
             }
 
             if (totals.total){
@@ -483,6 +486,10 @@ Ext.define('Redwood.view.ExecutionView', {
             me.down("#totalFailed").setRawValue(failed);
             me.down("#totalNotRun").setRawValue(notRun+running);
             me.down("#totalTestCases").setRawValue(notRun+failed+passed+running);
+
+            me.chartStore.findRecord("name","Passed").set("data",passed);
+            me.chartStore.findRecord("name","Failed").set("data",failed);
+            me.chartStore.findRecord("name","Not Run").set("data",notRun+running);
             //if (lastScrollPos != null) {
             //    me.getEl().dom.children[0].scrollTop = lastScrollPos;
             //}
@@ -770,6 +777,18 @@ Ext.define('Redwood.view.ExecutionView', {
         };
         Ext.data.StoreManager.lookup("Executions").on("beforesync",me.statusListener);
 
+        me.chartStore =  new Ext.data.Store({
+            fields: [
+                {name: 'name',     type: 'string'},
+                {name: 'data',     type: 'int'}
+            ],
+            data: [
+                { 'name': 'Passed',   'data': 0 , color:"green"},
+                { 'name': 'Failed',   'data':  0, color:"red" },
+                { 'name': 'Not Run', 'data':  0, color:"#ffb013" }
+            ]
+        });
+
 
         this.items = [
             {
@@ -1012,6 +1031,73 @@ Ext.define('Redwood.view.ExecutionView', {
                                 return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
                             }
                         }
+                    }
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Execution Chart',
+                flex: 1,
+                collapsible: true,
+                collapsed: true,
+                layout:"fit",
+                defaults: {
+                    margin: '0 10 0 5',
+                    labelWidth: "60px",
+                    labelStyle: "font-weight: bold"
+                },
+                items:[
+                    {
+                        xtype:"chart",
+                        width: 500,
+                        height: 350,
+                        animate: false,
+                        store: me.chartStore,
+                        theme: 'Base:gradients',
+                        series: [{
+                            type: 'pie',
+                            angleField: 'data',
+                            showInLegend: true,
+                            renderer: function(sprite, record, attr, index, store) {
+                                var color = "green";
+                                if(record.get("name") == "Passed") color = "green";
+                                if(record.get("name") == "Failed") color = "red";
+                                if(record.get("name") == "Not Run") color = "#ffb013";
+                                return Ext.apply(attr, {
+                                    fill: color
+                                });
+                            },
+                            tips: {
+                                trackMouse: true,
+                                width: 140,
+                                height: 28,
+                                renderer: function(storeItem, item,attr) {
+                                    // calculate and display percentage on hover
+                                    var total = 0;
+                                    //me.chartStore.each(function(rec) {
+                                    //    total += rec.get('data');
+                                    //});
+                                    //this.setTitle(storeItem.get('name') + ': ' + Math.round(storeItem.get('data') / total * 100) + '%');
+                                    this.setTitle(storeItem.get('name') + ': ' + storeItem.get('data'));
+
+                                }
+                            },
+                            /*
+                            highlight: {
+                                segment: {
+                                    margin: 10
+                                }
+                            },
+                            */
+                            label: {
+                                field: 'name',
+                                //display: 'rotate',
+                                display: 'outside',
+                                //contrast: true,
+                                color:"#22EDFF",
+                                font: '18px Arial'
+                            }
+                        }]
                     }
                 ]
             },
