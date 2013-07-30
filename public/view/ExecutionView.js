@@ -1059,8 +1059,8 @@ Ext.define('Redwood.view.ExecutionView', {
                 }
 
                 me.dataRecord.get("testcases").forEach(function(testcase){
-                    var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
-                    if (originalTC != null){
+                    var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
+                    if (originalTC){
                         testcase.name = originalTC.get("name");
                         testcase.tempName = originalTC.get("name");
                         testcase.tag = originalTC.get("tag");

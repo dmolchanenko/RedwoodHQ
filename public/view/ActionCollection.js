@@ -379,7 +379,7 @@ Ext.define('Redwood.view.ActionCollection', {
             {
                 //xtype: 'treecolumn',
                 text: 'Action Name',
-                width: 200,
+                width: 250,
                 dataIndex: 'actionname',
                 sortable: false,menuDisabled:true,
                 renderer: function (value, meta, record) {
@@ -945,7 +945,7 @@ Ext.define('Redwood.view.ActionCollection', {
 
             collection.sort(function(a,b){return parseInt(a.order,10)-parseInt(b.order,10)});
             collection.forEach(function(action){
-                var foundAction = actionStore.findRecord("_id",action.actionid);
+                var foundAction = actionStore.query("_id",action.actionid).getAt(0);
 
                 //this means that there is no action like that any more
                 //reorder the rest of the actions and ignore this one

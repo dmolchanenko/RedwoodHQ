@@ -365,8 +365,8 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                     if (foundTab){
                         foundTab.updateTotals({total:1,notRun:1});
                     }
-                    var originalTC = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcase.testcaseID);
-                    if (originalTC != null){
+                    var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
+                    if (originalTC){
                         testcase.name = originalTC.get("name");
                         testcase.tempName = originalTC.get("name");
                         testcase.tag = originalTC.get("tag");
