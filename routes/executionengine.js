@@ -265,15 +265,17 @@ function startTCExecution(id,variables,executionID,callback){
                 var error = "";
                 if (testcase.statusError){
                     error = testcase.statusError
-                }else{
+                }else if(testcase.dbTestCase.status == "To be Automated"){
                     error = "Test Case is not Automated"
+                }else if(testcase.dbTestCase.status == "Needs Maintenance"){
+                    error = "Test Case Needs Maintenance"
                 }
 
                 //if (callback){
                 //    callback({error:error});
                 //}
-                result.error = error;
-                result.status = "Finished";
+                result.error = testcase.dbTestCase.status;
+                result.status = "Not Run";
                 //result.result = testcase.dbTestCase.status;
                 result.result = error;
                 updateResult(result);
@@ -572,7 +574,11 @@ exports.actionresultPost = function(req, res){
 function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     //updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Finished",result:testcase.result.result}});
     var date = new Date();
-    var updateExecution = function(){updateExecutionTestCase({_id:testcaseId},{$set:{"status":"Finished",resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});}
+    var status = "Finished";
+    if((testcase.result.result != "Passed") && (testcase.result.result != "Failed")){
+        status = "Not Run";
+    }
+    var updateExecution = function(){updateExecutionTestCase({_id:testcaseId},{$set:{"status":status,resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});}
     //update machine base state result
     if(execution.cachedTCs){
         if (testcase.testcase.machines.length > 0){

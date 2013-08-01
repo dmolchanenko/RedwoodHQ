@@ -415,13 +415,12 @@ Ext.define('Redwood.view.ExecutionView', {
             //groupField: 'status',
             sorters: [{
 
-                property : 'tempName',
+                property : 'name',
                 direction: 'ASC'
 
             }],
             fields: [
                 {name: 'name',     type: 'string'},
-                {name: 'tempName',     type: 'string'},
                 {name: 'tag',     type: 'array'},
                 {name: 'status',     type: 'string'},
                 {name: 'host',     type: 'string'},
@@ -480,16 +479,15 @@ Ext.define('Redwood.view.ExecutionView', {
             //}
             var passed = store.query("result","Passed").length;
             var failed = store.query("result","Failed").length;
-            var notRun = store.query("status","Not Run").length;
-            var running = store.query("status","Running").length;
+            var notRun = store.query("result",/^((?!.*(Passed|Failed)).*)$/).length;
             me.down("#totalPassed").setRawValue(passed);
             me.down("#totalFailed").setRawValue(failed);
-            me.down("#totalNotRun").setRawValue(notRun+running);
-            me.down("#totalTestCases").setRawValue(notRun+failed+passed+running);
+            me.down("#totalNotRun").setRawValue(notRun);
+            me.down("#totalTestCases").setRawValue(notRun+failed+passed);
 
             me.chartStore.findRecord("name","Passed").set("data",passed);
             me.chartStore.findRecord("name","Failed").set("data",failed);
-            me.chartStore.findRecord("name","Not Run").set("data",notRun+running);
+            me.chartStore.findRecord("name","Not Run").set("data",notRun);
             //if (lastScrollPos != null) {
             //    me.getEl().dom.children[0].scrollTop = lastScrollPos;
             //}
@@ -519,7 +517,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         fieldLabel: 'Search',
                         labelWidth: 50,
                         xtype: 'searchfield',
-                        paramNames: ["tempName","tag"],
+                        paramNames: ["name","tag"],
                         //paramNames: ["tempName","tag","status","result"],
                         store: executionTCStore
                     },"->",
@@ -608,14 +606,14 @@ Ext.define('Redwood.view.ExecutionView', {
                         //    return value;
                         //}
                         //console.log(value);
-                        //if (record.get("resultID")){
+                        if (record.get("resultID")){
                             //if(value.indexOf("<a style") == -1){
                                 //record.set("tempName",value);
                                 //record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>");
                             //}
                             //return value;
-                            //return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
-                        //}
+                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                        }
                             //record.set("name")
                         return value;
 
@@ -661,9 +659,9 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'status',
                     width: 100,
                     renderer: function (value, meta, record) {
-                        if(record.get("resultID") != ""){
-                            record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + record.get("tempName") +"</a>");
-                        }
+                        //if(record.get("resultID") != ""){
+                        //    record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + record.get("tempName") +"</a>");
+                        //}
 
                         if(record.get("host") && (value == "Running")){
                             return "<a style= 'color: blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;,&quot;"+ record.get("vncport") +"&quot;)'>" + value +"</a>";
@@ -1153,7 +1151,6 @@ Ext.define('Redwood.view.ExecutionView', {
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
                     if (originalTC){
                         testcase.name = originalTC.get("name");
-                        testcase.tempName = originalTC.get("name");
                         testcase.tag = originalTC.get("tag");
                         allTCs.push(testcase);
                     }
