@@ -34,6 +34,7 @@ var express = require('express')
   , heartbeat = require('./routes/heartbeat')
   , results = require('./routes/results')
   , methodFinder = require('./routes/methodFinder')
+  , aggregate = require('./routes/aggregate')
   , license = require('./routes/license');
 
 
@@ -71,6 +72,9 @@ app.get('/login',auth.loginPage);
 
 app.post('/license',auth.auth,license.licensePost);
 app.get('/license',auth.auth,license.licenseGet);
+
+//aggregate
+app.post('/aggregate',auth.auth,aggregate.aggregatePost);
 
 app.get('/',auth.auth, routes.index);
 app.get('/index.html',auth.auth,function(req,res){res.sendfile('index.html');});

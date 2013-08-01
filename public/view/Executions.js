@@ -4,12 +4,20 @@ Ext.define('Redwood.view.ExecutionsGrid', {
     store: 'Executions',
     selType: 'rowmodel',
     title: "[All Executions]",
+    //viewType:"All Executions",
 
     viewConfig: {
         markDirty: false
     },
     minHeight: 150,
     manageHeight: true,
+    selModel: Ext.create('Ext.selection.CheckboxModel', {
+        singleSelect: false,
+        sortable: true,
+        stateful: true,
+        showHeaderCheckbox: true,
+        listeners: {}
+    }),
     initComponent: function () {
         var executionsEditor = this;
 
@@ -182,6 +190,16 @@ Ext.define('Redwood.view.Executions', {
                     itemId:"searchExecution",
                     paramNames: ["tag","name"],
                     store: Ext.data.StoreManager.lookup('Executions')
+                },
+                "-",
+                {
+                    icon: "images/symbol_sum.png",
+                    tooltip: "Select Executions to Aggregate",
+                    itemId: "aggregationReport",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('aggregate');
+                    }
                 }
             ]
         }];

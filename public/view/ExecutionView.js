@@ -710,6 +710,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'error',
                     width: 250,
                     renderer: function(value,meta,record){
+                        if (value == "") return value;
                         //if(value.indexOf("<div style") == -1){
                             meta.tdAttr = 'data-qtip="' + value + '"';
                         //    record.set("error",'<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>');
@@ -862,17 +863,18 @@ Ext.define('Redwood.view.ExecutionView', {
                         listeners:{
                             change: function(combo,newVal,oldVal){
                                 if (me.dataRecord != null) return;
-                                me.dontTotal = true;
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
                                 var testSet = combo.store.findRecord("_id",newVal);
                                 me.down("#executionTestcases").store.removeAll();
+                                var allTCs = []
                                 testSet.get("testcases").forEach(function(testcaseId){
-                                    var testcase = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",testcaseId._id);
-                                    me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    var testcase = Ext.data.StoreManager.lookup('TestCases').query("_id",testcaseId._id).getAt(0);
+                                    //me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                 });
-                                me.dontTotal = false;
+                                me.down("#executionTestcases").store.add(allTCs);
                                 me.initialTotals(executionTCStore);
                             }
                         }
@@ -1146,15 +1148,17 @@ Ext.define('Redwood.view.ExecutionView', {
                     me.down("#locked").setText("Lock");
                 }
 
+                var allTCs = [];
                 me.dataRecord.get("testcases").forEach(function(testcase){
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
                     if (originalTC){
                         testcase.name = originalTC.get("name");
                         testcase.tempName = originalTC.get("name");
                         testcase.tag = originalTC.get("tag");
-                        me.down("#executionTestcases").store.add(testcase);
+                        allTCs.push(testcase);
                     }
                 });
+                me.down("#executionTestcases").store.add(allTCs);
             }
             me.loadingData = false;
             me.initialTotals(me.down("#executionTestcases").store);

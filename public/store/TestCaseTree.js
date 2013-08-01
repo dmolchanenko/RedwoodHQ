@@ -112,7 +112,7 @@ Ext.define('Redwood.store.TestCaseTree', {
                         if (me.getRootNode().indexOfId(ID) == -1) me.getRootNode().appendChild({name:tagInAction,allowDrag:false,tagValue:tagInAction,leaf:false,children:[{name:name,_id:ID,leaf:true,icon:me.icon}]});
                     }
                     else{
-                        if (foundTag.indexOfId(ID) == -1) foundTag.appendChild({name:name,_id:ID,leaf:true})
+                        if (foundTag.indexOfId(ID) == -1) foundTag.appendChild({name:name,_id:ID,leaf:true,icon:me.icon})
                     }
                 });
             }
