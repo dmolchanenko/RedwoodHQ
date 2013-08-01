@@ -28,7 +28,6 @@ Ext.define('Redwood.ux.MergePanel', {
             lineNumbers: true,
             mode: me.editorType
         });
-        console.log(this.editor);
         this.editor.edit.setSize("100%");
         this.editor.left.orig.setSize("100%");
         this.editor.right.orig.setSize("100%");
@@ -97,5 +96,7 @@ Ext.define('Redwood.ux.MergePanel', {
     setCursor: function(pos){
         this.down('mergefield').editor.setCursor(pos);
     }
+
+
 
 });

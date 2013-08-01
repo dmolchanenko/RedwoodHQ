@@ -70,7 +70,7 @@ exports.initBare = function(workdir,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         callback();
     });
 };
@@ -86,9 +86,9 @@ exports.setGitUser = function(workdir,userName,eMail,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         var git2  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['config','user.email',eMail],{cwd: workdir,timeout:300000});
-        git2.on('exit', function (code) {
+        git2.on('close', function (code) {
             if (callback) callback();
         });
     });
@@ -105,7 +105,7 @@ exports.init = function(workdir,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         callback();
     });
 };
@@ -122,13 +122,13 @@ exports.push = function(workdir,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         callback();
     });
 };
 
 exports.pull = function(workdir,callback){
-    console.log("push");
+    console.log("pull");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['pull','origin','master'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
@@ -139,7 +139,7 @@ exports.pull = function(workdir,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         callback();
     });
 };
@@ -156,7 +156,7 @@ exports.clone = function(workdir,dirToClone,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         if(callback) callback();
     });
 };
@@ -173,7 +173,7 @@ exports.add = function(workdir,file,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         callback();
     });
 };
@@ -218,7 +218,7 @@ exports.delete = function(workdir,file,callback){
         console.log('stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         callback();
     });
 };

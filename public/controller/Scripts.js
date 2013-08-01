@@ -349,7 +349,13 @@ Ext.define("Redwood.controller.Scripts", {
     GetOpenedEditor: function(){
         var tab = this.tabPanel.getActiveTab();
         if (tab == null) return null;
-        return tab.down("codeeditorfield").editor;
+        if (tab.down("codeeditorfield") != null){
+            return tab.down("codeeditorfield").editor;
+        }
+        else{
+            return tab.editor.edit;
+        }
+
     },
 
     onFindPrev: function(){
