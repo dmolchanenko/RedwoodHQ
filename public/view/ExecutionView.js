@@ -564,12 +564,13 @@ Ext.define('Redwood.view.ExecutionView', {
                 listeners: {}
             }),
             minHeight: 150,
+            height: 500,
             manageHeight: true,
             flex: 1,
             plugins: [
+                "bufferedrenderer",
                 Ext.create('Ext.grid.plugin.CellEditing', {
                     clicksToEdit: 1
-
             })],
             listeners:{
                 edit: function(editor, e ){
