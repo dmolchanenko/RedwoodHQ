@@ -713,6 +713,7 @@ Ext.define('Redwood.view.ExecutionView', {
                             meta.tdAttr = 'data-qtip="' + value + '"';
                         //    record.set("error",'<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>');
                         //}
+                        value = Ext.util.Format.htmlEncode(value);
                         return '<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>'
 
                     }
