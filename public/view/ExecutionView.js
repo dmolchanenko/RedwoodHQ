@@ -837,7 +837,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         store:Ext.data.StoreManager.lookup('ExecutionTags'),
                         valueField:"value",
                         queryMode: 'local',
-                        maskRe: /[a-z_0-9_A-Z]/,
+                        maskRe: /[a-z_0-9_A-Z_-]/,
                         removeOnDblClick:true,
                         itemId:"tag",
                         listeners:{

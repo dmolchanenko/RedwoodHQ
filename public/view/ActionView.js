@@ -417,7 +417,7 @@ Ext.define('Redwood.view.ActionView', {
                         valueField:"value",
                         queryMode: 'local',
                         //maskRe: /[a-z0-9-_]+$/,
-                        maskRe: /[a-z_0-9_A-Z]/,
+                        maskRe: /[a-z_0-9_A-Z_-]/,
                         removeOnDblClick:true,
                         itemId:"tag",
                         listeners:{

@@ -376,6 +376,7 @@ function startTCExecution(id,variables,executionID,callback){
 
                 callback();
                 for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
+                variables["TestCaseName"] = testcase.dbTestCase.name;
                 findNextAction(testcase.actions,variables,function(action){
                     if (!executions[executionID]) return;
                     if(action == null){

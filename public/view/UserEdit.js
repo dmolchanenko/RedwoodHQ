@@ -172,7 +172,8 @@ Ext.define('Redwood.view.UserEdit', {
                         }
                     }
                 },
-                Ext.create('Ext.ux.ComboFieldBox', {
+                {
+                    xtype:"combofieldbox",
                     fieldLabel: 'Tags',
                     displayField:"value",
                     descField:"value",
@@ -183,13 +184,13 @@ Ext.define('Redwood.view.UserEdit', {
                     encodeSubmitValue:true,
                     autoSelect: false,
                     triggerAction: 'all',
-                    //store:[],
                     store:Ext.data.StoreManager.lookup('UserTags'),
                     valueField:"value",
                     queryMode: 'local',
                     removeOnDblClick:true,
                     typeAhead:true,
                     allowBlank: true,
+                    maskRe: /[a-z_0-9_A-Z_-]/,
                     name:"tag",
                     listeners: {
                         specialkey: function(field, e){
@@ -198,7 +199,7 @@ Ext.define('Redwood.view.UserEdit', {
                             }
                         }
                     }
-                })
+                }
                 ,{
                     xtype:'textfield',
                     vtype: 'passwordTest',

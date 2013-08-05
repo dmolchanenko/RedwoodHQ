@@ -84,6 +84,7 @@ Ext.define('Redwood.view.Variables', {
                     createNewOnEnter:true,
                     encodeSubmitValue:true,
                     autoSelect: true,
+                    maskRe: /[a-z_0-9_A-Z_-]/,
                     store:Ext.data.StoreManager.lookup('VariableTags'),
                     valueField:"value",
                     queryMode: 'local',
