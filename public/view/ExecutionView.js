@@ -201,7 +201,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 })
             }
             if (baseStateTCID == null) baseStateTCID = Ext.uniqueId();
-            machines.push({host:machine.get("host"),tag:machine.get("tag"),state:machine.get("state"),result:result,resultID:resultID,baseState:baseState,baseStateTCID:baseStateTCID,description:machine.get("description"),roles:machine.get("roles"),port:machine.get("port"),vncport:machine.get("vncport"),_id:machine.get("_id")})
+            machines.push({host:machine.get("host"),machineVars:machine.get("machineVars"),tag:machine.get("tag"),state:machine.get("state"),result:result,resultID:resultID,baseState:baseState,baseStateTCID:baseStateTCID,description:machine.get("description"),roles:machine.get("roles"),port:machine.get("port"),vncport:machine.get("vncport"),_id:machine.get("_id")})
         });
 
         var linkedMachineStore =  new Ext.data.Store({
@@ -216,6 +216,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'baseStateTCID',     type: 'string'},
                 {name: 'result',     type: 'string'},
                 {name: 'description',     type: 'string'},
+                {name: 'machineVars',     type: 'array'},
                 {name: 'roles',     type: 'array'},
                 {name: '_id',     type: 'string'}
             ],
@@ -257,6 +258,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     linkedRecord.set("description", r.get("description"));
                     linkedRecord.set("roles", r.get("roles"));
                     linkedRecord.set("state", r.get("state"));
+                    linkedRecord.set("machineVars", r.get("machineVars"));
                     //me.down("#hostMachineColumn").renderer(linkedRecord.get("host"),null,linkedRecord)
                 });
             }

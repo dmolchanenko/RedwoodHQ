@@ -306,12 +306,18 @@ function startTCExecution(id,variables,executionID,callback){
             //hosts.push("Default");
             var reservedHosts = [];
             testcase.machines = [];
+            testcase.machineVars = [];
             machines.forEach(function(machine,index){
                 hosts.forEach(function(host){
                    if((machine.roles.indexOf(host) != -1)&& (reservedHosts.indexOf(host) == -1) &&((machine.runningTC == undefined)||(machine.runningTC == testcase))){
                        machine.runningTC = testcase;
                        reservedHosts.push(host);
                        testcase.machines.push(machine);
+                       machine.roles.forEach(function(role){
+                           machine.machineVars.forEach(function(variable){
+                                testcase.machineVars["Machine."+role+"."+variable.name] = variable.value
+                           })
+                       })
                    }
                });
             });
@@ -369,6 +375,7 @@ function startTCExecution(id,variables,executionID,callback){
                 }
 
                 callback();
+                for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
                 findNextAction(testcase.actions,variables,function(action){
                     if (!executions[executionID]) return;
                     if(action == null){
@@ -533,7 +540,9 @@ exports.actionresultPost = function(req, res){
         updateResult(testcase.result);
     });
 
-    findNextAction(testcase.testcase.actions,execution.variables,function(action){
+    var variables = execution.variables;
+    for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
+    findNextAction(testcase.testcase.actions,variables,function(action){
         if(action == null){
             finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
             return;
