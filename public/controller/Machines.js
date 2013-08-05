@@ -10,7 +10,7 @@ Ext.define("Redwood.controller.Machines", {
 
     models: ['Machines','MachineRoles','MachineTags'],
     stores: ['Machines','MachineRoles','MachineTags'],
-    views:  ['Machines'],
+    views:  ['Machines','MachineVars'],
 
     init: function () {
         this.control({
@@ -18,7 +18,8 @@ Ext.define("Redwood.controller.Machines", {
                 render: this.onEditorRender,
                 edit: this.afterEdit,
                 machineEdit: this.onEdit,
-                machineDelete: this.onDelete
+                machineDelete: this.onDelete,
+                editVariables: this.onEditVariables
             },
             'machinesEditor button': {
                 click: this.add
@@ -31,6 +32,20 @@ Ext.define("Redwood.controller.Machines", {
         var record = store.getAt(evtData.rowIndex);
         if(record) {
             this.rowEditor.startEdit(record, this.machinesEditor.columns[evtData.colIndex]);
+        }
+    },
+
+    onEditVariables: function(evtData){
+        var store = this.getStore('Machines');
+        var record = store.getAt(evtData.rowIndex);
+        if(record) {
+            var win = Ext.create('Redwood.view.MachineVars',{
+                onMachineVarsSave:function(vars){
+                    record.set("machineVars",vars);
+                    store.sync();
+                }
+            });
+            win.show();
         }
     },
 

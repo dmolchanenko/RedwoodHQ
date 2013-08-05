@@ -230,7 +230,28 @@ Ext.define('Redwood.view.AggregateReport', {
         }
 
         var testcasesGrid = new Ext.grid.Panel({
+            /*
+            tbar:{
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [
+                    {
+                        width: 400,
+                        fieldLabel: 'Search',
+                        labelWidth: 50,
+                        xtype: 'searchfield',
+                        paramNames: ["name","tag"],
+                        //paramNames: ["tempName","tag","status","result"],
+                        store: me.testCaseStore
+                    }
+                    ]
+            },
+            plugins: [
+                "bufferedrenderer"
+            ],
+            */
             store: me.testCaseStore,
+            //height: 500,
             selType: 'rowmodel',
             viewConfig: {
                 markDirty: false

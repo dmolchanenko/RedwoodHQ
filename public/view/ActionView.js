@@ -161,7 +161,8 @@ Ext.define('Redwood.view.ActionParamGrid',{
                 renderer: function (value, meta, record) {
                     return Ext.util.Format.htmlEncode(value);
                 },
-                editor: Ext.create('Ext.ux.ComboFieldBox', {
+                editor: {
+                    xtype:"combofieldbox",
                     typeAhead:true,
                     displayField:"text",
                     descField:"text",
@@ -175,7 +176,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
                     valueField:"value",
                     queryMode: 'local',
                     removeOnDblClick:true
-                })
+                }
             },
             {
                 xtype: 'actioncolumn',

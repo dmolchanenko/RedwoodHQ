@@ -24,6 +24,9 @@ Ext.define('Redwood.model.Machines', {
     }, {
         name: 'description',
         type: 'string'
+    },{
+        name: 'machineVars',
+        type: 'array'
     },
     {
         name: '_id',

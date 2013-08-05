@@ -49,7 +49,7 @@
             })
         }
         delete me.emptyText;
-        me.callParent()
+        me.callParent(arguments)
     },
     renderSelectors: {
         inputEl: 'input'
@@ -60,7 +60,7 @@
     addFocusListener: function (force) {
         var me = this;
         if (!me.focusListenerAdded || force) {
-            me.callParent();
+            me.callParent(arguments);
             var focusEl = me.getFocusEl();
             if (focusEl) {
                 focusEl.on({

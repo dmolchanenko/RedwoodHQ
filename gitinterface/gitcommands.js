@@ -12,7 +12,7 @@ exports.filesInConflict = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('filesInConflict stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -31,7 +31,7 @@ exports.filesNotPushed = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('filesNotPushed stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -50,7 +50,7 @@ exports.showFileContents = function(workdir,file,version,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('showFileContents stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -67,7 +67,7 @@ exports.initBare = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('initBare stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -83,7 +83,7 @@ exports.setGitUser = function(workdir,userName,eMail,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('setGitUser stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -102,7 +102,7 @@ exports.init = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('init stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -119,7 +119,7 @@ exports.push = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('push stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -136,7 +136,7 @@ exports.pull = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('pull stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -153,7 +153,7 @@ exports.clone = function(workdir,dirToClone,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('clone stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -170,7 +170,7 @@ exports.add = function(workdir,file,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('add stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -187,7 +187,7 @@ exports.commit = function(workdir,file,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('commit stderr: ' + data);
     });
 
     git.on('exit', function (code) {
@@ -215,7 +215,7 @@ exports.delete = function(workdir,file,callback){
     });
 
     git.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
+        console.log('delete stderr: ' + data);
     });
 
     git.on('close', function (code) {

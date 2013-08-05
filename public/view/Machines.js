@@ -89,44 +89,49 @@ Ext.define('Redwood.view.Machines', {
                 header: 'Tags',
                 dataIndex: 'tag',
                 width: 200,
-                editor: Ext.create('Ext.ux.ComboFieldBox', {
+                editor:{
+                    xtype:"combofieldbox",
                     typeAhead:true,
                     displayField:"value",
                     descField:"value",
                     height:24,
-                    labelWidth: 100,
+                    anchor:'90%',
+                    //labelWidth: 100,
                     forceSelection:false,
                     createNewOnEnter:true,
                     encodeSubmitValue:true,
                     autoSelect: true,
+                    createNewOnBlur: true,
                     store:Ext.data.StoreManager.lookup('MachineTags'),
                     valueField:"value",
                     queryMode: 'local',
-                    maskRe: /[a-z_0-9_A-Z]/,
-                    removeOnDblClick:true
-                })
+                    maskRe: /[a-z_0-9_A-Z_-]/,
+                    removeOnDblClick:true,
+                    itemId:"tag"
+                }
             },
             {
                 header: 'Roles',
                 dataIndex: 'roles',
                 width: 200,
-                editor: Ext.create('Ext.ux.ComboFieldBox', {
+                editor:{
+                    xtype:"combofieldbox",
+                    typeAhead:true,
                     displayField:"value",
                     descField:"value",
                     height:24,
-                    labelWidth: 100,
+                    anchor:'90%',
                     forceSelection:false,
                     createNewOnEnter:true,
                     encodeSubmitValue:true,
-                    autoSelect: false,
-                    triggerAction: 'all',
+                    autoSelect: true,
+                    createNewOnBlur: true,
                     store:Ext.data.StoreManager.lookup('MachineRoles'),
                     valueField:"value",
                     queryMode: 'local',
-                    removeOnDblClick:true,
-                    typeAhead:true,
-                    allowBlank: false
-                })
+                    maskRe: /[a-z_0-9_A-Z]/,
+                    removeOnDblClick:true
+                }
             },  {
                 header: 'Description',
                 dataIndex: 'description',
@@ -177,10 +182,10 @@ Ext.define('Redwood.view.Machines', {
                         });
                     }
                 },{
-                    icon: 'images/user_add.gif',
-                    tooltip: 'Choose user permissions',
+                    icon: 'images/list.png',
+                    tooltip: 'Edit machine variables',
                     handler: function(grid, rowIndex, colIndex) {
-                        machinesEditor.fireEvent('choosePermission', {
+                        machinesEditor.fireEvent('editVariables', {
                             rowIndex: rowIndex,
                             colIndex: colIndex
                         });

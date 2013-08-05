@@ -53,7 +53,7 @@
     getSubTplData: function () {
         var me = this,
             fieldStyle = me.getFieldStyle(),
-            ret = me.callParent();
+            ret = me.callParent(arguments);
         ret.fieldStyle = (fieldStyle || '') + ';overflow:auto;height:'+ (me.height ? (me.height + 'px;') : 'auto;') + (me.maxHeight ? ('max-height:' + me.maxHeight + 'px;') : '');
         return ret
     },
@@ -61,7 +61,7 @@
     alignPicker: function () {
         var me = this,
             picker = me.getPicker();
-        me.callParent();
+        me.callParent(arguments);
         if (me.isExpanded) {
             picker.setWidth(me.bodyEl.getWidth() - me.triggerWidth);
         }
@@ -71,7 +71,7 @@
         me.matchFieldWidth = false;
         me.getValueStore();
         me.listConfig = Ext.apply(me.listConfig || {}, {selModel: {mode: 'SIMPLE', enableKeyNav: false}});
-        me.callParent();
+        me.callParent(arguments);
     },
     setValueStore: function(store) {
         this.valueStore = store;
@@ -136,7 +136,7 @@
     }, 
     onFocus: function() {
     	var me = this;
-    	me.callParent();
+    	me.callParent(arguments);
     	me.view.focus();
     },
     buildKeyNav: function() {
@@ -183,7 +183,7 @@
     },
     onCollapse: function() {
     	var me = this;
-    	me.callParent();
+    	me.callParent(arguments);
     	me.view.focus();
     },
     afterComponentLayout : function() {
@@ -262,6 +262,6 @@
     onDestroy: function() {
         var me = this;
         if(me.view) {Ext.destroy(me.view, me.boxKeyNav)}
-        me.callParent();
+        me.callParent(arguments);
     }
 });

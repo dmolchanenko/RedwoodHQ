@@ -74,25 +74,22 @@ Ext.define('Redwood.view.Variables', {
                 dataIndex: 'tag',
                 //flex: 1,
                 width: 250,
-                editor: Ext.create('Ext.ux.ComboFieldBox', {
-                    //fieldLabel: 'Enter Tags',
+                editor: {
+                    xtype:"combofieldbox",
                     displayField:"value",
                     descField:"value",
                     height:24,
-                    //width: 420,
                     labelWidth: 100,
                     forceSelection:false,
                     createNewOnEnter:true,
                     encodeSubmitValue:true,
                     autoSelect: true,
                     store:Ext.data.StoreManager.lookup('VariableTags'),
-                    //valueStore:varTagsStore,
                     valueField:"value",
                     queryMode: 'local',
                     vtype:"tagTest",
                     removeOnDblClick:true
-                    //renderTo: 'basicBoxselect'
-                })
+                }
             }, {
             header: 'Name',
             dataIndex: 'name',
