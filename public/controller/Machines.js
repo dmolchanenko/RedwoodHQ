@@ -40,6 +40,7 @@ Ext.define("Redwood.controller.Machines", {
         var record = store.getAt(evtData.rowIndex);
         if(record) {
             var win = Ext.create('Redwood.view.MachineVars',{
+                dataRecord: record.get("machineVars"),
                 onMachineVarsSave:function(vars){
                     record.set("machineVars",vars);
                     store.sync();

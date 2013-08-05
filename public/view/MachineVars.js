@@ -9,6 +9,7 @@ Ext.define('Redwood.view.MachineVars', {
     height: 300,
     layout: 'fit',
     modal: true,
+    dataRecord: [],
     initComponent: function () {
         var me = this;
 
@@ -20,32 +21,36 @@ Ext.define('Redwood.view.MachineVars', {
             }],
             fields: [
                 {name: 'name',     type: 'string'},
-                {name: '_id',     type: 'string'},
+                {name: 'newRecord',     type: 'boolean'},
                 {name: 'value',     type: 'string'}
             ],
-            data: []
+            data: me.dataRecord
         });
 
         var machineVarsGrid = new Ext.grid.Panel({
-            rowEditor: Ext.create('Ext.grid.plugin.RowEditing', {
-                autoCancel: false,
-                clicksToEdit: 2,
-                listeners:{
-                    validateedit: function (editor, e) {
-                        if ((Ext.encode(e.newValues) === Ext.encode(e.originalValues) )) {
-                            return false;
+            plugins:[
+                Ext.create('Ext.grid.plugin.RowEditing', {
+                    autoCancel: false,
+                    clicksToEdit: 2,
+                    errorSummary:true,
+                    listeners:{
+                        validateedit: function (editor, e) {
+                            if ((Ext.encode(e.newValues) === Ext.encode(e.originalValues) )) {
+                                return false;
+                            }
+                            e.record.set("newRecord",false);
+                            machineVarsGrid.down("#addVar").setDisabled(false);
+                        },
+                        canceledit: function (editor, e) {
+                            // delete empty record on cancel
+                            if (e.record.get("newRecord") == true) {
+                                e.grid.store.removeAt(e.rowIdx);
+                            }
+                            machineVarsGrid.down("#addVar").setDisabled(false);
                         }
-                        machineVarsGrid.down("#addVar").setDisabled(false);
-                    },
-                    canceledit: function (editor, e) {
-                        // delete empty record on cancel
-                        if (e.record.data._id == "") {
-                            e.grid.store.removeAt(e.rowIdx);
-                        }
-                        machineVarsGrid.down("#addVar").setDisabled(false);
                     }
-                }
-            }),
+                })
+            ],
             minHeight: 150,
             manageHeight: true,
             viewConfig:{
@@ -70,8 +75,9 @@ Ext.define('Redwood.view.MachineVars', {
 
                             // add blank item to store -- will automatically add new row to grid
                             blank = machineVarStore.add({
-                                name:"",
-                                value:""
+                                name:"NewName",
+                                value:"New Value",
+                                newRecord:true
                             })[0];
 
                             machineVarsGrid.rowEditor.startEdit(blank, machineVarsGrid.columns[0]);
@@ -90,6 +96,9 @@ Ext.define('Redwood.view.MachineVars', {
                     vtype: 'varTest',
                     allowBlank: false,
                     listeners:{
+                        validitychange: function(field,isValid){
+                            machineVarsGrid.rowEditor.editor.onFieldChange();
+                        },
                         focus: function(){
                             this.selectText();
                         }
@@ -107,6 +116,9 @@ Ext.define('Redwood.view.MachineVars', {
                     xtype: 'textfield',
                     allowBlank: false,
                     listeners:{
+                        validitychange: function(field,isValid){
+                            machineVarsGrid.rowEditor.editor.onFieldChange();
+                        },
                         focus: function(){
                             this.selectText();
                         }
@@ -146,6 +158,8 @@ Ext.define('Redwood.view.MachineVars', {
         ]
     });
 
+    machineVarsGrid.rowEditor = machineVarsGrid.plugins[0];
+
     var form = new Ext.panel.Panel(
         {
             layout: 'form',
@@ -184,10 +198,10 @@ Ext.define('Redwood.view.MachineVars', {
     );
 
     this.items = [
-        //machineVarsGrid
         form
     ];
 
     this.callParent(arguments);
+
     }
 });

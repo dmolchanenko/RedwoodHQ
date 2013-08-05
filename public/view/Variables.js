@@ -100,6 +100,9 @@ Ext.define('Redwood.view.Variables', {
                 vtype: 'varTest',
                 allowBlank: false,
                 listeners:{
+                    validitychange: function(field,isValid){
+                        if(variablesEditor.rowEditor.editor) variablesEditor.rowEditor.editor.onFieldChange();
+                    },
                     focus: function(){
                         this.selectText();
                     }
@@ -123,6 +126,9 @@ Ext.define('Redwood.view.Variables', {
                 dataIndex:"possibleValues",
                 displayNULLOption:true,
                 listeners:{
+                    validitychange: function(field,isValid){
+                        if(variablesEditor.rowEditor.editor) variablesEditor.rowEditor.editor.onFieldChange();
+                    },
                     focus: function(){
                         this.selectText();
                     }

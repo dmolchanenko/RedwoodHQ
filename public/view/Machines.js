@@ -49,6 +49,9 @@ Ext.define('Redwood.view.Machines', {
                     allowBlank: false,
                     vtype: 'machineTest',
                     listeners:{
+                        validitychange: function(field,isValid){
+                            if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
+                        },
                         focus: function(){
                             this.selectText();
                         }
@@ -64,6 +67,9 @@ Ext.define('Redwood.view.Machines', {
                     xtype: 'textfield',
                     allowBlank: false,
                     listeners:{
+                        validitychange: function(field,isValid){
+                            if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
+                        },
                         focus: function(){
                             this.selectText();
                         }
@@ -79,6 +85,9 @@ Ext.define('Redwood.view.Machines', {
                     xtype: 'textfield',
                     allowBlank: false,
                     listeners:{
+                        validitychange: function(field,isValid){
+                            if(machinesEditor.rowEditor.editor)  machinesEditor.rowEditor.editor.onFieldChange();
+                        },
                         focus: function(){
                             this.selectText();
                         }
@@ -116,6 +125,7 @@ Ext.define('Redwood.view.Machines', {
                 width: 200,
                 editor:{
                     xtype:"combofieldbox",
+                    allowBlank: false,
                     typeAhead:true,
                     displayField:"value",
                     descField:"value",
@@ -130,7 +140,12 @@ Ext.define('Redwood.view.Machines', {
                     valueField:"value",
                     queryMode: 'local',
                     maskRe: /[a-z_0-9_A-Z]/,
-                    removeOnDblClick:true
+                    removeOnDblClick:true,
+                    listeners:{
+                        validitychange: function(field,isValid){
+                            if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
+                        }
+                    }
                 }
             },  {
                 header: 'Description',
