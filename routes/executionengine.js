@@ -45,6 +45,20 @@ exports.startexecutionPost = function(req, res){
         variables[variable.name] = variable.value;
     });
 
+    var machineConflict = false;
+    machines.forEach(function(machine){
+        if (machine.state == "Running Test"){
+            machineConflict = true;
+        }
+
+    });
+
+    if(machineConflict == true){
+        res.contentType('json');
+        res.json({error:"Selected machines are currently running other tests."});
+        return;
+    }
+
     var sourceCache = [];
     cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/src"),sourceCache);
 
@@ -58,7 +72,7 @@ exports.startexecutionPost = function(req, res){
     compile.operation({project:req.cookies.project,username:req.cookies.username},id,function(data){compileOut = compileOut + data},function(){
         if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
             res.contentType('json');
-            res.json({error:"Error, unable to compile scripts."});
+            res.json({error:"Unable to compile scripts."});
         }
         else{
             res.contentType('json');

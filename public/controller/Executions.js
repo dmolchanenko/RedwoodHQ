@@ -190,7 +190,7 @@ Ext.define("Redwood.controller.Executions", {
                 success: function(response) {
                     var obj = Ext.decode(response.responseText);
                     if(obj.error != null){
-                        Ext.Msg.alert('Error', obj.error);
+                        Ext.Msg.alert('Error', Ext.util.Format.htmlEncode(obj.error));
                         executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
                         executionView.up("executionsEditor").down("#stopExecution").setDisabled(true);
                     }
