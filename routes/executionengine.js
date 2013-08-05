@@ -1157,8 +1157,10 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 lastResultPoint.name = action.name;
                 lastResultPoint.actionStatus = action.status;
                 if (action.status != "Automated"){
-                    testcaseDetails.statusError = "One ore more actions inside the test case are not in automated state.";
-                    lastResultPoint.error = "Action " + action.status;
+                    if (executions[executionID].ignoreStatus != true){
+                        testcaseDetails.statusError = "One ore more actions inside the test case are not in automated state.";
+                        lastResultPoint.error = "Action " + action.status;
+                    }
                 }
                 lastResultPoint.expanded = false;
                 if (action.type == "script")
