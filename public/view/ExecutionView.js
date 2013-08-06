@@ -1227,6 +1227,7 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.name = this.down("#name").getValue();
         execution.tag = this.down("#tag").getValue();
         execution.testset = this.down("#testset").getValue();
+        execution.testsetname = this.down("#testset").getRawValue ();
         execution.ignoreStatus = this.down("#ignoreStatus").getValue();
 
         if (this.down("#locked").getText() == "Lock"){
