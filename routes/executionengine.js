@@ -330,7 +330,9 @@ function startTCExecution(id,variables,executionID,callback){
                        machine.roles.forEach(function(role){
                            machine.machineVars.forEach(function(variable){
                                 testcase.machineVars["Machine."+role+"."+variable.name] = variable.value
-                           })
+                           });
+                           testcase.machineVars["Machine."+role+".Host"] = machine.host;
+                           testcase.machineVars["Machine."+role+".Port"] = machine.port;
                        })
                    }
                });
