@@ -47,11 +47,41 @@ Ext.define('Redwood.view.ResultsView', {
             rootVisible: false,
             store: me.resultsStore,
             cls:"x-redwood-alternative-tree-row-even x-redwood-alternative-tree-row-odd",
-            //minHeight:600,
+            //minHeight:1600,
+            //managerHeight:true,
+            //autoHeight: true,
             viewConfig: {
                 markDirty: false,
                 enableTextSelection: true
             },
+
+            listeners:{
+                afterrender: function(me){
+                    me.resetHeight(me);
+                    //me.getView().updateLayout();
+                },
+                load: function(me){
+                    //me.resetHeight(me);
+                    //me.getView().updateLayout();
+                },
+                itemexpand: function(me){
+                    this.resetHeight(this);
+                },
+                itemcollapse: function(me){
+                    this.resetHeight(this);
+                }
+            },
+
+            resetHeight: function(cmp){
+                setTimeout(function(){
+                    var innerElement = cmp.getEl().down('table.x-grid-table');
+                    if(innerElement){
+                        var height = innerElement.getHeight();
+                        cmp.setHeight(height+50);
+                    }
+                }, 200);
+            },
+
             multiSelect: false,
             columns: [
                 {
@@ -305,7 +335,9 @@ Ext.define('Redwood.view.ResultsView', {
                 title: 'Results',
                 itemId:"results",
                 flex: 1,
+                type: 'hbox',
                 //minHeight:600,
+                constrainAlign: true,
                 collapsible: true,
                 defaults: {
                     flex: 1
