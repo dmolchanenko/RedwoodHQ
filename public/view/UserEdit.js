@@ -59,6 +59,7 @@ Ext.define('Redwood.view.UserEdit', {
                 formBind: true, //only enabled once the form is valid
                 disabled: true,
                 handler: function() {
+                    this.setDisabled(true);
                     var form = this.up('form').getForm();
                     if (form.isValid()) {
                         var window = this.up('window');
@@ -88,16 +89,18 @@ Ext.define('Redwood.view.UserEdit', {
                                         Ext.data.StoreManager.lookup('Users').add(newUser);
                                         Ext.data.StoreManager.lookup('UserTags').sync();
                                         Ext.data.StoreManager.lookup('Users').sync();
+                                        window.close();
                                     }
                                     else{
                                         Ext.Msg.show({title: "License Error",msg:"Unable to add new user, license limit is reached.",iconCls:'error',buttons : Ext.MessageBox.OK});
+                                        window.close();
                                     }
                                 }
                             });
                         }
 
                         //this.up('form').up('window').close();
-                        window.close();
+
                     }
                 }
             },
