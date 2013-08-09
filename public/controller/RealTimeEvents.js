@@ -308,9 +308,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                 for(var propt in testCase){
                     if ((propt != "_id")&&(propt != "name")){
                         //console.log(propt)
-                        testCase[propt] = Ext.util.Format.htmlEncode(testCase[propt]);
-
-                        record.set(propt.toString(),testCase[propt]);
+                        record.set(propt.toString(),Ext.util.Format.htmlEncode(testCase[propt]));
                     }
                 }
                 //record.set(name)

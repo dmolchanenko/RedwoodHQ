@@ -7,7 +7,7 @@ exports.heartbeatPost = function(req, res){
 
     findMachine(app.getDB(),data,ip,function(machine){
         if (machine == null){
-            createMachine(app.getDB(),{roles:["Default"],host:ip,vncport:data.vncPort,machineVars:[],port:data.port,description:"host name is:"+data.hostname,macAddress:data.macAddress})
+            createMachine(app.getDB(),{roles:["Default"],host:ip,vncport:data.vncPort,machineVars:[],port:data.port,maxThreads:1,description:"host name is:"+data.hostname,macAddress:data.macAddress})
         }
         else{
             if (machine.macAddress){

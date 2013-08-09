@@ -35,6 +35,7 @@ var express = require('express')
   , results = require('./routes/results')
   , methodFinder = require('./routes/methodFinder')
   , aggregate = require('./routes/aggregate')
+  , executionstatus = require('./routes/executionstatus')
   , license = require('./routes/license');
 
 
@@ -101,6 +102,9 @@ app.post('/heartbeat',heartbeat.heartbeatPost);
 
 //results
 app.get('/results/:id',results.resultsGet);
+
+//execution status
+app.get('/executionstatus/:id',executionstatus.executionStatusGet);
 
 //machines
 app.get('/machines',auth.auth, machines.machinesGet);

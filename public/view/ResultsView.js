@@ -6,6 +6,11 @@ Ext.define('Redwood.view.ResultsView', {
     bodyPadding: 5,
     dataRecord: null,
     viewType: "Results",
+
+    refreshHeight: function(){
+        var grid = this.down("#resultsGrid");
+        grid.resetHeight(grid);
+    },
     listeners:{
         afterrender: function(me){
             if (me.dataRecord.testcase.script){
@@ -50,6 +55,7 @@ Ext.define('Redwood.view.ResultsView', {
             //minHeight:1600,
             //managerHeight:true,
             //autoHeight: true,
+            itemId:"resultsGrid",
             viewConfig: {
                 markDirty: false,
                 enableTextSelection: true

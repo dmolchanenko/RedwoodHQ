@@ -156,6 +156,7 @@ Ext.define("Redwood.controller.Executions", {
             return;
         }
 
+        /*
         var machinesRunning = false;
         machines.forEach(function(machine){
             if(machine.state == "Running") machinesRunning = true;
@@ -165,6 +166,14 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Msg.alert('Error', "Please select machines to run the execution on.");
             return;
         }
+        */
+        Ext.MessageBox.show({
+            msg: 'Starting Execution',
+            progressText: 'Starting...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
+        });
 
         //close any open results
         //add retry count as well
@@ -188,6 +197,7 @@ Ext.define("Redwood.controller.Executions", {
                 method:"POST",
                 jsonData : {ignoreStatus:ignoreStatus,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
                 success: function(response) {
+                    if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                     var obj = Ext.decode(response.responseText);
                     if(obj.error != null){
                         Ext.Msg.alert('Error', Ext.util.Format.htmlEncode(obj.error));
@@ -423,6 +433,7 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#saveExecution").hide();
                 tab.up("executionsEditor").down("#searchExecution").hide();
                 tab.up("executionsEditor").down("#aggregationReport").hide();
+                tab.refreshHeight();
             }
             else{
                 tab.up("executionsEditor").down("#runExecution").hide();

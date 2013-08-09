@@ -100,7 +100,8 @@ Ext.define("Redwood.controller.Machines", {
             vncport: '3006',
             description:'',
             roles: ['Default'],
-            machineVars: []
+            machineVars: [],
+            maxThreads:1
             //vmName: ''
         })[0];
 

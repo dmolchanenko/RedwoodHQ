@@ -24,6 +24,9 @@ Ext.define('Redwood.model.Machines', {
     }, {
         name: 'description',
         type: 'string'
+    }, {
+        name: 'maxThreads',
+        type: 'int'
     },{
         name: 'machineVars',
         type: 'array'

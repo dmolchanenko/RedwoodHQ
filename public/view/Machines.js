@@ -95,6 +95,25 @@ Ext.define('Redwood.view.Machines', {
                 }
             },
             {
+                header: 'Max Threads',
+                dataIndex: 'maxThreads',
+                //flex: 1,
+                width: 100,
+                editor: {
+                    xtype: 'numberfield',
+                    allowBlank: false,
+                    minValue: 1,
+                    listeners:{
+                        validitychange: function(field,isValid){
+                            if(machinesEditor.rowEditor.editor)  machinesEditor.rowEditor.editor.onFieldChange();
+                        },
+                        focus: function(){
+                            //this.selectText();
+                        }
+                    }
+                }
+            },
+            {
                 header: 'Tags',
                 dataIndex: 'tag',
                 width: 200,

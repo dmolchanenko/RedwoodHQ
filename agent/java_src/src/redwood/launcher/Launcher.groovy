@@ -30,7 +30,13 @@ class Launcher {
     }
 
     public static void main(String[] args){
-        def server = new ServerSocket(3002)
+        def server
+        if(args.size() == 1){
+            server = new ServerSocket(args[0].toInteger())
+        }
+        else{
+            server = new ServerSocket(3002)
+        }
         println "launcher running."
         boolean stopExecution = false;
 
@@ -49,7 +55,7 @@ class Launcher {
                                 output<<groovy.json.JsonOutput.toJson(command)+"--EOM--"
                             }
                             else if (command.command == "exit"){
-                                println "exiting"
+                                //println "exiting"
                                 System.exit(0)
                                 return;
                             }

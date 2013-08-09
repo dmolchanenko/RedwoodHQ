@@ -20,7 +20,7 @@ Ext.application({
             return id;
         };
         Ext.tip.QuickTipManager.init();
-        Ext.socket = io.connect('http://'+ document.location.host);
+        Ext.socket = io.connect('http://'+ document.location.host,{'reconnection delay': 5000});
 
         Ext.socket.on("reconnecting",function(data){
             Ext.MessageBox.show({

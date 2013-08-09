@@ -190,6 +190,7 @@ Ext.define('Redwood.view.ExecutionView', {
             var baseStateTCID = null;
             var result = null;
             var resultID = null;
+            var threads = null;
             if ((me.dataRecord != null)&&(me.dataRecord.get("machines"))){
                 me.dataRecord.get("machines").forEach(function(recordedMachine){
                     if(recordedMachine._id === machine.get("_id")){
@@ -197,11 +198,17 @@ Ext.define('Redwood.view.ExecutionView', {
                         baseStateTCID = recordedMachine.baseStateTCID;
                         result = recordedMachine.result;
                         resultID = recordedMachine.resultID;
+                        if (recordedMachine.threads){
+                            threads = recordedMachine.threads;
+                        }
+                        else{
+                            threads = 1;
+                        }
                     }
                 })
             }
             if (baseStateTCID == null) baseStateTCID = Ext.uniqueId();
-            machines.push({host:machine.get("host"),machineVars:machine.get("machineVars"),tag:machine.get("tag"),state:machine.get("state"),result:result,resultID:resultID,baseState:baseState,baseStateTCID:baseStateTCID,description:machine.get("description"),roles:machine.get("roles"),port:machine.get("port"),vncport:machine.get("vncport"),_id:machine.get("_id")})
+            machines.push({host:machine.get("host"),machineVars:machine.get("machineVars"),tag:machine.get("tag"),state:machine.get("state"),maxThreads:machine.get("maxThreads"),threads:threads,result:result,resultID:resultID,baseState:baseState,baseStateTCID:baseStateTCID,description:machine.get("description"),roles:machine.get("roles"),port:machine.get("port"),vncport:machine.get("vncport"),_id:machine.get("_id")})
         });
 
         var linkedMachineStore =  new Ext.data.Store({
@@ -209,6 +216,8 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'host',     type: 'string'},
                 {name: 'vncport',     type: 'string'},
                 {name: 'port',     type: 'string'},
+                {name: 'maxThreads',     type: 'int'},
+                {name: 'threads',     type: 'int'},
                 {name: 'tag',     type: 'array'},
                 {name: 'state',     type: 'string'},
                 {name: 'baseState',     type: 'string'},
@@ -252,6 +261,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 options.update.forEach(function(r){
                     var linkedRecord = linkedMachineStore.findRecord("_id", r.get("_id"));
                     linkedRecord.set("host", r.get("host"));
+                    linkedRecord.set("maxThreads", r.get("maxThreads"));
                     linkedRecord.set("port", r.get("port"));
                     linkedRecord.set("vncport", r.get("vncport"));
                     linkedRecord.set("tag", r.get("tag"));
@@ -289,7 +299,15 @@ Ext.define('Redwood.view.ExecutionView', {
             },
             plugins: [
                 Ext.create('Ext.grid.plugin.CellEditing', {
-                clicksToEdit: 1
+                clicksToEdit: 1,
+                listeners:{
+                    beforeedit: function(editor,e){
+                        if(e.field == "threads"){
+                            machinesGrid.editingRecord = e.record;
+                            //editor.setMaxValue(e.record.get("maxThreads"))
+                        }
+                    }
+                }
             })],
             minHeight: 150,
             manageHeight: true,
@@ -317,6 +335,28 @@ Ext.define('Redwood.view.ExecutionView', {
                     }
                 },
                 {
+                    header: 'Threads',
+                    dataIndex: 'threads',
+                    //flex: 1,
+                    width: 100,
+                    editor: {
+                        xtype: 'numberfield',
+                        allowBlank: false,
+                        minValue: 1,
+                        listeners:{
+                            focus: function(field){
+                                field.setMaxValue(machinesGrid.editingRecord.get("maxThreads"))
+                            }
+                        }
+                    }
+                },
+                {
+                    header: 'Max Threads',
+                    dataIndex: 'maxThreads',
+                    //flex: 1,
+                    width: 100
+                },
+                {
                     header: 'Port',
                     dataIndex: 'port',
                     width: 100
@@ -331,7 +371,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'state',
                     width: 120,
                     renderer: function(value,record){
-                        if (value == "Running Test"){
+                        if (value.indexOf("Running") != -1){
                             return "<p style='color:green'>"+value+"</p>";
                         }
                         return value;
@@ -1100,7 +1140,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                 //display: 'rotate',
                                 display: 'outside',
                                 //contrast: true,
-                                color:"#22EDFF",
+                                //color:"#22EDFF",
                                 font: '18px Arial'
                             }
                         }]

@@ -91,7 +91,7 @@ function dirWalker(dir, done,fileCallback) {
 
 exports.cleanUpExecutions = function(){
     db.collection('machines', function(err, collection) {
-        collection.update({state:"Running Test"},{$set:{state:""}},{multi:true});
+        collection.update({},{$set:{state:"",takenThreads:0}},{multi:true});
     });
     db.collection('executiontestcases', function(err, collection) {
         collection.update({"status":"Running"},{$set:{status:"Not Run","result":"",error:"",trace:"",startdate:"",enddate:"",runtime:""}},{multi:true,safe:true},function(err){
