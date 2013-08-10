@@ -435,6 +435,13 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#aggregationReport").hide();
                 tab.refreshHeight();
             }
+            else if(tab.title.indexOf("Aggregate Report]") != -1){
+                tab.up("executionsEditor").down("#runExecution").hide();
+                tab.up("executionsEditor").down("#stopExecution").hide();
+                tab.up("executionsEditor").down("#saveExecution").hide();
+                tab.up("executionsEditor").down("#searchExecution").hide();
+                tab.up("executionsEditor").down("#aggregationReport").hide();
+            }
             else{
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();

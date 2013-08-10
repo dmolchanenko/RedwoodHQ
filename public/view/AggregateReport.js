@@ -64,7 +64,7 @@ Ext.define('Redwood.view.AggregateReport', {
                 },
                 {
                     header: 'Failed',
-                    dataIndex: 'passed',
+                    dataIndex: 'failed',
                     //flex: 1,
                     width: 100,
                     renderer: function (value, meta, record) {
@@ -145,6 +145,7 @@ Ext.define('Redwood.view.AggregateReport', {
         };
 
         var aggregateRenderer = function(value, meta, record){
+            /*
             var aggregation = "Mixed";
             var didNotPass = false;
             var didNotFail = false;
@@ -170,6 +171,21 @@ Ext.define('Redwood.view.AggregateReport', {
                 return "<p style='color:green'>Passed</p>";
             }
             else if(didNotFail == false){
+                return "<p style='color:red'>Failed</p>";
+            }
+            else{
+                return "<p style='color:#ffb013'>Not Run</p>";
+            }
+            */
+
+            if (value == "Mixed") {
+                return "Mixed"
+            }
+
+            else if (value == "Passed"){
+                return "<p style='color:green'>Passed</p>";
+            }
+            else if(value == "Failed"){
                 return "<p style='color:red'>Failed</p>";
             }
             else{
@@ -228,6 +244,38 @@ Ext.define('Redwood.view.AggregateReport', {
             obj.aggregate = "";
             me.testCaseStore.add(obj);
         }
+
+        me.testCaseStore.each(function(record){
+            var didNotPass = false;
+            var didNotFail = false;
+            //now I'm just fucking with ya
+            var didNotNotRun = false;
+            me.dataRecord.executionIDs.forEach(function(id){
+                var result = record.get(id.executionID);
+                if(result != null){
+                    if(result != "Passed") {
+                        didNotPass = true;
+                    }
+                    if(result != "Failed") {
+                        didNotFail = true;
+                    }
+                    if ((result == "Passed") || (result == "Failed")) didNotNotRun = true;
+                }
+            });
+            if ((didNotPass == true) &&(didNotFail == true) &&(didNotNotRun == true)) {
+                record.set("aggregate","Mixed");
+            }
+
+            else if (didNotPass == false){
+                record.set("aggregate","Passed");
+            }
+            else if(didNotFail == false){
+                record.set("aggregate","Failed");
+            }
+            else{
+                record.set("aggregate","Not Run");
+            }
+        });
 
         var testcasesGrid = new Ext.grid.Panel({
             /*
