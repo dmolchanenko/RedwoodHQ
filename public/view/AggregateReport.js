@@ -120,6 +120,7 @@ Ext.define('Redwood.view.AggregateReport', {
                 xField: 'name',
                 yField: ['notRun', 'passed', 'failed'],
                 stacked: true,
+                title: ["Not Run","Passed","Failed"],
                 tips: {
                     trackMouse: true,
                     width: 65,
