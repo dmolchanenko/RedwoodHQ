@@ -92,7 +92,7 @@ Ext.define('Redwood.view.AggregateReport', {
 
         var aggregateChart = Ext.create('Ext.chart.Chart',{
             xtype: 'chart',
-            width:400,
+            width:1200,
             height: 500,
             animate: true,
             shadow: true,
@@ -232,7 +232,7 @@ Ext.define('Redwood.view.AggregateReport', {
         columns.push({header: 'Aggregate Total',
             dataIndex: 'aggregate',
             renderer:aggregateRenderer,
-            width: 200});
+            width: 100});
 
         me.testCaseStore =  new Ext.data.Store({
             fields: fields,
@@ -319,11 +319,9 @@ Ext.define('Redwood.view.AggregateReport', {
             {
                 xtype: 'fieldset',
                 title: 'Aggregate Data',
+                layout:"fit",
                 flex: 1,
                 collapsible: true,
-                defaults: {
-                    flex: 1
-                },
                 items: [
                     aggregateGrid
                 ]
