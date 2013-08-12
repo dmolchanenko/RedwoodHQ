@@ -6,6 +6,7 @@ Ext.define('ActionParams', {
     extend: 'Ext.data.Model',
     fields: [
         {type: 'string', name: 'name'},
+        {type: 'string', name: 'description'},
         {type: 'array', name: 'possiblevalues'},
         {type: 'string', name: 'parametertype'}
     ]
