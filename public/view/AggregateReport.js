@@ -202,7 +202,7 @@ Ext.define('Redwood.view.AggregateReport', {
             else if (value == "Failed"){
                 return "<p style='color:red'>"+value+"</p>"
             }
-            else if (value == null){
+            else if (value == ""){
                 return "N/A"
             }
             else{
@@ -254,10 +254,13 @@ Ext.define('Redwood.view.AggregateReport', {
             me.dataRecord.executionIDs.forEach(function(id){
                 var result = record.get(id.executionID);
                 if(result != null){
-                    if(result != "Passed") {
+                    if (result == ""){
+
+                    }
+                    else if(result != "Passed") {
                         didNotPass = true;
                     }
-                    if(result != "Failed") {
+                    else if(result != "Failed") {
                         didNotFail = true;
                     }
                     if ((result == "Passed") || (result == "Failed")) didNotNotRun = true;

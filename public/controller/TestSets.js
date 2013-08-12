@@ -33,40 +33,54 @@ Ext.define("Redwood.controller.TestSets", {
             var newSet = true;
             newTestSet.name = foundTab.down("#testsetname").getValue();
             newTestSet.testcases = [];
-            var tempTCs = {};
-            foundTab.down("#testcases").store.getRootNode().cascadeBy(function(testcase){
-                if ((testcase.get("leaf") == true) && (testcase.get("checked") == true)){
-                    //newTestSet.testcases.push({_id:testcase.get("_id")});
-                    tempTCs[testcase.get("_id")] = testcase.get("_id");
-                }
-            });
 
-            for (var type in tempTCs) {
-                var item = {_id:tempTCs[type]};
-                newTestSet.testcases.push(item);
-            }
             if (foundTab.testSetData != null){
-                foundTab.testSetData.set("name", newTestSet.name);
-                foundTab.testSetData.set("testcases",newTestSet.testcases);
-                foundTab.testSetData.dirty = true;
-                newSet = false;
-            }
-            else{
-                foundTab.testSetData = Ext.data.StoreManager.lookup('TestSets').add(newTestSet)[0];
-            }
-            foundTab.setTitle("[Test Set] "+newTestSet.name);
-            foundTab.dirty = false;
-            Ext.data.StoreManager.lookup('TestSets').sync({success:function(batch,options){
-                if (newSet == false){
-                    Ext.Ajax.request({
-                        url:"/executiontestcases/udatetestset",
-                        method:"POST",
-                        jsonData : {testset:foundTab.testSetData.get("_id")},
-                        success: function(response, action) {
+                Ext.Msg.show({
+                    title:'Edit Confirmation',
+                    msg: "Are you sure you want to modify existing test set?\r\nDoing so will modify any unlocked executions, it can lead to removal of existing results." ,
+                    buttons: Ext.Msg.YESNO,
+                    icon: Ext.Msg.QUESTION,
+                    fn: function(id){
+                        if (id === "yes"){
+                            var tempTCs = {};
+                            foundTab.down("#testcases").store.getRootNode().cascadeBy(function(testcase){
+                                if ((testcase.get("leaf") == true) && (testcase.get("checked") == true)){
+                                    //newTestSet.testcases.push({_id:testcase.get("_id")});
+                                    tempTCs[testcase.get("_id")] = testcase.get("_id");
+                                }
+                            });
+
+                            for (var type in tempTCs) {
+                                var item = {_id:tempTCs[type]};
+                                newTestSet.testcases.push(item);
+                            }
+                            if (foundTab.testSetData != null){
+                                foundTab.testSetData.set("name", newTestSet.name);
+                                foundTab.testSetData.set("testcases",newTestSet.testcases);
+                                foundTab.testSetData.dirty = true;
+                                newSet = false;
+                            }
+                            else{
+                                foundTab.testSetData = Ext.data.StoreManager.lookup('TestSets').add(newTestSet)[0];
+                            }
+                            foundTab.setTitle("[Test Set] "+newTestSet.name);
+                            foundTab.dirty = false;
+                            Ext.data.StoreManager.lookup('TestSets').sync({success:function(batch,options){
+                                if (newSet == false){
+                                    Ext.Ajax.request({
+                                        url:"/executiontestcases/udatetestset",
+                                        method:"POST",
+                                        jsonData : {testset:foundTab.testSetData.get("_id")},
+                                        success: function(response, action) {
+                                        }
+                                    });
+                                }
+                            }});
                         }
-                    });
-                }
-            }});
+                    }
+                });
+            }
+
         }
 
     },
