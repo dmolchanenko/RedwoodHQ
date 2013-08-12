@@ -57,7 +57,7 @@ Ext.define('Redwood.view.ActionPicker', {
                 if (isLocalMode) {
                     // forceAll means no filtering - show whole dataset.
                     store.suspendEvents();
-                    needsRefresh = me.clearFilter();
+                    needsRefresh = me.store.clearFilter();
                     //my own custom filter
                     if (queryString || !forceAll) {
                         me.activeFilter = new Ext.util.Filter({
