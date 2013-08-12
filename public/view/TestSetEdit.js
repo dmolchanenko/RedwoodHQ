@@ -122,6 +122,18 @@ Ext.define('Redwood.view.TestSetEdit', {
         //mark all children checked
         var me = this;
         var changeCheck = function(node){
+            //if not a dir
+            if (node.hasChildNodes() == false){
+                me.down("#testcases").getRootNode().cascadeBy(function(searchNode){
+                    if ((node != searchNode) && (node.get("_id") == searchNode.get("_id"))){
+                        if (searchNode.get("checked") != checked){
+                            searchNode.set("checked",checked);
+                            searchNode.set("propagatedCheck",checked);
+                        }
+                    }
+                })
+            }
+
             node.childNodes.forEach(function(child,index,array){
                 if (child.get("checked") != checked){
                     child.set("checked",checked);
