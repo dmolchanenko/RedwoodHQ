@@ -221,13 +221,14 @@ function CopyScripts(scripts,destDir,projectDir,callback){
                     git.add(projectDir,destDir+"/"+name,function(){
                         git.commit(projectDir,destDir+"/"+name,function(){
                             //callback(null)
+                            if((lastLoop)&& (errFound == false)){
+                                callback();
+                            }
                         });
                     });
                 }
             });
-            if((lastLoop)&& (errFound == false)){
-                callback();
-            }
+
         }
     });
 }
@@ -237,12 +238,12 @@ function GetScripts(rootDir,callback){
         git.filesNotPushed(rootDir,function(filesNotPushed){
             var files = [];
             if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                files = filesInConflict.split("\n",filesInConflict.match(/\n/).length);
+                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
             }
 
             var filesNP = [];
             if ((filesNotPushed != "")&&(filesNotPushed.indexOf("\n") != -1)){
-                filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/).length);
+                filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/g).length);
             }
             walkDir(rootDir,files,filesNP, function(err, results) {
                 if (err) {
