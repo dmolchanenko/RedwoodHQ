@@ -5,6 +5,7 @@ var users = require('./users');
 var path = require('path');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var spawn = require('child_process').spawn;
+var walk = require('walk');
 
 exports.scriptsPush = function(req,res){
     git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
@@ -61,13 +62,17 @@ exports.scriptsCopy = function(req, res){
     //prevent multiple errors from sending
     var sent = false;
     CopyScripts(req.body.scripts,req.body.destDir,rootDir+req.cookies.project+"/"+req.cookies.username,function(err){
-        if (sent) return;
-        sent = true;
-        if (err){
-            res.json({error:err});
-        }else{
-            res.json({error:null});
-        }
+        git.add(rootDir+req.cookies.project+"/"+req.cookies.username,".",function(){
+            git.commit(rootDir+req.cookies.project+"/"+req.cookies.username,".",function(){
+                if (sent) return;
+                sent = true;
+                if (err){
+                    res.json({error:err});
+                }else{
+                    res.json({error:null});
+                }
+            });
+        });
     });
 };
 
@@ -171,36 +176,68 @@ function CopyScripts(scripts,destDir,projectDir,callback){
             }
             fs.mkdirSync(DirName);
 
-            common.walkDir(script,function(){if(lastLoop)callback();},function(file){
+            var walker = walk.walkSync(script);
+            var files = [];
+            walker.on("file", function (root, fileStats, next) {
+                files.push({from:script+"/"+fileStats.name,to:DirName + "/"+fileStats.name});
+                next();
+            });
 
-                if(fs.statSync(file).isDirectory()){
-                    var writeDir = DirName + file.replace(script,"");
+            walker.on("directories", function (root, dirs, next) {
+                dirs.forEach(function(dir){
+                    var writeDir = DirName + "/" + dir.name;
                     fs.mkdirSync(writeDir);
-                }
-                else{
-                    fs.readFile(file,function(err,data){
-                        var writeDir = DirName + file.replace(script,"");
-                        if (err){
-                            callback(err);
-                            errFound = true;
-                            return;
+                });
+                next();
+            });
+            walker.on("end", function () {
+                console.log(files);
+                var count = 0;
+                files.forEach(function(file,index){
+                    fs.readFile(file.from,function(err,data){
+                        fs.writeFileSync(file.to,data);
+                        count++;
+                        if(count == files.length){
+                            if(lastLoop)callback();
                         }
-                        fs.writeFile(writeDir,data,function(err){
+                    })
+                });
+
+            });
+
+
+                /*
+                common.walkDir(script,function(){if(lastLoop)callback();},function(file){
+
+                    if(fs.statSync(file).isDirectory()){
+                        var writeDir = DirName + file.replace(script,"");
+                        fs.mkdirSync(writeDir);
+                    }
+                    else{
+                        fs.readFile(file,function(err,data){
+                            var writeDir = DirName + file.replace(script,"");
                             if (err){
                                 callback(err);
                                 errFound = true;
+                                return;
                             }
-                            else{
-                                git.add(projectDir,writeDir,function(){
-                                    git.commit(projectDir,writeDir,function(){
-                                        //callback(null)
+                            fs.writeFile(writeDir,data,function(err){
+                                if (err){
+                                    callback(err);
+                                    errFound = true;
+                                }
+                                else{
+                                    git.add(projectDir,writeDir,function(){
+                                        git.commit(projectDir,writeDir,function(){
+                                            //callback(null)
+                                        });
                                     });
-                                });
-                            }
-                        });
-                    })
-                }
-            });
+                                }
+                            });
+                        })
+                    }
+                });
+                */
         }
         else{
             var data = fs.readFileSync(script);
