@@ -42,7 +42,13 @@ function AggregateExecutions(db,executions,callback){
                                 var entry = {};
                                 entry[testcase.executionID] = testcase.result;
                                 if(testCases[testcase.testcaseID]){
-                                    testCases[testcase.testcaseID][testcase.executionID] = testcase.result;
+                                    if(testcase.result){
+                                        testCases[testcase.testcaseID][testcase.executionID] = testcase.result;
+                                    }
+                                    else{
+                                        testCases[testcase.testcaseID][testcase.executionID] = "Not Run";
+                                    }
+                                    //testCases[testcase.testcaseID][testcase.executionID] = testcase.result;
                                 }
                                 else{
                                     testCases[testcase.testcaseID] = {};
