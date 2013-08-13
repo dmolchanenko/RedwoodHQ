@@ -190,7 +190,7 @@ Ext.define('Redwood.view.ExecutionView', {
             var baseStateTCID = null;
             var result = null;
             var resultID = null;
-            var threads = null;
+            var threads = 1;
             if ((me.dataRecord != null)&&(me.dataRecord.get("machines"))){
                 me.dataRecord.get("machines").forEach(function(recordedMachine){
                     if(recordedMachine._id === machine.get("_id")){
