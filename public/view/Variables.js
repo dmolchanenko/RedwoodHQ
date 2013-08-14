@@ -117,7 +117,8 @@ Ext.define('Redwood.view.Variables', {
             renderer:function(value, meta, record){
                 return Ext.util.Format.htmlEncode(value);
             },
-            editor: Ext.create('Ext.ux.ComboGridBox', {
+            editor: {
+                xtype: "combogridbox",
                 typeAhead: true,
                 displayField: 'text',
                 queryMode: 'local',
@@ -137,14 +138,15 @@ Ext.define('Redwood.view.Variables', {
                 getDisplayValue: function() {
                     return Ext.String.htmlDecode(this.value);
                 }
-            })
+            }
         },
             {
                 header: 'Possible Values',
                 dataIndex: 'possibleValues',
                 //flex: 1,
                 width: 400,
-                editor: Ext.create('Ext.ux.ComboFieldGridBox', {
+                editor: {
+                    xtype:"combofieldgridbox",
                     //fieldLabel: 'Enter Tags',
                     dataIndex: 'possibleValues',
                     grid: variablesEditor,
@@ -164,7 +166,7 @@ Ext.define('Redwood.view.Variables', {
                     removeOnDblClick:true
                     //vtype:"tagTest"
                     //renderTo: 'basicBoxselect'
-                })
+                }
             },
             {
             xtype: 'actioncolumn',
