@@ -852,6 +852,20 @@ function formatTrace(trace,sourceCache,callback){
         location = location.replace("[","");
         var count = 0;
         var found = false;
+
+        if((location.indexOf("org.codehaus.") != -1) || (location.indexOf("java.lang.") != -1) || (location.indexOf("groovy.lang.") != -1) || (location.indexOf("redwood.launcher.") != -1)|| (location.indexOf("sun.reflect.") != -1)){
+            if (line.indexOf("[") == 0){
+                newTrace += line;
+            }
+            else{
+                newTrace += ",\r\n"+line;
+            }
+            if (traceCount == traces.length){
+                callback(newTrace);
+            }
+            return;
+        }
+
         if ((fileName.indexOf(".groovy") != -1) ||(fileName.indexOf(".java") != -1)){
             sourceCache.forEach(function(file){
                 if (found == true) return;

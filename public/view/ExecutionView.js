@@ -753,10 +753,11 @@ Ext.define('Redwood.view.ExecutionView', {
                     renderer: function(value,meta,record){
                         if (value == "") return value;
                         //if(value.indexOf("<div style") == -1){
-                            meta.tdAttr = 'data-qtip="' + value + '"';
+                            //
                         //    record.set("error",'<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>');
                         //}
                         value = Ext.util.Format.htmlEncode(value);
+                        meta.tdAttr = 'data-qtip="' + value + '"';
                         return '<div style="color:red" ext:qwidth="150" ext:qtip="' + value + '">' + value + '</div>'
 
                     }
