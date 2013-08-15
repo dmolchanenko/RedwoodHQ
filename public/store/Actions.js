@@ -55,13 +55,13 @@ Ext.define('Redwood.store.Actions', {
                     if (options.destroy){
                         options.destroy.forEach(function(r){
                             if (r != null){
-                                actionsCombo.remove(actionsCombo.findRecord("_id", r.get("_id")));
+                                actionsCombo.remove(actionsCombo.query("_id", r.get("_id")).getAt(0));
                             }
                         });
                     }
                     if (options.update){
                         options.update.forEach(function(r){
-                            actionsCombo.remove(actionsCombo.findRecord("_id", r.get("_id")));
+                            actionsCombo.remove(actionsCombo.query("_id", r.get("_id")).getAt(0));
                             actionsCombo.add(r);
                         });
                     }

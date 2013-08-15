@@ -98,6 +98,8 @@ Ext.define('Redwood.view.ActionCollection', {
     autoHeight: true,
     enableColumnMove: false,
     loadingData: false,
+    height: 700,
+    manageHeight: true,
 
     parentActionID: null,
     parentActionParamsStore: null,
@@ -375,7 +377,7 @@ Ext.define('Redwood.view.ActionCollection', {
             {
                 xtype: 'treecolumn',
                 text: '',
-                width: 45,
+                width: 55,
                 dataIndex: 'order',
                 sortable: false,
                 menuDisabled:true
@@ -383,7 +385,7 @@ Ext.define('Redwood.view.ActionCollection', {
             {
                 //xtype: 'treecolumn',
                 text: 'Action Name',
-                width: 250,
+                width: 240,
                 dataIndex: 'actionname',
                 sortable: false,menuDisabled:true,
                 renderer: function (value, meta, record) {
@@ -711,6 +713,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 e.column.setEditor({
                     xtype:"combofieldbox",
                     displayField:"text",
+                    overflowY:"auto",
                     descField:"text",
                     height:24,
                     labelWidth: 100,
@@ -743,6 +746,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     xtype:"combo",
                     displayField: 'text',
                     height:20,
+                    grow:true,
                     valueField: 'value',
                     typeAhead: true,
                     queryMode: 'local',
@@ -872,7 +876,7 @@ Ext.define('Redwood.view.ActionCollection', {
             }
 
         });
-        this.plugins= [this.cellEditing];
+        this.plugins= ["bufferedrenderer",this.cellEditing];
 
         this.createAction = function(name,store){
             var foundAction = store.findRecord("name",name);

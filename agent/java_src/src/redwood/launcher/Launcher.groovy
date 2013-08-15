@@ -1,6 +1,7 @@
 package redwood.launcher
 
 import groovy.json.JsonSlurper
+import org.codehaus.groovy.runtime.StackTraceUtils
 import redwood.launcher.*
 
 /**
@@ -98,25 +99,27 @@ class Launcher {
             }
 
         }
-        catch (Error err){
+        catch (Error error){
+            //def error = StackTraceUtils.sanitizeRootCause(err)
             action["result"] = "Failed"
-            if(err.message == null){
+            if(error.message == null){
                 action["error"] = "Unknown Error"
             }
             else{
-                action["error"] = err.message
+                action["error"] = error.message
             }
-            action["trace"] = err.stackTrace.toArrayString()
+            action["trace"] = error.stackTrace.toArrayString()
         }
-        catch (Exception err){
+        catch (Exception error){
+            //def error = StackTraceUtils.sanitizeRootCause(err)
             action["result"] = "Failed"
-            if(err.message == null){
+            if(error.message == null){
                 action["error"] = "Unknown Error"
             }
             else{
-                action["error"] = err.message
+                action["error"] = error.message
             }
-            action["trace"] = err.stackTrace.toArrayString()
+            action["trace"] = error.stackTrace.toArrayString()
         }
         action["command"] = "action finished"
     }

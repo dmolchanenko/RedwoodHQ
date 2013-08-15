@@ -1249,9 +1249,11 @@ function lockMachines(machines,executionID,callback){
 
 function unlockMachines(machines,callback){
     var machineCount = 0;
-    machines.forEach(function(machine){
+
+    var nextMachine = function(){
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
+                console.log(dbMachine);
                 if(dbMachine != null) {
                     var takenThreads = 1;
                     if (dbMachine.takenThreads){
@@ -1261,12 +1263,16 @@ function unlockMachines(machines,callback){
                         takenThreads = 0;
                     }
                     var state = "";
-                    if (takenThreads > 0) state = "Running "+takenThreads+ " of " + machine.maxThreads;
+                    console.log("now taken are:"+takenThreads);
+                    if (takenThreads > 0) state = "Running "+takenThreads+ " of " + machines[machineCount].maxThreads;
 
-                    updateMachine({_id:db.bson_serializer.ObjectID(machine._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
+                    updateMachine({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
                         machineCount++;
                         if (machineCount == machines.length){
                             if(callback) callback();
+                        }
+                        else{
+                            nextMachine();
                         }
                     })
                 }
@@ -1275,7 +1281,13 @@ function unlockMachines(machines,callback){
                 }
             })
         });
-    });
+    };
+    if (machines.length > 0){
+        nextMachine();
+    }
+    else{
+        if(callback) callback();
+    }
 }
 
 
