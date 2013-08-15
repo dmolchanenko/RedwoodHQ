@@ -95,6 +95,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
         git.initBare(masterBranch,function(){
             git.clone(adminBranch,masterBranch,function(){
+                fs.writeFile(newProjectPath + "/admin/.gitignore","build",function(){});
                 files.forEach(function(file,index,array){
                     var destName = file.replace(templatePath,"");
                     destName = adminBranch+destName;
@@ -130,6 +131,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                             if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build");
                                         });
                                     }
                                 });

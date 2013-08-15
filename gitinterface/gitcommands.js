@@ -21,6 +21,25 @@ exports.filesInConflict = function(workdir,callback){
 
 };
 
+exports.commitsSinceDate = function(workdir,date,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['rev-list','--count','--since='+date,'HEAD'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('commitsSinceDate stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.filesNotPushed = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['diff','--name-only','origin/master', 'HEAD'],{cwd: workdir,timeout:300000});
     var cliData = "";

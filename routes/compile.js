@@ -23,10 +23,12 @@ exports.operation = function(msg, id,callback,onFinish){
     compileProcs[id].proc.stderr.on('data', function(data) {
         //console.log(data.toString());
         callback(data.toString());
+        spawn(path.resolve(__dirname,'../vendor/Git/bin/rm.exe'),['-rf',buildDir+"/build"],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
     });
-    compileProcs[id].proc.on('exit', function(data){
+    compileProcs[id].proc.on('close', function(data){
 
         delete compileProcs[id];
+
         if (onFinish){
             onFinish();
         }

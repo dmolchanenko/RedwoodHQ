@@ -9,6 +9,8 @@ var fs = require('fs');
 var walk = require('walk');
 var compile = require("./compile");
 var realtime = require("../routes/realtime");
+var git = require('../gitinterface/gitcommands');
+var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var db;
 
 exports.stopexecutionPost = function(req, res){
@@ -63,14 +65,10 @@ exports.startexecutionPost = function(req, res){
     cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/src"),sourceCache);
 
     executions[executionID] = {ignoreStatus:ignoreStatus,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,sourceCache:sourceCache.reverse()};
-    //random id for compile proc
-    var id;
-    for (var i = 0; i < 24; i++) {
-        id += Math.floor(Math.random() * 10).toString(16);
-    }
-    var compileOut = "";
-    compile.operation({project:req.cookies.project,username:req.cookies.username},id,function(data){compileOut = compileOut + data},function(){
-        if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
+
+
+    compileBuild(req.cookies.project,req.cookies.username,function(err){
+        if (err != null){
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});
         }
@@ -104,6 +102,52 @@ exports.startexecutionPost = function(req, res){
         }
     });
 };
+
+function compileBuild(project,username,callback){
+    var workDir = rootDir+project+"/"+username;
+
+    var compileScripts = function(){
+        var compileOut = "";
+        //random id for compile proc
+        var id;
+        for (var i = 0; i < 24; i++) {
+            id += Math.floor(Math.random() * 10).toString(16);
+        }
+
+        compile.operation({project:project,username:username},id,function(data){compileOut = compileOut + data},function(){
+            if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
+                callback("unable to compile")
+            }
+            else{
+                callback(null)
+            }
+
+        })
+    };
+
+    fs.exists(workDir+"/build", function (exists) {
+        if(exists == true){
+            fs.stat(workDir+"/build",function(err,stats){
+                if(err) {
+                    compileScripts();
+                }
+                else{
+                    git.commitsSinceDate(workDir,stats.mtime,function(data){
+                        if (data == "0\n"){
+                            callback(null)
+                        }
+                        else{
+                            compileScripts();
+                        }
+                    });
+                }
+            });
+        }
+        else{
+            compileScripts()
+        }
+    });
+}
 
 
 function applyMultiThreading(executionID,callback){
