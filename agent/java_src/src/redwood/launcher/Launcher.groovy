@@ -100,12 +100,22 @@ class Launcher {
         }
         catch (Error err){
             action["result"] = "Failed"
-            action["error"] = err.message
+            if(err.message == null){
+                action["error"] = "Unknown Error"
+            }
+            else{
+                action["error"] = err.message
+            }
             action["trace"] = err.stackTrace.toArrayString()
         }
         catch (Exception err){
             action["result"] = "Failed"
-            action["error"] = err.message
+            if(err.message == null){
+                action["error"] = "Unknown Error"
+            }
+            else{
+                action["error"] = err.message
+            }
             action["trace"] = err.stackTrace.toArrayString()
         }
         action["command"] = "action finished"

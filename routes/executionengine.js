@@ -269,6 +269,7 @@ function cleanUpMachines(machines,executionID,callback){
 }
 
 function executeTestCases(testcases,executionID){
+    if (!executions[executionID]) return;
     var variables = executions[executionID].variables;
     var machines = executions[executionID].machines;
     var tcArray = [];
@@ -338,6 +339,7 @@ function executeTestCases(testcases,executionID){
         }
         testcases[tcArray[count]].executing = true;
         startTCExecution(testcases[tcArray[count]].testcaseID,variables,executionID,function(){
+            if (!executions[executionID]) return;
             count++;
             var machineAvailable = false;
             machines.forEach(function(machine){
@@ -447,7 +449,7 @@ function startTCExecution(id,variables,executionID,callback){
             });
 
 
-            if (testcase.machines.length == 0){
+            if ((testcase.machines.length == 0) || (reservedHosts.length != hosts.length)){
                 //if (callback){
                 //    callback({error:"Unable to find matching machine for this test case.  Roles required are:"+hosts.join()});
                 //}
@@ -463,114 +465,103 @@ function startTCExecution(id,variables,executionID,callback){
             var count = 0;
             var errorFound = false;
 
-            var startTC = function(){
+            //var startTC = function(){
 
-                var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
+            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
 
-                //if test case is a script and NOT an action collection
-                if (testcase.dbTestCase.type === "script"){
-                    if ((testcase.script == "") || (!testcase.script)){
-                        result.error = "Test Case does not have a script assigned";
-                        result.status = "Finished";
-                        result.result = "Failed";
-                        updateResult(result);
-                        //executions[executionID].testcases[id].result = result;
-                        finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
-                        return;
+            //if test case is a script and NOT an action collection
+            if (testcase.dbTestCase.type === "script"){
+                if ((testcase.script == "") || (!testcase.script)){
+                    result.error = "Test Case does not have a script assigned";
+                    result.status = "Finished";
+                    result.result = "Failed";
+                    updateResult(result);
+                    //executions[executionID].testcases[id].result = result;
+                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                    return;
+                }
+                agentInstructions.name = testcase.name;
+                agentInstructions.executionID = executionID;
+                agentInstructions.testcaseName = testcase.name;
+                agentInstructions.script = testcase.script;
+                agentInstructions.resultID = result._id.__id;
+                agentInstructions.parameters = [];
+
+                var foundMachine = null;
+                var actionHost = "Default";
+                //if(action.dbAction.host != "") actionHost = action.dbAction.host;
+                testcase.machines.forEach(function(machine){
+                    if ((machine.roles.indexOf(actionHost) != -1)&&(foundMachine == null)){
+                        foundMachine = machine;
                     }
-                    agentInstructions.name = testcase.name;
-                    agentInstructions.executionID = executionID;
-                    agentInstructions.testcaseName = testcase.name;
-                    agentInstructions.script = testcase.script;
-                    agentInstructions.resultID = result._id.__id;
-                    agentInstructions.parameters = [];
+                });
+                agentInstructions.threadID = foundMachine.threadID;
 
-                    var foundMachine = null;
-                    var actionHost = "Default";
-                    //if(action.dbAction.host != "") actionHost = action.dbAction.host;
-                    testcase.machines.forEach(function(machine){
-                        if ((machine.roles.indexOf(actionHost) != -1)&&(foundMachine == null)){
-                            foundMachine = machine;
-                        }
-                    });
-                    agentInstructions.threadID = foundMachine.threadID;
+                updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
+                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                return;
+            }
 
-                    updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
-                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+            callback();
+            for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
+            variables["TestCaseName"] = testcase.dbTestCase.name;
+            findNextAction(testcase.actions,variables,function(action){
+                if (!executions[executionID]) return;
+                if(!executions[executionID].currentTestCases[testcase.dbTestCase._id]) return;
+                if(action == null){
+                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
                     return;
                 }
 
-                callback();
-                for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
-                variables["TestCaseName"] = testcase.dbTestCase.name;
-                findNextAction(testcase.actions,variables,function(action){
-                    if (!executions[executionID]) return;
-                    if(!executions[executionID].currentTestCases[testcase.dbTestCase._id]) return;
-                    if(action == null){
-                        finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
-                        return;
-                    }
+                executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
-                    executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
-
-                    agentInstructions.name = action.name;
-                    agentInstructions.executionID = executionID;
-                    agentInstructions.returnValueName = action.dbAction.returnvalue;
-                    agentInstructions.testcaseName = testcase.dbTestCase.name;
-                    agentInstructions.script = action.script;
-                    agentInstructions.resultID = result._id.__id;
-                    agentInstructions.parameters = [];
-                    action.dbAction.parameters.forEach(function(parameter){
-                        agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
-                    });
-
-                    var foundMachine = null;
-                    var actionHost = "Default";
-                    if(action.dbAction.host != "") actionHost = action.dbAction.host;
-                    testcase.machines.forEach(function(machine){
-                        if ((machine.roles.indexOf(actionHost) != -1)&&(foundMachine == null)){
-                            foundMachine = machine;
-                        }
-                    });
-                    agentInstructions.threadID = foundMachine.threadID;
-
-                    updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
-                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                agentInstructions.name = action.name;
+                agentInstructions.executionID = executionID;
+                agentInstructions.returnValueName = action.dbAction.returnvalue;
+                agentInstructions.testcaseName = testcase.dbTestCase.name;
+                agentInstructions.script = action.script;
+                agentInstructions.resultID = result._id.__id;
+                agentInstructions.parameters = [];
+                action.dbAction.parameters.forEach(function(parameter){
+                    agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
                 });
-            };
 
-            testcase.machines.forEach(function(machine){
-                if (machine.runBaseState === true){
-                    count++;
-                    if (count === testcase.machines.length){
-                        startTC();
+                var foundMachine = null;
+                var actionHost = "Default";
+                if(action.dbAction.host != "") actionHost = action.dbAction.host;
+                testcase.machines.forEach(function(machine){
+                    if ((machine.roles.indexOf(actionHost) != -1)&&(foundMachine == null)){
+                        foundMachine = machine;
                     }
+                });
+
+
+                agentInstructions.threadID = foundMachine.threadID;
+                updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
+
+                if (foundMachine.runBaseState === true){
+                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
                 }
                 else{
-                    agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,machine.host,machine.port,machine.threadID,function(err){
-                        if (errorFound == true){
-                            return;
-                        }
-                        count++;
+                    agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
+
                         if (err){
                             result.error = err;
                             result.status = "Finished";
                             result.result = "Failed";
                             updateResult(result);
                             if (executions[executionID]){
+                                executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
                                 finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
                             }
                         }
                         else{
-                            machine.runBaseState = true;
-                        }
-                        if (count === testcase.machines.length){
-                            startTC();
+                            foundMachine.runBaseState = true;
+                            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
                         }
                     });
                 }
             });
-
         })
     });
 }
@@ -622,7 +613,7 @@ exports.actionresultPost = function(req, res){
     }
 
     testcase.currentAction.result.status = "Finished";
-    testcase.result.status = "Finished";
+    //testcase.result.status = "Finished";
     testcase.currentAction.result.result = req.body.result;
     if (testcase.result.result != "Failed"){
         testcase.result.result = req.body.result;
@@ -704,7 +695,29 @@ exports.actionresultPost = function(req, res){
         action.dbAction.parameters.forEach(function(parameter){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
         });
-        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions)
+
+        if (foundMachine.runBaseState === true){
+            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+        }
+        else{
+            agentBaseState(execution.project+"/"+execution.username,req.body.executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
+
+                if (err){
+                    result.error = err;
+                    result.status = "Finished";
+                    result.result = "Failed";
+                    updateResult(result);
+                    if (executions[executionID]){
+                        executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
+                        finishTestCaseExecution(execution,req.body.executionID,execution.testcases[id]._id,execution.currentTestCases[testcase.dbTestCase._id]);
+                    }
+                }
+                else{
+                    foundMachine.runBaseState = true;
+                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                }
+            });
+        }
     });
 };
 
@@ -1242,7 +1255,7 @@ function unlockMachines(machines,callback){
                 if(dbMachine != null) {
                     var takenThreads = 1;
                     if (dbMachine.takenThreads){
-                        takenThreads = dbMachine.takenThreads - machines.length;
+                        takenThreads = dbMachine.takenThreads - 1;
                     }
                     else{
                         takenThreads = 0;

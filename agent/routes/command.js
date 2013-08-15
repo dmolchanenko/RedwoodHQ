@@ -220,7 +220,7 @@ function cleanUpOldExecutions(){
     fs.readdir(baseExecutionDir,function(err,list){
         list.forEach(function(dir){
             getExecutionStatus(common.Config.AppServerIPHost,common.Config.AppServerPort,dir,function(result){
-                if(result.execution.status == "Ready To Run"){
+                if((result.execution)&&(result.execution.status == "Ready To Run")){
                     fs.readdir(baseExecutionDir+"/"+dir+"/launcher/",function(err,list){
                         if (list){
                             list.forEach(function(file,index){
