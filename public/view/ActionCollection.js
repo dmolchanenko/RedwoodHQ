@@ -98,7 +98,8 @@ Ext.define('Redwood.view.ActionCollection', {
     autoHeight: true,
     enableColumnMove: false,
     loadingData: false,
-    height: 700,
+    maxHeight: 900,
+    minHeight: 150,
     manageHeight: true,
 
     parentActionID: null,
@@ -876,7 +877,7 @@ Ext.define('Redwood.view.ActionCollection', {
             }
 
         });
-        this.plugins= ["bufferedrenderer",this.cellEditing];
+        this.plugins= [this.cellEditing];
 
         this.createAction = function(name,store){
             var foundAction = store.findRecord("name",name);
