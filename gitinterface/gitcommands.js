@@ -40,6 +40,27 @@ exports.commitsSinceDate = function(workdir,date,callback){
 
 };
 
+exports.lsFiles = function(workdir,query,callback){
+    var params = query;
+    params.unshift("ls-files");
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),params,{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+        console.log('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        console.log('lsFiles stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.filesNotPushed = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['diff','--name-only','origin/master', 'HEAD'],{cwd: workdir,timeout:300000});
     var cliData = "";

@@ -61,10 +61,7 @@ exports.startexecutionPost = function(req, res){
         return;
     }
 
-    var sourceCache = [];
-    cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/src"),sourceCache);
-
-    executions[executionID] = {ignoreStatus:ignoreStatus,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,sourceCache:sourceCache.reverse()};
+    executions[executionID] = {ignoreStatus:ignoreStatus,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
 
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
@@ -73,28 +70,31 @@ exports.startexecutionPost = function(req, res){
             res.json({error:"Unable to compile scripts."});
         }
         else{
-            updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
-            verifyMachineState(machines,function(err){
-                if(err){
-                    updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
+            cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
+                executions[executionID].sourceCache = sourceCache;
+                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
+                verifyMachineState(machines,function(err){
+                    if(err){
+                        updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
+                        res.contentType('json');
+                        res.json({error:err});
+                        return;
+                    }
                     res.contentType('json');
-                    res.json({error:err});
-                    return;
-                }
-                res.contentType('json');
-                res.json({success:true});
-                lockMachines(machines,executionID,function(){
+                    res.json({success:true});
+                    lockMachines(machines,executionID,function(){
 
-                    getGlobalVars(executionID,function(){
-                        testcases.forEach(function(testcase){
-                            executions[executionID].testcases[testcase.testcaseID] = testcase;
-                        });
-                        //see if there is a base state
-                        suiteBaseState(executionID,machines,function(){
-                            //magic happens here
-                            applyMultiThreading(executionID,function(){
-                                executeTestCases(executions[executionID].testcases,executionID);
-                            })
+                        getGlobalVars(executionID,function(){
+                            testcases.forEach(function(testcase){
+                                executions[executionID].testcases[testcase.testcaseID] = testcase;
+                            });
+                            //see if there is a base state
+                            suiteBaseState(executionID,machines,function(){
+                                //magic happens here
+                                applyMultiThreading(executionID,function(){
+                                    executeTestCases(executions[executionID].testcases,executionID);
+                                })
+                            });
                         });
                     });
                 });
@@ -244,7 +244,18 @@ function suiteBaseState(executionID,machines,callback){
 }
 
 
-function cacheSourceCode(rootPath,cacheArray){
+function cacheSourceCode(rootPath,callback){
+    git.lsFiles(rootPath,["*.groovy","*.java"],function(data){
+        var files = [];
+        if ((data != "")&&(data.indexOf("\n") != -1)){
+            files = data.split("\n",data.match(/\n/g).length);
+        }
+        callback(files);
+    })
+}
+
+
+function cacheSourceCode_old(rootPath,cacheArray){
     var walker = walk.walk(rootPath);
 
     var fileCount = 0;
@@ -841,28 +852,32 @@ function formatTrace(trace,sourceCache,callback){
         location = location.replace("[","");
         var count = 0;
         var found = false;
-        sourceCache.forEach(function(file){
-            if (found == true) return;
-            if ((file.name === fileName)&&(location.indexOf(file.packageName) == 0)){
-                found = true;
-                lineNumber = (parseInt(lineNumber,10)-1).toString();
-                newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;/src"+ file.dir+"/"+file.name +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
-            }
-            count++;
-            if (count == sourceCache.length){
-                if (found == false){
-                    if (line.indexOf("[") == 0){
-                        newTrace += line;
+        if ((fileName.indexOf(".groovy") != -1) ||(fileName.indexOf(".java") != -1)){
+            sourceCache.forEach(function(file){
+                if (found == true) return;
+                if (file.indexOf("/"+fileName) != -1){//&&(file.indexOf(location.replace(/\./g,"/")) != -1)){
+                //if ((file.indexOf("/"+fileName) != -1)&&(location.indexOf(file.replace()) == 0)){
+                    found = true;
+                    lineNumber = (parseInt(lineNumber,10)-1).toString();
+                    newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;"+ file +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
+                    //newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;/src"+ file.dir+"/"+file.name +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
+                }
+                count++;
+                if (count == sourceCache.length){
+                    if (found == false){
+                        if (line.indexOf("[") == 0){
+                            newTrace += line;
+                        }
+                        else{
+                            newTrace += ",\r\n"+line;
+                        }
                     }
-                    else{
-                        newTrace += ",\r\n"+line;
+                    if (traceCount == traces.length){
+                        callback(newTrace);
                     }
                 }
-                if (traceCount == traces.length){
-                    callback(newTrace);
-                }
-            }
-        });
+            });
+        }
     });
 }
 
