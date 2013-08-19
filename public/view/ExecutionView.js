@@ -249,6 +249,7 @@ Ext.define('Redwood.view.ExecutionView', {
         me.machinesListener = function(options,eOpts){
             if (options.create){
                 options.create.forEach(function(r){
+                    r.set("threads",1);
                     linkedMachineStore.add(r);
                 });
             }
