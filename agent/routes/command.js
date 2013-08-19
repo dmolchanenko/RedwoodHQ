@@ -104,7 +104,17 @@ function startLauncher(executionID,threadID,callback){
     var libPath = baseExecutionDir+"/"+executionID+"/lib/";
     var launcherPath  = baseExecutionDir+"/"+executionID+"/launcher/";
     var portNumber = 3002 + threadID;
-    launcherProc[executionID+portNumber.toString()] = spawn(path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe",["-cp",libPath+'*;'+launcherPath+'*',"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+    var javaPath = "";
+    var classPath = "";
+    if(require('os').platform() == "linux"){
+        javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+        classPath = libPath+'*:'+launcherPath+'*';
+    }
+    else{
+        javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe"
+        classPath = libPath+'*;'+launcherPath+'*';
+    }
+    launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
     fs.writeFileSync(launcherPath+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
     launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
         console.log("launcher error:"+data.toString());
@@ -147,8 +157,8 @@ function startLauncher(executionID,threadID,callback){
             });
         }
         else{
-            if (cmdCache.indexOf("\r\n") != -1){
-                if (cmdCache.length == 2) {
+            if (cmdCache.indexOf("\n") != -1){
+                if (cmdCache.length <= 2) {
                     cmdCache = "";
                     return;
                 }

@@ -99,7 +99,7 @@ Ext.define('Redwood.view.ActionCollection', {
     enableColumnMove: false,
     loadingData: false,
     maxHeight: 900,
-    minHeight: 150,
+    minHeight: 25,
     manageHeight: true,
 
     parentActionID: null,
