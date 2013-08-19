@@ -60,6 +60,18 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 width: 100
             },
             {
+                header: 'Run Time',
+                dataIndex: 'runtime',
+                width: 75,
+                renderer: function(value,meta,record){
+                    if (value == "") return "";
+                    var hours = Math.floor(parseInt(value,10) / 36e5),
+                        mins = Math.floor((parseInt(value,10) % 36e5) / 6e4),
+                        secs = Math.floor((parseInt(value,10) % 6e4) / 1000);
+                    return hours+"h:"+mins+"m:"+secs+"s";
+                }
+            },
+            {
                 header: 'Lock',
                 dataIndex: 'locked',
                 width: 35,

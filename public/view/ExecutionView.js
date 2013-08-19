@@ -483,56 +483,31 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
 
-        me.updateTotals = function(totals){
-            if(totals.passed){
-                var passed =  parseInt(me.down("#totalPassed").getValue());
-                passed = passed + totals.passed;
-                me.down("#totalPassed").setRawValue(passed);
-                me.chartStore.findRecord("name","Passed").set("data",passed);
-            }
-
-            if (totals.failed){
-                var failed =  parseInt(me.down("#totalFailed").getValue());
-                failed = failed + totals.failed;
-                me.down("#totalFailed").setRawValue(failed);
-                me.chartStore.findRecord("name","Failed").set("data",failed);
-            }
-
-            if (totals.notRun){
-                var notRun =  parseInt(me.down("#totalNotRun").getValue());
-                notRun = notRun + totals.notRun;
-                me.down("#totalNotRun").setRawValue(notRun);
-                me.chartStore.findRecord("name","Not Run").set("data",notRun);
-            }
-
-            if (totals.total){
-                var total =  parseInt(me.down("#totalTestCases").getValue());
-                total = total + totals.total;
-                me.down("#totalTestCases").setRawValue(total);
-            }
-
+        me.updateTotals = function(execution){
+            me.down("#totalPassed").setRawValue(execution.passed);
+            me.down("#totalFailed").setRawValue(execution.failed);
+            me.down("#totalNotRun").setRawValue(execution.notRun);
+            me.down("#totalTestCases").setRawValue(execution.total);
+            me.down("#runtime").setRawValue(execution.runtime);
 
         };
 
-        me.initialTotals = function(store){
-            //var lastScrollPos = null;
-            //if (me.getEl()){
-            //    lastScrollPos = me.getEl().dom.children[0].scrollTop;
-            //}
-            var passed = store.query("result","Passed").length;
-            var failed = store.query("result","Failed").length;
-            var notRun = store.query("result",/^((?!.*(Passed|Failed)).*)$/).length;
-            me.down("#totalPassed").setRawValue(passed);
-            me.down("#totalFailed").setRawValue(failed);
-            me.down("#totalNotRun").setRawValue(notRun);
-            me.down("#totalTestCases").setRawValue(notRun+failed+passed);
+        me.initialTotals = function(){
+            if (me.dataRecord){
+                me.down("#totalPassed").setRawValue(me.dataRecord.get("passed"));
+                me.down("#totalFailed").setRawValue(me.dataRecord.get("failed"));
+                me.down("#totalNotRun").setRawValue(me.dataRecord.get("notRun"));
+                me.down("#totalTestCases").setRawValue(me.dataRecord.get("total"));
+                me.down("#runtime").setRawValue(me.dataRecord.get("runtime"));
+            }
+            else{
+                me.down("#totalPassed").setRawValue(0);
+                me.down("#totalFailed").setRawValue(0);
+                me.down("#totalNotRun").setRawValue(0);
+                me.down("#totalTestCases").setRawValue(0);
+                me.down("#runtime").setRawValue(0);
+            }
 
-            me.chartStore.findRecord("name","Passed").set("data",passed);
-            me.chartStore.findRecord("name","Failed").set("data",failed);
-            me.chartStore.findRecord("name","Not Run").set("data",notRun);
-            //if (lastScrollPos != null) {
-            //    me.getEl().dom.children[0].scrollTop = lastScrollPos;
-            //}
         };
 
         executionTCStore.on("datachanged",function(store){
@@ -809,9 +784,11 @@ Ext.define('Redwood.view.ExecutionView', {
                     me.down("#status").setValue(status);
                     me.getEl().dom.children[0].scrollTop = lastScrollPos;
                     if (status == "Running"){
-                        me.up("executionsEditor").down("#runExecution").setDisabled(true);
-                        me.up("executionsEditor").down("#stopExecution").setDisabled(false);
-                        me.setTitle(me.title+" [Running]")
+                        if (me.title.indexOf("[Running]") == -1){
+                            me.up("executionsEditor").down("#runExecution").setDisabled(true);
+                            me.up("executionsEditor").down("#stopExecution").setDisabled(false);
+                            me.setTitle(me.title+" [Running]")
+                        }
                     }
                     else{
                         me.up("executionsEditor").down("#runExecution").setDisabled(false);
@@ -918,7 +895,8 @@ Ext.define('Redwood.view.ExecutionView', {
                                     allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                 });
                                 me.down("#executionTestcases").store.add(allTCs);
-                                me.initialTotals(executionTCStore);
+                                me.down("#totalNotRun").setRawValue(allTCs.length);
+                                me.down("#totalTestCases").setRawValue(allTCs.length);
                             }
                         }
                     },
@@ -1023,7 +1001,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 layout:"hbox",
                 defaults: {
                     margin: '0 10 0 5',
-                    labelWidth: "60px",
+                    labelWidth: "80px",
                     labelStyle: "font-weight: bold"
                 },
                 items:[
@@ -1031,7 +1009,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         xtype:"displayfield",
                         fieldLabel: "Total",
                         itemId:"totalTestCases",
-                        value: "999",
+                        value: "0",
                         renderer: function(value,meta){
                             return "<p style='font-weight:bold;color:blue'>"+value+"</p>";
                         }
@@ -1041,7 +1019,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         xtype:"displayfield",
                         fieldLabel: "Passed",
                         itemId:"totalPassed",
-                        value: "999",
+                        value: "0",
                         renderer: function(value,meta){
                             if (value == "0"){
                                 return value
@@ -1055,7 +1033,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         xtype:"displayfield",
                         fieldLabel: "Failed",
                         itemId:"totalFailed",
-                        value: "999",
+                        value: "0",
                         renderer: function(value,meta){
                             if (value == "0"){
                                 return value;
@@ -1069,7 +1047,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         xtype:"displayfield",
                         fieldLabel: "Not Run",
                         itemId:"totalNotRun",
-                        value: "999",
+                        value: "0",
                         renderer: function(value,meta){
                             if (value == "0"){
                                 return value;
@@ -1077,6 +1055,19 @@ Ext.define('Redwood.view.ExecutionView', {
                             else{
                                 return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
                             }
+                        }
+                    },
+                    {
+                        xtype:"displayfield",
+                        fieldLabel: "Run Time",
+                        itemId:"runtime",
+                        value: "0",
+                        renderer: function(value,meta){
+                            var hours = Math.floor(parseInt(value,10) / 36e5),
+                                mins = Math.floor((parseInt(value,10) % 36e5) / 6e4),
+                                secs = Math.floor((parseInt(value,10) % 6e4) / 1000);
+
+                            return "<p style='font-weight:bold;color:#blue'>"+hours+"h:"+mins+"m:"+secs+"s"+"</p>";
                         }
                     }
                 ]
@@ -1203,7 +1194,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#executionTestcases").store.add(allTCs);
             }
             me.loadingData = false;
-            me.initialTotals(me.down("#executionTestcases").store);
+            me.initialTotals();
             this.down("#name").focus();
 
             me.on("beforecontainermousedown",function(){

@@ -51,12 +51,47 @@ exports.executionsPost = function(req, res){
     //delete data._id;
     data.project = req.cookies.project;
     CreateExecutions(app.getDB(),data,function(returnData){
-        res.contentType('json');
-        res.json({
-            success: true,
-            executions: returnData
+        exports.updateExecutionTotals(returnData._id,function(){
+            res.contentType('json');
+            res.json({
+                success: true,
+                executions: returnData
+            });
+            realtime.emitMessage("AddExecutions",data);
         });
-        realtime.emitMessage("AddExecutions",data);
+    });
+};
+
+exports.updateExecutionTotals = function(executionID,callback){
+    var db = require('../common').getDB();
+    db.collection('executiontestcases', function(err, collection) {
+        collection.aggregate([{$match:{executionID : executionID}},{$group:{_id:null,total:{$sum:"$runtime"}}}],function(err,result){
+            var runtime = result[0].total;
+            collection.aggregate([{$match:{executionID : executionID}},{$group:{_id:{result:"$result"},count:{$sum:1}}}],function(err,result){
+                var failed = 0;
+                var passed = 0;
+                var total = 0;
+                result.forEach(function(result){
+                    total = total + result.count;
+                    if(result._id.result == "Failed") failed = result.count;
+                    if(result._id.result == "Passed") passed = result.count;
+                });
+
+                var notRun = total - (failed + passed);
+
+                db.collection('executions', function(err, collection) {
+                    collection.findAndModify({_id : executionID},{},{$set:{runtime:runtime,failed:failed,passed:passed,total:total,notRun:notRun}},{safe:true,new:true,upsert:true},function(err,data){
+                        if(data != null){
+                            realtime.emitMessage("UpdateExecutions",data);
+                        }
+                        if (callback){
+                            callback(err);
+                        }
+                    });
+                });
+
+            });
+        });
     });
 };
 

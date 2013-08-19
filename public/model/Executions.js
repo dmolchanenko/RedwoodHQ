@@ -52,6 +52,26 @@ Ext.define('Redwood.model.Executions', {
             type: 'date'
         },
         {
+            name: 'runtime',
+            type: 'int'
+        },
+        {
+            name: 'passed',
+            type: 'int'
+        },
+        {
+            name: 'failed',
+            type: 'int'
+        },
+        {
+            name: 'total',
+            type: 'int'
+        },
+        {
+            name: 'notRun',
+            type: 'int'
+        },
+        {
             name: '_id',
             type: 'string'
         }

@@ -1,6 +1,7 @@
 var executiontestcases = require('../routes/executiontestcases');
 var http = require("http");
 var testcases = require('../routes/testcases');
+var executionsRoute = require('../routes/executions');
 var executions = {};
 var common = require('../common');
 var util = require('util');
@@ -22,6 +23,7 @@ exports.stopexecutionPost = function(req, res){
     }
 
     updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},function(){
+        executionsRoute.updateExecutionTotals(req.body.executionID);
         res.contentType('json');
         res.json({success:true});
         delete executions[req.body.executionID];
@@ -255,46 +257,6 @@ function cacheSourceCode(rootPath,callback){
 }
 
 
-function cacheSourceCode_old(rootPath,cacheArray){
-    var walker = walk.walk(rootPath);
-
-    var fileCount = 0;
-    walker.on("file", function (root, fileStats, next) {
-        if ((fileStats.name.indexOf(".groovy") != -1) || (fileStats.name.indexOf(".java")!= -1)){
-            var stream = fs.ReadStream(root+"/"+fileStats.name);
-            stream.setEncoding('utf8');
-            var cache = "";
-            stream.on('data', function(data) {
-                cache += data;
-                if (cache.indexOf("package ") != -1){
-                    var packageIndex = cache.indexOf("package ")+8;
-                    var packageName = "";
-                    if (fileStats.name.indexOf(".java") != -1){
-                        packageName = cache.substring(packageIndex,cache.indexOf(";",packageIndex));
-                    }
-                    else{
-                        packageName = cache.substring(packageIndex,cache.indexOf("\n",packageIndex));
-                    }
-                    packageName = packageName.replace(";","");
-                    packageName = packageName.replace("\r","");
-                    packageName = packageName.trim();
-                    cacheArray.push({name:fileStats.name,dir:root.replace(rootPath,""),packageName:packageName});
-                    stream.destroy();
-                    next();
-                }
-            });
-            stream.on("end", function(){
-                cacheArray.push({name:fileStats.name,dir:root.replace(rootPath,""),packageName:""});
-                next();
-            })
-        }
-        else{
-            fileCount++;
-        }
-    });
-}
-
-
 function getGlobalVars(executionID,callback){
     db.collection('variables', function(err, collection) {
         collection.find({taskVar:false}, {}, function(err, cursor) {
@@ -340,6 +302,7 @@ function executeTestCases(testcases,executionID){
             if(executions[executionID].baseStateFailed === true){
                 unlockMachines(machines);
                 updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
+                executionsRoute.updateExecutionTotals(executionID);
                 cleanUpMachines(executions[executionID].machines,executionID,function(){
                     delete executions[executionID];
                 });
@@ -553,6 +516,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.threadID = foundMachine.threadID;
 
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
+                executionsRoute.updateExecutionTotals(executionID);
                 sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
                 return;
             }
@@ -593,6 +557,7 @@ function startTCExecution(id,variables,executionID,callback){
 
                 agentInstructions.threadID = foundMachine.threadID;
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
+                executionsRoute.updateExecutionTotals(executionID);
 
                 if (foundMachine.runBaseState === true){
                     sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
@@ -786,21 +751,24 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     if((testcase.result.result != "Passed") && (testcase.result.result != "Failed")){
         status = "Not Run";
     }
-    var updateExecution = function(){updateExecutionTestCase({_id:testcaseId},{$set:{"status":status,resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});}
+    var updateTC = function(){
+        updateExecutionTestCase({_id:testcaseId},{$set:{"status":status,resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
+        executionsRoute.updateExecutionTotals(executionID);
+    };
     //update machine base state result
     if(execution.cachedTCs){
         if (testcase.testcase.machines.length > 0){
             updateExecutionMachine(executionID,testcase.testcase.machines[0]._id,testcase.result.result,testcase.result._id.__id,function(){
-                updateExecution();
+                updateTC();
             });
         }
         else{
-            updateExecution();
+            updateTC();
         }
         //updateExecutionMachine({testcase.testcase.machines[0]._id)},{$set:{result:testcase.result.result,resultID:testcase.result._id.__id}});
     }
     else{
-        updateExecution();
+        updateTC();
     }
     var count = 0;
     var retry = false;

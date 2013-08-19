@@ -1,4 +1,5 @@
 var realtime = require("./realtime");
+var executions = require("./executions");
 
 exports.executiontestcasesPut = function(req, res){
     var app =  require('../common');
@@ -64,9 +65,11 @@ exports.executiontestcasesPost = function(req, res){
         testcase.project = req.cookies.project;
     });
     CreateExecutionTestCases(app.getDB(),data,function(){
-        res.contentType('json');
-        res.json({
-            success: true
+        executions.updateExecutionTotals(data[0].executionID,function(){
+            res.contentType('json');
+            res.json({
+                success: true
+            });
         });
     });
 };
@@ -159,7 +162,7 @@ exports.executionsTestSetUpdatePost = function(req, res){
                         var id = require("../common").uniqueId();
                         CreateExecutionTestCases(db,[{_id:id,executionID:executionID,testcaseID:toAddTC._id,status:"Not Run"}])
                     });
-
+                    executions.updateExecutionTotals(executionID);
                 })
             });
         });
