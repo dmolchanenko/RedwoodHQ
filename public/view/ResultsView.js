@@ -23,6 +23,8 @@ Ext.define('Redwood.view.ResultsView', {
 
     refreshResult: function(result){
         this.resultsStore.setRootNode({"text":".","children":result.children});
+        this.down("#status").setValue(result.status);
+        this.down("#result").setValue(result.result);
     },
 
     initComponent: function () {
@@ -276,11 +278,13 @@ Ext.define('Redwood.view.ResultsView', {
                     {
                         fieldLabel: 'Status',
                         labelStyle: "font-weight: bold",
+                        itemId:"status",
                         value:me.dataRecord.testcase.status,
                         anchor:'90%',
                         renderer: function (value) {
                             if(value == "Running"){
-                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;)'>" + value +"</a>";
+                                //return "<a style= 'color:font-weight:bold;blue;' href='javascript:vncToMachine(&quot;"+ record.get("host") +"&quot;)'>" + value +"</a>";
+                                return "<p style='font-weight:bold;color:blue'>"+value+"</p>"
                             }
                             else if (value == "Finished"){
                                 return "<p style='font-weight:bold;color:green'>"+value+"</p>";
@@ -328,7 +332,7 @@ Ext.define('Redwood.view.ResultsView', {
                         labelStyle: "font-weight: bold",
                         hidden: true,
                         itemId:"trace",
-                        maxWidth: 500,
+                        //maxWidth: 500,
                         minWidth:300,
                         value:me.dataRecord.testcase.trace,
                         anchor:'90%'

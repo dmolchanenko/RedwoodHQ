@@ -635,9 +635,9 @@ exports.actionresultPost = function(req, res){
     testcase.currentAction.result.status = "Finished";
     //testcase.result.status = "Finished";
     testcase.currentAction.result.result = req.body.result;
-    if (testcase.result.result != "Failed"){
-        testcase.result.result = req.body.result;
-    }
+    //if (testcase.result.result != "Failed"){
+    //    testcase.result.result = req.body.result;
+    //}
     if (req.body.error){
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
@@ -659,6 +659,8 @@ exports.actionresultPost = function(req, res){
     var actionFlow = testcase.currentAction.dbAction.executionflow;
     if (req.body.result == "Failed"){
         if (actionFlow == "Record Error Stop Test Case"){
+            testcase.result.status = "Finished";
+            testcase.result.result = "Failed";
             markFinishedResults(testcase.result.children,execution.sourceCache,function(){
                 updateResult(testcase.result);
             });
@@ -666,13 +668,14 @@ exports.actionresultPost = function(req, res){
             return;
         }
         else if (actionFlow == "Record Error Continue Test Case"){
+            testcase.result.result = "Failed";
             updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{result:"Failed"}});
         }
         else{
-            testcase.currentAction.result.result = "Passed";
+            testcase.currentAction.result.result = "";
             testcase.currentAction.result.trace = "";
             testcase.currentAction.result.error = "";
-            testcase.result.result = "Passed";
+            testcase.result.result = "";
             testcase.result.error = "";
         }
     }
@@ -685,6 +688,9 @@ exports.actionresultPost = function(req, res){
     for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
     findNextAction(testcase.testcase.actions,variables,function(action){
         if(action == null){
+            testcase.result.status = "Finished";
+            if(testcase.result.result != "Failed") testcase.result.result = "Passed";
+            updateResult(testcase.result);
             finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
             return;
         }
