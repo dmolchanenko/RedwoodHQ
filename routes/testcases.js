@@ -6,6 +6,7 @@ exports.testcasesPut = function(req, res){
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
+    data.user =  req.cookies.username;
     UpdateTestCases(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateTestCases",data);
         res.contentType('json');
@@ -74,6 +75,14 @@ function UpdateTestCases(db,data,callback){
         collection.save(data,{safe:true},function(err){
             if (err) console.warn(err.message);
             else callback(err);
+            db.collection('testcaseshistory', function(err, collection) {
+                data.testcaseID = data._id;
+                delete data._id;
+                data.date = new Date();
+                collection.save(data,{safe:true},function(err){
+
+                });
+            });
         });
     });
 
