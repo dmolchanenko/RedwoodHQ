@@ -6,6 +6,7 @@ exports.executionsPut = function(req, res){
     var data = req.body;
     //data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
+    data.user =  req.cookies.username;
     UpdateExecutions(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateExecutions",data);
         res.contentType('json');
@@ -50,6 +51,7 @@ exports.executionsPost = function(req, res){
     var data = req.body;
     //delete data._id;
     data.project = req.cookies.project;
+    data.user =  req.cookies.username;
     CreateExecutions(app.getDB(),data,function(returnData){
         exports.updateExecutionTotals(returnData._id,function(){
             res.contentType('json');

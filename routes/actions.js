@@ -6,6 +6,7 @@ exports.actionsPut = function(req, res){
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
     data.project = req.cookies.project;
+    data.user =  req.cookies.username;
     UpdateActions(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -51,6 +52,7 @@ exports.actionsPost = function(req, res){
     var data = req.body;
     delete data._id;
     data.project = req.cookies.project;
+    data.user =  req.cookies.username;
     CreateActions(app.getDB(),data,function(returnData){
         //realtime.emitMessage("AddActions",data);
         res.contentType('json');
@@ -72,11 +74,17 @@ function CreateActions(db,data,callback){
 
 function UpdateActions(db,data,callback){
     db.collection('actions', function(err, collection) {
-
-        //collection.update({_id:data._id},data,{safe:true},function(err){
         collection.save(data,{safe:true},function(err){
             if (err) console.warn(err.message);
             else callback(err);
+            db.collection('actionshistory', function(err, collection) {
+                data.actionID = data._id;
+                delete data._id;
+                data.date = new Date();
+                collection.save(data,{safe:true},function(err){
+
+                });
+            });
         });
     });
 

@@ -52,6 +52,7 @@ exports.testcasesPost = function(req, res){
     var data = req.body;
     delete data._id;
     data.project = req.cookies.project;
+    data.user =  req.cookies.username;
     CreateTestCases(app.getDB(),data,function(returnData){
         res.contentType('json');
         res.json({
