@@ -633,11 +633,7 @@ exports.actionresultPost = function(req, res){
     }
 
     testcase.currentAction.result.status = "Finished";
-    //testcase.result.status = "Finished";
     testcase.currentAction.result.result = req.body.result;
-    //if (testcase.result.result != "Failed"){
-    //    testcase.result.result = req.body.result;
-    //}
     if (req.body.error){
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
@@ -729,12 +725,12 @@ exports.actionresultPost = function(req, res){
             agentBaseState(execution.project+"/"+execution.username,req.body.executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
 
                 if (err){
-                    result.error = err;
-                    result.status = "Finished";
-                    result.result = "Failed";
-                    updateResult(result);
-                    if (executions[executionID]){
-                        executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
+                    testcase.result.error = err;
+                    testcase.result.status = "Finished";
+                    testcase.result.result = "Failed";
+                    updateResult(testcase.result);
+                    if (execution){
+                        execution.currentTestCases[testcase.dbTestCase._id].result = "Failed";
                         finishTestCaseExecution(execution,req.body.executionID,execution.testcases[id]._id,execution.currentTestCases[testcase.dbTestCase._id]);
                     }
                 }
