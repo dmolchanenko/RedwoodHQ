@@ -702,7 +702,8 @@ Ext.define('Redwood.view.ActionCollection', {
                 }
 
                 e.record.get("paramvalue").forEach(function(value){
-                    data.push({text:Ext.util.Format.htmlEncode(value),paramvalue:value});
+                    data.push({value:value});
+                    //data.push({text:Ext.util.Format.htmlEncode(value),paramvalue:value});
                 });
 
                 e.record.get("possiblevalues").forEach(function(value){
@@ -711,28 +712,33 @@ Ext.define('Redwood.view.ActionCollection', {
                     }
                 });
 
+                var valuesStore = new Ext.data.Store({
+                    fields: [
+                        {type: 'string', name: 'value'}
+                        //{type: 'string', name: 'text'}
+                    ],
+                    data: data
+                });
+
                 e.column.setEditor({
                     xtype:"combofieldbox",
-                    displayField:"text",
+                    displayField:"value",
                     overflowY:"auto",
-                    descField:"text",
+                    descField:"value",
                     height:24,
                     labelWidth: 100,
                     forceSelection:false,
                     createNewOnEnter:true,
                     encodeSubmitValue:true,
                     autoSelect: true,
-                    store:Ext.create('Ext.data.Store', {
-                        fields: [
-                            {type: 'auto', name: 'paramvalue'},
-                            {type: 'auto', name: 'text'}
-                        ],
-                        data: data
-                    }),
-                    valueField:"paramvalue",
+                    store: valuesStore,
+                    valueField:"value",
                     queryMode: 'local',
                     removeOnDblClick:true,
                     listeners:{
+                        validitychange: function(field,isValid){
+                            if(field.editor) field.editor.onFieldChange();
+                        },
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
                                 me.navigateToNextParam = true;
@@ -740,6 +746,7 @@ Ext.define('Redwood.view.ActionCollection', {
                         }
                     }
                 });
+
                 return;
             }
             else{
@@ -816,6 +823,7 @@ Ext.define('Redwood.view.ActionCollection', {
         });
 
         this.cellEditing.on("beforeedit",function(editor,e){
+            /*
             if (e.value instanceof Array){
                 var newValue = [];
                 e.value.forEach(function(value){
@@ -823,6 +831,7 @@ Ext.define('Redwood.view.ActionCollection', {
                 });
                 e.value = newValue;
             }
+            */
         });
 
         //reselect whole action after edit
