@@ -64,13 +64,13 @@ exports.Post = function(req, res){
     else if (command.command == "start launcher"){
         console.log("starting launcher: ThreadID: "+command.threadID);
         startLauncher(command.executionID,command.threadID,function(err){
-            if (err == null){
-                res.send('{"error":null,"success":false}');
-            }
-            else{
-                res.send(JSON.stringify({"error":err,"success":false}));
-            }
+            res.send(JSON.stringify({"error":err}));
         });
+    }
+    else if (command.command == "files loaded"){
+        fs.exists(baseExecutionDir+"/"+command.executionID+"/launcher/RedwoodHQLauncher.jar",function(exists){
+            res.send(JSON.stringify({"loaded":exists}));
+        })
     }
 };
 
@@ -230,8 +230,8 @@ function cleanUpOldExecutions(){
     fs.readdir(baseExecutionDir,function(err,list){
         list.forEach(function(dir){
             getExecutionStatus(common.Config.AppServerIPHost,common.Config.AppServerPort,dir,function(result){
-                if((result.execution)&&(result.execution.status == "Ready To Run")){
-                    fs.readdir(baseExecutionDir+"/"+dir+"/launcher/",function(err,list){
+                if((result.execution == null) || (result.execution.status == "Ready To Run")){
+                    fs.readdir(baseExecutionDir+"/"+dir,function(err,list){
                         if (list){
                             list.forEach(function(file,index){
                                 try{

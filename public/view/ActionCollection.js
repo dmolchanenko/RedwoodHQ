@@ -95,12 +95,13 @@ Ext.define('Redwood.view.ActionCollection', {
     rootVisible: false,
     multiSelect: true,
     singleExpand: false,
-    autoHeight: true,
+    //autoHeight: true,
     enableColumnMove: false,
     loadingData: false,
-    maxHeight: 900,
-    minHeight: 25,
-    manageHeight: true,
+    //maxHeight: 900,
+    //minHeight: 25,
+    height: 500,
+    //manageHeight: true,
 
     parentActionID: null,
     parentActionParamsStore: null,
@@ -886,7 +887,7 @@ Ext.define('Redwood.view.ActionCollection', {
             }
 
         });
-        this.plugins= [this.cellEditing];
+        this.plugins= ["bufferedrenderer",this.cellEditing];
 
         this.createAction = function(name,store){
             var foundAction = store.findRecord("name",name);
@@ -1020,6 +1021,9 @@ Ext.define('Redwood.view.ActionCollection', {
                 me.store.getRootNode().appendChild(newAction);
                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
             });
+            me.getView().refresh();
+            //me.store.getRootNode().collapseChildren();
+            //me.store.getRootNode().expandChildren();
             me.loadingData = false;
 
 

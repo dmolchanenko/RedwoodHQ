@@ -163,6 +163,7 @@ function applyMultiThreading(executionID,callback){
                 machine.threadID = startThread;
                 //if more than one thread run base state if not let it go
                 if (machine.threads > 1){
+                    machine.multiThreaded = true;
                     agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,machine.host,machine.port,machine.threadID,function(err){
                         machine.runBaseState = true;
 
@@ -559,10 +560,8 @@ function startTCExecution(id,variables,executionID,callback){
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
                 executionsRoute.updateExecutionTotals(executionID);
 
-                if (foundMachine.runBaseState === true){
-                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
-                }
-                else{
+
+                var runBaseState = function(){
                     agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
 
                         if (err){
@@ -580,6 +579,28 @@ function startTCExecution(id,variables,executionID,callback){
                             sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
                         }
                     });
+                };
+
+                if (foundMachine.runBaseState === true){
+                    if (foundMachine.multiThreaded  == true){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                    }
+                    else{
+                        //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
+                        //could have changed while test case was running
+                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},function(message){
+                            if (message.loaded == true){
+                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                            }
+                            else{
+                                runBaseState();
+                            }
+                        });
+                    }
+
+                }
+                else{
+                    runBaseState();
                 }
             });
         })
@@ -718,10 +739,8 @@ exports.actionresultPost = function(req, res){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
         });
 
-        if (foundMachine.runBaseState === true){
-            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
-        }
-        else{
+
+        var runBaseState = function(){
             agentBaseState(execution.project+"/"+execution.username,req.body.executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
 
                 if (err){
@@ -739,7 +758,30 @@ exports.actionresultPost = function(req, res){
                     sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
                 }
             });
+        };
+
+        if (foundMachine.runBaseState === true){
+            if (foundMachine.multiThreaded  == true){
+                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+            }
+            else{
+                //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
+                //could have changed while test case was running
+                sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:req.body.executionID},function(message){
+                    if (message.loaded == true){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                    }
+                    else{
+                        runBaseState();
+                    }
+                });
+            }
+
         }
+        else{
+            runBaseState();
+        }
+
     });
 };
 
@@ -938,9 +980,9 @@ function markFinishedResults(results,sourceCache,callback){
 
 
 function agentBaseState(project,executionID,agentHost,port,threadID,callback){
-    sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},function(err){
-        if (err){
-            callback(err);
+    sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},function(message){
+        if (message.error){
+            callback(message.error);
             return;
         }
         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(){
@@ -948,9 +990,9 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
                     syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"executionfiles/"+executionID+"/lib",function(){
                         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
-                            sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},function(err){
-                                if (err){
-                                    callback(err);
+                            sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},function(message){
+                                if (message.error){
+                                    callback(message.error);
                                 }
                                 else{
                                     callback();
@@ -1107,6 +1149,9 @@ function sendAgentCommand(agentHost,port,command,callback){
 
             if((msg )&&(msg.error != null)){
                 if (callback) callback(msg.error);
+            }
+            else if (msg){
+                if(callback) callback(msg);
             }
             else{
                 if(callback) callback();
