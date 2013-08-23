@@ -956,6 +956,7 @@ Ext.define('Redwood.view.ActionCollection', {
             if((collection === "")||(collection.length == 0)) {
                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
                 me.loadingData = false;
+                me.getView().refresh();
                 return;
             }
             var actionStore = Ext.getStore("Actions");
