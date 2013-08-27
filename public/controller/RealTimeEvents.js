@@ -224,15 +224,30 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,set);
         });
 
+        var UpdateExecutionsCache = {};
         Ext.socket.on('UpdateExecutions',function(execution){
-            var store = Ext.data.StoreManager.lookup("Executions");
-            me.updateStore(store,execution);
-            var controller = Redwood.app.getController("Executions");
-            var foundTab = controller.tabPanel.down("#"+execution._id);
+            var updateExecution = function(execution){
+                var store = Ext.data.StoreManager.lookup("Executions");
+                me.updateStore(store,execution);
+                var controller = Redwood.app.getController("Executions");
+                var foundTab = controller.tabPanel.down("#"+execution._id);
 
-            if (foundTab){
-                foundTab.updateTotals(execution);
+                if (foundTab){
+                    foundTab.updateTotals(execution);
+                }
+            };
+
+            if(!UpdateExecutionsCache[execution._id]){
+                UpdateExecutionsCache[execution._id] = execution;
+                setTimeout(function(){
+                    updateExecution(UpdateExecutionsCache[execution._id]);
+                    delete UpdateExecutionsCache[execution._id];
+                },3000)
             }
+            else{
+                UpdateExecutionsCache[execution._id] = execution;
+            }
+
         });
 
         Ext.socket.on('AddExecutions',function(testCase){
@@ -268,31 +283,46 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             }
         });
 
+        var UpdateExecutionTestCaseCache = {};
+
         Ext.socket.on('UpdateExecutionTestCase',function(testCase){
-            var foundTab = null;
-            var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
-            if (store == null) return;
-            var controller = Redwood.app.getController("Executions");
-            var record = null;
+            var update = function(testCase){
+                var foundTab = null;
+                var store = Ext.data.StoreManager.lookup("ExecutionTCs"+testCase.executionID);
+                if (store == null) return;
+                var controller = Redwood.app.getController("Executions");
+                var record = null;
 
-            if (testCase.baseState == true){
-                foundTab = controller.tabPanel.down("#"+testCase.executionID);
-                if (foundTab){
-                    record = foundTab.down("#executionMachines").store.findRecord("baseStateTCID",testCase._id);
-                    record.set("result",testCase.result);
-                    record.set("resultID",testCase.resultID);
-                    //foundTab.refreshResult(result);
-                }
-            }
-            else{
-                record = store.findRecord("_id",testCase._id);
-
-                for(var propt in testCase){
-                    if ((propt != "_id")&&(propt != "name")){
-                        record.set(propt.toString(),Ext.util.Format.htmlEncode(testCase[propt]));
+                if (testCase.baseState == true){
+                    foundTab = controller.tabPanel.down("#"+testCase.executionID);
+                    if (foundTab){
+                        record = foundTab.down("#executionMachines").store.findRecord("baseStateTCID",testCase._id);
+                        record.set("result",testCase.result);
+                        record.set("resultID",testCase.resultID);
+                        //foundTab.refreshResult(result);
                     }
                 }
-                store.fireEvent("beforesync",{update:[record]});
+                else{
+                    record = store.findRecord("_id",testCase._id);
+
+                    for(var propt in testCase){
+                        if ((propt != "_id")&&(propt != "name")){
+                            record.set(propt.toString(),Ext.util.Format.htmlEncode(testCase[propt]));
+                        }
+                    }
+                    store.fireEvent("beforesync",{update:[record]});
+                }
+            };
+
+            if(!UpdateExecutionTestCaseCache[testCase._id]){
+                UpdateExecutionTestCaseCache[testCase._id] = testCase;
+                setTimeout(function(){
+                    update(UpdateExecutionTestCaseCache[testCase._id]);
+                    delete UpdateExecutionTestCaseCache[testCase._id];
+                },3000)
+            }
+            else{
+                UpdateExecutionTestCaseCache[testCase._id] = testCase;
             }
         });
 

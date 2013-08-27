@@ -8,6 +8,7 @@ var spawn = require('child_process').spawn;
 var launcherConn = {};
 var common = require('../common');
 var currentAction = null;
+var basePort = 4445;
 var baseExecutionDir = path.resolve(__dirname,"../executionfiles");
 
 exports.Post = function(req, res){
@@ -42,7 +43,7 @@ exports.Post = function(req, res){
         if (Object.keys(launcherConn).length != 0){
             for(var propt in launcherConn){
                 if(propt.indexOf(command.executionID) != -1){
-                    stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)) - 3002,function(){
+                    stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)) - basePort,function(){
                         count++;
                         if(count == Object.keys(launcherConn).length){
                             cleanUpDirs()
@@ -76,7 +77,7 @@ exports.Post = function(req, res){
 
 
 function startLauncher_debug(callback){
-            launcherConn = net.connect(3002, function(){
+            launcherConn = net.connect(basePort, function(){
                 callback(null);
                 var cache = "";
                 launcherConn.on('data', function(data) {
@@ -103,7 +104,7 @@ function startLauncher_debug(callback){
 function startLauncher(executionID,threadID,callback){
     var libPath = baseExecutionDir+"/"+executionID+"/lib/";
     var launcherPath  = baseExecutionDir+"/"+executionID+"/launcher/";
-    var portNumber = 3002 + threadID;
+    var portNumber = basePort + threadID;
     var javaPath = "";
     var classPath = "";
     if(require('os').platform() == "linux"){
@@ -206,7 +207,7 @@ function stopLauncher(executionID,threadID,callback){
     //if there is runaway launcher try to kill it
     else{
         var conn;
-        conn = net.connect(3002, function(){
+        conn = net.connect(basePort, function(){
             conn.write(JSON.stringify({command:"exit"})+"\r\n");
             setTimeout(function() { callback();}, 1000);
         }).on('error', function(err) {
@@ -294,7 +295,7 @@ function deleteDir(dir,callback){
 }
 
 function sendLauncherCommand(command,callback){
-    var portNumber = 3002+command.threadID;
+    var portNumber = basePort+command.threadID;
     //console.log("sending to:"+portNumber);
     if (launcherConn[command.executionID+portNumber.toString()] == null){
         console.log("unable to connect to launcher");

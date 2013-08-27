@@ -288,6 +288,7 @@ function cleanUpMachines(machines,executionID,callback){
 
 function executeTestCases(testcases,executionID){
     if (!executions[executionID]) return;
+    executions[executionID].executingTCs = true;
     var variables = executions[executionID].variables;
     var machines = executions[executionID].machines;
     var tcArray = [];
@@ -301,14 +302,15 @@ function executeTestCases(testcases,executionID){
     var finishExecution = function(callback){
         if (executions[executionID].cachedTCs){
             if(executions[executionID].baseStateFailed === true){
-                unlockMachines(machines);
+                unlockMachines(machines,function(){
+                    cleanUpMachines(executions[executionID].machines,executionID,function(){
+                        delete executions[executionID];
+                    });
+                    //return;
+                    callback(true)
+                });
                 updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
                 executionsRoute.updateExecutionTotals(executionID);
-                cleanUpMachines(executions[executionID].machines,executionID,function(){
-                    delete executions[executionID];
-                });
-                //return;
-                callback(true)
             }
             executions[executionID].testcases = executions[executionID].cachedTCs;
             delete executions[executionID].cachedTCs;
@@ -320,13 +322,15 @@ function executeTestCases(testcases,executionID){
             callback(false)
         }
         else{
-            unlockMachines(machines);
-            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
-            cleanUpMachines(executions[executionID].machines,executionID,function(){
-                delete executions[executionID];
+            console.log("TUTA");
+            unlockMachines(machines,function(){
+                cleanUpMachines(executions[executionID].machines,executionID,function(){
+                    delete executions[executionID];
+                });
+                callback(true)
             });
+            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
             //return;
-            callback(true)
         }
     };
 
@@ -334,6 +338,7 @@ function executeTestCases(testcases,executionID){
     var doneCount = 0;
     var nextTC = function(){
         if (!testcases[tcArray[count]]){
+            executions[executionID].executingTCs = false;
             return;
         }
         if (testcases[tcArray[count]].executing == true){
@@ -349,6 +354,9 @@ function executeTestCases(testcases,executionID){
                     if(finishIt == false){
                         count = 0;
                         nextTC();
+                    }
+                    else{
+                        executions[executionID].executingTCs = false;
                     }
                 });
                 return;
@@ -370,6 +378,7 @@ function executeTestCases(testcases,executionID){
                 nextTC();
             }
             else{
+                executions[executionID].executingTCs = false;
                 //remove any useless machines
                 var toRemove = [];
 
@@ -846,7 +855,9 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
                 execution.testcases[testcase.executionTestCaseID].executing = false;
             }
             delete execution.currentTestCases[testcase.executionTestCaseID];
-            executeTestCases(execution.testcases,executionID);
+            if(execution.executingTCs != true){
+                executeTestCases(execution.testcases,executionID);
+            }
         }
     });
 }
@@ -1127,6 +1138,7 @@ function sendFileToAgent(file,dest,agentHost,port,callback){
 }
 
 function sendAgentCommand(agentHost,port,command,callback){
+    console.log(command);
     var options = {
         hostname: agentHost,
         port: port,
@@ -1335,9 +1347,9 @@ function lockMachines(machines,executionID,callback){
     });
 }
 
-function unlockMachines(machines,callback){
+function unlockMachines(allmachines,callback){
     var machineCount = 0;
-
+    var machines = allmachines.slice(0);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
@@ -1352,9 +1364,10 @@ function unlockMachines(machines,callback){
                     }
                     var state = "";
                     console.log("now taken are:"+takenThreads);
-                    if (takenThreads > 0) state = "Running "+takenThreads+ " of " + machines[machineCount].maxThreads;
+                    if (takenThreads > 0) state = "Running "+takenThreads+ " of " + dbMachine.maxThreads;
 
-                    updateMachine({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
+                    updateMachine({_id:dbMachine._id},{$set:{takenThreads:takenThreads,state:state}},function(){
+                    //updateMachine({_id:db.bson_serializer.ObjectID(dbMachine._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
                         machineCount++;
                         if (machineCount == machines.length){
                             if(callback) callback();
