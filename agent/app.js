@@ -30,6 +30,7 @@ app.configure('production', function(){
 common.parseConfig(function(){
     app.listen(common.Config.AgentPort, function(){
         heartbeat.startHeartBeat(common.Config.AppServerIPHost,common.Config.AppServerPort,common.Config.AgentPort,common.Config.AgentVNCPort);
+        command.cleanUp();
         //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
     });
 });

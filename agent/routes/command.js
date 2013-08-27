@@ -226,6 +226,10 @@ function stopLauncher(executionID,threadID,callback){
 
 }
 
+exports.cleanUp = function(){
+    cleanUpOldExecutions();
+};
+
 function cleanUpOldExecutions(){
 
     fs.readdir(baseExecutionDir,function(err,list){

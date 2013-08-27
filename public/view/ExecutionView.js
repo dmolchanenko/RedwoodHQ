@@ -491,6 +491,10 @@ Ext.define('Redwood.view.ExecutionView', {
             me.down("#totalTestCases").setRawValue(execution.total);
             me.down("#runtime").setRawValue(execution.runtime);
 
+            me.chartStore.findRecord("name","Passed").set("data",execution.passed);
+            me.chartStore.findRecord("name","Failed").set("data",execution.failed);
+            me.chartStore.findRecord("name","Not Run").set("data",execution.notRun);
+
         };
 
         me.initialTotals = function(){
@@ -500,6 +504,10 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#totalNotRun").setRawValue(me.dataRecord.get("notRun"));
                 me.down("#totalTestCases").setRawValue(me.dataRecord.get("total"));
                 me.down("#runtime").setRawValue(me.dataRecord.get("runtime"));
+
+                me.chartStore.findRecord("name","Passed").set("data",me.dataRecord.get("passed"));
+                me.chartStore.findRecord("name","Failed").set("data",me.dataRecord.get("failed"));
+                me.chartStore.findRecord("name","Not Run").set("data",me.dataRecord.get("notRun"));
             }
             else{
                 me.down("#totalPassed").setRawValue(0);
