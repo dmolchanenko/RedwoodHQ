@@ -170,11 +170,11 @@ function applyMultiThreading(executionID,callback){
                         var newMachineCount = 1;
                         for(var i=machine.threads;i>1;i--){
                             var newMachine = {};
-                            for (var key in executions[executionID].machines[0]) {
-                                newMachine[key] = executions[executionID].machines[0][key];
+                            for (var key in machine) {
+                                newMachine[key] = machine[key];
                             }
                             newMachine.threadID = i+startThread-1;
-                            console.log(newMachine.threadID);
+                            console.log(newMachine);
                             executions[executionID].machines.push(newMachine);
                             sendAgentCommand(newMachine.host,newMachine.port,{command:"start launcher",executionID:executionID,threadID:newMachine.threadID},function(err){
                                 newMachineCount++;
@@ -322,8 +322,7 @@ function executeTestCases(testcases,executionID){
             callback(false)
         }
         else{
-            console.log("TUTA");
-            unlockMachines(machines,function(){
+            unlockMachines(executions[executionID].machines,function(){
                 cleanUpMachines(executions[executionID].machines,executionID,function(){
                     delete executions[executionID];
                 });
@@ -1350,6 +1349,7 @@ function lockMachines(machines,executionID,callback){
 function unlockMachines(allmachines,callback){
     var machineCount = 0;
     var machines = allmachines.slice(0);
+    console.log(machines);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {

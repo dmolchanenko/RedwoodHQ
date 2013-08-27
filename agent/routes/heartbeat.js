@@ -34,6 +34,7 @@ exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
         var req = http.request(options, function(res) {
             res.setEncoding('utf8');
             res.on('data', function (chunk) {
+                //setTimeout(recursive,90000)
             });
         });
 

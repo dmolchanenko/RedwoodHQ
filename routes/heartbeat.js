@@ -29,6 +29,21 @@ exports.heartbeatPost = function(req, res){
     });
 };
 
+exports.initHeartBeat = function(machine){
+    var db = app.getDB();
+
+    db.collection('machines', function(err, collection) {
+        collection.find({}, {}, function(err, cursor) {
+            cursor.each(function(err, machine) {
+                if(machine == null) {
+                    callback(machines);
+                }
+                machines.push(machine);
+            });
+        })
+    })
+};
+
 function findMachine(db,data,ip,callback){
     var query = {macAddress:data.macAddress};
 
