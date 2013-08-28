@@ -255,7 +255,7 @@ Ext.define('Redwood.view.AggregateReport', {
                 var result = record.get(id.executionID);
                 if(result != null){
                     if (result == ""){
-                        didNotNotRun = true;
+                        //didNotNotRun = true;
                         //didNotFail = true;
                         //didNotPass = true;
                     }

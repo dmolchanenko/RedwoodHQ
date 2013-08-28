@@ -335,14 +335,16 @@ Ext.define('Redwood.view.ActionCollection', {
 
             }],
             listeners:{
-                datachanged:function(){
+                update:function( tree, record, operation, modifiedFieldNames){
+                    if ((modifiedFieldNames == null) ||(modifiedFieldNames == [])) return;
                     if ((me.markDirty)&&(me.loadingData == false)){
-                        me.markDirty()
-                    }
-                },
-                update:function(){
-                    if ((me.markDirty)&&(me.loadingData == false)){
-                        me.markDirty()
+                        var dontModify = false;
+                        modifiedFieldNames.forEach(function(field){
+                            if((field == "loaded") ||(field == "expanded")) dontModify = true;
+                        });
+                        if(dontModify == false){
+                            me.markDirty()
+                        }
                     }
                 }
             },

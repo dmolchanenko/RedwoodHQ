@@ -22,6 +22,9 @@ Ext.define('Redwood.view.ResultsView', {
     },
 
     refreshResult: function(result){
+        this.resultsStore.getRootNode().cascadeBy(function(node){
+
+        });
         this.resultsStore.setRootNode({"text":".","children":result.children});
         this.down("#status").setValue(result.status);
         this.down("#result").setValue(result.result);
