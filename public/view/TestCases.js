@@ -288,12 +288,27 @@ Ext.define('Redwood.view.TestCases', {
                             Ext.create('Ext.ux.TabReorderer', {
 
                             })
-                        ]
+                        ],
+                        listeners:{
+                            tabchange: function(me,tab){
+                                if (tab.dataRecord != null){
+                                    window.history.replaceState("", "", '/index.html?testcase='+tab.dataRecord.get("_id"));
+                                }
+                            },
+                            afterrender: function(me){
+                                me.items.on("remove",function(){
+                                    if(me.items.length == 0){
+                                        window.history.replaceState("", "", '/index.html');
+                                    }
+                                })
+                            }
+                        }
                     }
                 ]
             }
         ];
         this.callParent(arguments);
     }
+
 });
 

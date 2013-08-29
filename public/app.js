@@ -34,6 +34,24 @@ Ext.application({
         Ext.socket.on('connect', function(){if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();});
 
         this.getController("RealTimeEvents").startEvents();
+        var uri = Ext.Object.fromQueryString(location.search);
+
+        var mainTab = Ext.ComponentQuery.query('#mainTabPanel')[0];
+        var openObject = function(tab,store,controller){
+            mainTab.setActiveTab(tab);
+            var event = store.on("load",function(store){
+                var record = store.findRecord("_id",uri.testcase);
+                if(record != null){
+                    controller.onEditTestCase(record);
+                    store.un(event);
+                }
+            });
+        };
+
+        if(uri.testcase){
+            openObject(mainTab.down("#testcasesBrowser"),Ext.data.StoreManager.lookup('TestCases'),Redwood.app.getController("Executions").getController("TestCases"));
+        }
+
         window.onbeforeunload = function(){
             console.log("SCRIPT");
             var allScripts = Ext.ComponentQuery.query('codeeditorpanel');

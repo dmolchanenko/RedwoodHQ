@@ -237,7 +237,7 @@ Ext.define('Redwood.view.TestCaseView', {
             else{
                 me.down("actioncollection").loadCollection("");
             }
-            me.loadingData = false;
+            setTimeout(function(){me.loadingData = false;},500);
             me.down("#name").focus();
         }
     },
