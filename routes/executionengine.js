@@ -402,11 +402,43 @@ function executeTestCases(testcases,executionID){
 
 function startTCExecution(id,variables,executionID,callback){
     GetTestCaseDetails(id,executionID,function(testcase,result,hosts){
+        testcase.machines = [];
+        testcase.machineVars = [];
+        var reservedHosts = [];
+        var busyMachines = false;
+        executions[executionID].machines.forEach(function(machine,index){
+            if(machine.runningTC != undefined){
+                busyMachines = true;
+            }
+            hosts.forEach(function(host){
+                if((machine.roles.indexOf(host) != -1)&& (reservedHosts.indexOf(host) == -1) &&((machine.runningTC == undefined)||(machine.runningTC == testcase))){
+                    machine.runningTC = testcase;
+                    reservedHosts.push(host);
+                    testcase.machines.push(machine);
+                    machine.roles.forEach(function(role){
+                        if (machine.machineVars){
+                            machine.machineVars.forEach(function(variable){
+                                testcase.machineVars["Machine."+role+"."+variable.name] = variable.value
+                            });
+                        }
+                        testcase.machineVars["Machine."+role+".Host"] = machine.host;
+                        testcase.machineVars["Machine."+role+".Port"] = machine.port;
+                    })
+                }
+            });
+        });
+        if ((testcase.machines.length == 0) || (reservedHosts.length != hosts.length)){
+            if(busyMachines == true){
+                executions[executionID].testcases[id].executing = false;
+                callback();
+                return;
+            }
+        }
         createResult(result,function(writtenResult){
             result._id = writtenResult[0]._id;
             result.executionID = executionID;
             executions[executionID].currentTestCases[testcase.dbTestCase._id] = {testcase:testcase,result:result,executionTestCaseID:id};
-            testcase.machines = [];
+            //testcase.machines = [];
 
             testcase.startDate = new Date();
 
@@ -452,7 +484,7 @@ function startTCExecution(id,variables,executionID,callback){
                 return a.roles.length - b.roles.length;
             });
 
-            //hosts.push("Default");
+            /*
             var reservedHosts = [];
             testcase.machines = [];
             testcase.machineVars = [];
@@ -474,6 +506,7 @@ function startTCExecution(id,variables,executionID,callback){
                    }
                });
             });
+            */
 
 
             if ((testcase.machines.length == 0) || (reservedHosts.length != hosts.length)){
