@@ -7,16 +7,16 @@ var launcherProc = {};
 var spawn = require('child_process').spawn;
 var launcherConn = {};
 var common = require('../common');
-var currentAction = null;
 var basePort = 4445;
 var baseExecutionDir = path.resolve(__dirname,"../executionfiles");
+var actionCache = {};
 
 exports.Post = function(req, res){
     var command = req.body;
     if(command.command == "run action"){
         console.log("running action");
         //console.log(command);
-        currentAction = command;
+        actionCache[basePort+command.threadID] = command;
         sendLauncherCommand(command,function(err){
             res.send(JSON.stringify({"error":err,"success":true}));
         });
@@ -99,6 +99,9 @@ function startLauncher_debug(callback){
             });
 }
 
+function checkForDupLauncher(){
+
+}
 
 
 function startLauncher(executionID,threadID,callback){
@@ -107,85 +110,111 @@ function startLauncher(executionID,threadID,callback){
     var portNumber = basePort + threadID;
     var javaPath = "";
     var classPath = "";
-    if(require('os').platform() == "linux"){
-        javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
-        classPath = libPath+'*:'+launcherPath+'*';
+
+    //check if there is a process with same port already running
+    var foundConn = null;
+    for(var propt in launcherConn){
+        if (propt.indexOf(portNumber.toString(), propt.length - portNumber.toString().length) !== -1){
+            foundConn = launcherConn[propt];
+        }
     }
-    else{
-        javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe"
-        classPath = libPath+'*;'+launcherPath+'*';
-    }
-    launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
-    fs.writeFileSync(launcherPath+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
-    launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
-        console.log("launcher error:"+data.toString());
-        launcherProc[executionID+portNumber.toString()] = null;
-        callback(data.toString());
-    });
-    var cmdCache = "";
-    launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
-        cmdCache += data.toString();
-        console.log('stdout: ' + data.toString());
-        if (data.toString().indexOf("launcher running.") != -1){
-            cmdCache = "";
-            launcherConn[executionID+portNumber.toString()] = net.connect(portNumber, function(){
-                callback(null);
-                var cache = "";
-                launcherConn[executionID+portNumber.toString()].on('data', function(data) {
-                    cache += data.toString();
 
-                    console.log('data:', data.toString());
-                    if (cache.indexOf("--EOM--") != -1){
-
-                        //var msg = JSON.parse(cache.substring(0,cache.length - 7));
-                        var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
-                        if (msg.command == "action finished"){
-                            sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
-                        }
-                        if (msg.command == "Log Message"){
-                            msg.date=new Date();
-                            sendLog(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
-                        }
-                        cache = cache.substring(cache.indexOf("--EOM--") + 7,cache.length);
-                    }
-                });
-            });
-
-            launcherConn[executionID+portNumber.toString()].on('error', function(err) {
-                console.log("Error connecting to launcher: "+err);
-                //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
-                callback("Error connecting to launcher: "+err);
-            });
+    var startProcess = function(){
+        if(require('os').platform() == "linux"){
+            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+            classPath = libPath+'*:'+launcherPath+'*';
         }
         else{
-            if (cmdCache.indexOf("\n") != -1){
-                if (cmdCache.length <= 2) {
-                    cmdCache = "";
-                    return;
-                }
+            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe"
+            classPath = libPath+'*;'+launcherPath+'*';
+        }
+        launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+        fs.writeFileSync(launcherPath+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
+        launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
+            console.log("launcher error:"+data.toString());
+            launcherProc[executionID+portNumber.toString()] = null;
+            if (actionCache[portNumber]){
+                actionCache[portNumber].error = data;
+                actionCache[portNumber].result = "Failed";
+                sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+            }
 
-                cmdCache.split("\r\n").forEach(function(message,index,array){
-                    if(index == array.length - 1){
-                        if (cmdCache.lastIndexOf("\r\n")+2 !== cmdCache.length){
-                            cmdCache = cmdCache.substring(cmdCache.lastIndexOf("\r\n") + 2,cmdCache.length);
-                        }else{
-                            if (message != ""){
-                                console.log("sending:"+message);
-                                sendLog({message:message,date:new Date(),actionName:currentAction.name,resultID:currentAction.resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+            callback(data.toString());
+        });
+        var cmdCache = "";
+        launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
+            cmdCache += data.toString();
+            console.log('stdout: ' + data.toString());
+            if (data.toString().indexOf("launcher running.") != -1){
+                cmdCache = "";
+                launcherConn[executionID+portNumber.toString()] = net.connect(portNumber, function(){
+                    callback(null);
+                    var cache = "";
+                    launcherConn[executionID+portNumber.toString()].on('data', function(data) {
+                        cache += data.toString();
+
+                        console.log('data:', data.toString());
+                        if (cache.indexOf("--EOM--") != -1){
+
+                            //var msg = JSON.parse(cache.substring(0,cache.length - 7));
+                            var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
+                            if (msg.command == "action finished"){
+                                sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                             }
-                            cmdCache = "";
+                            if (msg.command == "Log Message"){
+                                msg.date=new Date();
+                                sendLog(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                            }
+                            cache = cache.substring(cache.indexOf("--EOM--") + 7,cache.length);
                         }
-                    }
-                    if (message != ""){
-                        console.log("sending:"+message);
-                        if(currentAction){
-                            sendLog({message:message,date:new Date(),actionName:currentAction.name,resultID:currentAction.resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
-                        }
-                    }
+                    });
+                });
+
+                launcherConn[executionID+portNumber.toString()].on('error', function(err) {
+                    console.log("Error connecting to launcher: "+err);
+                    //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                    callback("Error connecting to launcher: "+err);
                 });
             }
-        }
-    });
+            else{
+                if (cmdCache.indexOf("\n") != -1){
+                    if (cmdCache.length <= 2) {
+                        cmdCache = "";
+                        return;
+                    }
+
+                    cmdCache.split("\r\n").forEach(function(message,index,array){
+                        if(index == array.length - 1){
+                            if (cmdCache.lastIndexOf("\r\n")+2 !== cmdCache.length){
+                                cmdCache = cmdCache.substring(cmdCache.lastIndexOf("\r\n") + 2,cmdCache.length);
+                            }else{
+                                if (message != ""){
+                                    console.log("sending:"+message);
+                                    sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                                }
+                                cmdCache = "";
+                            }
+                        }
+                        if (message != ""){
+                            console.log("sending:"+message);
+                            if(actionCache[portNumber]){
+                                sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    };
+
+    if (foundConn != null){
+        foundConn.write(JSON.stringify({command:"exit"})+"\r\n",function(){
+            setTimeout(startProcess(),2000);
+        });
+    }
+    else{
+        startProcess();
+    }
 }
 
 function stopLauncher(executionID,threadID,callback){
@@ -300,6 +329,7 @@ function deleteDir(dir,callback){
 
 function sendLauncherCommand(command,callback){
     var portNumber = basePort+command.threadID;
+
     //console.log("sending to:"+portNumber);
     if (launcherConn[command.executionID+portNumber.toString()] == null){
         console.log("unable to connect to launcher");
