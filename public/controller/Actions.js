@@ -115,6 +115,7 @@ Ext.define("Redwood.controller.Actions", {
             this.getStore('Actions').sync({success:function(batch,options){
                 Ext.socket.emit('AddActions', batch.operations[0].records[0].data);
                 actionView.down("actioncollection").parentActionID = batch.operations[0].records[0].data._id;
+                window.history.replaceState("", "", '/index.html?action='+actionView.dataRecord.get("_id"));
             }});
         }
         else{
@@ -136,7 +137,6 @@ Ext.define("Redwood.controller.Actions", {
     },
 
     onNewAction: function(){
-
         var tab = Ext.create('Redwood.view.ActionView',{
             title:"[New Action]",
             closable:true

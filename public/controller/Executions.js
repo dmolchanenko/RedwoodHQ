@@ -33,20 +33,28 @@ Ext.define("Redwood.controller.Executions", {
         });
     },
 
-    aggregateReport: function(){
-        var me = this;
-        var executionView = this.tabPanel.getActiveTab();
-        if ((executionView === undefined)||(executionView.viewType != "All Executions")){
-            //return;
-        }
-
+    aggregateReport: function(executionsToAggregate){
         var executions = [];
-        executionView.getSelectionModel().getSelection().forEach(function(execution){
-            executions.push({_id:execution.get("_id"),name:execution.get("name"),tag:execution.get("tag"),lastRunDate:execution.get("lastRunDate")});
-        });
-        if(executions.length == 0){
-            Ext.Msg.alert('Error', "No executions are selected.");
-            return;
+        var me = this;
+
+        if(executionsToAggregate == undefined){
+            var executionView = this.tabPanel.getActiveTab();
+            if ((executionView === undefined)||(executionView.viewType != "All Executions")){
+                //return;
+            }
+
+            executionView.getSelectionModel().getSelection().forEach(function(execution){
+                executions.push({_id:execution.get("_id"),name:execution.get("name"),tag:execution.get("tag"),lastRunDate:execution.get("lastRunDate")});
+            });
+            if(executions.length == 0){
+                Ext.Msg.alert('Error', "No executions are selected.");
+                return;
+            }
+        }
+        else{
+            executionsToAggregate.forEach(function(id){
+                executions.push({_id:id});
+            });
         }
 
         Ext.Ajax.request({
@@ -231,6 +239,7 @@ Ext.define("Redwood.controller.Executions", {
             execution.status = "Ready To Run";
             executionView.dataRecord = this.getStore('Executions').add(execution)[0];
             executionView.dataRecord.set("_id",id);
+            window.history.replaceState("", "", '/index.html?execution='+id);
         }
         else{
             executionView.dataRecord.set("name",execution.name);

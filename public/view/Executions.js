@@ -115,6 +115,7 @@ Ext.define('Redwood.view.ExecutionsGrid', {
 Ext.define('Redwood.view.Executions', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.executionsEditor',
+    id:"executionsBrowser",
     region:"center",
     layout: "fit",
 
@@ -143,7 +144,42 @@ Ext.define('Redwood.view.Executions', {
                             }
                         }
                     }
-                ]
+                ],
+                listeners:{
+                    tabchange: function(me,tab){
+                        if (tab.dataRecord != null){
+                            if (tab.dataRecord.testcase){
+                                window.history.replaceState("", "", '/index.html?result='+tab.dataRecord.testcase._id);
+                            }
+                            else if (tab.dataRecord.executionIDs){
+                                var allIDs = "";
+                                tab.dataRecord.executionIDs.forEach(function(id){
+                                    if (allIDs != ""){
+                                        allIDs = allIDs + "," + id.executionID;
+                                    }
+                                    else{
+                                        allIDs = id.executionID;
+                                    }
+                                });
+                                window.history.replaceState("", "", '/index.html?aggregate='+allIDs);
+                            }
+                            else{
+                                window.history.replaceState("", "", '/index.html?execution='+tab.dataRecord.get("_id"));
+                            }
+                        }
+                        else{
+                            window.history.replaceState("", "", '/index.html');
+                        }
+                    },
+                    afterrender: function(me){
+                        me.items.on("remove",function(){
+                            if(me.items.length == 0){
+                                window.history.replaceState("", "", '/index.html');
+                            }
+                        })
+                    }
+                }
+
             }
         ];
 

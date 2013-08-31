@@ -37,19 +37,56 @@ Ext.application({
         var uri = Ext.Object.fromQueryString(location.search);
 
         var mainTab = Ext.ComponentQuery.query('#mainTabPanel')[0];
-        var openObject = function(tab,store,controller){
-            mainTab.setActiveTab(tab);
-            var event = store.on("load",function(store){
+        var event;
+        if(uri.testcase){
+            mainTab.setActiveTab(mainTab.down("#testcasesBrowser"));
+            event = Ext.data.StoreManager.lookup('TestCases').on("load",function(store){
                 var record = store.findRecord("_id",uri.testcase);
                 if(record != null){
-                    controller.onEditTestCase(record);
+                    Redwood.app.getController("TestCases").onEditTestCase(record);
                     store.un(event);
                 }
             });
-        };
-
-        if(uri.testcase){
-            openObject(mainTab.down("#testcasesBrowser"),Ext.data.StoreManager.lookup('TestCases'),Redwood.app.getController("Executions").getController("TestCases"));
+        }
+        else if(uri.action){
+            mainTab.setActiveTab(mainTab.down("#actionsBrowser"));
+            event = Ext.data.StoreManager.lookup('Actions').on("load",function(store){
+                var record = store.findRecord("_id",uri.action);
+                if(record != null){
+                    Redwood.app.getController("Actions").onEditAction(record);
+                    store.un(event);
+                }
+            });
+        }
+        else if(uri.execution){
+            mainTab.setActiveTab(mainTab.down("#executionsBrowser"));
+            event = Ext.data.StoreManager.lookup('Executions').on("load",function(store){
+                var record = store.findRecord("_id",uri.execution);
+                if(record != null){
+                    Redwood.app.getController("Executions").onExecutionEdit(record);
+                    store.un(event);
+                }
+            });
+        }else if(uri.result){
+            mainTab.setActiveTab(mainTab.down("#executionsBrowser"));
+            Redwood.app.getController("Executions").openExecutionDetails(uri.result);
+        }else if(uri.aggregate){
+            mainTab.setActiveTab(mainTab.down("#executionsBrowser"));
+            event = Ext.data.StoreManager.lookup('Executions').on("load",function(store){
+                Redwood.app.getController("Executions").aggregateReport(uri.aggregate.split(","));
+                store.un(event);
+            });
+        }else if(uri.script){
+            mainTab.setActiveTab(mainTab.down("#ScriptBrowser"));
+            event = Ext.data.StoreManager.lookup('Scripts').on("load",function(store){
+                if(uri.line){
+                    Redwood.app.getController("Scripts").onScriptEdit(uri.script,parseInt(uri.line)-1);
+                }
+                else{
+                    Redwood.app.getController("Scripts").onScriptEdit(uri.script);
+                }
+                store.un(event);
+            });
         }
 
         window.onbeforeunload = function(){

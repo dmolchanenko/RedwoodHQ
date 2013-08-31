@@ -136,7 +136,8 @@ function startLauncher(executionID,threadID,callback){
             if (actionCache[portNumber]){
                 actionCache[portNumber].error = data;
                 actionCache[portNumber].result = "Failed";
-                sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+                delete actionCache[portNumber];
             }
 
             callback(data.toString());
@@ -160,6 +161,7 @@ function startLauncher(executionID,threadID,callback){
                             var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
                             if (msg.command == "action finished"){
                                 sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                                delete actionCache[portNumber];
                             }
                             if (msg.command == "Log Message"){
                                 msg.date=new Date();

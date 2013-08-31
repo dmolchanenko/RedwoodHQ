@@ -408,13 +408,9 @@ Ext.define('Redwood.view.ExecutionView', {
                     header: 'Machine Base State',
                     dataIndex: "baseState",
                     width:200,
-                    listeners:{
-                        render: function(me,eOpts){
-                            //console.log("blin");
-                        }
-                    },
                     renderer:  function(value,metaData,record, rowIndex, colIndex, store, view){
                         if (value){
+                            return Ext.data.StoreManager.lookup('Actions').getById(value).get("name");
                             var actionName = Ext.data.StoreManager.lookup('Actions').getById(value).get("name");
                             var url = "<a style= 'color: red;' href='javascript:openAction(&quot;"+ record.get("baseState") +"&quot;)'>" + actionName +"</a>";
                             return url;

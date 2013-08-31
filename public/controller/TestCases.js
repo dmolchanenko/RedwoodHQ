@@ -142,7 +142,6 @@ Ext.define("Redwood.controller.TestCases", {
     },
 
     onNewTestCase: function(){
-        window.history.replaceState("", "", '/index.html');
         var tab = Ext.create('Redwood.view.TestCaseView',{
             title:"[New TestCase]",
             closable:true

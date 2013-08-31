@@ -17,6 +17,7 @@ var db;
 exports.stopexecutionPost = function(req, res){
     var execution = executions[req.body.executionID];
     if(!execution) return;
+    cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
     for(var testcase in execution.currentTestCases){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",error:"",trace:"",startdate:"",enddate:"",runtime:""}});
@@ -1034,7 +1035,7 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
                     syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"executionfiles/"+executionID+"/lib",function(){
                         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                             sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},function(message){
-                                if (message.error){
+                                if ((message) && (message.error)){
                                     callback(message.error);
                                 }
                                 else{

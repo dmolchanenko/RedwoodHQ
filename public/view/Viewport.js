@@ -137,6 +137,40 @@ Ext.define('Redwood.view.Viewport', {
         itemId: 'mainTabPanel',
         region: "center",
         ui: "blue-tab",
+        listeners:{
+            tabchange: function(me,tab){
+                if (tab.id == "testcasesBrowser"){
+                    if ((tab.down("tabpanel").getActiveTab() != null) && (tab.down("tabpanel").getActiveTab().dataRecord != null)){
+                        window.history.replaceState("", "", '/index.html?testcase='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id"));
+                    }
+                    else{
+                        window.history.replaceState("", "", '/index.html');
+                    }
+                }
+                else if (tab.id == "actionsBrowser"){
+                    if ((tab.down("tabpanel").getActiveTab() != null) && (tab.down("tabpanel").getActiveTab().dataRecord != null)){
+                        window.history.replaceState("", "", '/index.html?action='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id"));
+                    }
+                    else{
+                        window.history.replaceState("", "", '/index.html');
+                    }
+                }
+                else if (tab.itemId == "executionTab11"){
+
+                    //return;
+                    if ((tab.down("#Executions").getActiveTab() != null) && (tab.down("#Executions").getActiveTab().dataRecord != null)){
+                        window.history.replaceState("", "", '/index.html?execution='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id"));
+                    }
+                    else{
+                        window.history.replaceState("", "", '/index.html');
+                    }
+                }
+                else{
+                    window.history.replaceState("", "", '/index.html');
+                }
+
+            }
+        },
         items: [
             {
                 xtype: 'panel',

@@ -187,7 +187,24 @@ Ext.define('Redwood.view.Actions', {
                             Ext.create('Ext.ux.TabReorderer', {
 
                             })
-                        ]
+                        ],
+                        listeners:{
+                            tabchange: function(me,tab){
+                                if (tab.dataRecord != null){
+                                    window.history.replaceState("", "", '/index.html?action='+tab.dataRecord.get("_id"));
+                                }
+                                else{
+                                    window.history.replaceState("", "", '/index.html');
+                                }
+                            },
+                            afterrender: function(me){
+                                me.items.on("remove",function(){
+                                    if(me.items.length == 0){
+                                        window.history.replaceState("", "", '/index.html');
+                                    }
+                                })
+                            }
+                        }
                     }
                 ]
             }

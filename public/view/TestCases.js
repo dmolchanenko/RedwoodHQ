@@ -294,6 +294,9 @@ Ext.define('Redwood.view.TestCases', {
                                 if (tab.dataRecord != null){
                                     window.history.replaceState("", "", '/index.html?testcase='+tab.dataRecord.get("_id"));
                                 }
+                                else{
+                                    window.history.replaceState("", "", '/index.html');
+                                }
                             },
                             afterrender: function(me){
                                 me.items.on("remove",function(){

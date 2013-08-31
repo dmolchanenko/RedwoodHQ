@@ -501,11 +501,22 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                 newCard.focusArea();
                                 newCard.refreshNeeded = false;
                             }
+                            var username = Ext.util.Cookies.get('username');
+                            var project = Ext.util.Cookies.get('project');
+                            var loc = newCard.path.indexOf(project+"/"+username);
+                            var urlPath = newCard.path.substring(loc+username.length+project.length+1,newCard.path.length);
+                            window.history.replaceState("", "", '/index.html?script='+urlPath);
+
                         },
                         render: function(me){
                             me.el.on("click",function(){
                                 if (me.getActiveTab() != null){
                                     me.getActiveTab().focus();
+                                }
+                            });
+                            me.items.on("remove",function(){
+                                if(me.items.length == 0){
+                                    window.history.replaceState("", "", '/index.html');
                                 }
                             })
                         }
