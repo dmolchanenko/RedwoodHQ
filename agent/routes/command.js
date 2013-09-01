@@ -264,6 +264,7 @@ exports.cleanUp = function(){
 function cleanUpOldExecutions(){
 
     fs.readdir(baseExecutionDir,function(err,list){
+        if (!list) return;
         list.forEach(function(dir){
             getExecutionStatus(common.Config.AppServerIPHost,common.Config.AppServerPort,dir,function(result){
                 if((result.execution == null) || (result.execution.status == "Ready To Run")){
