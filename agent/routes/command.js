@@ -134,7 +134,18 @@ function startLauncher(executionID,threadID,callback){
             console.log("launcher error:"+data.toString());
             launcherProc[executionID+portNumber.toString()] = null;
             if (actionCache[portNumber]){
-                actionCache[portNumber].error = data;
+                //actionCache[portNumber].error = data;
+                //actionCache[portNumber].result = "Failed";
+                //sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+                //delete actionCache[portNumber];
+            }
+
+            callback(data.toString());
+        });
+        launcherProc[executionID+portNumber.toString()].stderr.on('close', function (data) {
+            delete launcherProc[executionID+portNumber.toString()];
+            if (actionCache[portNumber]){
+                actionCache[portNumber].error = "Launcher crashed";
                 actionCache[portNumber].result = "Failed";
                 sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
                 delete actionCache[portNumber];
@@ -160,9 +171,13 @@ function startLauncher(executionID,threadID,callback){
                             //var msg = JSON.parse(cache.substring(0,cache.length - 7));
                             var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
                             if (msg.command == "action finished"){
-                                sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                                 if(msg.screenshot){
-                                    sendScreenShotToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,common.Config.AppServerIPHost,common.Config.AppServerPort)
+                                    sendScreenShotToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,common.Config.AppServerIPHost,common.Config.AppServerPort,function(){
+                                        sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                                    })
+                                }
+                                else{
+                                    sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                                 }
                                 delete actionCache[portNumber];
                             }

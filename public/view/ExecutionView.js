@@ -967,6 +967,28 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                     },
                     {
+                        xtype: "checkbox",
+                        fieldLabel: "No Screen Shots",
+                        itemId:"ignoreScreenshots",
+                        anchor:'90%',
+                        listeners:{
+                            afterrender: function(me,eOpt){
+                                Ext.tip.QuickTipManager.register({
+                                    target: me.getEl(),
+                                    //title: 'My Tooltip',
+                                    text: "Don't take any screen shot during the test.",
+                                    //width: 100,
+                                    dismissDelay: 10000 // Hide after 10 seconds hover
+                                });
+                            },
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
+                    },
+                    {
                         xtype: 'button',
                         cls: 'x-btn-text-icon',
                         icon: 'images/lock_open.png',
@@ -1178,6 +1200,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#testset").setDisabled(true);
                 me.down("#executionTestcases").store.removeAll();
                 me.down("#ignoreStatus").setValue(me.dataRecord.get("ignoreStatus"));
+                me.down("#ignoreScreenshots").setValue(me.dataRecord.get("ignoreScreenshots"));
                 if (me.dataRecord.get("locked") == true){
                     me.down("#locked").setIcon("images/lock_ok.png");
                     me.down("#locked").setText("Unlock");
@@ -1266,6 +1289,7 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.testset = this.down("#testset").getValue();
         execution.testsetname = this.down("#testset").getRawValue ();
         execution.ignoreStatus = this.down("#ignoreStatus").getValue();
+        execution.ignoreScreenshots = this.down("#ignoreScreenshots").getValue();
 
         if (this.down("#locked").getText() == "Lock"){
             execution.locked = false;

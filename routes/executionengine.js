@@ -42,6 +42,7 @@ exports.startexecutionPost = function(req, res){
     }
     var executionID =  req.body.executionID;
     var ignoreStatus =  req.body.ignoreStatus;
+    var ignoreScreenshots =  req.body.ignoreScreenshots;
     var machines = req.body.machines;
     var variables = {};
     var testcases = req.body.testcases;
@@ -64,7 +65,7 @@ exports.startexecutionPost = function(req, res){
         return;
     }
 
-    executions[executionID] = {ignoreStatus:ignoreStatus,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
+    executions[executionID] = {ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
 
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
@@ -542,6 +543,7 @@ function startTCExecution(id,variables,executionID,callback){
                     return;
                 }
                 agentInstructions.name = testcase.name;
+                agentInstructions.ignoreScreenshots = executions[executionID].ignoreScreenshots;
                 agentInstructions.executionID = executionID;
                 agentInstructions.testcaseName = testcase.name;
                 agentInstructions.script = testcase.script;
@@ -579,6 +581,7 @@ function startTCExecution(id,variables,executionID,callback){
 
                 agentInstructions.name = action.name;
                 agentInstructions.executionID = executionID;
+                agentInstructions.ignoreScreenshots = executions[executionID].ignoreScreenshots;
                 agentInstructions.returnValueName = action.dbAction.returnvalue;
                 agentInstructions.testcaseName = testcase.dbTestCase.name;
                 agentInstructions.script = action.script;
@@ -778,6 +781,7 @@ exports.actionresultPost = function(req, res){
 
         agentInstructions.name = action.name;
         agentInstructions.executionID = req.body.executionID;
+        agentInstructions.ignoreScreenshots = executions[req.body.executionID].ignoreScreenshots;
         agentInstructions.returnValueName = action.dbAction.returnvalue;
         agentInstructions.testcaseName = testcase.testcase.dbTestCase.name;
         agentInstructions.script = action.script;

@@ -131,9 +131,7 @@ class Launcher {
                 action["error"] = error.message
             }
             action["trace"] = error.stackTrace.toArrayString()
-            UUID id = UUID.randomUUID()
-            action["screenshot"] = id.toString()
-            takeScreenshot(id.toString())
+            takeScreenshot(action)
         }
         catch (Exception error){
             //def error = StackTraceUtils.sanitizeRootCause(err)
@@ -145,15 +143,33 @@ class Launcher {
                 action["error"] = error.message
             }
             action["trace"] = error.stackTrace.toArrayString()
-            UUID id = UUID.randomUUID()
-            action["screenshot"] = id.toString()
-            takeScreenshot(id.toString())
+            /*
+            if(action["ignoreScreenshots"] == false){
+                UUID id = UUID.randomUUID()
+                action["screenshot"] = id.toString()
+                takeScreenshot(id.toString())
+            }
+            */
+            takeScreenshot(action)
         }
         action["command"] = "action finished"
     }
 
-    private static takeScreenshot(String fileName){
-        BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
-        ImageIO.write(image, "png", new File(fileName));
+    private static takeScreenshot(def action){
+        if(action["ignoreScreenshots"] == false){
+            UUID id = UUID.randomUUID()
+            try{
+                def browser = Class.forName("actions.selenium.Browser")
+                if(browser.Driver != null){
+                    File scrFile = ((org.openqa.selenium.TakesScreenshot)browser.Driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
+                    new File(id.toString()) << scrFile.bytes
+                }
+            }
+            catch(Exception ex){
+                BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+                ImageIO.write(image, "png", new File(id.toString()));
+            }
+            action["screenshot"] = id.toString()
+        }
     }
 }

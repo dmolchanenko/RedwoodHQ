@@ -80,7 +80,7 @@ app.post('/aggregate',auth.auth,aggregate.aggregatePost);
 
 //screenshots
 app.post('/screenshots',screenshots.Post);
-app.get('/screenshots/:id',screenshots.Get);
+app.get('/screenshots/:id',auth.auth,screenshots.Get);
 
 app.get('/',auth.auth, routes.index);
 app.get('/index.html',auth.auth,function(req,res){res.sendfile('index.html');});
