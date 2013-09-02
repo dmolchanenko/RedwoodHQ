@@ -7,6 +7,15 @@ function openResultDetails(id){
     }
 }
 
+function openScreenShot(id){
+    var controller = Redwood.app.getController("Executions");
+    controller.openScreenShot(id);
+
+    if(Ext.isChrome){
+        return false;
+    }
+}
+
 
 Ext.define("Redwood.controller.Executions", {
     extend: 'Ext.app.Controller',
@@ -128,6 +137,10 @@ Ext.define("Redwood.controller.Executions", {
                 }
             }
         });
+    },
+
+    openScreenShot: function(id){
+        window.open(location.protocol + "//" + location.host +"/screenshots/"+id);
     },
 
     runExecution: function(){

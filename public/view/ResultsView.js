@@ -45,6 +45,7 @@ Ext.define('Redwood.view.ResultsView', {
                 {name: 'result',     type: 'string'},
                 {name: 'error',     type: 'string'},
                 {name: 'trace',     type: 'string'},
+                {name: 'screenshot',     type: 'string'},
                 {name: 'status',     type: 'string'}
             ]
         });
@@ -188,6 +189,20 @@ Ext.define('Redwood.view.ResultsView', {
                     renderer: function(value,meta,record){
                         meta.tdCls = 'x-redwood-results-cell';
                         return "<p style='color:red;font-weight: bold;'>"+value+"</p>";
+                    }
+                },
+                {
+                    header: 'Screen Shot',
+                    dataIndex: "screenshot",
+                    width:80,
+                    renderer: function(value,meta,record){
+                        meta.tdCls = 'x-redwood-results-cell';
+                        if(value){
+                            return "<a style= 'color: blue;' href='javascript:openScreenShot(&quot;"+ value +"&quot;)'>View</a>";
+                        }
+                        else{
+                            return ""
+                        }
                     }
                 },
                 {

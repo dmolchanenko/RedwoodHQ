@@ -4,6 +4,12 @@ import groovy.json.JsonSlurper
 import org.codehaus.groovy.runtime.StackTraceUtils
 import redwood.launcher.*
 
+import javax.imageio.ImageIO
+import java.awt.Rectangle
+import java.awt.Robot
+import java.awt.Toolkit
+import java.awt.image.BufferedImage
+
 /**
  * Created with IntelliJ IDEA.
  * User: Dmitri
@@ -95,7 +101,23 @@ class Launcher {
                 if(action.returnValueName){
                     returnValues."$action.returnValueName" = returnValue
                 }
-                action["returnValue"] = returnValue
+                if ([Collection, Object[]].any { it.isAssignableFrom(returnValue.getClass()) }){
+                    boolean allStrings = true
+                    returnValue.each{
+                        if (it.getClass() != String){
+                            allStrings = false
+                        }
+                    }
+                    if (allStrings == true){
+                        action["returnValue"] = returnValue
+                    }
+                }
+                else{
+                    if (returnValue.getClass() == String){
+                        action["returnValue"] = returnValue
+                    }
+                }
+
             }
 
         }
@@ -109,6 +131,9 @@ class Launcher {
                 action["error"] = error.message
             }
             action["trace"] = error.stackTrace.toArrayString()
+            UUID id = UUID.randomUUID()
+            action["screenshot"] = id.toString()
+            takeScreenshot(id.toString())
         }
         catch (Exception error){
             //def error = StackTraceUtils.sanitizeRootCause(err)
@@ -120,7 +145,15 @@ class Launcher {
                 action["error"] = error.message
             }
             action["trace"] = error.stackTrace.toArrayString()
+            UUID id = UUID.randomUUID()
+            action["screenshot"] = id.toString()
+            takeScreenshot(id.toString())
         }
         action["command"] = "action finished"
+    }
+
+    private static takeScreenshot(String fileName){
+        BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+        ImageIO.write(image, "png", new File(fileName));
     }
 }

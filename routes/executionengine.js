@@ -710,6 +710,12 @@ exports.actionresultPost = function(req, res){
         testcase.currentAction.result.trace = req.body.trace;
     }
 
+    if (req.body.screenshot){
+        testcase.result.screenshot = req.body.screenshot;
+        testcase.currentAction.result.screenshot = req.body.screenshot;
+    }
+
+
 
     if ((req.body.returnValue)&&(testcase.currentAction.dbAction.returnvalue != "")){
         execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;

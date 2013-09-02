@@ -31,6 +31,7 @@ var express = require('express')
   , executionTags = require('./routes/executionTags')
   , executiontestcases = require('./routes/executiontestcases')
   , executionengine = require('./routes/executionengine')
+  , screenshots = require('./routes/screenshots')
   , heartbeat = require('./routes/heartbeat')
   , results = require('./routes/results')
   , methodFinder = require('./routes/methodFinder')
@@ -76,6 +77,10 @@ app.get('/license',auth.auth,license.licenseGet);
 
 //aggregate
 app.post('/aggregate',auth.auth,aggregate.aggregatePost);
+
+//screenshots
+app.post('/screenshots',screenshots.Post);
+app.get('/screenshots/:id',screenshots.Get);
 
 app.get('/',auth.auth, routes.index);
 app.get('/index.html',auth.auth,function(req,res){res.sendfile('index.html');});

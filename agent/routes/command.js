@@ -129,7 +129,7 @@ function startLauncher(executionID,threadID,callback){
             classPath = libPath+'*;'+launcherPath+'*';
         }
         launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
-        fs.writeFileSync(launcherPath+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
+        fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
             console.log("launcher error:"+data.toString());
             launcherProc[executionID+portNumber.toString()] = null;
@@ -161,6 +161,9 @@ function startLauncher(executionID,threadID,callback){
                             var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
                             if (msg.command == "action finished"){
                                 sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
+                                if(msg.screenshot){
+                                    sendScreenShotToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,common.Config.AppServerIPHost,common.Config.AppServerPort)
+                                }
                                 delete actionCache[portNumber];
                             }
                             if (msg.command == "Log Message"){
@@ -247,8 +250,8 @@ function stopLauncher(executionID,threadID,callback){
         });
     }
 
-    if (fs.existsSync(baseExecutionDir+"/"+executionID+"/launcher/"+threadID+"_launcher.pid") == true){
-        var pid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/launcher/"+threadID+"_launcher.pid").toString();
+    if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid") == true){
+        var pid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid").toString();
         try{
             process.kill(pid,"SIGTERM");
         }
@@ -425,4 +428,56 @@ function getExecutionStatus(host,port,executionID,callback){
     });
 
     req.end();
+}
+
+function sendScreenShotToServer(file,id,host,port,callback){
+    var stat = fs.statSync(file);
+
+    var readStream = fs.createReadStream(file);
+    var boundary = '--------------------------';
+    for (var i = 0; i < 24; i++) {
+        boundary += Math.floor(Math.random() * 10).toString(16);
+    }
+
+    var message =  '------' + boundary + '\r\n'
+        // use your file's mime type here, if known
+        + 'Content-Disposition: form-data; name="file"; filename="'+id+'"\r\n'
+        + 'Content-Type: application/octet-stream\r\n'
+        // "name" is the name of the form field
+        // "filename" is the name of the original file
+        + 'Content-Transfer-Encoding: binary\r\n\r\n';
+
+
+
+    var options = {
+        hostname: host,
+        port: port,
+        path: '/screenshots',
+        method: 'POST',
+        headers: {
+            //'Content-Type': 'text/plain'//,
+            'Content-Type': 'multipart/form-data; boundary=----'+boundary,
+            //'Content-Disposition': 'form-data; name="file"; filename="ProjectName.jar"',
+            //'Content-Length': 3360
+            //'Content-Length': stat.size + message.length + 30 + boundary.length
+            'Content-Length': stat.size + message.length + boundary.length + 14
+        }
+    };
+
+    var req = http.request(options, function(res) {
+        //res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            if (callback) callback();
+        });
+    });
+
+    req.on('error', function(e) {
+        console.log('sendScreenShotToServer problem with request: ' + e.message+ ' file:'+file);
+    });
+
+    req.write(message);
+    readStream.pipe(req, { end: false });
+    readStream.on("end", function(){
+        req.end('\r\n------' + boundary + '--\r\n');
+    });
 }
