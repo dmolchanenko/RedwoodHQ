@@ -160,7 +160,7 @@ class Launcher {
             UUID id = UUID.randomUUID()
             try{
                 def browser = Class.forName("actions.selenium.Browser")
-                if(browser.Driver != null){
+                if((browser.Driver != null) &&(browser.class.name.toString() != "SwipeableWebDriver")){
                     File scrFile = ((org.openqa.selenium.TakesScreenshot)browser.Driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
                     new File(id.toString()) << scrFile.bytes
                 }

@@ -396,6 +396,24 @@ function executeTestCases(testcases,executionID){
                         machines.splice(machines.indexOf(machine),1);
                     });
                 });
+                //if nothing else to execute finish it.
+                var somethingToRun = false;
+                tcArray.forEach(function(testcaseCount){
+                    if(testcases[testcaseCount].finished != true){
+                        somethingToRun = true;
+                    }
+                });
+                if(somethingToRun == false){
+                    finishExecution(function(finishIt){
+                        if(finishIt == false){
+                            count = 0;
+                            nextTC();
+                        }
+                        else{
+                            executions[executionID].executingTCs = false;
+                        }
+                    });
+                }
             }
         });
     };
@@ -464,6 +482,7 @@ function startTCExecution(id,variables,executionID,callback){
                 updateResult(result);
                 //executions[executionID].testcases[id].result = result;
                 finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                callback();
                 return;
             }
 
@@ -476,6 +495,7 @@ function startTCExecution(id,variables,executionID,callback){
                 result.result = "Passed";
                 updateResult(result);
                 finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                callback();
                 return;
             }
 
@@ -521,6 +541,7 @@ function startTCExecution(id,variables,executionID,callback){
                 result.result = "Failed";
                 updateResult(result);
                 finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                callback();
                 return;
             }
 
@@ -563,6 +584,7 @@ function startTCExecution(id,variables,executionID,callback){
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
                 executionsRoute.updateExecutionTotals(executionID);
                 sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                callback();
                 return;
             }
 

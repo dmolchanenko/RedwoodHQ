@@ -171,6 +171,7 @@ function startLauncher(executionID,threadID,callback){
                             //var msg = JSON.parse(cache.substring(0,cache.length - 7));
                             var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
                             if (msg.command == "action finished"){
+                                delete actionCache[portNumber];
                                 if(msg.screenshot){
                                     sendScreenShotToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,common.Config.AppServerIPHost,common.Config.AppServerPort,function(){
                                         sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
@@ -179,7 +180,6 @@ function startLauncher(executionID,threadID,callback){
                                 else{
                                     sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                                 }
-                                delete actionCache[portNumber];
                             }
                             if (msg.command == "Log Message"){
                                 msg.date=new Date();
@@ -233,7 +233,20 @@ function startLauncher(executionID,threadID,callback){
         });
     }
     else{
-        startProcess();
+        try{
+            foundConn = net.connect(portNumber, function(){
+                foundConn.write(JSON.stringify({command:"exit"})+"\r\n",function(){
+                    setTimeout(startProcess(),5000);
+                });
+            });
+            foundConn.on("error",function(err){
+                console.log(err);
+                startProcess();
+            })
+        }
+        catch(err){
+            startProcess();
+        }
     }
 }
 
@@ -446,6 +459,10 @@ function getExecutionStatus(host,port,executionID,callback){
 }
 
 function sendScreenShotToServer(file,id,host,port,callback){
+    if(fs.existsSync(file) == false) {
+        if (callback) callback();
+        return;
+    }
     var stat = fs.statSync(file);
 
     var readStream = fs.createReadStream(file);

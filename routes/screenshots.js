@@ -31,7 +31,7 @@ exports.Get = function(req, res){
                 res.end(file.file.buffer, "binary");
             }
             else{
-                res.end("Error: file not found.", "text");
+                res.end("Error: file not found.", "text/html");
             }
             //fs.writeFile("c:/tmp/image.png",file.file.buffer,{encoding:"binary"},function(){
             //    console.log("all done")
