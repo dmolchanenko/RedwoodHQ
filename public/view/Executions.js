@@ -134,6 +134,32 @@ Ext.define('Redwood.view.Executions', {
 
                     })
                 ],
+                setURLs: function(){
+                    tab = this.getActiveTab();
+                    if (tab.dataRecord != null){
+                        if (tab.dataRecord.testcase){
+                            window.history.replaceState("", "", '/index.html?result='+tab.dataRecord.testcase._id+"&project="+Ext.util.Cookies.get('project'));
+                        }
+                        else if (tab.dataRecord.executionIDs){
+                            var allIDs = "";
+                            tab.dataRecord.executionIDs.forEach(function(id){
+                                if (allIDs != ""){
+                                    allIDs = allIDs + "," + id.executionID;
+                                }
+                                else{
+                                    allIDs = id.executionID;
+                                }
+                            });
+                            window.history.replaceState("", "", '/index.html?aggregate='+allIDs+"&project="+Ext.util.Cookies.get('project'));
+                        }
+                        else{
+                            window.history.replaceState("", "", '/index.html?execution='+tab.dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
+                        }
+                    }
+                    else{
+                        window.history.replaceState("", "", '/index.html');
+                    }
+                },
                 items:[
                     {
                         xtype:"executionsgrid",
@@ -147,29 +173,7 @@ Ext.define('Redwood.view.Executions', {
                 ],
                 listeners:{
                     tabchange: function(me,tab){
-                        if (tab.dataRecord != null){
-                            if (tab.dataRecord.testcase){
-                                window.history.replaceState("", "", '/index.html?result='+tab.dataRecord.testcase._id);
-                            }
-                            else if (tab.dataRecord.executionIDs){
-                                var allIDs = "";
-                                tab.dataRecord.executionIDs.forEach(function(id){
-                                    if (allIDs != ""){
-                                        allIDs = allIDs + "," + id.executionID;
-                                    }
-                                    else{
-                                        allIDs = id.executionID;
-                                    }
-                                });
-                                window.history.replaceState("", "", '/index.html?aggregate='+allIDs);
-                            }
-                            else{
-                                window.history.replaceState("", "", '/index.html?execution='+tab.dataRecord.get("_id"));
-                            }
-                        }
-                        else{
-                            window.history.replaceState("", "", '/index.html');
-                        }
+                        me.setURLs();
                     },
                     afterrender: function(me){
                         me.items.on("remove",function(){

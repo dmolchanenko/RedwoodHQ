@@ -505,7 +505,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             var project = Ext.util.Cookies.get('project');
                             var loc = newCard.path.indexOf(project+"/"+username);
                             var urlPath = newCard.path.substring(loc+username.length+project.length+1,newCard.path.length);
-                            window.history.replaceState("", "", '/index.html?script='+urlPath);
+                            window.history.replaceState("", "", '/index.html?script='+urlPath+"&project="+Ext.util.Cookies.get('project'));
 
                         },
                         render: function(me){

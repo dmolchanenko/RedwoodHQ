@@ -300,6 +300,7 @@ function cleanUpOldExecutions(){
             getExecutionStatus(common.Config.AppServerIPHost,common.Config.AppServerPort,dir,function(result){
                 if((result.execution == null) || (result.execution.status == "Ready To Run")){
                     fs.readdir(baseExecutionDir+"/"+dir,function(err,list){
+                        var dirs = [];
                         if (list){
                             list.forEach(function(file,index){
                                 try{
@@ -310,8 +311,11 @@ function cleanUpOldExecutions(){
                                 }
                                 catch(err){}
                                 if(index+1 == list.length){
-                                    deleteDir(baseExecutionDir+"/"+dir)
+                                    dirs.push(baseExecutionDir+"/"+dir);
                                 }
+                            });
+                            dirs.forEach(function(dirCount){
+                                deleteDir(dirCount)
                             });
                         }
                     });

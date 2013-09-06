@@ -229,7 +229,7 @@ function suiteBaseState(executionID,machines,callback){
             foundSuiteState = true;
             machine.roles.push(machine.host);
             db.collection('testcases', function(err, collection) {
-                collection.insert({name:machine.host+"_state",status:"Automated",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
+                collection.insert({baseState:true,name:machine.host+"_state",status:"Automated",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
                     db.collection('executiontestcases', function(err, collection) {
                         //collection.save({_id:machine.resultID},{},{$set:{executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.resultID}}, {safe:true,new:true},function(err,returnData){
                         collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.baseStateTCID},function(err,returnData){
@@ -313,6 +313,8 @@ function executeTestCases(testcases,executionID){
                 });
                 updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
                 executionsRoute.updateExecutionTotals(executionID);
+                callback(true);
+                return;
             }
             executions[executionID].testcases = executions[executionID].cachedTCs;
             delete executions[executionID].cachedTCs;
@@ -398,6 +400,7 @@ function executeTestCases(testcases,executionID){
                 });
                 //if nothing else to execute finish it.
                 var somethingToRun = false;
+
                 tcArray.forEach(function(testcaseCount){
                     if(testcases[testcaseCount].finished != true){
                         somethingToRun = true;
@@ -422,6 +425,10 @@ function executeTestCases(testcases,executionID){
 
 function startTCExecution(id,variables,executionID,callback){
     GetTestCaseDetails(id,executionID,function(testcase,result,hosts){
+        if(testcase == null){
+            callback();
+            return;
+        }
         testcase.machines = [];
         testcase.machineVars = [];
         var reservedHosts = [];
@@ -1537,6 +1544,11 @@ function findNextAction (actions,variables,callback){
 }
 
 
+function deleteResult(testcaseID,executionID){
+
+}
+
+
 function GetTestCaseDetails(testcaseID,executionID,callback){
     var testcaseDetails = {};
     var testcaseResults = {};
@@ -1593,6 +1605,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
     db.collection('testcases', function(err, collection) {
         collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
+            if(testcase == null) callback(null);
             if (testcase.type == "script"){
                 testcaseDetails = {dbTestCase:testcase,script:testcase.script};
                 testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};

@@ -292,7 +292,7 @@ Ext.define('Redwood.view.TestCases', {
                         listeners:{
                             tabchange: function(me,tab){
                                 if (tab.dataRecord != null){
-                                    window.history.replaceState("", "", '/index.html?testcase='+tab.dataRecord.get("_id"));
+                                    window.history.replaceState("", "", '/index.html?testcase='+tab.dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
                                 }
                                 else{
                                     window.history.replaceState("", "", '/index.html');

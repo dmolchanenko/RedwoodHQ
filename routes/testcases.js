@@ -1,4 +1,5 @@
 var realtime = require("./realtime");
+var executions = require("./executions");
 
 exports.testcasesPut = function(req, res){
     var app =  require('../common');
@@ -93,6 +94,24 @@ function DeleteTestCases(db,data,callback){
     db.collection('testcases', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
             callback(err);
+            db.collection('executiontestcases', function(err, tccollection) {
+                tccollection.find({testcaseID:data._id.toString()},{},function(err,cursor) {
+                    cursor.each(function(err,testcase){
+                        if(testcase != null){
+                            db.collection('executions', function(err, excollection) {
+                                excollection.findOne({_id:testcase.executionID,locked:false},{},function(err,execution){
+                                    if(execution != null){
+                                        tccollection.remove({_id:testcase._id},{safe:true},function(err) {
+                                            executions.updateExecutionTotals(testcase.executionID);
+                                            realtime.emitMessage("RemoveExecutionTestCase",{id:testcase._id,executionID:testcase.executionID});
+                                        });
+                                    }
+                                })
+                            });
+                        }
+                    });
+                });
+            });
         });
     });
 

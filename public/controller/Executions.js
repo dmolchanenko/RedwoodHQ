@@ -253,7 +253,7 @@ Ext.define("Redwood.controller.Executions", {
             execution.status = "Ready To Run";
             executionView.dataRecord = this.getStore('Executions').add(execution)[0];
             executionView.dataRecord.set("_id",id);
-            window.history.replaceState("", "", '/index.html?execution='+id);
+            window.history.replaceState("", "", '/index.html?execution='+id+"&project="+Ext.util.Cookies.get('project'));
         }
         else{
             executionView.dataRecord.set("name",execution.name);

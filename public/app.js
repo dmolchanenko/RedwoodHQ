@@ -38,6 +38,12 @@ Ext.application({
 
         var mainTab = Ext.ComponentQuery.query('#mainTabPanel')[0];
         var event;
+        if(uri.project){
+            if (Ext.util.Cookies.get('project') != uri.project){
+                Ext.util.Cookies.set('project',uri.project);
+                window.location.reload(true);
+            }
+        }
         if(uri.testcase){
             mainTab.setActiveTab(mainTab.down("#testcasesBrowser"));
             event = Ext.data.StoreManager.lookup('TestCases').on("load",function(store){

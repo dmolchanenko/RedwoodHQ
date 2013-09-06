@@ -141,7 +141,7 @@ Ext.define('Redwood.view.Viewport', {
             tabchange: function(me,tab){
                 if (tab.id == "testcasesBrowser"){
                     if ((tab.down("tabpanel").getActiveTab() != null) && (tab.down("tabpanel").getActiveTab().dataRecord != null)){
-                        window.history.replaceState("", "", '/index.html?testcase='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id"));
+                        window.history.replaceState("", "", '/index.html?testcase='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
                     }
                     else{
                         window.history.replaceState("", "", '/index.html');
@@ -149,17 +149,43 @@ Ext.define('Redwood.view.Viewport', {
                 }
                 else if (tab.id == "actionsBrowser"){
                     if ((tab.down("tabpanel").getActiveTab() != null) && (tab.down("tabpanel").getActiveTab().dataRecord != null)){
-                        window.history.replaceState("", "", '/index.html?action='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id"));
+                        window.history.replaceState("", "", '/index.html?action='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
                     }
                     else{
                         window.history.replaceState("", "", '/index.html');
                     }
                 }
-                else if (tab.itemId == "executionTab11"){
-
+                else if (tab.itemId == "executionTab"){
+                    var activeSelection = tab.down("tabpanel").getActiveTab();
                     //return;
-                    if ((tab.down("#Executions").getActiveTab() != null) && (tab.down("#Executions").getActiveTab().dataRecord != null)){
-                        window.history.replaceState("", "", '/index.html?execution='+tab.down("tabpanel").getActiveTab().dataRecord.get("_id"));
+                    if (activeSelection.itemId == "Executions"){
+                        var activeTab = this.down("#executionsTab");
+                        activeTab.setURLs();
+                        /*
+                        if (activeTab.getActiveTab().dataRecord.executionIDs){
+                            var allIDs = "";
+                            activeTab.getActiveTab().dataRecord.executionIDs.forEach(function(id){
+                                if (allIDs != ""){
+                                    allIDs = allIDs + "," + id.executionID;
+                                }
+                                else{
+                                    allIDs = id.executionID;
+                                }
+                            });
+                            window.history.replaceState("", "", '/index.html?aggregate='+allIDs+"&project="+Ext.util.Cookies.get('project'));
+                        }
+                        else if(activeTab.getActiveTab().dataRecord != null){
+                            if(activeTab.getActiveTab().dataRecord.get){
+                                window.history.replaceState("", "", '/index.html?execution='+activeTab.getActiveTab().dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
+                            }
+                            else{
+                                window.history.replaceState("", "", '/index.html?result='+activeTab.getActiveTab().dataRecord.testcase._id+"&project="+Ext.util.Cookies.get('project'));
+                            }
+                        }
+                        else{
+                            window.history.replaceState("", "", '/index.html');
+                        }
+                        */
                     }
                     else{
                         window.history.replaceState("", "", '/index.html');
@@ -205,6 +231,14 @@ Ext.define('Redwood.view.Viewport', {
                             afterrender: function(me){
                                 me.tabBar.setVisible(false);
                                 me.setActiveTab("Executions");
+                            },
+                            tabchange: function(me,tab){
+                                if(me.getActiveTab().itemId != "Executions"){
+                                    window.history.replaceState("", "", '/index.html');
+                                }
+                                else{
+                                    me.getActiveTab().down("#executionsTab").setURLs();
+                                }
                             }
                         },
                         items:[

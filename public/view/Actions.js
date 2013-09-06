@@ -191,7 +191,7 @@ Ext.define('Redwood.view.Actions', {
                         listeners:{
                             tabchange: function(me,tab){
                                 if (tab.dataRecord != null){
-                                    window.history.replaceState("", "", '/index.html?action='+tab.dataRecord.get("_id"));
+                                    window.history.replaceState("", "", '/index.html?action='+tab.dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
                                 }
                                 else{
                                     window.history.replaceState("", "", '/index.html');

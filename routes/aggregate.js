@@ -16,7 +16,7 @@ function AggregateExecutions(db,executions,callback){
         var executionIDs = [];
         executions.forEach(function(execution,index){
             executionIDs.push({executionID:execution._id});
-            collection.aggregate([{$match:{executionID : execution._id}},{$group:{_id:{result:"$result"},count:{$sum:1}}}],function(err,result){
+            collection.aggregate([{$match:{executionID : execution._id,baseState:{$ne: true}}},{$group:{_id:{result:"$result"},count:{$sum:1}}}],function(err,result){
                 var failed = 0;
                 var passed = 0;
                 var total = 0;

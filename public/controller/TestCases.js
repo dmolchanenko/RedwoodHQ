@@ -120,7 +120,7 @@ Ext.define("Redwood.controller.TestCases", {
             testcaseView.dataRecord = this.getStore('TestCases').add(testcase)[0];
             this.getStore('TestCases').sync({success:function(batch,options){
                 Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
-                window.history.replaceState("", "", '/index.html?testcase='+testcaseView.dataRecord.get("_id"));
+                window.history.replaceState("", "", '/index.html?testcase='+testcaseView.dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
             }});
         }
         else{

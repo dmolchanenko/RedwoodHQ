@@ -897,7 +897,9 @@ Ext.define('Redwood.view.ExecutionView', {
                                 testSet.get("testcases").forEach(function(testcaseId){
                                     var testcase = Ext.data.StoreManager.lookup('TestCases').query("_id",testcaseId._id).getAt(0);
                                     //me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
-                                    allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    if(testcase){
+                                        allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    }
                                 });
                                 me.down("#executionTestcases").store.add(allTCs);
                                 me.down("#totalNotRun").setRawValue(allTCs.length);
