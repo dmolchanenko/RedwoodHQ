@@ -389,8 +389,10 @@ Ext.define('Redwood.view.ExecutionView', {
                     width: 120,
                     renderer: function(value,style,record){
                         //style.tdAttr = 'data-qtip="' + record.get("error") + '"';
-
-                        if (value == "Passed"){
+                        if((value == "") &&(record.get("resultID"))){
+                            value = "Running";
+                        }
+                        if ((value == "Passed") || (value == "Running")){
                             return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
                             //return "<p style='color:green'>"+value+"</p>"
                         }

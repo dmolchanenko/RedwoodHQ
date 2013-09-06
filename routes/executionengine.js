@@ -632,6 +632,9 @@ function startTCExecution(id,variables,executionID,callback){
 
                 agentInstructions.threadID = foundMachine.threadID;
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
+                if ((testcase.machines.length > 0) &&((testcase.machines[0].baseState))){
+                    updateExecutionMachine(executionID,testcase.machines[0]._id,"",result._id.__id);
+                }
                 executionsRoute.updateExecutionTotals(executionID);
 
 
