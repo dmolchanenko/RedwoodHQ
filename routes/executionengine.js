@@ -65,6 +65,12 @@ exports.startexecutionPost = function(req, res){
         return;
     }
 
+    if(executions[executionID]){
+        res.contentType('json');
+        res.json({error:"Execution is already running."});
+        return;
+    }
+
     executions[executionID] = {ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
 
 
@@ -316,6 +322,9 @@ function executeTestCases(testcases,executionID){
                 callback(true);
                 return;
             }
+            executions[executionID].machines.forEach(function(machine){
+                machine.baseState = null;
+            });
             executions[executionID].testcases = executions[executionID].cachedTCs;
             delete executions[executionID].cachedTCs;
             tcArray = [];
