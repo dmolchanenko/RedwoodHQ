@@ -360,6 +360,10 @@ Ext.define("Redwood.controller.Executions", {
     onExecutionDelete: function(record){
         var foundTab = this.tabPanel.down("#"+record.get("_id"));
         if(record) {
+            if (record.get("status") == "Running"){
+                Ext.Msg.alert('Error', "Unable to delete running execution.");
+                return;
+            }
             Ext.Msg.show({
                 title:'Delete Confirmation',
                 msg: "Are you sure you want to delete '"+ record.get("name") + "' execution?" ,

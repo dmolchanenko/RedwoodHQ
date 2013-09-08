@@ -970,14 +970,14 @@ Ext.define('Redwood.view.ActionCollection', {
             collection.forEach(function(action,index){
                 var foundAction = actionStore.query("_id",action.actionid).getAt(0);
 
-                /*
+
                 //this means that there is no action like that any more
                 //reorder the rest of the actions and ignore this one
                 if (foundAction == null){
                     orderAdjustment = orderAdjustment - 1;
                     return;
                 }
-                */
+
                 var newAction = {};
                 newAction.actionname = foundAction.get("name");
                 newAction.actionid = foundAction.get("_id");
@@ -987,9 +987,9 @@ Ext.define('Redwood.view.ActionCollection', {
                 newAction.executionflow = action.executionflow;
                 newAction.returnvalue = action.returnvalue;
                 newAction.children = [];
-                newAction.order =  index+1;
+                newAction.order =  index+1+orderAdjustment;
                 //newAction.order =  (parseInt(action.order,10) + orderAdjustment).toString(10);
-                newAction.rowOrder = index + index;
+                newAction.rowOrder = (index+orderAdjustment) * 2;
                 //newAction.rowOrder = parseInt(newAction.order,10) + (parseInt(newAction.order,10) - 1);
 
                 foundAction.get("params").forEach(function(searchParam){
