@@ -412,7 +412,15 @@ Ext.define('Redwood.view.ExecutionView', {
                     width:200,
                     renderer:  function(value,metaData,record, rowIndex, colIndex, store, view){
                         if (value){
-                            return Ext.data.StoreManager.lookup('Actions').getById(value).get("name");
+                            var action = Ext.data.StoreManager.lookup('Actions').getById(value);
+                            if(action){
+                                return action.get("name");
+                            }
+                            else{
+                                record.set("baseState",null);
+                                record.set("result",null);
+                                return "";
+                            }
                             var actionName = Ext.data.StoreManager.lookup('Actions').getById(value).get("name");
                             var url = "<a style= 'color: red;' href='javascript:openAction(&quot;"+ record.get("baseState") +"&quot;)'>" + actionName +"</a>";
                             return url;

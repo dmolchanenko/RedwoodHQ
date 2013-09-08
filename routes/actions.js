@@ -94,6 +94,16 @@ function DeleteActions(db,data,callback){
     db.collection('actions', function(err, collection) {
         collection.remove(data,{safe:true},function(err) {
             callback(err);
+            db.collection('testcases', function(err, collection) {
+                collection.find({collection:{$elemMatch: {actionid:data._id.toString()}}},{_id:1}, function(err, cursor) {
+                    cursor.each(function(err, testcase) {
+                        if(testcase == null) {
+                            return;
+                        }
+                        collection.update({_id:testcase._id},{$pull: {collection:{actionid:data._id.toString()}}})
+                    });
+                });
+            });
         });
     });
 

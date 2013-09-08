@@ -1569,6 +1569,10 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
     var getActionDetails = function(nextAction,lastPoint,lastResultPoint,cb){
         db.collection('actions', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(nextAction.actionid)}, {}, function(err, action) {
+                if(action == null){
+                    cb();
+                    return;
+                }
                 lastPoint.name = action.name;
                 lastResultPoint.name = action.name;
                 lastResultPoint.actionStatus = action.status;
@@ -1591,7 +1595,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 {
                     if (action.collection.length > 0){
                         var pending = action.collection.length;
-                        action.collection.forEach(function(innerAction){
+                        action.collection.forEach(function(innerAction,index){
                             if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                                 hosts.push(innerAction.host)
                             }
@@ -1629,11 +1633,12 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,children:[]};
                     var pending = testcase.collection.length;
 
-                    testcase.collection.forEach(function(innerAction){
+                    testcase.collection.forEach(function(innerAction,index){
                         if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
                             hosts.push(innerAction.host)
                         }
-                        var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
+                        var newActionResult = {order:index+1,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
+                        //var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
                         testcaseResults.children.push(newActionResult);
 
                         var runAction = true;
