@@ -426,6 +426,7 @@ Ext.define('Redwood.view.ExecutionView', {
                             return url;
                         }
                         else{
+                            if(record.get("result")) record.set("result",null);
                             return value
                         }
                     },

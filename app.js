@@ -95,7 +95,7 @@ app.get('/variableTags',auth.auth, variableTags.variableTagsGet);
 app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 
 //start execution
-app.post('/executionengine/startexecution',auth.auth, executionengine.startexecutionPost);
+app.post('/executionengine/startexecution', executionengine.startexecutionPost);
 
 //stop
 app.post('/executionengine/stopexecution',auth.auth, executionengine.stopexecutionPost);
@@ -143,7 +143,7 @@ app.post('/testcasetags',auth.auth, testcaseTags.testcaseTagsPost);
 //executions
 app.get('/executions',auth.auth, executions.executionsGet);
 app.put('/executions/:id',auth.auth, executions.executionsPut);
-app.post('/executions/:id',auth.auth, executions.executionsPost);
+app.post('/executions/:id',executions.executionsPost);
 app.del('/executions/:id',auth.auth, executions.executionsDelete);
 
 //executionTags

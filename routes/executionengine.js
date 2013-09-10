@@ -752,6 +752,7 @@ exports.actionresultPost = function(req, res){
     if (req.body.trace){
         testcase.result.trace = req.body.trace;
         testcase.currentAction.result.trace = req.body.trace;
+        testcase.trace = req.body.trace;
     }
 
     if (req.body.screenshot){
@@ -778,7 +779,7 @@ exports.actionresultPost = function(req, res){
         }
         else if (actionFlow == "Record Error Continue Test Case"){
             testcase.result.result = "Failed";
-            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{result:"Failed"}});
+            updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{result:"Failed",trace:testcase.trace}});
         }
         else{
             testcase.currentAction.result.result = "";
@@ -889,7 +890,7 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
         status = "Not Run";
     }
     var updateTC = function(){
-        updateExecutionTestCase({_id:testcaseId},{$set:{"status":status,resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
+        updateExecutionTestCase({_id:testcaseId},{$set:{trace:testcase.trace,"status":status,resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
         executionsRoute.updateExecutionTotals(executionID);
     };
     //update machine base state result
