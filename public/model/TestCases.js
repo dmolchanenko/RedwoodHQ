@@ -38,6 +38,10 @@ Ext.define('Redwood.model.TestCases', {
         {
             name: 'type',
             type: 'string'
+        },
+        {
+            name: 'afterState',
+            type: 'string'
         }
     ]
 });

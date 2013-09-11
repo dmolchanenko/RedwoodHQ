@@ -24,13 +24,13 @@ exports.Post = function(req, res){
     else if(command.command == "cleanup"){
         console.log("cleaning up");
         setTimeout(function(){
-            cleanUpOldExecutions();
+            cleanUpOldExecutions(command.executionID);
         },1*60*1000);
         var count = 0;
         var cleanUpDirs = function(){
             deleteDir(baseExecutionDir + "/"+command.executionID,function(){
-                res.send('{"error":null,"success":true}');
             });
+            res.send('{"error":null,"success":true}');
             /*
             cleanUpLibDir(command.executionID,function(){
                 cleanUpBinDir(command.executionID,function(){
@@ -144,13 +144,16 @@ function startLauncher(executionID,threadID,callback){
         });
         launcherProc[executionID+portNumber.toString()].stderr.on('close', function (data) {
             delete launcherProc[executionID+portNumber.toString()];
-            if (actionCache[portNumber]){
-                actionCache[portNumber].error = "Launcher crashed";
-                actionCache[portNumber].result = "Failed";
-                sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
-                delete actionCache[portNumber];
-            }
+            var checkForCrush = function(){
+                if (actionCache[portNumber]){
+                    actionCache[portNumber].error = "Launcher crashed";
+                    actionCache[portNumber].result = "Failed";
+                    sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+                    delete actionCache[portNumber];
+                }
+            };
 
+            setTimeout(checkForCrush(),5000);
             callback(data.toString());
         });
         var cmdCache = "";
@@ -292,11 +295,12 @@ exports.cleanUp = function(){
     cleanUpOldExecutions();
 };
 
-function cleanUpOldExecutions(){
+function cleanUpOldExecutions(ignoreExecution){
 
     fs.readdir(baseExecutionDir,function(err,list){
         if (!list) return;
         list.forEach(function(dir){
+            if((ignoreExecution)&&(ignoreExecution == dir)) return;
             getExecutionStatus(common.Config.AppServerIPHost,common.Config.AppServerPort,dir,function(result){
                 if((result.execution == null) || (result.execution.status == "Ready To Run")){
                     fs.readdir(baseExecutionDir+"/"+dir,function(err,list){

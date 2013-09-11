@@ -167,13 +167,46 @@ Ext.define('Redwood.view.TestCaseView', {
                             change: function(me,newVal,oldVal){
                                 if(newVal.type == "script"){
                                     me.up("testcaseview").down("#actionCollectionFiledSet").hide();
+                                    me.up("testcaseview").down("#afterState").hide();
                                     me.up("testcaseview").down("scriptPicker").show();
                                 }else{
                                     me.up("testcaseview").down("#actionCollectionFiledSet").show();
+                                    me.up("testcaseview").down("#afterState").show();
                                     me.up("testcaseview").down("scriptPicker").hide();
                                 }
                                 if (me.up("testcaseview").loadingData === false){
                                     me.up("testcaseview").markDirty();
+                                }
+
+                            }
+                        }
+                    },
+                    {
+                        xtype: "actionpicker",
+                        fieldLabel:"After State",
+                        itemId:"afterState",
+                        //width: 400,
+                        anchor:'90%',
+                        plugins:[
+                            Ext.create('Ext.ux.SearchPlugin')
+                        ],
+                        paramNames:["tag","name"],
+                        store: Ext.data.StoreManager.lookup('ActionsCombo'),
+                        autoSelect:true,
+                        forceSelection:false,
+                        queryMode: 'local',
+                        triggerAction: 'all',
+                        lastQuery: '',
+                        typeAhead: false,
+                        displayField: 'name',
+                        valueField: '_id',
+                        listeners:{
+                            afterrender: function(picker){
+                                picker.store.clearFilter(true);
+                            },
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
                                 }
 
                             }
@@ -232,6 +265,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.down("#type").setValue({type:me.dataRecord.get("type")});
                 me.down("scriptPicker").setValue(me.dataRecord.get("script"));
                 me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
+                me.down("#afterState").setValue(me.dataRecord.get("afterState"));
 
             }
             else{
@@ -247,10 +281,11 @@ Ext.define('Redwood.view.TestCaseView', {
             this.down("#name").focus();
             return false;
         }
-        var index = store.findExact("name",this.down("#name").getValue());
+        var record = store.query("name",this.down("#name").getValue()).getAt(0);
+        //findExact("name",this.down("#name").getValue());
         if (this.dataRecord != null){
-            if (index != -1){
-                var foundID = store.getAt(index).internalId;
+            if (record){
+                var foundID = record.internalId;
                 if (this.dataRecord.internalId != foundID){
                     this.down("#name").focus();
                     Ext.Msg.alert('Error', "Test Case with the same name already exits.");
@@ -259,9 +294,19 @@ Ext.define('Redwood.view.TestCaseView', {
             }
         }
         else{
-            if (index != -1){
+            if (record){
                 this.down("#name").focus();
                 Ext.Msg.alert('Error', "Test Case with the same name already exits.");
+                return false;
+            }
+        }
+
+        var afterStateValue = this.down("#afterState").getValue();
+        if((afterStateValue != null) && (afterStateValue != "")){
+            var action = Ext.data.StoreManager.lookup('Actions').query("_id",this.down("#afterState").getValue()).getAt(0);
+            if(!action){
+                this.down("#afterState").focus();
+                Ext.Msg.alert('Error', "After state has to be a valid action.");
                 return false;
             }
         }
@@ -293,6 +338,7 @@ Ext.define('Redwood.view.TestCaseView', {
         testcase.description = this.down("#description").getValue();
         testcase.type = this.down("#type").getValue().type;
         testcase.script = this.down("scriptPicker").getValue();
+        testcase.afterState = this.down("#afterState").getValue();
 
 
         testcase.collection = this.down("actioncollection").getCollectionData();

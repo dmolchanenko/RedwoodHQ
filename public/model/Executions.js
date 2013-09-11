@@ -20,6 +20,10 @@ Ext.define('Redwood.model.Executions', {
             type:"boolean"
         },
         {
+            name:"ignoreAfterState",
+            type:"boolean"
+        },
+        {
             name: 'testset',
             type: 'string'
         },

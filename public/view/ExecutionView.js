@@ -934,6 +934,40 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                     },
                     {
+                        xtype: 'button',
+                        cls: 'x-btn-text-icon',
+                        icon: 'images/lock_open.png',
+                        itemId: "locked",
+                        text: 'Lock',
+                        iconAlign: "right",
+                        handler: function(btn) {
+                            if(btn.getText() == "Lock"){
+                                btn.setText("Unlock");
+                                btn.setIcon("images/lock_ok.png")
+                            }
+                            else{
+                                btn.setText("Lock");
+                                btn.setIcon("images/lock_open.png")
+                            }
+                            if (me.loadingData === false){
+                                me.markDirty();
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Settings',
+                flex: 1,
+                collapsible: true,
+                layout:"hbox",
+                defaults: {
+                    margin: '0 10 0 5',
+                    labelWidth: "100px"
+                },
+                items:[
+                    {
                         xtype: 'numberfield',
                         width: 150,
                         //anchor: "90%",
@@ -1002,23 +1036,24 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                     },
                     {
-                        xtype: 'button',
-                        cls: 'x-btn-text-icon',
-                        icon: 'images/lock_open.png',
-                        itemId: "locked",
-                        text: 'Lock',
-                        iconAlign: "right",
-                        handler: function(btn) {
-                            if(btn.getText() == "Lock"){
-                                btn.setText("Unlock");
-                                btn.setIcon("images/lock_ok.png")
-                            }
-                            else{
-                                btn.setText("Lock");
-                                btn.setIcon("images/lock_open.png")
-                            }
-                            if (me.loadingData === false){
-                                me.markDirty();
+                        xtype: "checkbox",
+                        fieldLabel: "No After State",
+                        itemId:"ignoreAfterState",
+                        anchor:'90%',
+                        listeners:{
+                            afterrender: function(me,eOpt){
+                                Ext.tip.QuickTipManager.register({
+                                    target: me.getEl(),
+                                    //title: 'My Tooltip',
+                                    text: "Don't run after state.",
+                                    //width: 100,
+                                    dismissDelay: 10000 // Hide after 10 seconds hover
+                                });
+                            },
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
                             }
                         }
                     }
@@ -1214,6 +1249,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#executionTestcases").store.removeAll();
                 me.down("#ignoreStatus").setValue(me.dataRecord.get("ignoreStatus"));
                 me.down("#ignoreScreenshots").setValue(me.dataRecord.get("ignoreScreenshots"));
+                me.down("#ignoreAfterState").setValue(me.dataRecord.get("ignoreAfterState"));
                 if (me.dataRecord.get("locked") == true){
                     me.down("#locked").setIcon("images/lock_ok.png");
                     me.down("#locked").setText("Unlock");
@@ -1302,6 +1338,7 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.testset = this.down("#testset").getValue();
         execution.testsetname = this.down("#testset").getRawValue ();
         execution.ignoreStatus = this.down("#ignoreStatus").getValue();
+        execution.ignoreAfterState = this.down("#ignoreAfterState").getValue();
         execution.ignoreScreenshots = this.down("#ignoreScreenshots").getValue();
 
         if (this.down("#locked").getText() == "Lock"){

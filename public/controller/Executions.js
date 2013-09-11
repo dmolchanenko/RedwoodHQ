@@ -153,6 +153,7 @@ Ext.define("Redwood.controller.Executions", {
         var machines = executionView.getSelectedMachines();
         var testcases = executionView.getSelectedTestCases();
         var ignoreStatus = executionView.down("#ignoreStatus").getValue();
+        var ignoreAfterState = executionView.down("#ignoreAfterState").getValue();
         var ignoreScreenshots = executionView.down("#ignoreScreenshots").getValue();
         var retryCount = executionView.down("#retryCount").getValue();
         var status = executionView.getStatus();
@@ -217,7 +218,7 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Ajax.request({
                 url:"/executionengine/startexecution",
                 method:"POST",
-                jsonData : {ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
+                jsonData : {ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
                 success: function(response) {
                     if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                     var obj = Ext.decode(response.responseText);
@@ -267,6 +268,7 @@ Ext.define("Redwood.controller.Executions", {
 
         executionView.dataRecord.set("ignoreStatus",execution.ignoreStatus);
         executionView.dataRecord.set("ignoreScreenshots",execution.ignoreScreenshots);
+        executionView.dataRecord.set("ignoreAfterState",execution.ignoreAfterState);
 
         if (newExecution == false){
             if (typeof (callback) === 'function') callback(executionView.dataRecord);

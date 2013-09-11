@@ -534,10 +534,11 @@ Ext.define('Redwood.view.ActionView', {
             this.down("#name").focus();
             return false;
         }
-        var index = store.findExact("name",this.down("#name").getValue());
+        var record = store.query("name",this.down("#name").getValue()).getAt(0);
+        //var index = store.findExact("name",this.down("#name").getValue());
         if (this.dataRecord != null){
-            if (index != -1){
-                var foundID = store.getAt(index).internalId;
+            if (record){
+                var foundID = record.internalId;
                 if (this.dataRecord.internalId != foundID){
                     this.down("#name").focus();
                     Ext.Msg.alert('Error', "Action with the same name already exits.");
@@ -546,7 +547,7 @@ Ext.define('Redwood.view.ActionView', {
             }
         }
         else{
-            if (index != -1){
+            if (record){
                 this.down("#name").focus();
                 Ext.Msg.alert('Error', "Action with the same name already exits.");
                 return false;

@@ -69,6 +69,7 @@ Ext.define('Redwood.store.TestCaseTree', {
                 ID = action.id;
             }
             me.getRootNode().eachChild(function(node){
+                if(!node) return;
                 if(node.get("tagValue")){
                     var found = node.findChild("_id",ID);
                     if (found != null){

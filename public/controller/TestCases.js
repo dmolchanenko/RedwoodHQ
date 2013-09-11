@@ -130,6 +130,7 @@ Ext.define("Redwood.controller.TestCases", {
             testcaseView.dataRecord.set("status",testcase.status);
             testcaseView.dataRecord.set("tag",testcase.tag);
             testcaseView.dataRecord.set("type",testcase.type);
+            testcaseView.dataRecord.set("afterState",testcase.afterState);
             testcaseView.dataRecord.set("script",testcase.script);
             testcaseView.dataRecord.dirty = true;
 

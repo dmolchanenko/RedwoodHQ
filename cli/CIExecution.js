@@ -1,5 +1,5 @@
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads,hostname2:threads] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
+    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads,hostname2:threads] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
     .demand(['name','testset','machines','project','user'])
     .argv;
 var common = require('../common');
@@ -23,6 +23,12 @@ common.parseConfig(function(){
     execution.testsetname = argv.testset;
     if(argv.tags){
         execution.tag = argv.tags.split(",");
+    }
+    if(argv.retryCount){
+        execution.retryCount = argv.retryCount;
+    }
+    else{
+        execution.retryCount = "0";
     }
     if(argv.ignoreScreenshots){
         if(argv.ignoreScreenshots === "true"){
@@ -116,7 +122,7 @@ function StartExecution(execution,testcases,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines}));
     req.end();
 }
 
@@ -280,7 +286,7 @@ function GenerateReport(cliexecution,callback){
                         xw.startElement('testcase');
                         xw.writeAttribute('name',testcase.name);
                         xw.writeAttribute('classname',testcase.name);
-                        xw.writeAttribute('time',testcase.runtime.toString());
+                        xw.writeAttribute('time',(testcase.runtime / 1000).toString());
                         if (testcase.result == "Passed"){
                             xw.endElement();
                         }

@@ -43,6 +43,7 @@ exports.startexecutionPost = function(req, res){
     var executionID =  req.body.executionID;
     var ignoreStatus =  req.body.ignoreStatus;
     var ignoreScreenshots =  req.body.ignoreScreenshots;
+    var ignoreAfterState =  req.body.ignoreAfterState;
     var machines = req.body.machines;
     var variables = {};
     var testcases = req.body.testcases;
@@ -71,7 +72,7 @@ exports.startexecutionPost = function(req, res){
         return;
     }
 
-    executions[executionID] = {ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
+    executions[executionID] = {ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
 
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
@@ -312,8 +313,9 @@ function executeTestCases(testcases,executionID){
             if(executions[executionID].baseStateFailed === true){
                 unlockMachines(machines,function(){
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
-                        delete executions[executionID];
+
                     });
+                    delete executions[executionID];
                     //return;
                     callback(true)
                 });
@@ -337,8 +339,9 @@ function executeTestCases(testcases,executionID){
         else{
             unlockMachines(executions[executionID].machines,function(){
                 cleanUpMachines(executions[executionID].machines,executionID,function(){
-                    delete executions[executionID];
+
                 });
+                delete executions[executionID];
                 callback(true)
             });
             updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
@@ -368,7 +371,7 @@ function executeTestCases(testcases,executionID){
                         nextTC();
                     }
                     else{
-                        executions[executionID].executingTCs = false;
+                        if(executions[executionID]) executions[executionID].executingTCs = false;
                     }
                 });
                 return;
@@ -422,7 +425,7 @@ function executeTestCases(testcases,executionID){
                             nextTC();
                         }
                         else{
-                            executions[executionID].executingTCs = false;
+                            if(executions[executionID]) executions[executionID].executingTCs = false;
                         }
                     });
                 }
@@ -741,12 +744,12 @@ exports.actionresultPost = function(req, res){
 
     testcase.currentAction.result.status = "Finished";
     testcase.currentAction.result.result = req.body.result;
+    if(!testcase.result.error){
+        testcase.result.error = "";
+    }
     if (req.body.error){
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
-    }
-    else{
-        testcase.result.error = "";
     }
 
     if (req.body.trace){
@@ -771,11 +774,21 @@ exports.actionresultPost = function(req, res){
         if (actionFlow == "Record Error Stop Test Case"){
             testcase.result.status = "Finished";
             testcase.result.result = "Failed";
+            testcase.runAfterState = true;
+            testcase.testcase.actions.forEach(function(action){
+                if(!action.dbAction.afterState == true){
+                    action.runAction = false;
+                }
+            });
+            //updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{error:testcase.result.error,trace:testcase.trace}});
+            /*
             markFinishedResults(testcase.result.children,execution.sourceCache,function(){
                 updateResult(testcase.result);
             });
             finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
             return;
+            */
+
         }
         else if (actionFlow == "Record Error Continue Test Case"){
             testcase.result.result = "Failed";
@@ -1346,6 +1359,7 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
 function updateExecution(query,update,callback){
     db.collection('executions', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            if(err) console.log("ERROR updating execution: "+err);
             realtime.emitMessage("UpdateExecutions",data);
             if (callback){
                 callback(err);
@@ -1629,8 +1643,14 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 callback(testcaseDetails,testcaseResults,[]);
             }
             else{
+                //now process after state
+                var afterStatePresent = false;
+                if((testcase.afterState) && (testcase.afterState != "") &&(executions[executionID].ignoreAfterState == false)){
+                    afterStatePresent = true;
+                    testcase.collection.push({host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
+                }
                 if (testcase.collection.length > 0){
-                    testcaseDetails = {dbTestCase:testcase,actions:[]};
+                    testcaseDetails = {dbTestCase:testcase,actions:[],afterState:afterStatePresent};
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,children:[]};
                     var pending = testcase.collection.length;
 
@@ -1666,7 +1686,9 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                         var newAction = {dbAction:innerAction,parent:testcaseDetails,result:newActionResult,actions:[],runAction:runAction};
                         testcaseDetails.actions.push(newAction);
                         getActionDetails(innerAction,newAction,newActionResult,function(){
-                            if (!--pending) callback(testcaseDetails,testcaseResults,hosts);
+                            if (!--pending) {
+                                callback(testcaseDetails,testcaseResults,hosts);
+                            }
                         });
                     });
                 }
