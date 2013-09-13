@@ -1571,8 +1571,22 @@ function findNextAction (actions,variables,callback){
 }
 
 
-function deleteResult(testcaseID,executionID){
-
+function deleteOldResult(testcaseID,executionID,callback){
+    db.collection('testcaseresults', function(err, collection) {
+        collection.findOne({testcaseID:db.bson_serializer.ObjectID(testcaseID),executionID:executionID}, {}, function(err, result) {
+            if(result == null) {
+                if(callback) callback();
+                return;
+            }
+            if(result.screenshot){
+                db.collection('screenshots', function(err, SHCollection) {
+                    SHCollection.remove({_id:result.screenshot});
+                })
+            }
+            if(callback) callback();
+            collection.remove({_id:result._id},{safe:true},function(err){});
+        })
+    });
 }
 
 
@@ -1634,70 +1648,72 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
         });
     };
 
-    db.collection('testcases', function(err, collection) {
-        collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
-            if(testcase == null) callback(null);
-            if (testcase.type == "script"){
-                testcaseDetails = {dbTestCase:testcase,script:testcase.script};
-                testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
-                callback(testcaseDetails,testcaseResults,[]);
-            }
-            else{
-                //now process after state
-                var afterStatePresent = false;
-                if((testcase.afterState) && (testcase.afterState != "") &&(executions[executionID].ignoreAfterState == false)){
-                    afterStatePresent = true;
-                    testcase.collection.push({host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
-                }
-                if (testcase.collection.length > 0){
-                    testcaseDetails = {dbTestCase:testcase,actions:[],afterState:afterStatePresent};
-                    testcaseResults = {name:testcase.name,testcaseID:testcase._id,children:[]};
-                    var pending = testcase.collection.length;
-
-                    testcase.collection.forEach(function(innerAction,index){
-                        if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
-                            hosts.push(innerAction.host)
-                        }
-                        var newActionResult = {order:index+1,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
-                        //var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
-                        testcaseResults.children.push(newActionResult);
-
-                        var runAction = true;
-
-                        //if start action is greater than all actions don't execute anything
-                        if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
-                            runAction = false;
-                        }
-                        else if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
-                            var endAction = 99999;
-                            if ((executions[executionID].testcases[testcaseID].endAction)&&(executions[executionID].testcases[testcaseID].endAction != "")){
-                                endAction = parseInt(executions[executionID].testcases[testcaseID].endAction)
-                            }
-                            if (parseInt(executions[executionID].testcases[testcaseID].startAction) <= endAction){
-                                if ((parseInt(executions[executionID].testcases[testcaseID].startAction) <= parseInt(innerAction.order)) && (endAction >= parseInt(innerAction.order))){
-
-                                }
-                                else{
-                                    runAction = false;
-                                }
-                            }
-                        }
-
-                        var newAction = {dbAction:innerAction,parent:testcaseDetails,result:newActionResult,actions:[],runAction:runAction};
-                        testcaseDetails.actions.push(newAction);
-                        getActionDetails(innerAction,newAction,newActionResult,function(){
-                            if (!--pending) {
-                                callback(testcaseDetails,testcaseResults,hosts);
-                            }
-                        });
-                    });
+    deleteOldResult(testcaseID,executionID,function(){
+        db.collection('testcases', function(err, collection) {
+            collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
+                if(testcase == null) callback(null);
+                if (testcase.type == "script"){
+                    testcaseDetails = {dbTestCase:testcase,script:testcase.script};
+                    testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
+                    callback(testcaseDetails,testcaseResults,[]);
                 }
                 else{
-                    callback({dbTestCase:testcase,actions:[]},{name:testcase.name,testcaseID:testcase._id,children:[]},[]);
+                    //now process after state
+                    var afterStatePresent = false;
+                    if((testcase.afterState) && (testcase.afterState != "") &&(executions[executionID].ignoreAfterState == false)){
+                        afterStatePresent = true;
+                        testcase.collection.push({host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
+                    }
+                    if (testcase.collection.length > 0){
+                        testcaseDetails = {dbTestCase:testcase,actions:[],afterState:afterStatePresent};
+                        testcaseResults = {name:testcase.name,testcaseID:testcase._id,children:[]};
+                        var pending = testcase.collection.length;
+
+                        testcase.collection.forEach(function(innerAction,index){
+                            if ((innerAction.host != "")&&(hosts.indexOf(innerAction.host) == -1)){
+                                hosts.push(innerAction.host)
+                            }
+                            var newActionResult = {order:index+1,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
+                            //var newActionResult = {order:innerAction.order,actionid:innerAction.actionid,parameters:innerAction.parameters,status:"Not Run",expanded:false,children:[],executionflow:innerAction.executionflow};
+                            testcaseResults.children.push(newActionResult);
+
+                            var runAction = true;
+
+                            //if start action is greater than all actions don't execute anything
+                            if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
+                                runAction = false;
+                            }
+                            else if ((executions[executionID].testcases[testcaseID].startAction)&&(executions[executionID].testcases[testcaseID].startAction != "")){
+                                var endAction = 99999;
+                                if ((executions[executionID].testcases[testcaseID].endAction)&&(executions[executionID].testcases[testcaseID].endAction != "")){
+                                    endAction = parseInt(executions[executionID].testcases[testcaseID].endAction)
+                                }
+                                if (parseInt(executions[executionID].testcases[testcaseID].startAction) <= endAction){
+                                    if ((parseInt(executions[executionID].testcases[testcaseID].startAction) <= parseInt(innerAction.order)) && (endAction >= parseInt(innerAction.order))){
+
+                                    }
+                                    else{
+                                        runAction = false;
+                                    }
+                                }
+                            }
+
+                            var newAction = {dbAction:innerAction,parent:testcaseDetails,result:newActionResult,actions:[],runAction:runAction};
+                            testcaseDetails.actions.push(newAction);
+                            getActionDetails(innerAction,newAction,newActionResult,function(){
+                                if (!--pending) {
+                                    callback(testcaseDetails,testcaseResults,hosts);
+                                }
+                            });
+                        });
+                    }
+                    else{
+                        callback({dbTestCase:testcase,actions:[]},{name:testcase.name,testcaseID:testcase._id,children:[]},[]);
+                    }
                 }
-            }
+            })
         })
-    })
+    });
 
 }
 
