@@ -21,13 +21,26 @@ Ext.define('Redwood.view.ResultsView', {
         }
     },
 
-    refreshResult: function(result){
-        this.resultsStore.getRootNode().cascadeBy(function(node){
+    lastResult: {},
 
+    refreshResult: function(result){
+        var me = this;
+        me.lastResult = {};
+        var index = 0;
+        this.resultsStore.getRootNode().cascadeBy(function(node){
+            me.lastResult[index] = node.isExpanded();
+            index++;
         });
         this.resultsStore.setRootNode({"text":".","children":result.children});
         this.down("#status").setValue(result.status);
         this.down("#result").setValue(result.result);
+        index = 0;
+        this.resultsStore.getRootNode().cascadeBy(function(node){
+            if(me.lastResult[index] === true){
+                node.expand();
+            }
+            index++;
+        });
     },
 
     initComponent: function () {
@@ -90,8 +103,10 @@ Ext.define('Redwood.view.ResultsView', {
                     if(innerElement){
                         var height = innerElement.getHeight();
                         cmp.setHeight(height+50);
+                        //var width = innerElement.getWidth();
+                        //cmp.setWidth(width);
                     }
-                }, 200);
+                }, 300);
             },
 
             multiSelect: false,
