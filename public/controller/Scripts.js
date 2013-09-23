@@ -299,6 +299,8 @@ Ext.define("Redwood.controller.Scripts", {
             icon = "images/fileTypeGroovy.png";
         }else if (fileName.slice(-4) == "java"){
             icon = "images/fileTypeJava.png";
+        }else if (fileName.slice(-2) == "js"){
+            icon = "images/fileTypeJavascript.png";
         }
         return icon;
     },
@@ -747,6 +749,8 @@ Ext.define("Redwood.controller.Scripts", {
                 editorType = "text/x-java";
             }else if (record.get("fullpath").slice(-3) == "xml"){
                 editorType = "application/xml";
+            }else if (record.get("fullpath").slice(-2) == "js"){
+                editorType = "text/javascript";
             }
 
             var tab;

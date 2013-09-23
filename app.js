@@ -37,6 +37,7 @@ var express = require('express')
   , methodFinder = require('./routes/methodFinder')
   , aggregate = require('./routes/aggregate')
   , executionstatus = require('./routes/executionstatus')
+  , emailsettings = require('./routes/emailsettings')
   , license = require('./routes/license');
 
 
@@ -74,6 +75,10 @@ app.get('/login',auth.loginPage);
 
 app.post('/license',auth.auth,license.licensePost);
 app.get('/license',auth.auth,license.licenseGet);
+
+//emailsettings
+app.post('/emailsettings',auth.auth,emailsettings.Post);
+app.get('/emailsettings',auth.auth,emailsettings.Get);
 
 //aggregate
 app.post('/aggregate',auth.auth,aggregate.aggregatePost);

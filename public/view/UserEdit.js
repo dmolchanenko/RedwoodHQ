@@ -72,6 +72,7 @@ Ext.define('Redwood.view.UserEdit', {
                             form.updateRecord();
                             Ext.data.StoreManager.lookup('UserTags').sync();
                             Ext.data.StoreManager.lookup('Users').sync();
+                            window.close();
                         }else{
                             Ext.Ajax.request({
                                 url:"/canadduser",

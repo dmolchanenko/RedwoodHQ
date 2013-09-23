@@ -42,6 +42,8 @@ exports.commitsSinceDate = function(workdir,date,callback){
 
 exports.lsFiles = function(workdir,query,callback){
     var params = query;
+    params.unshift("-o");
+    params.unshift("-c");
     params.unshift("ls-files");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),params,{cwd: workdir,timeout:300000});
     var cliData = "";

@@ -21,7 +21,6 @@ Ext.define('Redwood.view.LicenseEditor', {
                 xtype: 'fieldset',
                 title: 'License Information',
                 defaultType: 'textfield',
-                itemId:"testcaseDetails",
                 flex: 1,
                 collapsible: false,
                 defaults: {

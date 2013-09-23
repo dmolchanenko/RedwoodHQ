@@ -426,6 +426,8 @@ var walkDir = function(dir,filesInConflict,filesNotPushed, done) {
                         result.icon = "images/fileTypeGroovy.png";
                     }else if (file.slice(-4) == "java"){
                         result.icon = "images/fileTypeJava.png";
+                    }else if (file.slice(-2) == "js"){
+                        result.icon = "images/fileTypeJavascript.png";
                     }
                     result.leaf= true;
                     results.push(result);

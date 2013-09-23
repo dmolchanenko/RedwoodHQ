@@ -176,7 +176,7 @@ function startLauncher(executionID,threadID,callback){
                             if (msg.command == "action finished"){
                                 delete actionCache[portNumber];
                                 if(msg.screenshot){
-                                    sendScreenShotToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,common.Config.AppServerIPHost,common.Config.AppServerPort,function(){
+                                    sendFileToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,"/screenshots",common.Config.AppServerIPHost,common.Config.AppServerPort,function(){
                                         sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                                     })
                                 }
@@ -466,7 +466,7 @@ function getExecutionStatus(host,port,executionID,callback){
     req.end();
 }
 
-function sendScreenShotToServer(file,id,host,port,callback){
+function sendFileToServer(file,id,url,host,port,callback){
     if(fs.existsSync(file) == false) {
         if (callback) callback();
         return;
@@ -492,7 +492,8 @@ function sendScreenShotToServer(file,id,host,port,callback){
     var options = {
         hostname: host,
         port: port,
-        path: '/screenshots',
+        path: url,
+        //path: '/screenshots',
         method: 'POST',
         headers: {
             //'Content-Type': 'text/plain'//,
