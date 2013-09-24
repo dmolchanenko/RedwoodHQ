@@ -84,6 +84,7 @@ Ext.define('Redwood.view.Viewport', {
                                         icon: Ext.Msg.QUESTION,
                                         fn: function(id){
                                             if (id == "yes"){
+                                                window.history.replaceState("", "", '/index.html');
                                                 Ext.util.Cookies.set("project",value);
                                                 window.location.reload(true);
                                             }

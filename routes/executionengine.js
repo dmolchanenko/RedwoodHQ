@@ -1732,30 +1732,6 @@ function sendNotification(executionID){
                     if((!settings.host) || (settings.host == "")) return;
                     var options = {};
 
-                    /*
-
-                     <h4>One row and three columns:</h4>
-                     <table border="1">
-                     <tr>
-                     <td><b>Total</b></td>
-                     <td>200</td>
-                     </tr>
-                     <tr>
-                     <td>Passed</td>
-                     <td style="color:red">200</td>
-                     </tr>
-                     <tr>
-                     <td>Failed</td>
-                     <td>200</td>
-                     </tr>
-                     <tr>
-                     <td>Not Run</td>
-                     <td>200</td>
-                     </tr>
-
-                     </table>
-                     */
-
                     var subject = "Execution FINISHED: " + execution.name;
                     if(parseInt(execution.failed) > 0){
                         subject = subject + " (CONTAINS FAILURES)"
@@ -1766,10 +1742,10 @@ function sendNotification(executionID){
 
                     var body = "<p><a href='http://" + settings.serverHost+ ":" + common.Config.AppServerPort + "/index.html?execution=" + execution._id + "&project=" + execution.project + "'>Execution: " + execution.name + "</a></p>";
 
-                    body = body + '<p><table border="1">' +
+                    body = body + '<p><table border="1" cellpadding="3">' +
                         '<tr>' +
                         '<td><b>Total</b></td>' +
-                        '<td>'+execution.total+'</td>' +
+                        '<td><b>'+execution.total+'</b></td>' +
                         '</tr>' +
                         '<tr>' +
                             '<td>Passed</td>' +
