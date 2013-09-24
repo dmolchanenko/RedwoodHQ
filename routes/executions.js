@@ -53,14 +53,14 @@ exports.executionsPost = function(req, res){
     data.project = req.cookies.project;
     data.user =  req.cookies.username;
     CreateExecutions(app.getDB(),data,function(returnData){
-        exports.updateExecutionTotals(returnData._id,function(){
+        //exports.updateExecutionTotals(returnData._id,function(){
             res.contentType('json');
             res.json({
                 success: true,
                 executions: returnData
             });
             realtime.emitMessage("AddExecutions",data);
-        });
+        //});
     });
 };
 
@@ -100,7 +100,7 @@ exports.updateExecutionTotals = function(executionID,callback){
 function CreateExecutions(db,data,callback){
     db.collection('executions', function(err, collection) {
         //data._id = db.bson_serializer.ObjectID(data._id);
-        collection.insert(data, {safe:true},function(err,returnData){
+        collection.save(data, {safe:true},function(err,returnData){
             callback(returnData);
         });
     });
