@@ -829,6 +829,26 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
 
+        me.usersStore = new Ext.data.Store({
+            fields: [
+                {name: 'name',     type: 'string'},
+                {name: 'email',     type: 'string'},
+                {name: 'username',     type: 'string'}
+            ],
+            data: []
+        });
+
+        me.savedEmails = [];
+
+        Ext.data.StoreManager.lookup('Users').each(function(user){
+            var newRecord = me.usersStore.add({name:user.get("name"),email:user.get("email"),username:user.get("username")});
+            if((me.dataRecord != null) && (me.dataRecord.get("emails"))){
+                if(me.dataRecord.get("emails").indexOf(user.get("email")) != -1){
+                    me.savedEmails.push(user.get("email"));
+                }
+            }
+        });
+
         this.items = [
             {
                 xtype: 'fieldset',
@@ -904,7 +924,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                 }
                                 var testSet = combo.store.findRecord("_id",newVal);
                                 me.down("#executionTestcases").store.removeAll();
-                                var allTCs = []
+                                var allTCs = [];
                                 testSet.get("testcases").forEach(function(testcaseId){
                                     var testcase = Ext.data.StoreManager.lookup('TestCases').query("_id",testcaseId._id).getAt(0);
                                     //me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
@@ -955,6 +975,73 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                     }
                 ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Email Notification',
+                flex: 1,
+                collapsible: true,
+                layout:"hbox",
+                defaults: {
+                    margin: '0 10 0 5',
+                    labelWidth: "100px"
+                },
+                items:[
+                    {
+                        xtype: "checkbox",
+                        fieldLabel: "Send Email",
+                        itemId:"sendEmail",
+                        labelWidth: 70,
+                        anchor:'90%',
+                        listeners:{
+                            afterrender: function(me,eOpt){
+                                Ext.tip.QuickTipManager.register({
+                                    target: me.getEl(),
+                                    //title: 'My Tooltip',
+                                    text: 'Send E-Mail notification.',
+                                    //width: 100,
+                                    dismissDelay: 10000 // Hide after 10 seconds hover
+                                });
+                            },
+                            change: function(){
+                                if (me.loadingData === false){
+                                    //me.markDirty();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        xtype:"combofieldbox",
+                        typeAhead:true,
+                        fieldLabel: "E-Mails",
+                        displayField:"name",
+                        descField:"name",
+                        height:24,
+                        width: 800,
+                        anchor:'90%',
+                        labelWidth: 50,
+                        forceSelection:false,
+                        createNewOnEnter:true,
+                        encodeSubmitValue:true,
+                        autoSelect: true,
+                        createNewOnBlur: true,
+                        store:me.usersStore,
+                        valueField:"email",
+                        queryMode: 'local',
+                        removeOnDblClick:true,
+                        itemId:"emails",
+                        listeners:{
+                            afterrender: function(field,eOpt){
+
+                            },
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
+                    }
+                    ]
             },
             {
                 xtype: 'fieldset',
@@ -1258,6 +1345,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     me.down("#locked").setIcon("images/lock_open.png");
                     me.down("#locked").setText("Lock");
                 }
+                me.down("#emails").setValue(me.savedEmails);
 
                 var allTCs = [];
                 me.dataRecord.get("testcases").forEach(function(testcase){
@@ -1269,6 +1357,11 @@ Ext.define('Redwood.view.ExecutionView', {
                     }
                 });
                 me.down("#executionTestcases").store.add(allTCs);
+            }
+            else{
+                var record = me.down("#emails").store.findRecord("username",Ext.util.Cookies.get('username'));
+                if(record) me.down("#emails").setValue(record);
+
             }
             me.loadingData = false;
             me.initialTotals();
@@ -1340,6 +1433,7 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.ignoreStatus = this.down("#ignoreStatus").getValue();
         execution.ignoreAfterState = this.down("#ignoreAfterState").getValue();
         execution.ignoreScreenshots = this.down("#ignoreScreenshots").getValue();
+        execution.emails = this.down("#emails").getValue();
 
         if (this.down("#locked").getText() == "Lock"){
             execution.locked = false;

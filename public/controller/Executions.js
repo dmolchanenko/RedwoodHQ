@@ -156,6 +156,7 @@ Ext.define("Redwood.controller.Executions", {
         var ignoreAfterState = executionView.down("#ignoreAfterState").getValue();
         var ignoreScreenshots = executionView.down("#ignoreScreenshots").getValue();
         var retryCount = executionView.down("#retryCount").getValue();
+        var sendEmail = executionView.down("#sendEmail").getValue();
         var status = executionView.getStatus();
         var locked =  false;
         if (executionView.down("#locked").getText() == "Unlock") locked = true;
@@ -218,7 +219,7 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Ajax.request({
                 url:"/executionengine/startexecution",
                 method:"POST",
-                jsonData : {ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
+                jsonData : {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
                 success: function(response) {
                     if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                     var obj = Ext.decode(response.responseText);
@@ -261,6 +262,7 @@ Ext.define("Redwood.controller.Executions", {
             executionView.dataRecord.set("name",execution.name);
             executionView.dataRecord.set("variables",execution.variables);
             executionView.dataRecord.set("machines",execution.machines);
+            executionView.dataRecord.set("emails",execution.emails);
             executionView.dataRecord.set("locked",execution.locked);
             executionView.dataRecord.set("tag",execution.tag);
             executionView.dataRecord.dirty = true;

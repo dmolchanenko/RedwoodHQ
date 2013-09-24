@@ -36,6 +36,16 @@ class Launcher {
         this.output<<groovy.json.JsonOutput.toJson(toServer)+"--EOM--"
     }
 
+    public static logFile(String path){
+        def toServer = [:]
+        toServer.command = "Log File"
+        toServer.message = path
+        toServer.actionName = currentAction.name
+        toServer.resultID = currentAction.resultID
+        toServer.
+        this.output<<groovy.json.JsonOutput.toJson(toServer)+"--EOM--"
+    }
+
     public static void main(String[] args){
         def server
         if(args.size() == 1){

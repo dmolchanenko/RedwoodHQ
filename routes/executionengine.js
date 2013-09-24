@@ -12,6 +12,7 @@ var compile = require("./compile");
 var realtime = require("../routes/realtime");
 var git = require('../gitinterface/gitcommands');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
+var nodemailer = require("nodemailer");
 var db;
 
 exports.stopexecutionPost = function(req, res){
@@ -44,6 +45,7 @@ exports.startexecutionPost = function(req, res){
     var ignoreStatus =  req.body.ignoreStatus;
     var ignoreScreenshots =  req.body.ignoreScreenshots;
     var ignoreAfterState =  req.body.ignoreAfterState;
+    var sendEmail =  req.body.sendEmail;
     var machines = req.body.machines;
     var variables = {};
     var testcases = req.body.testcases;
@@ -72,7 +74,7 @@ exports.startexecutionPost = function(req, res){
         return;
     }
 
-    executions[executionID] = {ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
+    executions[executionID] = {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
 
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
@@ -320,7 +322,9 @@ function executeTestCases(testcases,executionID){
                     callback(true)
                 });
                 updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
-                executionsRoute.updateExecutionTotals(executionID);
+                executionsRoute.updateExecutionTotals(executionID,function(){
+                    if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                });
                 callback(true);
                 return;
             }
@@ -344,7 +348,9 @@ function executeTestCases(testcases,executionID){
                 delete executions[executionID];
                 callback(true)
             });
-            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
+            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},function(){
+                if(executions[executionID].sendEmail == true) sendNotification(executionID);
+            });
             //return;
         }
     };
@@ -1714,6 +1720,108 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
             })
         })
     });
+}
 
+function sendNotification(executionID){
+    db.collection('emailsettings', function(err, collection) {
+        db.collection('executions', function(err, EXEcollection) {
+            collection.findOne({}, {}, function(err, settings) {
+                EXEcollection.findOne({_id:executionID}, {}, function(err, execution) {
+                    if(!execution.emails) return;
+                    if(execution.emails.length == 0) return;
+                    if((!settings.host) || (settings.host == "")) return;
+                    var options = {};
+
+                    /*
+
+                     <h4>One row and three columns:</h4>
+                     <table border="1">
+                     <tr>
+                     <td><b>Total</b></td>
+                     <td>200</td>
+                     </tr>
+                     <tr>
+                     <td>Passed</td>
+                     <td style="color:red">200</td>
+                     </tr>
+                     <tr>
+                     <td>Failed</td>
+                     <td>200</td>
+                     </tr>
+                     <tr>
+                     <td>Not Run</td>
+                     <td>200</td>
+                     </tr>
+
+                     </table>
+                     */
+
+                    var subject = "Execution FINISHED: " + execution.name;
+                    if(parseInt(execution.failed) > 0){
+                        subject = subject + " (CONTAINS FAILURES)"
+                    }
+                    else{
+                        subject = subject + " (ALL PASSED)"
+                    }
+
+                    var body = "<p><a href='http://" + settings.serverHost+ ":" + common.Config.AppServerPort + "/index.html?execution=" + execution._id + "&project=" + execution.project + "'>Execution: " + execution.name + "</a></p>";
+
+                    body = body + '<p><table border="1">' +
+                        '<tr>' +
+                        '<td><b>Total</b></td>' +
+                        '<td>'+execution.total+'</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>Passed</td>' +
+                            '<td style="color:green">'+execution.passed+'</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>Failed</td>' +
+                            '<td style="color:red">'+execution.failed+'</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>Not Run</td>' +
+                            '<td style="color:#ffb013">'+execution.notRun+'</td>' +
+                        '</tr>' +
+                    '</table></p>';
+                    if(settings.user){
+                        options.auth = {user:settings.user,pass:settings.password}
+                    }
+                    options.host = settings.host;
+                    if((settings.port)&&(settings.port!="")){
+                        options.port = parseInt(settings.port);
+                    }
+                    else{
+                        options.port = 25
+                    }
+                    var smtpTransport = nodemailer.createTransport("SMTP",options);
+                    var toList = "";
+                    execution.emails.forEach(function(email){
+                        if(toList == ""){
+                            toList = email
+                        }
+                        else{
+                            toList = toList + "," + email
+                        }
+                    });
+                    var mailOptions = {
+                        from: "redwoodhq-no-reply@redwoodhq.com",
+                        to: toList,
+                        subject: subject,
+                        //text: "Hello world", // plaintext body
+                        html: body // html body
+                    };
+
+                    smtpTransport.sendMail(mailOptions, function(error, response){
+                        if(error){
+                            console.log(error);
+                        }
+
+                        smtpTransport.close();
+                    });
+                });
+            });
+        })
+    });
 }
 

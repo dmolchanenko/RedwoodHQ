@@ -12,6 +12,10 @@ Ext.define('Redwood.model.Executions', {
             type:"string"
         },
         {
+            name:"emails",
+            type:"array"
+        },
+        {
             name:"locked",
             type:"boolean"
         },
