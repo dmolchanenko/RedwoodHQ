@@ -81,16 +81,19 @@ exports.startexecutionPost = function(req, res){
         if (err != null){
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});
+            delete executions[executionID];
         }
         else{
             cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
                 executions[executionID].sourceCache = sourceCache;
+                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
                 updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
                 verifyMachineState(machines,function(err){
                     if(err){
                         updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
                         res.contentType('json');
                         res.json({error:err});
+                        delete executions[executionID];
                         return;
                     }
                     res.contentType('json');
@@ -1668,7 +1671,8 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     var afterStatePresent = false;
                     if((testcase.afterState) && (testcase.afterState != "") &&(executions[executionID].ignoreAfterState == false)){
                         afterStatePresent = true;
-                        testcase.collection.push({host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
+                        var stateOrder = (testcase.collection.length+1).toString();
+                        testcase.collection.push({order:stateOrder,host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
                     }
                     if (testcase.collection.length > 0){
                         testcaseDetails = {dbTestCase:testcase,actions:[],afterState:afterStatePresent};

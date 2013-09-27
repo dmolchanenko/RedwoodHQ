@@ -30,9 +30,16 @@ exports.actionTagsPost = function(req, res){
 
 function CreateActionTags(db,data,callback){
     db.collection('actionTags', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
-        collection.insert(data, {safe:true},function(err,returnData){
-            callback(returnData);
+        collection.findOne({project:data.project,value:data.value},{},function(err,foundTag){
+            if (!foundTag){
+                data._id = db.bson_serializer.ObjectID(data._id);
+                collection.insert(data, {safe:true},function(err,returnData){
+                    callback(returnData);
+                });
+            }
+            else{
+                callback([foundTag]);
+            }
         });
     });
 }
