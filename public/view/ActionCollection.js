@@ -1043,7 +1043,7 @@ Ext.define('Redwood.view.ActionCollection', {
 
             if (actionSelected == null){
                 actionSelectedOrder = 0;
-                rowOrderSelected = 0;
+                rowOrderSelected = -1;
             }else{
                 actionSelectedOrder = parseInt(actionSelected.get("order"),10);
                 rowOrderSelected = actionSelected.get("rowOrder");
