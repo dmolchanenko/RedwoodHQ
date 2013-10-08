@@ -87,7 +87,6 @@ exports.startexecutionPost = function(req, res){
             cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
                 executions[executionID].sourceCache = sourceCache;
                 updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
-                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
                 verifyMachineState(machines,function(err){
                     if(err){
                         updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
@@ -108,7 +107,9 @@ exports.startexecutionPost = function(req, res){
                             suiteBaseState(executionID,machines,function(){
                                 //magic happens here
                                 applyMultiThreading(executionID,function(){
-                                    executeTestCases(executions[executionID].testcases,executionID);
+                                    updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},function(){
+                                        executeTestCases(executions[executionID].testcases,executionID);
+                                    });
                                 })
                             });
                         });
@@ -1517,6 +1518,16 @@ function findNextAction (actions,variables,callback){
         }
         for (var attrname in variables) { paramVars[attrname] = variables[attrname]; }
         action.dbAction.parameters.forEach(function(param){
+            if(param.parametertype == "Boolean"){
+                if(param.paramvalue == "TRUE"){
+                    param.paramvalue = true;
+                }
+                else if(param.paramvalue == "FALSE"){
+                    param.paramvalue = false;
+                }
+
+
+            }
             param.paramvalue = resolveParamValue(param.paramvalue,paramVars);
         });
         callback();

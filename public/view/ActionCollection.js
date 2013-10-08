@@ -943,6 +943,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     node.eachChild(function(childNode){
                         var parameter = {};
                         parameter.paramname = childNode.get("paramname");
+                        parameter.parametertype = childNode.get("parametertype");
                         parameter.paramid = childNode.get("paramid");
                         parameter.paramvalue = childNode.get("paramvalue");
                         action.parameters.push(parameter);
