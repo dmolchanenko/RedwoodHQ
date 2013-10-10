@@ -25,6 +25,81 @@ Ext.define('Redwood.view.ResultsView', {
 
     refreshResult: function(result){
         var me = this;
+        var resultNodes = [];
+        var cascadeResult = function(nodes){
+            nodes.forEach(function(node){
+                resultNodes.push(node);
+                if((node.children) && (node.children.length > 0)){
+                    cascadeResult(node.children);
+                }
+            })
+        };
+        cascadeResult(result.children);
+        var index = 0;
+        this.resultsStore.getRootNode().cascadeBy(function(node){
+            if(!node.isRoot()){
+                node.set("result",resultNodes[index].result);
+                node.set("status",resultNodes[index].status);
+                node.set("parameters",resultNodes[index].parameters);
+                node.set("error",resultNodes[index].error);
+                node.set("screenshot",resultNodes[index].screenshot);
+                node.set("trace",resultNodes[index].trace);
+                if(resultNodes[index].expanded == true){
+                    node.expand();
+                    me.down("#resultsGrid").resetHeight(me.down("#resultsGrid"));
+                }
+                else{
+                    //node.collapse();
+                }
+                index++;
+            }
+        });
+
+        /*
+        var lastNode = null;
+        if(result.children.length == 0) return;
+        this.resultsStore.getRootNode().cascadeBy(function(node){
+            if (!node.isRoot()){
+                var matchedNode = null;
+                if(lastNode == null){
+                    lastNode = result.children[0];
+                    lastNode.parent = result;
+                    matchedNode = lastNode;
+                }
+                else{
+                    if(lastNode.parent.children.length == 0){
+                        var findNextNode = function(parent){
+
+                        };
+
+                        for(var i = 0;i<lastNode.parent.children.length;i++){
+                            if(lastNode == lastNode.parent.children[i]){
+
+                            }
+                        }
+                    }
+                    else{
+                        matchedNode = lastNode.children[0];
+                        matchedNode.parent = lastNode;
+                        lastNode = matchedNode;
+                    }
+                }
+
+                node.set("result",matchedNode.result);
+                node.set("status",matchedNode.status);
+                node.set("parameters",matchedNode.parameters);
+                node.set("error",matchedNode.error);
+                node.set("screenshot",matchedNode.screenshot);
+                node.set("trace",matchedNode.trace);
+                if(matchedNode.expanded == true){
+                    node.expand();
+                }
+                else{
+                    node.collapse();
+                }
+            }
+        });
+        /*
         me.lastResult = {};
         var index = 0;
         this.resultsStore.getRootNode().cascadeBy(function(node){
@@ -41,6 +116,7 @@ Ext.define('Redwood.view.ResultsView', {
             }
             index++;
         });
+        */
     },
 
     initComponent: function () {
@@ -71,6 +147,7 @@ Ext.define('Redwood.view.ResultsView', {
             rootVisible: false,
             store: me.resultsStore,
             cls:"x-redwood-alternative-tree-row-even x-redwood-alternative-tree-row-odd",
+            height:700,
             //minHeight:1600,
             //managerHeight:true,
             //autoHeight: true,
@@ -102,7 +179,13 @@ Ext.define('Redwood.view.ResultsView', {
                     var innerElement = cmp.getEl().down('table.x-grid-table');
                     if(innerElement){
                         var height = innerElement.getHeight();
-                        cmp.setHeight(height+50);
+                        if(height > 700){
+                            cmp.setHeight(700);
+                        }
+                        else{
+                            cmp.setHeight(height+50);
+                        }
+
                         //var width = innerElement.getWidth();
                         //cmp.setWidth(width);
                     }
@@ -289,6 +372,64 @@ Ext.define('Redwood.view.ResultsView', {
 
         });
 
+        var screenShots = Ext.create('Ext.panel.Panel', {
+            layout: 'card',
+            height:400,
+            bodyStyle: 'padding:15px',
+            itemId:"screenShots",
+            defaults: {
+                // applied to each contained panel
+                border: false
+            },
+            tbar: [
+                {
+                    id: 'move-prev',
+                    text: 'Back',
+                    handler: function(btn) {
+                        if(screenShots.getLayout().getPrev()){
+                            me.lastScrollPos = me.getEl().dom.children[0].scrollTop;
+                            screenShots.getLayout().prev();
+                            resultsTree.getSelectionModel().select(screenShots.getLayout().getActiveItem().node);
+                            me.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+                        }
+                    }
+                },
+                '->', // greedy spacer so that the buttons are aligned to each side
+                {
+                    id: 'move-next',
+                    text: 'Next',
+                    handler: function(btn) {
+                        if(screenShots.getLayout().getNext()){
+                            me.lastScrollPos = me.getEl().dom.children[0].scrollTop;
+                            screenShots.getLayout().next();
+                            resultsTree.getSelectionModel().select(screenShots.getLayout().getActiveItem().node);
+                            me.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+                        }
+                        //screenShots.add({
+                            //id: 'card-2',
+                        //    html: '<h1>HAHAHAHAHAHAHAH!</h1><p>Step 3 of 3 - Complete</p>'
+                        //})
+                    }
+                }
+            ],
+            items: [],
+            renderTo: Ext.getBody()
+        });
+
+        this.resultsStore.getRootNode().cascadeBy(function(node){
+            if(!node.isRoot()){
+                if(node.get("screenshot")){
+                    var html = "<h1>"+node.getPath("name")+"</h1>";
+                    //location.protocol + "//" + location.host +"/screenshots/"+id
+                        html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>'
+                    screenShots.add({
+                        node: node,
+                        html: html
+                    })
+                }
+            }
+        });
+
         this.items = [
             {
                 xtype: 'fieldset',
@@ -375,6 +516,23 @@ Ext.define('Redwood.view.ResultsView', {
             },
             {
                 xtype: 'fieldset',
+                title: 'Screen Shots',
+                flex: 1,
+                type: 'hbox',
+                itemId:"screenShotsPanel",
+                //minHeight:600,
+                constrainAlign: true,
+                collapsible: true,
+                //collapsed: true,
+                defaults: {
+                    flex: 1
+                },
+                items:[
+                    screenShots
+                ]
+            },
+            {
+                xtype: 'fieldset',
                 title: 'Results',
                 itemId:"results",
                 flex: 1,
@@ -406,6 +564,8 @@ Ext.define('Redwood.view.ResultsView', {
         ];
 
         this.callParent(arguments);
+        setTimeout(function(){me.down("#screenShotsPanel").collapse();},100);
+
     }
 
 });

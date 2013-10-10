@@ -266,6 +266,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.down("scriptPicker").setValue(me.dataRecord.get("script"));
                 me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
                 me.down("#afterState").setValue(me.dataRecord.get("afterState"));
+                me.down("#testcaseDetails").collapse();
 
             }
             else{

@@ -129,7 +129,7 @@ class Launcher {
                 }
 
             }
-
+            takeScreenshot(action)
         }
         catch (Error error){
             //def error = StackTraceUtils.sanitizeRootCause(err)
