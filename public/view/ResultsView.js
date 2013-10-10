@@ -405,7 +405,9 @@ Ext.define('Redwood.view.ResultsView', {
                 border: false
             },
             addNewScreenShot: function(node){
-                var html = "<h1>"+node.getPath("name")+"</h1>";
+                var path = node.getPath("name");
+                path = path.substring(2,path.length);
+                var html = "<h1>"+path+"</h1>";
                 html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>';
                 screenShots.add({
                     node: node,
