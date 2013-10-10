@@ -25,35 +25,58 @@ Ext.define('Redwood.view.ResultsView', {
 
     refreshResult: function(result){
         var me = this;
-        var resultNodes = [];
-        var cascadeResult = function(nodes){
-            nodes.forEach(function(node){
-                resultNodes.push(node);
-                if((node.children) && (node.children.length > 0)){
-                    cascadeResult(node.children);
+        me.latestResult = result;
+
+        var refresh = function(){
+            if(!me.latestResult) return;
+            var resultNodes = [];
+            var cascadeResult = function(nodes){
+                nodes.forEach(function(node){
+                    resultNodes.push(node);
+                    if((node.children) && (node.children.length > 0)){
+                        cascadeResult(node.children);
+                    }
+                })
+            };
+            cascadeResult(me.latestResult.children);
+            delete me.latestResult;
+            var index = 0;
+            me.resultsStore.getRootNode().cascadeBy(function(node){
+                if(!node.isRoot()){
+                    if((node.get("status") != "Finished") && (resultNodes[index].status != "No Run")){
+                        node.set("result",resultNodes[index].result);
+                        node.set("status",resultNodes[index].status);
+                        node.set("parameters",resultNodes[index].parameters);
+                        node.set("error",resultNodes[index].error);
+                        node.set("screenshot",resultNodes[index].screenshot);
+                        node.set("trace",resultNodes[index].trace);
+                        if(resultNodes[index].expanded == true){
+                            node.expand();
+                            me.down("#resultsGrid").resetHeight(me.down("#resultsGrid"));
+                        }
+                        else{
+                            //node.collapse();
+                        }
+                        if(resultNodes[index].screenshot){
+                            me.down("#screenShots").addNewScreenShot(node);
+                        }
+                    }
+                    index++;
                 }
-            })
+            });
         };
-        cascadeResult(result.children);
-        var index = 0;
-        this.resultsStore.getRootNode().cascadeBy(function(node){
-            if(!node.isRoot()){
-                node.set("result",resultNodes[index].result);
-                node.set("status",resultNodes[index].status);
-                node.set("parameters",resultNodes[index].parameters);
-                node.set("error",resultNodes[index].error);
-                node.set("screenshot",resultNodes[index].screenshot);
-                node.set("trace",resultNodes[index].trace);
-                if(resultNodes[index].expanded == true){
-                    node.expand();
-                    me.down("#resultsGrid").resetHeight(me.down("#resultsGrid"));
-                }
-                else{
-                    //node.collapse();
-                }
-                index++;
+        setTimeout(function(){
+            refresh();
+            if(me.down("#status").getValue() != result.status){
+                me.down("#status").setValue(result.status);
             }
-        });
+
+            if(me.down("#result").getValue() != result.result){
+                me.down("#result").setValue(result.result);
+            }
+
+        },500);
+
 
         /*
         var lastNode = null;
@@ -381,6 +404,14 @@ Ext.define('Redwood.view.ResultsView', {
                 // applied to each contained panel
                 border: false
             },
+            addNewScreenShot: function(node){
+                var html = "<h1>"+node.getPath("name")+"</h1>";
+                html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>';
+                screenShots.add({
+                    node: node,
+                    html: html
+                })
+            },
             tbar: [
                 {
                     id: 'move-prev',
@@ -419,13 +450,7 @@ Ext.define('Redwood.view.ResultsView', {
         this.resultsStore.getRootNode().cascadeBy(function(node){
             if(!node.isRoot()){
                 if(node.get("screenshot")){
-                    var html = "<h1>"+node.getPath("name")+"</h1>";
-                    //location.protocol + "//" + location.host +"/screenshots/"+id
-                        html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>'
-                    screenShots.add({
-                        node: node,
-                        html: html
-                    })
+                    screenShots.addNewScreenShot(node);
                 }
             }
         });

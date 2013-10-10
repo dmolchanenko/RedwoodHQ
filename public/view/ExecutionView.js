@@ -1051,12 +1051,14 @@ Ext.define('Redwood.view.ExecutionView', {
                 layout:"hbox",
                 defaults: {
                     margin: '0 10 0 5',
-                    labelWidth: "100px"
+                    labelWidth: "100px",
+                    labelPad: 0
                 },
                 items:[
                     {
                         xtype: 'numberfield',
                         width: 150,
+                        labelWidth: "70px",
                         //anchor: "90%",
                         itemId: "retryCount",
                         fieldLabel: 'Retry Count',
@@ -1082,6 +1084,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         xtype: "checkbox",
                         fieldLabel: "Ignore Status",
                         itemId:"ignoreStatus",
+                        labelWidth: "75px",
                         anchor:'90%',
                         listeners:{
                             afterrender: function(me,eOpt){
@@ -1104,6 +1107,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         xtype: "checkbox",
                         fieldLabel: "No Screen Shots",
                         itemId:"ignoreScreenshots",
+                        labelWidth: "92px",
                         anchor:'90%',
                         listeners:{
                             afterrender: function(me,eOpt){
@@ -1124,8 +1128,32 @@ Ext.define('Redwood.view.ExecutionView', {
                     },
                     {
                         xtype: "checkbox",
+                        fieldLabel: "UI Snapshots",
+                        itemId:"allScreenshots",
+                        labelWidth: "75px",
+                        anchor:'90%',
+                        listeners:{
+                            afterrender: function(me,eOpt){
+                                Ext.tip.QuickTipManager.register({
+                                    target: me.getEl(),
+                                    //title: 'My Tooltip',
+                                    text: "Take a screen shot for every action.",
+                                    //width: 100,
+                                    dismissDelay: 10000 // Hide after 10 seconds hover
+                                });
+                            },
+                            change: function(){
+                                if (me.loadingData === false){
+                                    me.markDirty();
+                                }
+                            }
+                        }
+                    },
+                    {
+                        xtype: "checkbox",
                         fieldLabel: "No After State",
                         itemId:"ignoreAfterState",
+                        labelWidth: "80px",
                         anchor:'90%',
                         listeners:{
                             afterrender: function(me,eOpt){
@@ -1336,6 +1364,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#executionTestcases").store.removeAll();
                 me.down("#ignoreStatus").setValue(me.dataRecord.get("ignoreStatus"));
                 me.down("#ignoreScreenshots").setValue(me.dataRecord.get("ignoreScreenshots"));
+                me.down("#allScreenshots").setValue(me.dataRecord.get("allScreenshots"));
                 me.down("#ignoreAfterState").setValue(me.dataRecord.get("ignoreAfterState"));
                 if (me.dataRecord.get("locked") == true){
                     me.down("#locked").setIcon("images/lock_ok.png");
@@ -1433,6 +1462,7 @@ Ext.define('Redwood.view.ExecutionView', {
         execution.ignoreStatus = this.down("#ignoreStatus").getValue();
         execution.ignoreAfterState = this.down("#ignoreAfterState").getValue();
         execution.ignoreScreenshots = this.down("#ignoreScreenshots").getValue();
+        execution.allScreenshots = this.down("#allScreenshots").getValue();
         execution.emails = this.down("#emails").getValue();
 
         if (this.down("#locked").getText() == "Lock"){

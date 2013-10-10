@@ -129,7 +129,9 @@ class Launcher {
                 }
 
             }
-            takeScreenshot(action)
+            if(action["allScreenshots"] == true){
+                takeScreenshot(action)
+            }
         }
         catch (Error error){
             //def error = StackTraceUtils.sanitizeRootCause(err)
@@ -153,14 +155,11 @@ class Launcher {
                 action["error"] = error.message
             }
             action["trace"] = error.stackTrace.toArrayString()
-            /*
-            if(action["ignoreScreenshots"] == false){
-                UUID id = UUID.randomUUID()
-                action["screenshot"] = id.toString()
-                takeScreenshot(id.toString())
+
+            if(action["allScreenshots"] == true){
+                takeScreenshot(action)
             }
-            */
-            takeScreenshot(action)
+
         }
         action["command"] = "action finished"
     }
