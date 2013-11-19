@@ -15,19 +15,30 @@ Ext.define("Redwood.controller.TestCases", {
 
     models: ['TestCases',"TestCaseTags"],
     stores: ['TestCases',"TestCaseTags","TestCaseTree"],
-    views:  ['TestCases'],
+    views:  ['TestCases','RecorderView'],
 
     init: function () {
         this.control({
             'testcases': {
                 render: this.onTestCasesRender,
                 newTestCase: this.onNewTestCase,
+                recordTestCase: this.onRecordTestCase,
                 saveTestCase: this.onSaveTestCase,
                 editTestCase: this.onEditTestCase,
                 deleteTestCase: this.onDeleteTestCase,
                 cloneTestCase: this.onCloneTestCase
             }
         });
+    },
+
+    onRecordTestCase:function(){
+        var testcaseView = this.tabPanel.getActiveTab();
+        var me = this;
+        if (testcaseView === null){
+            return;
+        }
+        var recorderWindow = new Redwood.view.RecorderView({type:"testcase"});
+        recorderWindow.show();
     },
 
     onCloneTestCase:function(){

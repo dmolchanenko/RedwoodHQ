@@ -980,6 +980,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 xtype: 'fieldset',
                 title: 'Email Notification',
                 flex: 1,
+                collapsed: false,
                 collapsible: true,
                 layout:"hbox",
                 defaults: {
@@ -1047,6 +1048,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 xtype: 'fieldset',
                 title: 'Settings',
                 flex: 1,
+                collapsed: true,
                 collapsible: true,
                 layout:"hbox",
                 defaults: {
@@ -1178,6 +1180,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 xtype: 'fieldset',
                 title: 'Set Variables',
                 flex: 1,
+                collapsed: true,
                 collapsible: true,
                 items:[
                     variablesGrid
@@ -1187,6 +1190,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 xtype: 'fieldset',
                 title: 'Execution Totals',
                 flex: 1,
+                collapsed: true,
                 collapsible: true,
                 layout:"hbox",
                 defaults: {

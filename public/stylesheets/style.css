@@ -77,3 +77,21 @@
 .x-redwood-alternative-tree-row-even .x-grid-row:nth-of-type(even) .x-grid-cell {
     background-color: #9ff2bb;
 }
+
+.x-redwood-noti_bubble {
+    position:absolute;    /* This breaks the div from the normal HTML document. */
+    top: -2px !important;
+    right:-6px;
+    left: 15px!important;
+    padding:1px 2px 1px 2px;
+    background-color:red; /* you could use a background image if you'd like as well */
+    color:white;
+    font-weight:bold;
+    font-size:0.75em;
+
+    /* The following is CSS3, but isn't crucial for this technique to work. */
+    /* Keep in mind that if a browser doesn't support CSS3, it's fine! They just won't have rounded borders and won't have a box shadow effect. */
+    /* You can always use a background image to produce the same effect if you want to, and you can use both together so browsers without CSS3 still have the rounded/shadow look. */
+    border-radius:30px;
+    box-shadow:1px 1px 1px gray;
+}

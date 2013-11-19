@@ -7,6 +7,15 @@ var pushAction = Ext.create('Ext.Action', {
     }
 });
 
+var recordImageAction = Ext.create('Ext.Action', {
+    icon: 'images/media_record.png',
+    tooltip: "Record Image From Desktop",
+    margin: "0 3 0 3",
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('recordImage');
+    }
+});
+
 var pullAction = Ext.create('Ext.Action', {
     icon: 'images/uninstall.png',
     tooltip: "Pull Latest Changes From Master Brunch",
@@ -445,6 +454,9 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             if (record.get("fileType") === "file"){
                                 scriptEditor.fireEvent('scriptEdit', record);
                             }
+                            else if(record.get("fileType") === "image"){
+                                scriptEditor.fireEvent('imageEdit', record);
+                            }
                         },
                         load: function(){
                             this.getSelectionModel().select(this.getRootNode().getChildAt(0));
@@ -496,21 +508,23 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
                     listeners: {
                         tabchange: function(tabPanel,newCard,oldCard,eOpts){
-                            newCard.focus();
-                            if(newCard.refreshNeeded == true) {
-                                newCard.focusArea();
-                                newCard.refreshNeeded = false;
+                            if(newCard.path){
+                                newCard.focus();
+                                if(newCard.refreshNeeded == true) {
+                                    newCard.focusArea();
+                                    newCard.refreshNeeded = false;
+                                }
+                                var username = Ext.util.Cookies.get('username');
+                                var project = Ext.util.Cookies.get('project');
+                                var loc = newCard.path.indexOf(project+"/"+username);
+                                var urlPath = newCard.path.substring(loc+username.length+project.length+1,newCard.path.length);
+                                window.history.replaceState("", "", '/index.html?script='+urlPath+"&project="+Ext.util.Cookies.get('project'));
                             }
-                            var username = Ext.util.Cookies.get('username');
-                            var project = Ext.util.Cookies.get('project');
-                            var loc = newCard.path.indexOf(project+"/"+username);
-                            var urlPath = newCard.path.substring(loc+username.length+project.length+1,newCard.path.length);
-                            window.history.replaceState("", "", '/index.html?script='+urlPath+"&project="+Ext.util.Cookies.get('project'));
 
                         },
                         render: function(me){
                             me.el.on("click",function(){
-                                if (me.getActiveTab() != null){
+                                if ((me.getActiveTab() != null)&&(me.path)){
                                     me.getActiveTab().focus();
                                 }
                             });
@@ -535,6 +549,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
             items:[newItemButton,saveScriptAction,deleteScriptAction,'-',
                 copyAction,pasteAction,'-',terminalAction,
+                //recordImageAction,
                 "-",
                 compileAction,
                 "-",

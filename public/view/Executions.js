@@ -26,7 +26,10 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 header: 'Name',
                 dataIndex: 'name',
                 //flex: 1,
-                width: 400
+                width: 400,
+                renderer: function(value,meta,record){
+                    return "<a style= 'color: blue;' href='javascript:openExecution(&quot;"+ record.get("_id") +"&quot;)'>" + value +"</a>";
+                }
             },
             {
                 header: 'Test Set',
@@ -93,7 +96,7 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                         tooltip: 'View',
                         handler: function(grid, rowIndex, colIndex) {
                             var editor = this.up('executionsEditor');
-                            editor.fireEvent('executionEdit', grid.store.getAt(rowIndex));
+                            editor.fireEvent('executionEdit', grid.store.getAt(rowIndex).get("_id"));
                         }
                     },
                     {
@@ -166,7 +169,7 @@ Ext.define('Redwood.view.Executions', {
                         listeners:{
                             celldblclick: function(me,td,cell,record){
                                 var editor = this.up('executionsEditor');
-                                editor.fireEvent('executionEdit',record);
+                                editor.fireEvent('executionEdit',record.get("_id"));
                             }
                         }
                     }

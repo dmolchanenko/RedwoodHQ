@@ -6,6 +6,7 @@ var path = require('path');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var spawn = require('child_process').spawn;
 var walk = require('walk');
+var images = require("./imageautomation");
 
 exports.scriptsPush = function(req,res){
     git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
@@ -30,7 +31,7 @@ exports.scriptsPull = function(req,res){
 };
 
 exports.scriptsGet = function(req, res){
-    GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
+    GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,req.cookies.project,function(data){
         res.contentType('json');
         res.json(data);
         /*
@@ -81,6 +82,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
     if(language == "Java/Groovy"){
         template = "java_project_selenium";
         //if (template == "Selenium") template = "java_project_selenium";
+        //templatePath = path.resolve(__dirname,"../project_templates/"+"multi_test");
         templatePath = path.resolve(__dirname,"../project_templates/"+template);
     }
     var common = require('../common');
@@ -125,13 +127,27 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                     if (user.username !== "admin"){
                                         fs.mkdirSync(newProjectPath + "/" + user.username);
                                         git.clone(newProjectPath + "/" + user.username,masterBranch,function(){
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"src") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"src");
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "src") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "src");
                                             }
                                             if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build");
+                                            /*
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"Images") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"Images");
+                                            }
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/JVM/" +"src") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/PUPPET/" +"src");
+                                            }
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/PUPPET/" +"src") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/PUPPET/" +"src");
+                                            }
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
+                                            }
+                                            */
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/JVM/.gitignore","build");
                                         });
                                     }
                                 });
@@ -272,7 +288,7 @@ function CopyScripts(scripts,destDir,projectDir,callback){
     });
 }
 
-function GetScripts(rootDir,callback){
+function GetScripts(rootDir,project,callback){
     git.filesInConflict(rootDir,function(filesInConflict){
         git.filesNotPushed(rootDir,function(filesNotPushed){
             var files = [];
@@ -289,7 +305,10 @@ function GetScripts(rootDir,callback){
                     callback({error:err});
                 }
                 else{
-                    callback(results);
+                    //images.getImages(project,function(images){
+                        //results.push({name:"Images",fileType:"folder",text:"Images",children:images});
+                        callback(results);
+                    //});
                 }
             });
         });
@@ -298,7 +317,7 @@ function GetScripts(rootDir,callback){
 
 function DeleteScripts(scripts,callback){
     scripts.forEach(function(script, index, array){
-        git.delete()
+        git.delete();
         if (script.cls == "folder"){
             var toDelete = [];
             common.walkDir(script.fullpath,function(){

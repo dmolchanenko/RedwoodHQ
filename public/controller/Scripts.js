@@ -14,7 +14,7 @@ Ext.define("Redwood.controller.Scripts", {
 
     stores: ['Scripts'],
     models: ['Scripts'],
-    views:  ['ScriptBrowser'],
+    views:  ['ScriptBrowser','ImageView'],
     clipBoard: [],
     lastFocused: "",
 
@@ -41,7 +41,9 @@ Ext.define("Redwood.controller.Scripts", {
                 uploadFile: this.onUpload,
                 compile: this.onCompile,
                 pushChanges: this.onPushChanges,
-                pullChanges: this.onPullChanges
+                pullChanges: this.onPullChanges,
+                recordImage: this.onRecordImage,
+                imageEdit:this.onImageEdit
 
             },
             'scriptBrowser button': {
@@ -51,6 +53,40 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     compileEventAttached: false,
+
+    onRecordImage: function(){
+        Ext.Ajax.request({
+            url:"/recordimage",
+            method:"POST",
+            jsonData : {},
+            success: function(response) {
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+    },
+
+    onImageRecorded: function(id){
+        var tab = this.tabPanel.add({
+            title:"[New Image]*",
+            dirty: true,
+            closable:true,
+            xtype:"imageview",
+            _id:id
+        });
+        this.tabPanel.setActiveTab(tab);
+    },
+
+    onImageEdit: function(record){
+        var tab = this.tabPanel.add({
+            title:record.get("name"),
+            closable:true,
+            xtype:"imageview",
+            dataRecord:record,
+            _id:record.get("_id")
+        });
+        this.tabPanel.setActiveTab(tab);
+    },
 
     onPushChanges: function(){
         Ext.MessageBox.show({
@@ -721,7 +757,7 @@ Ext.define("Redwood.controller.Scripts", {
         //if string search for
         if (typeof(record) == "string"){
             this.treePanel.getRootNode().cascadeBy(function(node) {
-                if (node.get("fullpath").indexOf(record) != -1){
+                if ((node.get("fullpath") && (node.get("fullpath").indexOf(record) != -1))){
                     node.parentNode.expand();
                     me.treePanel.getSelectionModel().select(node);
                     record = node;

@@ -124,6 +124,19 @@ Ext.define('Redwood.ux.CodeEditorField', {
     setValue: function(value) {
         if (this.editor) {
             this.editor.setValue(value);
+            return
+            this.editor.setValue("click(action)");
+
+            var cacheImage = document.createElement('img');
+            cacheImage.src = "images/action.png";
+            cacheImage.width = 16;
+            cacheImage.height = 16;
+            console.log(cacheImage);
+            //this.editor.addWidget({line:0,ch:0},cacheImage);
+            var marker = this.editor.markText({line:0,ch:6},{line:0,ch:12},{replacedWith:cacheImage});
+            marker.changed();
+            //window.setTimeout(function(){console.log("ssss");marker.changed()},4000);
+            //marker.clear();
         }
 
         return this.callParent(arguments);

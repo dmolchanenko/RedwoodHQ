@@ -27,6 +27,7 @@ Ext.define('Redwood.view.Viewport', {
     extend: 'Ext.container.Viewport',
 
     layout: 'border',
+    id: "mainViewport",
     style: {height:"100%"},
     listeners:{
         afterrender: function(me){
@@ -45,8 +46,51 @@ Ext.define('Redwood.view.Viewport', {
                             xtype:"box",
                             html: '<img border="0" width="80" height="auto" style="margin:0 auto;" src="../images/rwhq.png" alt="RedwoodHQ logo">'
                             //html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood HQ</h1>'
+                        }, "->",
+                        {
+                            xtype:"button",
+                            icon: 'images/earth2.png',
+                            tooltip: "Notifications",
+                            arrowCls:"",
+                            hidden: true,
+                            menu: {
+                                xtype:"menu",
+                                plain:true,
+                                items:[
+                                    {
+                                        xtype:"panel",
+                                        //plain:true,
+                                        html: "asdfsdfds"
+                                        //text: "aga"
+
+                                    }
+                                ]
+                            },
+                            afterRender : function(){
+                                var me = this;
+                                this.customMenu = Ext.create('Ext.Component', {
+                                    cls:"x-redwood-noti_bubble",
+                                    html:"5",
+                                    id: "notiBubble",
+                                    renderTo: me.getEl(),
+                                    //hidden: true,
+                                    floating: true
+                                    //tpl: '<span>Hello {name}</span>',
+                                    //data: {name: 'LeVeon'}
+                                });
+                                //console.log(this.customMenu);
+                                this.customMenu.anchorTo(this.getEl(), 'r-r', [-5, 0]);
+                            },
+                            handler: function(){
+                                //this.showMenu();
+                                //this.menu.setZIndex(40000);
+                                //this.menu.anchorTo(Ext.getBody(), 'r-r', [-5, 0]);
+                               // this.customMenu.anchorTo(this.getEl(), 'r-r', [-5, 0]);
+                                //this.customMenu.show();
+                            }
+
                         },
-                        "->",
+                        "",
                         {
                             xtype:"combo",
                             store: Ext.data.StoreManager.lookup('Projects'),

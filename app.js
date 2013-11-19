@@ -38,6 +38,8 @@ var express = require('express')
   , aggregate = require('./routes/aggregate')
   , executionstatus = require('./routes/executionstatus')
   , emailsettings = require('./routes/emailsettings')
+  , imageautomation = require('./routes/imageautomation')
+  , recorder = require('./routes/recorder')
   , license = require('./routes/license');
 
 
@@ -82,6 +84,15 @@ app.get('/emailsettings',auth.auth,emailsettings.Get);
 
 //aggregate
 app.post('/aggregate',auth.auth,aggregate.aggregatePost);
+
+//imageautomation
+app.post('/recordimage',auth.auth,imageautomation.recordImage);
+app.get('/image/:id',auth.auth,imageautomation.getImage);
+app.post('/recordedimage',imageautomation.recordedImage);
+
+//recorder
+app.post('/record',auth.auth,recorder.record);
+app.post('/record/recorded',recorder.recorded);
 
 //screenshots
 app.post('/screenshots',screenshots.Post);

@@ -16,6 +16,15 @@ function openScreenShot(id){
     }
 }
 
+function openExecution(id){
+    var controller = Redwood.app.getController("Executions");
+    controller.onExecutionEdit(id);
+
+    if(Ext.isChrome){
+        return false;
+    }
+}
+
 
 Ext.define("Redwood.controller.Executions", {
     extend: 'Ext.app.Controller',
@@ -274,10 +283,11 @@ Ext.define("Redwood.controller.Executions", {
         executionView.dataRecord.set("allScreenshots",execution.allScreenshots);
         executionView.dataRecord.set("ignoreAfterState",execution.ignoreAfterState);
 
-        if (newExecution == false){
-            if (typeof (callback) === 'function') callback(executionView.dataRecord);
-        }
+
         this.getStore('Executions').sync({success:function(){
+            if (newExecution == false){
+                if (typeof (callback) === 'function') callback(executionView.dataRecord);
+            }
             if ((newExecution == false) &&(executionView.noteChanged == true)){
                 execution.testcases.forEach(function(testcase){
                     testcase.executionID = executionView.dataRecord.get("_id");
@@ -327,9 +337,10 @@ Ext.define("Redwood.controller.Executions", {
             executionEditWindow.show();
         }
     },
-    onExecutionEdit: function(record){
+    onExecutionEdit: function(id){
         var me = this;
-        if(record) {
+        var record = Ext.data.StoreManager.lookup('Executions').query("_id",id).getAt(0);
+        if((id) &&(record)) {
             //var foundIndex = this.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
             var foundTab = me.tabPanel.down("#"+record.get("_id"));
             if (foundTab === null){

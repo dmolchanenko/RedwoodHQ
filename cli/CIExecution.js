@@ -167,13 +167,13 @@ function MonitorExecution(execution,callback){
 
     var verifyStatus = function(status){
         if(status == "Ready To Run"){
-            setTimeout(callback(),10000);
+            setTimeout(function(){callback()},10000);
         }else{
-            setTimeout(getStatus(verifyStatus),10000)
+            setTimeout(function(){getStatus(verifyStatus)},10000)
         }
     };
 
-    setTimeout(getStatus(verifyStatus),20000)
+    setTimeout(function(){getStatus(verifyStatus)},20000)
 
 }
 

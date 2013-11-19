@@ -1,5 +1,7 @@
 var express = require('express');
 var command = require('./routes/command');
+var imageautomation = require('./routes/imageautomation');
+var recorder = require('./routes/recorder');
 var fileupload = require('./routes/fileupload');
 var heartbeat = require('./routes/heartbeat');
 var common = require('./common');
@@ -18,6 +20,8 @@ app.configure(function(){
 
 app.post('/command',command.Post);
 app.post('/fileupload',fileupload.Post);
+app.post('/recordimage',imageautomation.recordImage);
+app.post('/startrecording',recorder.record);
 
 app.configure('development', function(){
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));

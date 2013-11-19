@@ -9,6 +9,11 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
     startEvents: function(){
         var me = this;
+        Ext.socket.on('ImageRecorded'+Ext.util.Cookies.get('username'),function(image){
+            var controller = Redwood.app.getController("Scripts");
+            controller.onImageRecorded(image._id);
+        });
+
         Ext.socket.on('deleteProject',function(project){
             if (project.name == Ext.util.Cookies.get("project")){
                 Ext.util.Cookies.clear("project");
@@ -224,8 +229,38 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,set);
         });
 
+        Ext.socket.on('FinishExecution',function(execution){
+            var notification = Ext.create('widget.uxNotification', {
+                title: 'Execution Notification',
+                position: 'br',
+                manager: 'mainViewport',
+                //iconCls: 'ux-notification-icon-information',
+                autoCloseDelay: 9000,
+                spacing: 20,
+                html: 'Entering from the component\'s br corner. 3000 milliseconds autoCloseDelay.<br />Increasd spacing.'
+            });
+
+            if((execution.status == "Ready To Run")&&(execution.user == Ext.util.Cookies.get('username'))){
+                var failColor = "";
+                var passColor = "";
+                if (execution.failed != "0") failColor = "color:red";
+                if (execution.passed != "0") passColor = "color:green";
+                notification.html = "Execution: <b>"+execution.name + "</b> is done."+
+                    '<div style="display:table;table-layout: fixed;">'+
+                    '<div style="display:table-row;">'+
+                    '<span style="display:table-cell;padding: 3px;">Passed:</span>'+
+                    '<span style="display:table-cell;padding: 3px;'+passColor+'">'+execution.passed+'</span></div>'+
+                    '<div style="display:table-row;">'+
+                    '<span style="display:table-cell;padding: 3px;">Failed:</span>'+
+                    '<span style="display:table-cell;padding: 3px;'+failColor+'">'+execution.failed+'</span></div></div>';
+                notification.show();
+            }
+
+        });
+
         var UpdateExecutionsCache = {};
         Ext.socket.on('UpdateExecutions',function(execution){
+
             var updateExecution = function(execution){
                 var store = Ext.data.StoreManager.lookup("Executions");
                 me.updateStore(store,execution);
@@ -242,7 +277,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                 setTimeout(function(){
                     updateExecution(UpdateExecutionsCache[execution._id]);
                     delete UpdateExecutionsCache[execution._id];
-                },3000)
+                },1000)
             }
             else{
                 UpdateExecutionsCache[execution._id] = execution;

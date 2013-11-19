@@ -24,7 +24,7 @@ exports.stopexecutionPost = function(req, res){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
 
-    updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},function(){
+    updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
         executionsRoute.updateExecutionTotals(req.body.executionID);
         res.contentType('json');
         res.json({success:true});
@@ -87,10 +87,10 @@ exports.startexecutionPost = function(req, res){
         else{
             cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
                 executions[executionID].sourceCache = sourceCache;
-                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
+                //updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
                 verifyMachineState(machines,function(err){
                     if(err){
-                        updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
+                        updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
                         res.contentType('json');
                         res.json({error:err});
                         delete executions[executionID];
@@ -108,7 +108,7 @@ exports.startexecutionPost = function(req, res){
                             suiteBaseState(executionID,machines,function(){
                                 //magic happens here
                                 applyMultiThreading(executionID,function(){
-                                    updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},function(){
+                                    updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
                                         executeTestCases(executions[executionID].testcases,executionID);
                                     });
                                 })
@@ -322,15 +322,14 @@ function executeTestCases(testcases,executionID){
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
 
                     });
-                    delete executions[executionID];
-                    //return;
+                    updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
+                        executionsRoute.updateExecutionTotals(executionID,function(){
+                            if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                            delete executions[executionID];
+                        });
+                    });
                     callback(true)
                 });
-                updateExecution({_id:executionID},{$set:{status:"Ready To Run"}});
-                executionsRoute.updateExecutionTotals(executionID,function(){
-                    if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                });
-                callback(true);
                 return;
             }
             executions[executionID].machines.forEach(function(machine){
@@ -350,12 +349,15 @@ function executeTestCases(testcases,executionID){
                 cleanUpMachines(executions[executionID].machines,executionID,function(){
 
                 });
-                delete executions[executionID];
+                updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
+                    executionsRoute.updateExecutionTotals(executionID,function(){
+                        if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                        delete executions[executionID];
+                    });
+                });
                 callback(true)
             });
-            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},function(){
-                if(executions[executionID].sendEmail == true) sendNotification(executionID);
-            });
+
             //return;
         }
     };
@@ -1112,15 +1114,13 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
                     syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"executionfiles/"+executionID+"/lib",function(){
-                        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
-                            sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},function(message){
-                                if ((message) && (message.error)){
-                                    callback(message.error);
-                                }
-                                else{
-                                    callback();
-                                }
-                            });
+                        sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},function(message){
+                            if ((message) && (message.error)){
+                                callback(message.error);
+                            }
+                            else{
+                                callback();
+                            }
                         });
                     })
                 })
@@ -1370,10 +1370,14 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
     });
 }
 
-function updateExecution(query,update,callback){
+function updateExecution(query,update,finished,callback){
     db.collection('executions', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
             if(err) console.log("ERROR updating execution: "+err);
+            realtime.emitMessage("UpdateExecutions",data);
+            if(finished === true){
+                realtime.emitMessage("FinishExecution",data);
+            }
             realtime.emitMessage("UpdateExecutions",data);
             if (callback){
                 callback(err);

@@ -31,8 +31,13 @@ Ext.define('Redwood.model.Scripts', {
         },{
             name: 'name',
             type: 'string'
-        },{
+        },
+        {
             name: 'qtip',
+            type: 'string'
+        },
+        {
+            name: '_id',
             type: 'string'
         }
     ]
