@@ -156,10 +156,7 @@ class Launcher {
             }
             action["trace"] = error.stackTrace.toArrayString()
 
-            if(action["allScreenshots"] == true){
-                takeScreenshot(action)
-            }
-
+            takeScreenshot(action)
         }
         action["command"] = "action finished"
     }
@@ -174,9 +171,12 @@ class Launcher {
                     new File(id.toString()) << scrFile.bytes
                 }
             }
-            catch(Exception ex){
-                BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
-                ImageIO.write(image, "png", new File(id.toString()));
+            finally{
+            //catch(Exception ex){
+                if(!new File(id.toString()).exists()){
+                    BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+                    ImageIO.write(image, "png", new File(id.toString()));
+                }
             }
             action["screenshot"] = id.toString()
         }
