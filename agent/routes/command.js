@@ -402,8 +402,13 @@ function sendActionResult(result,host,port){
         });
     });
 
+    //req.setTimeout( 5*60*1000, function( ) {
+        // handle timeout here
+    //});
+
     req.on('error', function(e) {
         console.log('problem with request: ' + e.message);
+        setTimeout(function(){sendActionResult(result,host,port);},10000);
     });
 
     // write data to request body
