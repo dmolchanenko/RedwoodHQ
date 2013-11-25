@@ -437,6 +437,7 @@ function sendLog(result,host,port){
 
     req.on('error', function(e) {
         console.log('problem with request: ' + e.message);
+        setTimeout(function(){sendLog(result,host,port);},10000);
     });
 
     // write data to request body
