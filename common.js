@@ -94,7 +94,7 @@ exports.cleanUpExecutions = function(){
         collection.update({},{$set:{state:"",takenThreads:0}},{multi:true});
     });
     db.collection('executiontestcases', function(err, collection) {
-        collection.update({"status":"Running"},{$set:{status:"Not Run","result":"",error:"",trace:"",startdate:"",enddate:"",runtime:""}},{multi:true,safe:true},function(err){
+        collection.update({"status":"Running"},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}},{multi:true,safe:true},function(err){
         });
     });
     db.collection('executions', function(err, collection) {

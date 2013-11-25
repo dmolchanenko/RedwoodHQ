@@ -69,7 +69,7 @@ Ext.application({
             event = Ext.data.StoreManager.lookup('Executions').on("load",function(store){
                 var record = store.findRecord("_id",uri.execution);
                 if(record != null){
-                    Redwood.app.getController("Executions").onExecutionEdit(record);
+                    Redwood.app.getController("Executions").onExecutionEdit(uri.execution);
                     store.un(event);
                 }
             });

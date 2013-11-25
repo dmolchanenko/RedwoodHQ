@@ -21,14 +21,16 @@ exports.stopexecutionPost = function(req, res){
     cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
     for(var testcase in execution.currentTestCases){
-        updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+        updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
 
-    updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
-        executionsRoute.updateExecutionTotals(req.body.executionID);
-        res.contentType('json');
-        res.json({success:true});
-        delete executions[req.body.executionID];
+    cleanExecutionMachines(req.body.executionID,function(){
+        updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
+            executionsRoute.updateExecutionTotals(req.body.executionID);
+            res.contentType('json');
+            res.json({success:true});
+            delete executions[req.body.executionID];
+        });
     });
 };
 
@@ -1392,6 +1394,25 @@ function updateExecutionMachine(executionID,machineID,result,resultID,callback){
             //realtime.emitMessage("UpdateExecutions",data);
             if (callback){
                 callback(err);
+            }
+        });
+    });
+}
+
+function cleanExecutionMachines(executionID,callback){
+    db.collection('executions', function(err, collection) {
+        collection.findOne({_id:executionID},function(err,data){
+            //realtime.emitMessage("UpdateExecutions",data);
+
+            if(data != null){
+                data.machines.forEach(function(machine){
+                    machine.result = "";
+                    machine.resultID = "";
+                });
+                collection.save(data,{safe:true},function(err){
+                    //realtime.emitMessage("UpdateExecutions",data);
+                    if (callback) callback();
+                });
             }
         });
     });

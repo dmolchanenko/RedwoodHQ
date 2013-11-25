@@ -6,6 +6,7 @@ exports.Post = function(req, res){
     var db = require('../common').getDB();
     var tmp_path = req.files.file.path;
     var id = req.files.file.name;
+    console.log(tmp_path);
     fs.readFile(tmp_path,function(err,data){
         if(!err){
             db.collection('screenshots', function(err, collection) {
