@@ -194,7 +194,7 @@ function applyMultiThreading(executionID,callback){
                             newMachine.threadID = i+startThread-1;
                             console.log(newMachine);
                             executions[executionID].machines.push(newMachine);
-                            sendAgentCommand(newMachine.host,newMachine.port,{command:"start launcher",executionID:executionID,threadID:newMachine.threadID},function(err){
+                            sendAgentCommand(newMachine.host,newMachine.port,{command:"start launcher",executionID:executionID,threadID:newMachine.threadID},3,function(err){
                                 newMachineCount++;
                                 if (newMachineCount == machine.threads){
                                     count++;
@@ -295,7 +295,7 @@ function getGlobalVars(executionID,callback){
 function cleanUpMachines(machines,executionID,callback){
     var count = 0;
     machines.forEach(function(machine){
-        sendAgentCommand(machine.host,machine.port,{command:"cleanup",executionID:executionID},function(err){
+        sendAgentCommand(machine.host,machine.port,{command:"cleanup",executionID:executionID},3,function(err){
             count++;
             if(count == machines.length){
                 if(callback) callback();
@@ -618,7 +618,7 @@ function startTCExecution(id,variables,executionID,callback){
 
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
                 executionsRoute.updateExecutionTotals(executionID);
-                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
                 callback();
                 return;
             }
@@ -682,21 +682,21 @@ function startTCExecution(id,variables,executionID,callback){
                         }
                         else{
                             foundMachine.runBaseState = true;
-                            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
                         }
                     });
                 };
 
                 if (foundMachine.runBaseState === true){
                     if (foundMachine.multiThreaded  == true){
-                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
                     }
                     else{
                         //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
                         //could have changed while test case was running
-                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},function(message){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},3,function(message){
                             if (message.loaded == true){
-                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
                             }
                             else{
                                 runBaseState();
@@ -880,21 +880,21 @@ exports.actionresultPost = function(req, res){
                 }
                 else{
                     foundMachine.runBaseState = true;
-                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                    sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
                 }
             });
         };
 
         if (foundMachine.runBaseState === true){
             if (foundMachine.multiThreaded  == true){
-                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
             }
             else{
                 //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
                 //could have changed while test case was running
-                sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:req.body.executionID},function(message){
+                sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:req.body.executionID},3,function(message){
                     if (message.loaded == true){
-                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions);
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
                     }
                     else{
                         runBaseState();
@@ -1107,7 +1107,7 @@ function markFinishedResults(results,sourceCache,callback){
 
 
 function agentBaseState(project,executionID,agentHost,port,threadID,callback){
-    sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},function(message){
+    sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},3,function(message){
         if (message.error){
             callback(message.error);
             return;
@@ -1116,7 +1116,7 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
                     syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"executionfiles/"+executionID+"/lib",function(){
-                        sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},function(message){
+                        sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
                                 callback(message.error);
                             }
@@ -1146,7 +1146,7 @@ function syncFilesWithAgent_old(agentHost,port,rootPath,destDir,callback){
             dest = destDir + path+"/"+fileStats.name
         }
 
-        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,function(){
+        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,3,function(){
             fileCount--;
             if(fileCount == 0){
                 callback();
@@ -1170,7 +1170,7 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
             callback();
             return;
         }
-        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,function(){
+        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,function(){
 
             if(fileCount === files.length){
                 callback();
@@ -1199,7 +1199,7 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
     });
 }
 
-function sendFileToAgent(file,dest,agentHost,port,callback){
+function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
     var stat = fs.statSync(file);
 
     var readStream = fs.createReadStream(file);
@@ -1241,7 +1241,14 @@ function sendFileToAgent(file,dest,agentHost,port,callback){
     });
 
     req.on('error', function(e) {
-        console.log('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
+        if(retryCount <= 0){
+            if (callback) callback();
+            console.log('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
+        }
+        else{
+            retryCount--;
+            sendFileToAgent(file,dest,agentHost,port,retryCount,callback);
+        }
     });
 
     req.write(message);
@@ -1251,7 +1258,7 @@ function sendFileToAgent(file,dest,agentHost,port,callback){
     });
 }
 
-function sendAgentCommand(agentHost,port,command,callback){
+function sendAgentCommand(agentHost,port,command,retryCount,callback){
     console.log(command);
     var options = {
         hostname: agentHost,
@@ -1286,8 +1293,14 @@ function sendAgentCommand(agentHost,port,command,callback){
     });
 
     req.on('error', function(e) {
-        console.log('sendAgentCommand'+ command.command +' problem with request: ' + e.message);
-        if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
+        if(retryCount <= 0){
+            if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
+            console.log('sendAgentCommand problem with request: ' + e.message+ ' ');
+        }
+        else{
+            retryCount--;
+            sendAgentCommand(agentHost,port,command,retryCount,callback)
+        }
     });
 
     // write data to request body
