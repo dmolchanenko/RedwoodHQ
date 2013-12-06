@@ -347,19 +347,20 @@ function executeTestCases(testcases,executionID){
             callback(false)
         }
         else{
-            unlockMachines(executions[executionID].machines,function(){
-                cleanUpMachines(executions[executionID].machines,executionID,function(){
+            if(executions[executionID]){
+                unlockMachines(executions[executionID].machines,function(){
+                    cleanUpMachines(executions[executionID].machines,executionID,function(){
 
-                });
-                updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
-                    executionsRoute.updateExecutionTotals(executionID,function(){
-                        if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                        delete executions[executionID];
                     });
+                    updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
+                        executionsRoute.updateExecutionTotals(executionID,function(){
+                            if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                            delete executions[executionID];
+                        });
+                    });
+                    callback(true)
                 });
-                callback(true)
-            });
-
+            }
             //return;
         }
     };
@@ -1311,7 +1312,15 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
 
 function resolveParamValue(value,variables){
     var returnNULL = false;
-    if (typeof value != "string"){
+    if(Object.prototype.toString.call(value) == '[object Array]'){
+        if((value.size() == 1) && (value[0] === "<NULL>")){
+            return [];
+        }
+        else{
+            return value;
+        }
+    }
+    else if (typeof value != "string"){
         return value;
     }
 
@@ -1742,6 +1751,9 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
                             var runAction = true;
 
+                            if(!executions[executionID]){
+                                return;
+                            }
                             //if start action is greater than all actions don't execute anything
                             if (executions[executionID].testcases[testcaseID].startAction > testcase.collection.length){
                                 runAction = false;
