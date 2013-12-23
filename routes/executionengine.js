@@ -1313,7 +1313,7 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
 function resolveParamValue(value,variables){
     var returnNULL = false;
     if(Object.prototype.toString.call(value) == '[object Array]'){
-        if((value.size() == 1) && (value[0] === "<NULL>")){
+        if((value.length == 1) && (value[0] === "<NULL>")){
             return [];
         }
         else{
