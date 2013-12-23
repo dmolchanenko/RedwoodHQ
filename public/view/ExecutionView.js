@@ -1381,15 +1381,25 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#emails").setValue(me.savedEmails);
 
                 var allTCs = [];
-                me.dataRecord.get("testcases").forEach(function(testcase){
-                    var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
-                    if (originalTC){
-                        testcase.name = originalTC.get("name");
-                        testcase.tag = originalTC.get("tag");
-                        allTCs.push(testcase);
-                    }
-                });
-                me.down("#executionTestcases").store.add(allTCs);
+                var loadTCs = function(){
+                    me.dataRecord.get("testcases").forEach(function(testcase){
+                        var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
+                        if (originalTC){
+                            testcase.name = originalTC.get("name");
+                            testcase.tag = originalTC.get("tag");
+                            allTCs.push(testcase);
+                        }
+                    });
+                    me.down("#executionTestcases").store.add(allTCs);
+                };
+                if (Ext.data.StoreManager.lookup('TestCases').initialLoad == true){
+                    loadTCs();
+                }
+                else{
+                    Ext.data.StoreManager.lookup('TestCases').on("load",function(){
+                        loadTCs();
+                    })
+                }
             }
             else{
                 var record = me.down("#emails").store.findRecord("username",Ext.util.Cookies.get('username'));
