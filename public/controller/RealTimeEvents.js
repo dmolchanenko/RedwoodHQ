@@ -14,6 +14,15 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             controller.onImageRecorded(image._id);
         });
 
+        Ext.socket.on('StepsRecorded'+Ext.util.Cookies.get('username'),function(recording){
+            var controller = Redwood.app.getController("TestCases");
+            var foundTab = controller.tabPanel.getActiveTab();
+            if (foundTab){
+                Ext.clipboard = {type:"action",data:recording};
+                foundTab.down("actioncollection").pasteFromClipboard();
+            }
+        });
+
         Ext.socket.on('deleteProject',function(project){
             if (project.name == Ext.util.Cookies.get("project")){
                 Ext.util.Cookies.clear("project");
@@ -331,14 +340,15 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                 if (testCase.baseState == true){
                     foundTab = controller.tabPanel.down("#"+testCase.executionID);
                     if (foundTab){
-                        record = foundTab.down("#executionMachines").store.findRecord("baseStateTCID",testCase._id);
+                        //record = foundTab.down("#executionMachines").store.findRecord("baseStateTCID",testCase._id);
+                        record = foundTab.down("#executionMachines").store.query("baseStateTCID",testCase._id).getAt(0);
                         record.set("result",testCase.result);
                         record.set("resultID",testCase.resultID);
                         //foundTab.refreshResult(result);
                     }
                 }
                 else{
-                    record = store.findRecord("_id",testCase._id);
+                    record = store.query("_id",testCase._id).getAt(0);
 
                     for(var propt in testCase){
                         if ((propt != "_id")&&(propt != "name")){
