@@ -416,7 +416,7 @@ Ext.define('Redwood.view.ResultsView', {
             },
             tbar: [
                 {
-                    id: 'move-prev',
+                    itemId: 'move-prev',
                     text: 'Back',
                     handler: function(btn) {
                         if(screenShots.getLayout().getPrev()){
@@ -429,7 +429,7 @@ Ext.define('Redwood.view.ResultsView', {
                 },
                 '->', // greedy spacer so that the buttons are aligned to each side
                 {
-                    id: 'move-next',
+                    itemId: 'move-next',
                     text: 'Next',
                     handler: function(btn) {
                         if(screenShots.getLayout().getNext()){
@@ -445,8 +445,8 @@ Ext.define('Redwood.view.ResultsView', {
                     }
                 }
             ],
-            items: [],
-            renderTo: Ext.getBody()
+            items: []
+            //renderTo: Ext.getBody()
         });
 
         this.resultsStore.getRootNode().cascadeBy(function(node){
