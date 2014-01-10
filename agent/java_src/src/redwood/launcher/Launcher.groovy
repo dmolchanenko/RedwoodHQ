@@ -102,6 +102,13 @@ class Launcher {
             def params = [:]
             action.parameters.each{param->
                 if (param.value != "<NULL>"){
+                    if ((param.value.getClass() == String ) && (param.value.startsWith("\${")) && (param.value.endsWith("}"))){
+                        def var = param.value.subSequence(2,param.value.size()-1)
+                        if(returnValues."$var"){
+                            params[param.name] = returnValues."$var"
+                            return
+                        }
+                    }
                     params[param.name] = param.value
                 }
             }
@@ -165,10 +172,14 @@ class Launcher {
         if(action["ignoreScreenshots"] == false){
             UUID id = UUID.randomUUID()
             try{
-                def browser = Class.forName("actions.selenium.Browser")
-                if((browser.Driver != null) &&(browser.class.name.toString() != "SwipeableWebDriver")){
-                    File scrFile = ((org.openqa.selenium.TakesScreenshot)browser.Driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
-                    new File(id.toString()) << scrFile.bytes
+                try {
+                    def browser = Class.forName("actions.selenium.Browser")
+                    if((browser.Driver != null) &&(browser.class.name.toString() != "SwipeableWebDriver")){
+                        File scrFile = ((org.openqa.selenium.TakesScreenshot)browser.Driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
+                        new File(id.toString()) << scrFile.bytes
+                    }
+                } catch(Exception e) {
+                    // it does not exist on the classpath
                 }
             }
             finally{

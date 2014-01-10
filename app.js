@@ -43,31 +43,29 @@ var express = require('express')
   , license = require('./routes/license');
 
 
-var app = express.createServer(
-    //express.bodyParser(),
-    //express.cookieParser(),
-    //express.session({ secret: 'redwoodsecrect' })
-);
+//var app = express.createServer();
+var app = express();
 
 // Configuration
 
-app.configure(function(){
-    //app.use(express.logger());
-    //app.use(express.errorHandler());
-    app.use(express.bodyParser());
+//app.configure(function(){
+    //app.use(express.bodyParser());
+    app.use(express.static(__dirname + '/public'));
+    app.use(express.json());
+    app.use(express.urlencoded());
     app.use(express.cookieParser());
     app.use(express.methodOverride());
     app.use(app.router);
-    app.use(express.static(__dirname + '/public'));
-});
+    //app.use(express.static(__dirname + '/public'));
+//});
 
-app.configure('development', function(){
+//app.configure('development', function(){
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-});
+//});
 
-app.configure('production', function(){
+//app.configure('production', function(){
   app.use(express.errorHandler());
-});
+//});
 //DB
 
 
@@ -192,10 +190,12 @@ app.post('/testsets',auth.auth, testsets.testsetsPost);
 app.del('/testsets/:id',auth.auth, testsets.testsetsDelete);
 
 //userStates
+/*
 app.get('/userStates', auth.auth, users.userStatesGet);
 app.put('/userStates/:id',auth.auth, users.userStatesPut);
 app.post('/userStates',auth.auth, users.userStatesPost);
 app.del('/userStates/:id',auth.auth, users.userStatesDelete);
+*/
 
 //projects
 app.get('/projects', auth.auth, projects.projectsGet);
@@ -231,15 +231,16 @@ app.post('/fileupload',auth.auth, fileupload.upload);
 //methodFinder
 app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 
+common.initLogger();
 common.parseConfig(function(){
     common.initDB(common.Config.DBPort,function(){
         common.cleanUpExecutions();
         auth.loadSessions();
     });
 
-    realtime.initSocket(app);
-
-    app.listen(common.Config.AppServerPort, function(){
+    var server = require('http').createServer(app);
+    server.listen(common.Config.AppServerPort, function(){
+        realtime.initSocket(server);
       console.log("Express server listening on port %d in %s mode", common.Config.AppServerPort, app.settings.env);
     });
 });

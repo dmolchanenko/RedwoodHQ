@@ -1,5 +1,7 @@
+var logger;
 var db;
 var fs = require('fs');
+var winston = require('winston');
 var Config = {};
 exports.Config = Config;
 
@@ -16,6 +18,17 @@ exports.parseConfig = function(callback){
             callback()
         }
     })
+};
+
+exports.initLogger = function(){
+    logger = new (winston.Logger)({
+        transports: [
+            new (winston.transports.Console)(),
+            new (winston.transports.File)({ filename: 'logs/server.log',maxsize:10485760,maxFiles:10,timestamp:true })
+        ]
+    });
+    logger.handleExceptions(new winston.transports.File({ filename: 'logs/server_errors.log' }));
+    logger.exitOnError = false;
 };
 
 exports.initDB = function(port,callback){
