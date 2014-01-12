@@ -97,7 +97,7 @@ app.post('/screenshots',screenshots.Post);
 app.get('/screenshots/:id',auth.auth,screenshots.Get);
 
 app.get('/',auth.auth, routes.index);
-app.get('/index.html',auth.auth,function(req,res){res.sendfile('index.html');});
+app.get('/index.html',auth.auth,function(req,res){res.sendfile(__dirname+'/index.html');});
 //variables
 app.get('/variables', auth.auth, variables.variablesGet);
 app.put('/variables/:id',auth.auth, variables.variablesPut);

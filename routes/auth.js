@@ -83,7 +83,7 @@ exports.auth = function(req,res,next){
             }
         }
     }
-    res.redirect("/login");
+    return res.redirect("/login");
 };
 
 function storeSession(username,sessionid,expires){
