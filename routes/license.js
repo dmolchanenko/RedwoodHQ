@@ -1,6 +1,7 @@
 var spawn = require('child_process').spawn;
 var fs = require('fs');
 var path = require('path');
+var common = require('common');
 var appDir = path.resolve(__dirname,"../")+"/";
 
 exports.licenseGet = function(req, res){
@@ -95,11 +96,11 @@ function licenseInfo(path,callback){
     var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/',"LicenseInfo",path]);
     var returnData = "";
     proc.stderr.on('data', function (data) {
-        console.log(data.toString());
+        common.logger.info(data.toString());
         returnData = returnData + data.toString();
     });
     proc.stdout.on('data', function (data) {
-        console.log(data.toString());
+        common.logger.info(data.toString());
         returnData = returnData + data.toString();
     });
 

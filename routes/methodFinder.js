@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var common = require('common');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var appDir = path.resolve(__dirname,"../")+"/";
 var spawn = require('child_process').spawn;
@@ -77,7 +78,7 @@ function FindClasses(path,callback){
     var err = false;
     var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
     proc.stderr.on('data', function (data) {
-        console.log(data.toString());
+        common.logger.error(data.toString());
     });
     var cache = "";
     proc.stdout.on('data', function(data) {
@@ -118,7 +119,7 @@ function FindMethods(path,classname,callback){
     //var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",'"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"',"MethodList",path,classname]);
     var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,classname]);
     proc.stderr.on('data', function (data) {
-        console.log(data.toString());
+        common.logger.error(data.toString());
     });
     var cache = "";
     proc.stdout.on('data', function(data) {

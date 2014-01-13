@@ -2,7 +2,7 @@ var realtime = require('./realtime');
 var http = require("http");
 var path = require('path');
 var fs = require('fs');
-var realtime = require("./realtime");
+var common = require('../common');
 
 
 exports.recordImage = function(req, res){
@@ -17,7 +17,7 @@ exports.recordImage = function(req, res){
         success: true
     });
 
-    console.log(ip);
+    common.logger.info(ip);
     var options = {
         hostname: ip,
         port: 5009,
@@ -35,7 +35,7 @@ exports.recordImage = function(req, res){
     });
 
     request.on('error', function(e) {
-        console.log('recordImage problem with request: ' + e.message);
+        common.logger.info('recordImage problem with request: ' + e.message);
         if (callback) callback("Unable to connect to machine: "+ip + " error: " + e.message);
     });
 

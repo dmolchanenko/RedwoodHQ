@@ -9,7 +9,7 @@ exports.Post = function(req, res){
     form.parse(req, function(err, fields, files) {
         var tmp_path = files.file[0].path;
         var id = files.file[0].originalFilename;
-        console.log(tmp_path);
+        //console.log(tmp_path);
         fs.readFile(tmp_path,function(err,data){
             if(!err){
                 db.collection('screenshots', function(err, collection) {

@@ -177,7 +177,7 @@ function applyMultiThreading(executionID,callback){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
                 var startThread = dbMachine.takenThreads - machine.threads;
-                console.log("staring at:"+startThread);
+                common.logger.info("staring at:"+startThread);
                 machine.threadID = startThread;
                 //if more than one thread run base state if not let it go
                 if (machine.threads > 1){
@@ -192,7 +192,7 @@ function applyMultiThreading(executionID,callback){
                                 newMachine[key] = machine[key];
                             }
                             newMachine.threadID = i+startThread-1;
-                            console.log(newMachine);
+                            common.logger.info(newMachine);
                             executions[executionID].machines.push(newMachine);
                             sendAgentCommand(newMachine.host,newMachine.port,{command:"start launcher",executionID:executionID,threadID:newMachine.threadID},3,function(err){
                                 newMachineCount++;
@@ -1244,7 +1244,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
     req.on('error', function(e) {
         if(retryCount <= 0){
             if (callback) callback();
-            console.log('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
+            common.logger.error('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
         }
         else{
             retryCount--;
@@ -1260,7 +1260,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
 }
 
 function sendAgentCommand(agentHost,port,command,retryCount,callback){
-    console.log(command);
+    common.logger.info(command);
     var options = {
         hostname: agentHost,
         port: port,
@@ -1296,7 +1296,7 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
     req.on('error', function(e) {
         if(retryCount <= 0){
             if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
-            console.log('sendAgentCommand problem with request: ' + e.message+ ' ');
+            common.logger.error('sendAgentCommand problem with request: ' + e.message+ ' ');
         }
         else{
             retryCount--;
@@ -1397,7 +1397,7 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
 function updateExecution(query,update,finished,callback){
     db.collection('executions', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
-            if(err) console.log("ERROR updating execution: "+err);
+            if(err) common.logger.error("ERROR updating execution: "+err);
             realtime.emitMessage("UpdateExecutions",data);
             if(finished === true){
                 realtime.emitMessage("FinishExecution",data);
@@ -1510,11 +1510,11 @@ function lockMachines(machines,executionID,callback){
 function unlockMachines(allmachines,callback){
     var machineCount = 0;
     var machines = allmachines.slice(0);
-    console.log(machines);
+    common.logger.info(machines);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
-                console.log(dbMachine);
+                common.logger.info(dbMachine);
                 if(dbMachine != null) {
                     var takenThreads = 1;
                     if (dbMachine.takenThreads){
@@ -1524,7 +1524,7 @@ function unlockMachines(allmachines,callback){
                         takenThreads = 0;
                     }
                     var state = "";
-                    console.log("now taken are:"+takenThreads);
+                    common.logger.info("now taken are:"+takenThreads);
                     if (takenThreads > 0) state = "Running "+takenThreads+ " of " + dbMachine.maxThreads;
 
                     updateMachine({_id:dbMachine._id},{$set:{takenThreads:takenThreads,state:state}},function(){
@@ -1859,7 +1859,7 @@ function sendNotification(executionID){
 
                     smtpTransport.sendMail(mailOptions, function(error, response){
                         if(error){
-                            console.log(error);
+                            common.logger.error(error);
                         }
 
                         smtpTransport.close();

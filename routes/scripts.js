@@ -101,7 +101,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                 files.forEach(function(file,index,array){
                     var destName = file.replace(templatePath,"");
                     destName = adminBranch+destName;
-                    console.log(destName);
+                    //console.log(destName);
 
                     if (fs.statSync(file).isDirectory()){
                         fs.mkdirSync(destName);
@@ -153,11 +153,11 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                 });
                                 var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000})
                                 mongoScript.stdout.on('data', function (data) {
-                                    console.log('stdout: ' + data);
+                                    //console.log('stdout: ' + data);
                                 });
 
                                 mongoScript.stderr.on('data', function (data) {
-                                    console.log('stderr: ' + data);
+                                    common.logger.error('stderr: ' + data);
                                 });
 
                                 mongoScript.on('exit', function (code) {
@@ -209,7 +209,7 @@ function CopyScripts(scripts,destDir,projectDir,callback){
                 next();
             });
             walker.on("end", function () {
-                console.log(files);
+                //console.log(files);
                 var count = 0;
                 files.forEach(function(file,index){
                     fs.readFile(file.from,function(err,data){

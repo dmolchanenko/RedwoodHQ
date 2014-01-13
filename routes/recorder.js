@@ -55,15 +55,42 @@ exports.recorded = function(req, res){
 
     if(data.type == "testcase"){
         db.collection('actions', function(err, collection) {
-            collection.findOne({name:"Click"}, {}, function(err, click) {
-                collection.findOne({name:"Type"}, {}, function(err, type) {
-                    collection.findOne({name:"Select"}, {}, function(err, select) {
+            collection.findOne({name:"Click",project:data.project}, {}, function(err, click) {
+                collection.findOne({name:"Type",project:data.project}, {}, function(err, type) {
+                    collection.findOne({name:"Select",project:data.project}, {}, function(err, select) {
                         var result = [];
                         recording.forEach(function(record,index){
+                            var order = index + 1;
+                            var action;
                             if(record.operation == "click"){
-                                var action = {actionid:click._id.toString(),actionname:"Click",executionflow:"Record Error Stop Test Case",host: "Default",order: index.toString(),children:[]};
+                                order = order.toString();
+                                action = {actionid:click._id.toString(),actionname:"Click",executionflow:"Record Error Stop Test Case",host: "Default",order: order,children:[]};
+                                for (var i=0; i<click.params.length; i++){
+                                    if(click.params[i].name == "ID"){
+                                        action.children.push({parametertype: click.params[i].parametertype,paramid: click.params[i].id,paramname: "ID",paramvalue: record.id,leaf:true});
+                                    }
+                                    else {
+                                        action.children.push({parametertype: click.params[i].parametertype,paramid: click.params[i].id,paramname: "ID",paramvalue: "XPath",leaf:true});
+                                    }
 
+                                }
                                 result.push(action)
+                            }else if(record.operation == "sendKeys"){
+                                order = order.toString();
+                                action = {actionid:type._id.toString(),actionname:"Type",executionflow:"Record Error Stop Test Case",host: "Default",order: order,children:[]};
+                                for (var i=0; i<type.params.length; i++){
+                                    if(click.params[i].name == "ID"){
+                                        action.children.push({parametertype: click.params[i].parametertype,paramid: click.params[i].id,paramname: "ID",paramvalue: record.id,leaf:true});
+                                    }
+                                    else {
+                                        action.children.push({parametertype: click.params[i].parametertype,paramid: click.params[i].id,paramname: "ID",paramvalue: "XPath",leaf:true});
+                                    }
+
+                                }
+                                result.push(action)
+                            }
+                            if(index+1 == recording.length){
+                                realtime.emitMessage("StepsRecorded"+data.username,result);
                             }
                         });
                     });

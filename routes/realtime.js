@@ -11,7 +11,7 @@ exports.initSocket = function(app){
     });
 
     io.sockets.on('connection', function(socket) {
-        console.log(socket.id);
+        //console.log(socket.id);
         socket.on("terminal",function(msg){
             terminal.operation(msg,socket.id,function(response){
                 io.sockets.socket(socket.id).emit("terminal",response);
