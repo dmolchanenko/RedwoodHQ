@@ -1,7 +1,7 @@
 var spawn = require('child_process').spawn;
 var fs = require('fs');
 var path = require('path');
-var common = require('common');
+var common = require('../common');
 var appDir = path.resolve(__dirname,"../")+"/";
 
 exports.licenseGet = function(req, res){

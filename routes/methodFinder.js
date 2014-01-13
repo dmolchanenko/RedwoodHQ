@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var common = require('common');
+var common = require('../common');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var appDir = path.resolve(__dirname,"../")+"/";
 var spawn = require('child_process').spawn;
