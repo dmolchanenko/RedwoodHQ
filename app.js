@@ -49,7 +49,8 @@ var app = express();
 // Configuration
 
 //app.configure(function(){
-    app.use(express.bodyParser());
+    //app.use(express.bodyParser());
+    //app.use(express.multipart());
     //app.use(express.bodyParser({ keepExtensions: true, uploadDir: 'c:/temp' }));
     app.use(express.static(__dirname + '/public'));
     app.use(express.json());
