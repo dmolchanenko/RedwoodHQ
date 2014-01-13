@@ -233,7 +233,7 @@ app.post('/fileupload',auth.auth, fileupload.upload);
 //methodFinder
 app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 
-common.initLogger();
+common.initLogger("server");
 common.parseConfig(function(){
     common.initDB(common.Config.DBPort,function(){
         common.cleanUpExecutions();
