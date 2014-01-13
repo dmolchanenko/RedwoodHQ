@@ -1,5 +1,6 @@
 var spawn = require('child_process').spawn;
 var path = require('path');
+var common = require('../common');
 var fs = require('fs');
 
 exports.filesInConflict = function(workdir,callback){
@@ -8,11 +9,11 @@ exports.filesInConflict = function(workdir,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('filesInConflict stderr: ' + data);
+        common.logger.error('filesInConflict stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -27,11 +28,11 @@ exports.commitsSinceDate = function(workdir,date,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('commitsSinceDate stderr: ' + data);
+        common.logger.error('commitsSinceDate stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -50,11 +51,11 @@ exports.lsFiles = function(workdir,query,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('lsFiles stderr: ' + data);
+        common.logger.error('lsFiles stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -69,11 +70,11 @@ exports.filesNotPushed = function(workdir,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('filesNotPushed stderr: ' + data);
+        common.logger.error('filesNotPushed stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -88,11 +89,11 @@ exports.showFileContents = function(workdir,file,version,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('showFileContents stderr: ' + data);
+        common.logger.error('showFileContents stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -105,11 +106,11 @@ exports.initBare = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['--bare','init'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('initBare stderr: ' + data);
+        common.logger.error('initBare stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -121,11 +122,11 @@ exports.setGitUser = function(workdir,userName,eMail,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['config','user.name',userName],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('setGitUser stderr: ' + data);
+        common.logger.error('setGitUser stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -140,11 +141,11 @@ exports.init = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['init'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('init stderr: ' + data);
+        common.logger.error('init stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -153,15 +154,15 @@ exports.init = function(workdir,callback){
 };
 
 exports.push = function(workdir,callback){
-    console.log("push");
+    common.logger.info("push");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['push','origin','master'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('push stderr: ' + data);
+        common.logger.error('push stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -170,15 +171,15 @@ exports.push = function(workdir,callback){
 };
 
 exports.pull = function(workdir,callback){
-    console.log("pull");
+    common.logger.info("pull");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['pull','origin','master'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('pull stderr: ' + data);
+        common.logger.error('pull stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -187,15 +188,15 @@ exports.pull = function(workdir,callback){
 };
 
 exports.clone = function(workdir,dirToClone,callback){
-    console.log("clone");
+    common.logger.info("clone");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['clone',dirToClone,'.'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('clone stderr: ' + data);
+        common.logger.error('clone stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -204,15 +205,15 @@ exports.clone = function(workdir,dirToClone,callback){
 };
 
 exports.add = function(workdir,file,callback){
-    console.log("add");
+    common.logger.info("add");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['add',file],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('add stderr: ' + data);
+        common.logger.error('add stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -221,15 +222,15 @@ exports.add = function(workdir,file,callback){
 };
 
 exports.commit = function(workdir,file,callback){
-    console.log("commit");
+    common.logger.info("commit");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit',file,'-m','auto comment'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('commit stderr: ' + data);
+        common.logger.error('commit stderr: ' + data);
     });
 
     git.on('exit', function (code) {
@@ -253,11 +254,11 @@ exports.delete = function(workdir,file,callback){
     }
 
     git.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
+        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        console.log('delete stderr: ' + data);
+        common.logger.error('delete stderr: ' + data);
     });
 
     git.on('close', function (code) {
