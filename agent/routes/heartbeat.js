@@ -1,5 +1,6 @@
 var http = require('http');
 var os = require('os');
+var common = require('../common');
 var macaddr = require('../macaddr');
 
 exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
@@ -39,7 +40,7 @@ exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
         });
 
         req.on('error', function(e) {
-            console.log('problem with request: ' + e.message);
+            common.logger.error('problem with request: ' + e.message);
             setTimeout(recursive,20000);
         });
 
@@ -53,7 +54,7 @@ exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
             macAddress = addr;
             recursive();
         } else {
-            console.log('MAC address not found');
+            common.logger.error('MAC address not found');
         }
     });
 

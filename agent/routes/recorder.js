@@ -25,12 +25,12 @@ exports.record = function(req, res){
 
     var cmdCache = "";
     recordProc.stderr.on('data', function (data) {
-        console.log("error recording: "+data.toString());
+        common.logger.error("error recording: "+data.toString());
         //sendRecordingResult({error:data.toString()},common.Config.AppServerIPHost,common.Config.AppServerPort);
     });
 
     recordProc.stdout.on('data', function (data) {
-        console.log(data.toString());
+        common.logger.error(data.toString());
         cmdCache += data.toString();
     });
 
@@ -56,12 +56,12 @@ function sendRecordingResult(result,host,port){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            console.log('BODY: ' + chunk);
+            common.logger.info('BODY: ' + chunk);
         });
     });
 
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        common.logger.error('problem with request: ' + e.message);
     });
 
     // write data to request body

@@ -14,7 +14,7 @@ var actionCache = {};
 exports.Post = function(req, res){
     var command = req.body;
     if(command.command == "run action"){
-        console.log("running action");
+        common.logger.info("running action");
         //console.log(command);
         actionCache[basePort+command.threadID] = command;
         sendLauncherCommand(command,function(err){
@@ -22,7 +22,7 @@ exports.Post = function(req, res){
         });
     }
     else if(command.command == "cleanup"){
-        console.log("cleaning up");
+        common.logger.info("cleaning up");
         setTimeout(function(){
             cleanUpOldExecutions(command.executionID);
         },1*60*1000);
@@ -63,7 +63,7 @@ exports.Post = function(req, res){
         }
     }
     else if (command.command == "start launcher"){
-        console.log("starting launcher: ThreadID: "+command.threadID);
+        common.logger.info("starting launcher: ThreadID: "+command.threadID);
         startLauncher(command.executionID,command.threadID,function(err){
             res.send(JSON.stringify({"error":err}));
         });
@@ -83,7 +83,7 @@ function startLauncher_debug(callback){
                 launcherConn.on('data', function(data) {
                     cache += data.toString();
 
-                    console.log('data:', data.toString());
+                    common.logger.info('data:', data.toString());
                     if (cache.indexOf("--EOM--") != -1){
                         var msg = JSON.parse(cache.substring(0,cache.length - 7));
                         if (msg.command == "action finished"){
@@ -131,7 +131,7 @@ function startLauncher(executionID,threadID,callback){
         launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
-            console.log("launcher error:"+data.toString());
+            common.logger.error("launcher error:"+data.toString());
             launcherProc[executionID+portNumber.toString()] = null;
             if (actionCache[portNumber]){
                 //actionCache[portNumber].error = data;
@@ -159,7 +159,7 @@ function startLauncher(executionID,threadID,callback){
         var cmdCache = "";
         launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
             cmdCache += data.toString();
-            console.log('stdout: ' + data.toString());
+            common.logger.info('stdout: ' + data.toString());
             if (data.toString().indexOf("launcher running.") != -1){
                 cmdCache = "";
                 launcherConn[executionID+portNumber.toString()] = net.connect(portNumber, function(){
@@ -168,7 +168,7 @@ function startLauncher(executionID,threadID,callback){
                     launcherConn[executionID+portNumber.toString()].on('data', function(data) {
                         cache += data.toString();
 
-                        console.log('data:', data.toString());
+                        common.logger.info('data:', data.toString());
                         if (cache.indexOf("--EOM--") != -1){
 
                             //var msg = JSON.parse(cache.substring(0,cache.length - 7));
@@ -194,7 +194,7 @@ function startLauncher(executionID,threadID,callback){
                 });
 
                 launcherConn[executionID+portNumber.toString()].on('error', function(err) {
-                    console.log("Error connecting to launcher: "+err);
+                    common.logger.error("Error connecting to launcher: "+err);
                     //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                     callback("Error connecting to launcher: "+err);
                 });
@@ -212,14 +212,14 @@ function startLauncher(executionID,threadID,callback){
                                 cmdCache = cmdCache.substring(cmdCache.lastIndexOf("\r\n") + 2,cmdCache.length);
                             }else{
                                 if (message != ""){
-                                    console.log("sending:"+message);
+                                    common.logger.info("sending:"+message);
                                     sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
                                 }
                                 cmdCache = "";
                             }
                         }
                         if (message != ""){
-                            console.log("sending:"+message);
+                            common.logger.info("sending:"+message);
                             if(actionCache[portNumber]){
                                 sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
                             }
@@ -243,7 +243,7 @@ function startLauncher(executionID,threadID,callback){
                 });
             });
             foundConn.on("error",function(err){
-                console.log(err);
+                common.logger.error(err);
                 startProcess();
             })
         }
@@ -260,7 +260,7 @@ function stopLauncher(executionID,threadID,callback){
                 process.kill(launcherProc[executionID+threadID.toString()].pid);
             }
             catch(exception){
-                console.log(exception);
+                common.logger.error(exception);
             }
             delete launcherProc[executionID+threadID.toString()];
             //setTimeout(function(){
@@ -324,7 +324,7 @@ function cleanUpOldExecutions(ignoreExecution){
                         }
                     });
                 }
-                console.log(result)
+                common.logger.info(result)
             })
         });
     });
@@ -352,16 +352,16 @@ function deleteDir(dir,callback){
                 fs.rmdirSync(dirCount);
             }
             catch(err){
-                console.log("dir "+ dirCount +" is not empty")
+                common.logger.info("dir "+ dirCount +" is not empty")
             }
 
-            console.log(dirCount);
+            common.logger.info(dirCount);
         });
         try{
             fs.rmdirSync(dir);
         }
         catch(err){
-            console.log("dir "+ dir +" is not empty")
+            common.logger.info("dir "+ dir +" is not empty")
         }
 
         if(callback) callback();
@@ -374,7 +374,7 @@ function sendLauncherCommand(command,callback){
 
     //console.log("sending to:"+portNumber);
     if (launcherConn[command.executionID+portNumber.toString()] == null){
-        console.log("unable to connect to launcher");
+        common.logger.error("unable to connect to launcher");
         callback("unable to connect to launcher");
         return;
     }
@@ -398,7 +398,7 @@ function sendActionResult(result,host,port){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            console.log('BODY: ' + chunk);
+            common.logger.info('BODY: ' + chunk);
         });
     });
 
@@ -407,7 +407,7 @@ function sendActionResult(result,host,port){
     //});
 
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        common.logger.error('problem with request: ' + e.message);
         setTimeout(function(){sendActionResult(result,host,port);},10000);
     });
 
@@ -431,12 +431,12 @@ function sendLog(result,host,port){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            console.log('BODY: ' + chunk);
+            common.logger.info('BODY: ' + chunk);
         });
     });
 
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        common.logger.error('problem with request: ' + e.message);
         setTimeout(function(){sendLog(result,host,port);},10000);
     });
 
@@ -460,13 +460,13 @@ function getExecutionStatus(host,port,executionID,callback){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            console.log('BODY: ' + chunk);
+            common.logger.info('BODY: ' + chunk);
             callback(JSON.parse(chunk));
         });
     });
 
     req.on('error', function(e) {
-        console.log('problem with request: ' + e.message);
+        common.logger.error('problem with request: ' + e.message);
     });
 
     req.end();

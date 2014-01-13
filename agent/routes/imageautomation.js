@@ -23,7 +23,7 @@ exports.recordImage = function(req, res){
     var recordProc = spawn(javaPath,["-Xmx512m","-Djava.library.path="+baseDir+"\\lib","-jar","ImageAutomation.jar","temp.png"],{env:{PATH:baseDir+"\\lib"},cwd:baseDir});
 
     recordProc.stderr.on('data', function (data) {
-        console.log("error recording: "+data)
+        common.logger.error("error recording: "+data)
     });
     recordProc.on('close', function (code) {
         common.sendFileToServer(baseDir+"/temp.png","temp.png","/recordedimage",common.Config.AppServerIPHost,common.Config.AppServerPort,"username="+req.body.username+";project="+req.body.project,function(){

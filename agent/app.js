@@ -30,7 +30,7 @@ app.configure('development', function(){
 app.configure('production', function(){
     app.use(express.errorHandler());
 });
-
+common.initLogger("agent");
 common.parseConfig(function(){
     app.listen(common.Config.AgentPort, function(){
         heartbeat.startHeartBeat(common.Config.AppServerIPHost,common.Config.AppServerPort,common.Config.AgentPort,common.Config.AgentVNCPort);

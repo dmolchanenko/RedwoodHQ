@@ -1,11 +1,12 @@
 var fs = require('fs');
 var path = require('path');
 var walk = require('walk');
+var common = require('../common');
 
 exports.Post = function(req, res){
     var tmp_path = req.files.file.path;
     var target_path = path.resolve(__dirname,"../"+req.files.file.name);
-    console.log(target_path);
+    common.logger.info(target_path);
 
     if (req.files.file.name.indexOf("/") != -1){
         var dirs = req.files.file.name.slice(0,req.files.file.name.lastIndexOf("/"));
@@ -21,7 +22,7 @@ exports.Post = function(req, res){
         fs.rename(tmp_path, target_path, function(err) {
             if (err){
                 res.send('{error:"'+err+'"}');
-                console.log("rename ERROR:"+err);
+                common.logger.error("rename ERROR:"+err);
                 fs.unlink(tmp_path);
                 return;
             }
@@ -29,7 +30,7 @@ exports.Post = function(req, res){
         });
     }
     catch(exception){
-        console.log("EXCEPTION while renaming file:"+target_path+"   "+exception);
+        common.logger.error("EXCEPTION while renaming file:"+target_path+"   "+exception);
     }
 
     //console.log(tmp_path);
