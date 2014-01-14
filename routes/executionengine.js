@@ -587,6 +587,28 @@ function startTCExecution(id,variables,executionID,callback){
 
             var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
 
+            var foundMachine = null;
+
+            var runBaseState = function(){
+                agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
+
+                    if (err){
+                        result.error = err;
+                        result.status = "Finished";
+                        result.result = "Failed";
+                        updateResult(result);
+                        if (executions[executionID]){
+                            executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
+                            finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                        }
+                    }
+                    else{
+                        foundMachine.runBaseState = true;
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                    }
+                });
+            };
+
             //if test case is a script and NOT an action collection
             if (testcase.dbTestCase.type === "script"){
                 if ((testcase.script == "") || (!testcase.script)){
@@ -607,7 +629,6 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.resultID = result._id.__id;
                 agentInstructions.parameters = [];
 
-                var foundMachine = null;
                 var actionHost = "Default";
                 //if(action.dbAction.host != "") actionHost = action.dbAction.host;
                 testcase.machines.forEach(function(machine){
@@ -619,7 +640,28 @@ function startTCExecution(id,variables,executionID,callback){
 
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
                 executionsRoute.updateExecutionTotals(executionID);
-                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                if (foundMachine.runBaseState === true){
+                    if (foundMachine.multiThreaded  == true){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                    }
+                    else{
+                        //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
+                        //could have changed while test case was running
+                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},3,function(message){
+                            if (message.loaded == true){
+                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                            }
+                            else{
+                                runBaseState();
+                            }
+                        });
+                    }
+
+                }
+                else{
+                    runBaseState();
+                }
+
                 callback();
                 return;
             }
@@ -650,7 +692,6 @@ function startTCExecution(id,variables,executionID,callback){
                     agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
                 });
 
-                var foundMachine = null;
                 var actionHost = "Default";
                 if(action.dbAction.host != "") actionHost = action.dbAction.host;
                 testcase.machines.forEach(function(machine){
@@ -666,27 +707,6 @@ function startTCExecution(id,variables,executionID,callback){
                     updateExecutionMachine(executionID,testcase.machines[0]._id,"",result._id.__id);
                 }
                 executionsRoute.updateExecutionTotals(executionID);
-
-
-                var runBaseState = function(){
-                    agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
-
-                        if (err){
-                            result.error = err;
-                            result.status = "Finished";
-                            result.result = "Failed";
-                            updateResult(result);
-                            if (executions[executionID]){
-                                executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
-                                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
-                            }
-                        }
-                        else{
-                            foundMachine.runBaseState = true;
-                            sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
-                        }
-                    });
-                };
 
                 if (foundMachine.runBaseState === true){
                     if (foundMachine.multiThreaded  == true){
@@ -1724,9 +1744,9 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
             collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
                 if(testcase == null) callback(null);
                 if (testcase.type == "script"){
-                    testcaseDetails = {dbTestCase:testcase,script:testcase.script};
+                    testcaseDetails = {dbTestCase:testcase,script:testcase.script,afterState:false,name:testcase.name};
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
-                    callback(testcaseDetails,testcaseResults,[]);
+                    callback(testcaseDetails,testcaseResults,["Default"]);
                 }
                 else{
                     //now process after state
@@ -1859,7 +1879,7 @@ function sendNotification(executionID){
 
                     smtpTransport.sendMail(mailOptions, function(error, response){
                         if(error){
-                            common.logger.error(error);
+                            common.logger.info(error);
                         }
 
                         smtpTransport.close();
