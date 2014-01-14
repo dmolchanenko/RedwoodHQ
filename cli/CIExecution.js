@@ -10,7 +10,7 @@ var db;
 var ObjectID = require('mongodb').ObjectID;
 var http = require("http");
 
-
+common.initLogger("cli");
 common.parseConfig(function(){
     var execution = {};
     execution.project = argv.project;

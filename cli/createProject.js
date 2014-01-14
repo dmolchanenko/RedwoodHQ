@@ -4,6 +4,7 @@ var argv = require('optimist')
     .argv;
 var projects = require('../routes/projects');
 var common = require('../common');
+common.initLogger("cli");
 
 common.parseConfig(function(){
     common.initDB(common.Config.DBPort,function(){
