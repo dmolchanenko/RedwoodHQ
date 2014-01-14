@@ -258,7 +258,7 @@ Ext.define('Redwood.view.ResultsView', {
                         value.forEach(function(param){
                             rows += '<div style="display:table-row;">'+
                                     '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b; font-weight: bold;width:100px;white-space: normal;word-wrap: break-word;">'+param.paramname+'</span>'+
-                                    '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b;width:250px;white-space: normal;word-wrap: break-word;">'+param.paramvalue+'</span>'+
+                                    '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b;width:250px;white-space: normal;word-wrap: break-word;">'+Ext.util.Format.htmlEncode(param.paramvalue)+'</span>'+
                                 '</div>';
                         });
                         var table = '<div style="display:table;table-layout: fixed;width: 100%;">'+ rows +'</div>';
