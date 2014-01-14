@@ -31,9 +31,9 @@ if (!fs.existsSync(logPath)){
 var vnc = new (forever.Monitor)('vnc.js', {
     silent: false,
     options: [],
-    killTree: true,
-    'outFile': logPath+'/agent.vnc.out.log',
-    'errFile': logPath+'/agent.vnc.err.log'
+    killTree: true
+    //'outFile': logPath+'/agent.vnc.out.log',
+    //'errFile': logPath+'/agent.vnc.err.log'
 });
 
 vnc.start();

@@ -27,9 +27,9 @@ if (!fs.existsSync(logPath)){
 var child = new (forever.Monitor)('app.js', {
     silent: false,
     options: [],
-    killTree: true,
-    'outFile': logPath+'/agent.out.log',
-    'errFile': logPath+'/agent.err.log'
+    killTree: true
+    //'outFile': logPath+'/agent.out.log',
+    //'errFile': logPath+'/agent.err.log'
 });
 
 child.start();

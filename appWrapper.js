@@ -39,9 +39,9 @@ common.parseConfig(function(){
     var appChild = new (forever.Monitor)('app.js', {
         silent: false,
         options: [],
-        killTree: true,
-        'outFile': logPath+'/app.out.log',
-        'errFile': logPath+'/app.err.log',
+        killTree: true
+        //'outFile': logPath+'/app.out.log',
+        //'errFile': logPath+'/app.err.log',
         //pidFile: "app.pid"
     });
 
@@ -49,7 +49,7 @@ common.parseConfig(function(){
         max : 1,
         silent : false,
         'outFile': logPath+'/db.out.log',
-        'errFile': logPath+'/db.err.log',
+        'errFile': logPath+'/db.err.log'
         //pidFile: "db.pid"
     });
 
