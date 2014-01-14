@@ -126,7 +126,7 @@ Ext.define('Redwood.view.ActionParamGrid',{
                     maskRe: /[^<]/,
                     listeners:{
                         validitychange: function(field,isValid){
-                            me.rowEditor.editor.onFieldChange();
+                            //me.rowEditor.editor.onFieldChange();
                         },
                         focus: function(){
                             this.selectText();
