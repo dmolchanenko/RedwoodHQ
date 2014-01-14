@@ -12,6 +12,7 @@ if (process.argv[2] === "--stop"){
         var pids = fs.readFileSync(__dirname+"/app.pid").toString();
         fs.unlink(__dirname+"/app.pid");
         try{
+            process.kill(pids.split("\r\n")[1],"SIGTERM");
             process.kill(pids.split("\r\n")[0],"SIGTERM");
         }
         catch(err){
@@ -92,7 +93,7 @@ common.parseConfig(function(){
 
         storedPids.push(dbChild.child.pid);
         storedPids.push(appChild.child.pid);
-        fs.writeFileSync(__dirname+"/app.pid",appChild.child.pid);
+        fs.writeFileSync(__dirname+"/app.pid",appChild.child.pid+"\r\n"+process.pid);
         fs.writeFileSync(__dirname+"/db.pid",dbChild.child.pid);
     },40000);
 
