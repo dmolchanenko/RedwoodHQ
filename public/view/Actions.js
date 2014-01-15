@@ -99,14 +99,21 @@ Ext.define('Redwood.view.Actions', {
             tbar: {
                 xtype: 'toolbar',
                 dock: 'top',
+                vertical:true,
                 items: [
                     {
                         width: 200,
-                        //fieldLabel: 'Search',
-                        //labelWidth: 50,
                         xtype: 'searchfield',
                         paramNames: ["tag","name"],
                         store: Ext.data.StoreManager.lookup('Actions')
+                    },
+                    {
+                        xtype:"filtercombo",
+                        store: ["ALL","Automated","To be Automated","Needs Maintenance"],
+                        propertyName:"status",
+                        allValue:"ALL",
+                        value:"ALL",
+                        storeToFilter: Ext.data.StoreManager.lookup('Actions')
                     }
                 ]
 

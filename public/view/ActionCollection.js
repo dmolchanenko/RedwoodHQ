@@ -1305,14 +1305,16 @@ Ext.define('Redwood.view.ActionCollection', {
                             var actionToClone = Ext.clipboard.data[i];
                             newAction.children = [];
                             actionToClone.children.forEach(function(child){
-                                newAction.children.push(Ext.clone(child))
+                                var clone = Ext.clone(child);
+                                clone.icon = Ext.BLANK_IMAGE_URL;
+                                newAction.children.push(clone);
                             });
                             newAction.actionname = actionToClone.actionname;
                             newAction.executionflow = actionToClone.executionflow;
                             newAction.returnvalue = actionToClone.returnvalue;
                             newAction.host = actionToClone.host;
                             newAction.actionid = actionToClone.actionid;
-                            newAction.icon = actionToClone.icon;
+                            newAction.icon = Ext.BLANK_IMAGE_URL;
                             newAction.expanded = true;
 
                             var newRecord = me.store.getRootNode().appendChild(newAction);

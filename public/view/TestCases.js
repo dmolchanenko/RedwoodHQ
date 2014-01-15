@@ -245,13 +245,51 @@ Ext.define('Redwood.view.TestCases', {
             tbar: {
                 xtype: 'toolbar',
                 dock: 'top',
+                vertical:true,
                 items: [
                     {
                         width: 200,
                         xtype: 'searchfield',
                         paramNames: ["tag","name"],
                         store: Ext.data.StoreManager.lookup('TestCases')
+                    },
+                    {
+                        xtype:"filtercombo",
+                        store: ["ALL","Automated","To be Automated","Needs Maintenance"],
+                        propertyName:"status",
+                        allValue:"ALL",
+                        value:"ALL",
+                        storeToFilter: Ext.data.StoreManager.lookup('TestCases')
                     }
+                    /*
+                    {
+                        xtype:'combo',
+                        storeToFilter: Ext.data.StoreManager.lookup('TestCases'),
+                        currentFilter: null,
+                        afterLabelTextTpl: this.requiredText,
+                        store: ["ALL","Automated","To be Automated","Needs Maintenance"],
+                        name: 'role',
+                        forceSelection: true,
+                        editable: false,
+                        allowBlank: false,
+                        value:"ALL",
+                        listeners: {
+                            change: function(field, value){
+                                if(field.currentFilter != null){
+                                    field.storeToFilter.removeFilter(field.currentFilter)
+                                }
+                                if(value == "ALL") return;
+                                var filterFn = function(record){
+                                    if (record.get("status") == field.getValue()) return true;
+                                };
+                                field.currentFilter =  Ext.create('Ext.util.Filter', {
+                                    filterFn: filterFn});
+
+                                field.storeToFilter.addFilter(field.currentFilter);
+                            }
+                        }
+                    }
+                    */
                 ]
 
             }
@@ -279,7 +317,7 @@ Ext.define('Redwood.view.TestCases', {
                     dock: 'top',
                     items:[
                         newTestCase,
-                        //recordTestCase,
+                        recordTestCase,
                         saveTestCase,
                         " ",
                         deleteTestCase,

@@ -15,7 +15,7 @@ Ext.define('Ext.ux.form.SearchField', {
 
 
         this.filterFn = function(record,id){
-            var value = this.value;
+            var value = me.value;
             var values = [];
             var tempVal = "";
             var quoteFound = false;
@@ -34,22 +34,16 @@ Ext.define('Ext.ux.form.SearchField', {
                     continue;
                 }
 
-                /*
-                if ((value[i] == " ")&&(quoteFound == false)){
-                    values.push(tempVal);
-                    tempVal = "";
-                    continue;
-                }
-                */
                 tempVal = tempVal + value[i];
                 if (value.length == i+1){
                     values.push(tempVal);
                 }
             }
-            for(var pCount=0; pCount<this.paramNames.length; pCount++) {
-                var paramValue = record.get(this.paramNames[pCount]);
+            for(var pCount=0; pCount<me.paramNames.length; pCount++) {
+                var paramValue = record.get(me.paramNames[pCount]);
                 for (var valCount =0;valCount<values.length;valCount++){
-                    var matchValue = new XRegExp("^" + XRegExp.escape(values[valCount])+".*","i");
+                    var matchValue = new XRegExp(XRegExp.escape(values[valCount])+".*","i");
+                    //var matchValue = new XRegExp("^" + XRegExp.escape(values[valCount])+".*","i");
                     if ( Object.prototype.toString.call(paramValue)  === "[object Array]") {
                         for (var paramCount=0;paramCount<paramValue.length;paramCount++){
                             if(matchValue.test(paramValue[paramCount])){
@@ -88,12 +82,16 @@ Ext.define('Ext.ux.form.SearchField', {
         this.triggerCell.item(0).setDisplayed(false);
     },
 
+    currentFilter: null,
+
     onTrigger1Click : function(){
         var me = this;
 
         if (me.hasSearch) {
             me.setValue('');
-            me.store.clearFilter();
+            if(this.currentFilter != null){
+                me.store.removeFilter(this.currentFilter);
+            }
             me.hasSearch = false;
             me.triggerCell.item(0).setDisplayed(false);
             me.updateLayout();
@@ -105,17 +103,19 @@ Ext.define('Ext.ux.form.SearchField', {
             value = me.getValue();
 
         if (value.length > 0) {
-            me.store.clearFilter();
+            if(this.currentFilter != null){
+                me.store.removeFilter(this.currentFilter);
+            }
 
             if (this.filterFn != null){
-                me.store.filterBy(this.filterFn,me);
+                this.currentFilter =  Ext.create('Ext.util.Filter', {filterFn: this.filterFn});
+                me.store.addFilter(this.currentFilter);
             }
             else{
-                me.store.filter({
-                    id: me.paramName,
+                this.currentFilter =  Ext.create('Ext.util.Filter', {id: me.paramName,
                     property: me.paramName,
-                    value: value
-                });
+                    value: value});
+                me.store.addFilter(this.currentFilter);
             }
             me.hasSearch = true;
             me.triggerCell.item(0).setDisplayed(true);
