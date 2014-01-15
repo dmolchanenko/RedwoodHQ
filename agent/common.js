@@ -23,6 +23,10 @@ exports.parseConfig = function(callback){
 };
 
 exports.sendFileToServer = function(file,id,url,host,port,cookie,callback){
+    sendFileToServer(file,id,url,host,port,cookie,callback)
+};
+
+sendFileToServer = function(file,id,url,host,port,cookie,callback){
     if(fs.existsSync(file) == false) {
         if (callback) callback();
         return;
@@ -72,6 +76,7 @@ exports.sendFileToServer = function(file,id,url,host,port,cookie,callback){
 
     req.on('error', function(e) {
         console.log('sendFileToServer problem with request: ' + e.message+ ' file:'+file);
+        setTimeout(function(){sendFileToServer(file,id,url,host,port,cookie,callback);},10000);
     });
 
     req.write(message);
@@ -80,6 +85,7 @@ exports.sendFileToServer = function(file,id,url,host,port,cookie,callback){
         req.end('\r\n------' + boundary + '--\r\n');
     });
 };
+
 
 exports.initLogger = function(fileName){
     this.logger = new (winston.Logger)({

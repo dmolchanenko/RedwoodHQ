@@ -13,6 +13,7 @@ var actionCache = {};
 
 exports.Post = function(req, res){
     var command = req.body;
+    common.logger.info(command);
     if(command.command == "run action"){
         common.logger.info("running action");
         //console.log(command);
@@ -407,7 +408,7 @@ function sendActionResult(result,host,port){
     //});
 
     req.on('error', function(e) {
-        common.logger.error('problem with request: ' + e.message);
+        common.logger.error('problem with sendActionResult request: ' + e.message);
         setTimeout(function(){sendActionResult(result,host,port);},10000);
     });
 
@@ -436,7 +437,7 @@ function sendLog(result,host,port){
     });
 
     req.on('error', function(e) {
-        common.logger.error('problem with request: ' + e.message);
+        common.logger.error('problem with sendLog request: ' + e.message);
         setTimeout(function(){sendLog(result,host,port);},10000);
     });
 
@@ -467,6 +468,7 @@ function getExecutionStatus(host,port,executionID,callback){
 
     req.on('error', function(e) {
         common.logger.error('problem with request: ' + e.message);
+        setTimeout(function(){getExecutionStatus(result,host,port);},10000);
     });
 
     req.end();
