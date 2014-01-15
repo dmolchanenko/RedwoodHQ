@@ -399,7 +399,7 @@ function sendActionResult(result,host,port){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            common.logger.info('BODY: ' + chunk);
+            common.logger.info('sendActionResult result: ' + chunk);
         });
     });
 
@@ -432,7 +432,7 @@ function sendLog(result,host,port){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            common.logger.info('BODY: ' + chunk);
+            common.logger.info('sendLog result: ' + chunk);
         });
     });
 
@@ -461,7 +461,7 @@ function getExecutionStatus(host,port,executionID,callback){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            common.logger.info('BODY: ' + chunk);
+            common.logger.info('getExecutionStatus result: ' + chunk);
             callback(JSON.parse(chunk));
         });
     });
