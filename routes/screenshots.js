@@ -9,11 +9,12 @@ exports.Post = function(req, res){
     form.parse(req, function(err, fields, files) {
         var tmp_path = files.file[0].path;
         var id = files.file[0].originalFilename;
-        //console.log(tmp_path);
+        console.log("MY ID IS:"+id);
+        console.log("MY resultID IS:"+req.cookies.resultID);
         fs.readFile(tmp_path,function(err,data){
             if(!err){
                 db.collection('screenshots', function(err, collection) {
-                    collection.save({file:new MongoDB.Binary(data),_id:id}, {safe:true},function(err,returnData){
+                    collection.save({file:new MongoDB.Binary(data),_id:id,executionID:req.cookies.executionID,resultID:req.cookies.resultID}, {safe:true},function(err,returnData){
                         fs.unlink(tmp_path);
                         res.contentType('json');
                         res.json({
@@ -24,28 +25,6 @@ exports.Post = function(req, res){
             }
         });
     });
-
-    /*
-    var tmp_path = req.files.file.path;
-    res.download("c://temp//test.pnf");
-    //req.download("test.pnf");
-    var id = req.files.file.name;
-    console.log(tmp_path);
-    fs.readFile(tmp_path,function(err,data){
-        if(!err){
-            db.collection('screenshots', function(err, collection) {
-                collection.save({file:new MongoDB.Binary(data),_id:id}, {safe:true},function(err,returnData){
-                    fs.unlink(tmp_path);
-                    res.contentType('json');
-                    res.json({
-                        success: true
-                    });
-                });
-            });
-        }
-    });
-    */
-
 };
 
 exports.Get = function(req, res){

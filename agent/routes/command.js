@@ -177,7 +177,7 @@ function startLauncher(executionID,threadID,callback){
                             if (msg.command == "action finished"){
                                 delete actionCache[portNumber];
                                 if(msg.screenshot){
-                                    common.sendFileToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,"/screenshots",common.Config.AppServerIPHost,common.Config.AppServerPort,"",function(){
+                                    common.sendFileToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,"/screenshots",common.Config.AppServerIPHost,common.Config.AppServerPort,"executionID="+executionID+";resultID="+msg.resultID,function(){
                                         sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                                     })
                                 }

@@ -121,7 +121,11 @@ function DeleteExecutions(db,data,callback){
         collection.remove(data,{safe:true},function(err) {
             db.collection('executiontestcases', function(err, collection) {
                 collection.remove({executionID:data._id},{safe:true},function(err) {
-                    callback(err);
+                    db.collection('screenshots', function(err, collection) {
+                        collection.remove({executionID:data._id},{safe:true},function(err) {
+                            callback(err);
+                        });
+                    });
                 });
             });
         });

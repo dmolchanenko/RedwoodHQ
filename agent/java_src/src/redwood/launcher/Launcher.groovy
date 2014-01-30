@@ -170,13 +170,14 @@ class Launcher {
 
     private static takeScreenshot(def action){
         if(action["ignoreScreenshots"] == false){
-            UUID id = UUID.randomUUID()
+            String id = UUID.randomUUID().toString() + action.resultID
+
             try{
                 try {
                     def browser = Class.forName("actions.selenium.Browser")
                     if((browser.Driver != null) &&(browser.class.name.toString() != "SwipeableWebDriver")){
                         File scrFile = ((org.openqa.selenium.TakesScreenshot)browser.Driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
-                        new File(id.toString()) << scrFile.bytes
+                        new File(id) << scrFile.bytes
                     }
                 } catch(Exception e) {
                     // it does not exist on the classpath
@@ -184,12 +185,12 @@ class Launcher {
             }
             finally{
             //catch(Exception ex){
-                if(!new File(id.toString()).exists()){
+                if(!new File(id).exists()){
                     BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
-                    ImageIO.write(image, "png", new File(id.toString()));
+                    ImageIO.write(image, "png", new File(id));
                 }
             }
-            action["screenshot"] = id.toString()
+            action["screenshot"] = id
         }
     }
 }
