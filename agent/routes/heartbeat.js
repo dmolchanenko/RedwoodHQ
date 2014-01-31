@@ -3,7 +3,7 @@ var os = require('os');
 var common = require('../common');
 var macaddr = require('../macaddr');
 
-exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
+exports.startHeartBeat = function(server,serverPort,agentPort,vncPort,agentVersion){
     /*
     var interfaces = os.networkInterfaces();
     var addresses = [];
@@ -35,7 +35,7 @@ exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
         var req = http.request(options, function(res) {
             res.setEncoding('utf8');
             res.on('data', function (chunk) {
-                //setTimeout(recursive,90000)
+                setTimeout(recursive,60*1000)
             });
         });
 
@@ -45,7 +45,7 @@ exports.startHeartBeat = function(server,serverPort,agentPort,vncPort){
         });
 
         // write data to request body
-        req.write(JSON.stringify({macAddress:macAddress,hostname:os.hostname(),port:agentPort,vncPort:vncPort}));
+        req.write(JSON.stringify({macAddress:macAddress,hostname:os.hostname(),port:agentPort,vncPort:vncPort,agentVersion:agentVersion}));
         req.end();
     };
 

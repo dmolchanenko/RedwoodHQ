@@ -151,9 +151,9 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                         });
                                     }
                                 });
-                                var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000})
+                                var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
                                 mongoScript.stdout.on('data', function (data) {
-                                    //console.log('stdout: ' + data);
+                                    common.logger.info(data);
                                 });
 
                                 mongoScript.stderr.on('data', function (data) {

@@ -4,6 +4,7 @@ var imageautomation = require('./routes/imageautomation');
 var recorder = require('./routes/recorder');
 var fileupload = require('./routes/fileupload');
 var heartbeat = require('./routes/heartbeat');
+var update = require('./routes/update');
 var common = require('./common');
 
 var app = express();
@@ -19,6 +20,7 @@ app.configure(function(){
 });
 
 app.post('/command',command.Post);
+app.post('/update',update.Post);
 app.post('/fileupload',fileupload.Post);
 app.post('/recordimage',imageautomation.recordImage);
 app.post('/startrecording',recorder.record);
@@ -33,7 +35,7 @@ app.configure('production', function(){
 common.initLogger("agent");
 common.parseConfig(function(){
     app.listen(common.Config.AgentPort, function(){
-        heartbeat.startHeartBeat(common.Config.AppServerIPHost,common.Config.AppServerPort,common.Config.AgentPort,common.Config.AgentVNCPort);
+        heartbeat.startHeartBeat(common.Config.AppServerIPHost,common.Config.AppServerPort,common.Config.AgentPort,common.Config.AgentVNCPort,common.Config.AgentVersion);
         command.cleanUp();
         //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
     });
