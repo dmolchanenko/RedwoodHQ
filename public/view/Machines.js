@@ -50,7 +50,7 @@ Ext.define('Redwood.view.Machines', {
                     vtype: 'machineTest',
                     listeners:{
                         validitychange: function(field,isValid){
-                            if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
+                            //if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
                         },
                         focus: function(){
                             this.selectText();
@@ -68,7 +68,7 @@ Ext.define('Redwood.view.Machines', {
                     allowBlank: false,
                     listeners:{
                         validitychange: function(field,isValid){
-                            if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
+                            //if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
                         },
                         focus: function(){
                             this.selectText();
@@ -86,7 +86,7 @@ Ext.define('Redwood.view.Machines', {
                     allowBlank: false,
                     listeners:{
                         validitychange: function(field,isValid){
-                            if(machinesEditor.rowEditor.editor)  machinesEditor.rowEditor.editor.onFieldChange();
+                            //if(machinesEditor.rowEditor.editor)  machinesEditor.rowEditor.editor.onFieldChange();
                         },
                         focus: function(){
                             this.selectText();
@@ -105,7 +105,7 @@ Ext.define('Redwood.view.Machines', {
                     minValue: 1,
                     listeners:{
                         validitychange: function(field,isValid){
-                            if(machinesEditor.rowEditor.editor)  machinesEditor.rowEditor.editor.onFieldChange();
+                            //if(machinesEditor.rowEditor.editor)  machinesEditor.rowEditor.editor.onFieldChange();
                         },
                         focus: function(){
                             //this.selectText();
@@ -162,7 +162,7 @@ Ext.define('Redwood.view.Machines', {
                     removeOnDblClick:true,
                     listeners:{
                         validitychange: function(field,isValid){
-                            if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
+                            //if(machinesEditor.rowEditor.editor) machinesEditor.rowEditor.editor.onFieldChange();
                         }
                     }
                 }
