@@ -26,23 +26,30 @@ exports.heartbeatPost = function(req, res){
             else{
                 updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncPort,port:data.port}})
             }
-        }
-    });
-    //see if we need to update the agent
-    if(data.agentVersion){
-        var localVersion = parseInt(app.Config.AgentVersion.replace(/\./g,''));
-        var agentVersion = parseInt(data.agentVersion.replace(/\./g,''));
-        if(agentVersion < localVersion){
-            if(!updatingAgents[ip]){
-                updatingAgents[ip] = ip;
-                sendFileToAgent(path.resolve(__dirname,"../public/agentsetup/")+"/Agent_RedwoodHQ_Setup.exe","Agent_RedwoodHQ_Setup.exe",ip,data.port,4,function(){
-                    sendUpdateRequest(ip,data.port,4,function(){
-                        delete updatingAgents[ip];
-                    })
-                })
+            //see if we need to update the agent
+            if(data.agentVersion){
+                var localVersion = parseInt(app.Config.AgentVersion.replace(/\./g,''));
+                var agentVersion = parseInt(data.agentVersion.replace(/\./g,''));
+                if(agentVersion < localVersion){
+                    if(!updatingAgents[ip]){
+                        updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncPort,port:data.port,state:"Updating"}});
+                        updatingAgents[ip] = ip;
+                        sendFileToAgent(path.resolve(__dirname,"../public/agentsetup/")+"/Agent_RedwoodHQ_Setup.exe","Agent_RedwoodHQ_Setup.exe",ip,data.port,4,function(){
+                            sendUpdateRequest(ip,data.port,4,function(){
+
+                            })
+                        })
+                    }
+                }
+                else if(updatingAgents[ip]){
+                    updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncPort,port:data.port,state:""}});
+                    delete updatingAgents[ip];
+                }
             }
         }
-    }
+
+    });
+
     res.contentType('json');
     res.json({
         success: true
