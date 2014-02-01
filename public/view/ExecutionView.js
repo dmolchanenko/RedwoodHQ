@@ -310,9 +310,11 @@ Ext.define('Redwood.view.ExecutionView', {
                     }
                 }
             })],
+            maxHeight: 250,
             minHeight: 150,
             manageHeight: true,
             flex: 1,
+            overflowY: 'auto',
             selModel: Ext.create('Ext.selection.CheckboxModel', {
                 singleSelect: false,
                 sortable: true,
