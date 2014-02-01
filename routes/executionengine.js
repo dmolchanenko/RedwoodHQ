@@ -23,6 +23,7 @@ exports.stopexecutionPost = function(req, res){
     for(var testcase in execution.currentTestCases){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
+    git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
 
     cleanExecutionMachines(req.body.executionID,function(){
         updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
@@ -58,9 +59,13 @@ exports.startexecutionPost = function(req, res){
     });
 
     var machineConflict = false;
+    var updatingConflict = false;
     machines.forEach(function(machine){
         if (machine.state == "Running Test"){
             machineConflict = true;
+        }
+        else if (machine.state == "Updating"){
+            updatingConflict = true;
         }
 
     });
@@ -68,6 +73,12 @@ exports.startexecutionPost = function(req, res){
     if(machineConflict == true){
         res.contentType('json');
         res.json({error:"Selected machines are currently running other tests."});
+        return;
+    }
+
+    if(updatingConflict == true){
+        res.contentType('json');
+        res.json({error:"Selected machines are being updated."});
         return;
     }
 
@@ -87,33 +98,37 @@ exports.startexecutionPost = function(req, res){
             delete executions[executionID];
         }
         else{
-            cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
-                executions[executionID].sourceCache = sourceCache;
-                //updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
-                verifyMachineState(machines,function(err){
-                    if(err){
-                        updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
+            //copy files for each execution to prevent conflicts
+            git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar","jar_"+executionID,function(){
+                cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
+                    executions[executionID].sourceCache = sourceCache;
+                    //updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
+                    verifyMachineState(machines,function(err){
+                        if(err){
+                            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
+                            res.contentType('json');
+                            res.json({error:err});
+                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                            delete executions[executionID];
+                            return;
+                        }
                         res.contentType('json');
-                        res.json({error:err});
-                        delete executions[executionID];
-                        return;
-                    }
-                    res.contentType('json');
-                    res.json({success:true});
-                    lockMachines(machines,executionID,function(){
+                        res.json({success:true});
+                        lockMachines(machines,executionID,function(){
 
-                        getGlobalVars(executionID,function(){
-                            testcases.forEach(function(testcase){
-                                executions[executionID].testcases[testcase.testcaseID] = testcase;
-                            });
-                            //see if there is a base state
-                            suiteBaseState(executionID,machines,function(){
-                                //magic happens here
-                                applyMultiThreading(executionID,function(){
-                                    updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
-                                        executeTestCases(executions[executionID].testcases,executionID);
-                                    });
-                                })
+                            getGlobalVars(executionID,function(){
+                                testcases.forEach(function(testcase){
+                                    executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                });
+                                //see if there is a base state
+                                suiteBaseState(executionID,machines,function(){
+                                    //magic happens here
+                                    applyMultiThreading(executionID,function(){
+                                        updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
+                                            executeTestCases(executions[executionID].testcases,executionID);
+                                        });
+                                    })
+                                });
                             });
                         });
                     });
@@ -327,6 +342,7 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),"jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -355,6 +371,7 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),"jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -1136,7 +1153,7 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(){
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
-                    syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar"),"executionfiles/"+executionID+"/lib",function(){
+                    syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
                         sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
                                 callback(message.error);

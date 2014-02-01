@@ -204,6 +204,23 @@ exports.clone = function(workdir,dirToClone,callback){
     });
 };
 
+exports.copyFiles = function(workdir,file,dest,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/cp.exe'),['-R',file,dest],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('add stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback();
+    });
+};
+
+
 exports.add = function(workdir,file,callback){
     common.logger.info("add");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['add',file],{cwd: workdir,timeout:300000});
@@ -238,10 +255,28 @@ exports.commit = function(workdir,file,callback){
     });
 };
 
+exports.deleteFiles = function(workdir,file,callback){
+    //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
+    var git = null;
+    git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/rm.exe'),['-R',file],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('deleteFiles stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        if(callback) callback();
+    });
+};
+
 exports.delete = function(workdir,file,callback){
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
     if (fs.existsSync(file) == false){
-        callback();
+        if (callback)callback();
         return;
     }
     var stats = fs.lstatSync(file);
@@ -262,7 +297,7 @@ exports.delete = function(workdir,file,callback){
     });
 
     git.on('close', function (code) {
-        callback();
+        if(callback) callback();
     });
 };
 
