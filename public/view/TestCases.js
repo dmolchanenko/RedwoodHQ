@@ -317,7 +317,7 @@ Ext.define('Redwood.view.TestCases', {
                     dock: 'top',
                     items:[
                         newTestCase,
-                        recordTestCase,
+                        //recordTestCase,
                         saveTestCase,
                         " ",
                         deleteTestCase,
