@@ -3,7 +3,6 @@ Ext.require([
 ]);
 
 Ext.onReady(function() {
-    //var bd = Ext.getBody();
     var bd = Ext.getDom("loginForm");
 
     var simple = Ext.widget({
@@ -57,13 +56,9 @@ Ext.onReady(function() {
 
     function submitFunction() {
         var form = Ext.getCmp("loginForm").getForm();
-        //var form = this.up('form').getForm();
         if (form.isValid()) {
-            // Submit the Ajax request and handle the response
             Ext.Ajax.request({
-                //form:form,
                 url:form.url,
-                //headers:{"content-type":"application/json"},
                 method:"POST",
                 jsonData : form.getFieldValues(),
                 success: function(response, action) {
@@ -76,7 +71,6 @@ Ext.onReady(function() {
                     }
                 },
                 failure: function(response, action) {
-                    //Ext.Msg.alert('Failed', action.result.msg);
                 }
             });
         }
@@ -93,6 +87,4 @@ Ext.onReady(function() {
         allFields.getAt(0).setValue(username);
         allFields.getAt(1).focus();
     }
-    //simple.render(document.body);
-
 });
