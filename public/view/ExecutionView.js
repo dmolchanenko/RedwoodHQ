@@ -1255,7 +1255,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     },
                     {
                         xtype:"displayfield",
-                        fieldLabel: "Run Time",
+                        fieldLabel: "Run Time Sum",
                         itemId:"runtime",
                         value: "0",
                         renderer: function(value,meta){
