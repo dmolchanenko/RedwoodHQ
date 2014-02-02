@@ -41,9 +41,11 @@ exports.heartbeatPost = function(req, res){
                         })
                     }
                 }
-                else if(updatingAgents[ip]){
+                else if(machine.state === "Updating"){
                     updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncPort,port:data.port,state:""}});
-                    delete updatingAgents[ip];
+                    if(updatingAgents[ip]){
+                        delete updatingAgents[ip];
+                    }
                 }
             }
         }
