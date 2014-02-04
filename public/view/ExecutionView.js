@@ -391,7 +391,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     width: 120,
                     renderer: function(value,style,record){
                         //style.tdAttr = 'data-qtip="' + record.get("error") + '"';
-                        if((value == "") &&(record.get("resultID"))){
+                        if((value == "") &&(record.get("resultID")) &&(record.get("baseState"))){
                             value = "Running";
                         }
                         if ((value == "Passed") || (value == "Running")){
