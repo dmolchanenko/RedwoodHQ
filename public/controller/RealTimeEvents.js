@@ -364,7 +364,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                 setTimeout(function(){
                     update(UpdateExecutionTestCaseCache[testCase._id]);
                     delete UpdateExecutionTestCaseCache[testCase._id];
-                },3000)
+                },7000)
             }
             else{
                 UpdateExecutionTestCaseCache[testCase._id] = testCase;
