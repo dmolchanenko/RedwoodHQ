@@ -80,8 +80,8 @@ exports.scriptsCopy = function(req, res){
 exports.CreateNewProject = function(projectName,language,template,callback){
     var templatePath = "";
     if(language == "Java/Groovy"){
-        template = "java_project_selenium";
-        //if (template == "Selenium") template = "java_project_selenium";
+        template = "java_project";
+        if (template == "Selenium") template = "java_project_selenium";
         //templatePath = path.resolve(__dirname,"../project_templates/"+"multi_test");
         templatePath = path.resolve(__dirname,"../project_templates/"+template);
     }

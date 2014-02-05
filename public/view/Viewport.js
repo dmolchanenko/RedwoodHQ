@@ -2,7 +2,6 @@ var adminStore = Ext.create('Ext.data.TreeStore', {
     root: {
         expanded: true,
         children: [
-            //{ text: "Variables", leaf: true },
             { text: "Users", leaf: true,icon:"images/user_go.png" },
             { text: "Projects", leaf: true,icon:"images/project.png" },
             { text: "Email", leaf: true,icon:"images/e-mail.png" },
@@ -39,14 +38,17 @@ Ext.define('Redwood.view.Viewport', {
                 tbar: {
                     xtype: 'toolbar',
                     style: { background: '#DDE0E4'},
-                    //style: { background: '#A5A5A5'},
                     dock: 'top',
                     items:[
                         {
                             xtype:"box",
-                            html: '<img border="0" width="80" height="auto" style="margin:0 auto;" src="../images/rwhq.png" alt="RedwoodHQ logo">'
-                            //html: '<h1 class="x-panel-header" style="color:#110dff">     Redwood HQ</h1>'
-                        }, "->",
+                            html: '<a href="http://www.redwoodhq.com" target="blank"><img border="0" width="80" height="auto" style="margin:0 auto;" src="../images/rwhq.png" alt="RedwoodHQ logo"></a>'
+                        },"","",
+                        {
+                            xtype:"box",
+                            html: '<a href="/agentsetup/Agent_RedwoodHQ_Setup.exe" style="color:blue">Download Agent</a>'
+                        },
+                        "->",
                         {
                             xtype:"button",
                             icon: 'images/earth2.png',
@@ -59,10 +61,7 @@ Ext.define('Redwood.view.Viewport', {
                                 items:[
                                     {
                                         xtype:"panel",
-                                        //plain:true,
                                         html: "asdfsdfds"
-                                        //text: "aga"
-
                                     }
                                 ]
                             },
@@ -73,20 +72,11 @@ Ext.define('Redwood.view.Viewport', {
                                     html:"5",
                                     id: "notiBubble",
                                     renderTo: me.getEl(),
-                                    //hidden: true,
                                     floating: true
-                                    //tpl: '<span>Hello {name}</span>',
-                                    //data: {name: 'LeVeon'}
                                 });
-                                //console.log(this.customMenu);
                                 this.customMenu.anchorTo(this.getEl(), 'r-r', [-5, 0]);
                             },
                             handler: function(){
-                                //this.showMenu();
-                                //this.menu.setZIndex(40000);
-                                //this.menu.anchorTo(Ext.getBody(), 'r-r', [-5, 0]);
-                               // this.customMenu.anchorTo(this.getEl(), 'r-r', [-5, 0]);
-                                //this.customMenu.show();
                             }
 
                         },
@@ -115,11 +105,9 @@ Ext.define('Redwood.view.Viewport', {
                                         });
                                         me.internalSelect = false;
                                     });
-                                    //me.setValue(me.getStore().findRecord("name",projectName).get("_id"));
 
                                 },
                                 change: function(me,value,oldValue){
-                                    //return;
                                     if ( me.internalSelect === true) return;
                                     Ext.Msg.show({
                                         title:'Project Change Confirmation',
@@ -207,31 +195,6 @@ Ext.define('Redwood.view.Viewport', {
                     if (activeSelection.itemId == "Executions"){
                         var activeTab = this.down("#executionsTab");
                         activeTab.setURLs();
-                        /*
-                        if (activeTab.getActiveTab().dataRecord.executionIDs){
-                            var allIDs = "";
-                            activeTab.getActiveTab().dataRecord.executionIDs.forEach(function(id){
-                                if (allIDs != ""){
-                                    allIDs = allIDs + "," + id.executionID;
-                                }
-                                else{
-                                    allIDs = id.executionID;
-                                }
-                            });
-                            window.history.replaceState("", "", '/index.html?aggregate='+allIDs+"&project="+Ext.util.Cookies.get('project'));
-                        }
-                        else if(activeTab.getActiveTab().dataRecord != null){
-                            if(activeTab.getActiveTab().dataRecord.get){
-                                window.history.replaceState("", "", '/index.html?execution='+activeTab.getActiveTab().dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
-                            }
-                            else{
-                                window.history.replaceState("", "", '/index.html?result='+activeTab.getActiveTab().dataRecord.testcase._id+"&project="+Ext.util.Cookies.get('project'));
-                            }
-                        }
-                        else{
-                            window.history.replaceState("", "", '/index.html');
-                        }
-                        */
                     }
                     else{
                         window.history.replaceState("", "", '/index.html');
@@ -364,14 +327,7 @@ Ext.define('Redwood.view.Viewport', {
                             }
                         },
                         items:[
-                            //{
-                            //    xtype: "variablesEditor",
-                            //    itemId: "Variables"
-                            //},
-                            //{
-                            //    xtype: "machinesEditor",
-                            //    itemId: "Machines"
-                            //},
+
                             {
                                 xtype: "usersEditor",
                                 itemId: "Users"

@@ -1,6 +1,7 @@
 package actions.selenium;
 
 import org.openqa.selenium.WebDriver
+import org.openqa.selenium.ie.InternetExplorerDriver
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.ie.InternetExplorerDriver
 import org.openqa.selenium.chrome.ChromeDriver
@@ -11,23 +12,31 @@ import org.openqa.selenium.remote.DesiredCapabilities
 
 class Browser{
   
-  public static WebDriver Driver = null;
+  public static WebDriver Driver = null
+  public static MainWinHandle = null
   
   //start browser
   public void run(def params){
-
-    if (params.Browser == "Firefox"){
-      Driver = new FirefoxDriver();
+    println params
+	sleep(1000)
+    if (params."Browser Type" == "Firefox"){
+      Driver = new FirefoxDriver()
     }
-    else if (params.Browser == "Chrome"){
+    else if (params."Browser Type" == "Chrome"){
       def service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
-      service.start();
-      Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome());
+      service.start()
+      Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome())
     }
     else{
-      def service = new InternetExplorerDriverService.Builder().usingPort(9516).usingDriverExecutable(new File("iedriverserver.exe")).build()
-      service.start();
-      Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome());
+      
+      def service = new InternetExplorerDriverService.Builder().usingDriverExecutable(new File("IEDriverServer.exe")).build()
+      service.start()
+      DesiredCapabilities d = DesiredCapabilities.internetExplorer()
+      d.setCapability("nativeEvents", false)
+      d.setCapability("forceCreateProcessApi", true)
+      d.setCapability("browserCommandLineSwitches", "-private")
+       
+      Driver = new RemoteWebDriver(service.getUrl(),d)
     }
     
     if (params.URL){
@@ -39,9 +48,9 @@ class Browser{
       }
       
     }
-    Driver.manage().window().maximize();
-    Driver.manage().timeouts().implicitlyWait(10, java.util.concurrent.TimeUnit.SECONDS);
-    
+    Driver.manage().window().maximize()
+    Driver.manage().timeouts().implicitlyWait(10, java.util.concurrent.TimeUnit.SECONDS)
+    MainWinHandle = Driver.getWindowHandle()   
     
   }
 }
