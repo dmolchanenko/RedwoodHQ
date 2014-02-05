@@ -143,7 +143,8 @@ function startLauncher(executionID,threadID,callback){
 
             callback(data.toString());
         });
-        launcherProc[executionID+portNumber.toString()].stderr.on('close', function (data) {
+        common.logger.info("starting port:"+portNumber);
+        launcherProc[executionID+portNumber.toString()].on('close', function (data) {
             delete launcherProc[executionID+portNumber.toString()];
             var checkForCrush = function(portNumber){
                 if (actionCache[portNumber]){
@@ -195,9 +196,9 @@ function startLauncher(executionID,threadID,callback){
                 });
 
                 launcherConn[executionID+portNumber.toString()].on('error', function(err) {
-                    common.logger.error("Error connecting to launcher: "+err);
+                    common.logger.error("Error connecting to launcher on port "+portNumber+": "+err);
                     //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
-                    callback("Error connecting to launcher: "+err);
+                    callback("Error connecting to launcher on port "+portNumber+": "+err);
                 });
             }
             else{
@@ -270,10 +271,12 @@ function stopLauncher(executionID,threadID,callback){
 
         });
     }
+    //callback();
     //if there is runaway launcher try to kill it
+
     else{
         var conn;
-        conn = net.connect(basePort, function(){
+        conn = net.connect(basePort+threadID, function(){
             conn.write(JSON.stringify({command:"exit"})+"\r\n");
             setTimeout(function() { callback();}, 1000);
         }).on('error', function(err) {
@@ -281,6 +284,7 @@ function stopLauncher(executionID,threadID,callback){
                 //deleteDir(baseExecutionDir+"/"+executionID+"/launcher/",callback)
         });
     }
+
 
     if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid") == true){
         var pid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid").toString();
