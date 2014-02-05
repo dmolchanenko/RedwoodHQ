@@ -8,7 +8,7 @@ License
 
 ------------------------------------------------------------------------
 
-RedwoodHQ, copyright (C) 2012 primatest.net, PrimaTest Inc.
+RedwoodHQ, copyright (C) 2013 primatest.net, PrimaTest Inc.
 
 ------------------------------------------------------------------------
 
