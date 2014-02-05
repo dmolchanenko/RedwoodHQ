@@ -145,7 +145,7 @@ function startLauncher(executionID,threadID,callback){
         });
         launcherProc[executionID+portNumber.toString()].stderr.on('close', function (data) {
             delete launcherProc[executionID+portNumber.toString()];
-            var checkForCrush = function(){
+            var checkForCrush = function(portNumber){
                 if (actionCache[portNumber]){
                     actionCache[portNumber].error = "Launcher crashed";
                     actionCache[portNumber].result = "Failed";
@@ -154,7 +154,7 @@ function startLauncher(executionID,threadID,callback){
                 }
             };
 
-            setTimeout(checkForCrush(),5000);
+            setTimeout(checkForCrush(portNumber),5000);
             callback(data.toString());
         });
         var cmdCache = "";
