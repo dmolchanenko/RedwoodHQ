@@ -534,8 +534,7 @@ Ext.define('Redwood.view.ActionView', {
             this.down("#name").focus();
             return false;
         }
-        var record = store.query("name",this.down("#name").getValue()).getAt(0);
-        //var index = store.findExact("name",this.down("#name").getValue());
+        var record = store.query("name",this.down("#name").getValue(),false,true,true).getAt(0);
         if (this.dataRecord != null){
             if (record){
                 var foundID = record.internalId;

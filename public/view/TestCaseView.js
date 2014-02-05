@@ -282,7 +282,7 @@ Ext.define('Redwood.view.TestCaseView', {
             this.down("#name").focus();
             return false;
         }
-        var record = store.query("name",this.down("#name").getValue()).getAt(0);
+        var record = store.query("name",this.down("#name").getValue(),false,true,true).getAt(0);
         //findExact("name",this.down("#name").getValue());
         if (this.dataRecord != null){
             if (record){
