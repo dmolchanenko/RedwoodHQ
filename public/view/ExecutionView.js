@@ -153,9 +153,11 @@ Ext.define('Redwood.view.ExecutionView', {
                 clicksToEdit: 1
             })],
 
+            maxHeight: 250,
             minHeight: 150,
             manageHeight: true,
             flex: 1,
+            overflowY: 'auto',
             columns:[
                 {
                     header: 'Name',
