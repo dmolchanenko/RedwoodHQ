@@ -54,8 +54,8 @@ Ext.define("Redwood.controller.TestCases", {
 
         Ext.Msg.prompt('Name', 'Please enter new test case name:', function(btn, text){
             if (btn == 'ok'){
-
-                if(me.getStore('TestCases').find("name",text) != -1){
+                var record = me.getStore('TestCases').query("name",text,false,true,true).getAt(0);
+                if(record){
                     Ext.Msg.show({title: "Clone Error",msg:"Test Case name should be unique.",iconCls:'error',buttons : Ext.MessageBox.OK});
                     return;
                 }

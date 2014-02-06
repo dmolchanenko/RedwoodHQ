@@ -42,7 +42,8 @@ Ext.define("Redwood.controller.Actions", {
 
         Ext.Msg.prompt('Name', 'Please enter new action name:', function(btn, text){
             if (btn == 'ok'){
-                if(me.getStore('Actions').find("name",text) != -1){
+                var record = me.getStore('Actions').query("name",text,false,true,true).getAt(0);
+                if(record){
                     Ext.Msg.show({title: "Clone Error",msg:"Action name should be unique.",iconCls:'error',buttons : Ext.MessageBox.OK});
                     return;
                 }
