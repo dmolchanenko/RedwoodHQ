@@ -9,25 +9,36 @@ var walk = require('walk');
 var images = require("./imageautomation");
 
 exports.scriptsPush = function(req,res){
-    git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-        res.contentType('json');
-        res.json({success:true});
+    git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+        git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+            git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
+                res.contentType('json');
+                if(code != 0){
+                    res.json({success:true,error:"Push did not succeed please do a pull first."});
+                }
+                else{
+                    res.json({success:true});
+                }
+            });
+        });
     });
-    //GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
 };
 
 exports.scriptsPull = function(req,res){
-    git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-        git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
-            var files = [];
-            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
-            }
-            res.contentType('json');
-            res.json({success:true,conflicts:files});
-        })
+    git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+        git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+            git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+                    var files = [];
+                    if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                        files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                    }
+                    res.contentType('json');
+                    res.json({success:true,conflicts:files});
+                })
+            });
+        });
     });
-    //GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
 };
 
 exports.scriptsGet = function(req, res){

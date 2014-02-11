@@ -166,7 +166,7 @@ exports.push = function(workdir,callback){
     });
 
     git.on('close', function (code) {
-        callback();
+        callback(code);
     });
 };
 
@@ -301,8 +301,36 @@ exports.delete = function(workdir,file,callback){
     });
 };
 
-exports.commits = function(workdir,file,versionInfo){
+exports.commitAll = function(workdir,file,versionInfo){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','auto comment'],{cwd: workdir,timeout:300000});
 
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('commit all stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        callback();
+    });
+};
+
+exports.addAll = function(workdir,file,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['add','-A'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('add stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback();
+    });
 };
 
 exports.getGitInfo = function (path){

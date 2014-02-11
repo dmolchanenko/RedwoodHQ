@@ -120,7 +120,13 @@ Ext.define("Redwood.controller.Scripts", {
                         }
                     });
                     Ext.MessageBox.hide();
-                    Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+                    var obj = Ext.decode(response.responseText);
+                    if(obj.error){
+                        Ext.Msg.alert('Error', obj.error);
+                    }
+                    else{
+                        Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+                    }
                 }
             });
         };
@@ -555,12 +561,12 @@ Ext.define("Redwood.controller.Scripts", {
 
             path = selection.get("fullpath");
 
-            //if (selection.get("cls") != "folder"){
-            //    objectType = "script";
-            //}
-            //else{
+            if (selection.get("cls") != "folder"){
+                objectType = "script";
+            }
+            else{
                 objectType = "folder";
-            //}
+            }
 
             var win = Ext.create('Redwood.view.FileName',{
                 path:path,
