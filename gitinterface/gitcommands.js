@@ -301,7 +301,7 @@ exports.delete = function(workdir,file,callback){
     });
 };
 
-exports.commitAll = function(workdir,file,versionInfo){
+exports.commitAll = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','auto comment'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
@@ -317,7 +317,7 @@ exports.commitAll = function(workdir,file,versionInfo){
     });
 };
 
-exports.addAll = function(workdir,file,callback){
+exports.addAll = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['add','-A'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
