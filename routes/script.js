@@ -36,9 +36,16 @@ exports.resolveConflict = function(req, res){
 };
 
 exports.scriptPut = function(req, res){
-    UpdateScript(req.body.path,req.body.text,function(){
-        res.json({error:null});
-    });
+    if(req.body.newName){
+        git.rename(req.body.path.substring(0,req.body.path.lastIndexOf("/")),req.body.path.substring(req.body.path.lastIndexOf("/")+1,req.body.path.length),req.body.newName,function(){
+            res.json({error:null});
+        });
+    }
+    else{
+        UpdateScript(req.body.path,req.body.text,function(){
+            res.json({error:null});
+        });
+    }
 };
 
 exports.scriptPost = function(req, res){
@@ -53,16 +60,21 @@ exports.scriptPost = function(req, res){
 };
 
 function UpdateScript(path,data,callback){
-    fs.writeFile(path,data,'utf8',function(err){
-        if (err) {
-            callback({error:err});
-            return;
-        }
-        var gitInfo = git.getGitInfo(path);
-        git.commit(gitInfo.path,gitInfo.fileName,function(){
-            callback(null)
-        });
-    })
+    if(typeof data != "undefined" ){
+        fs.writeFile(path,data,'utf8',function(err){
+            if (err) {
+                callback({error:err});
+                return;
+            }
+            var gitInfo = git.getGitInfo(path);
+            git.commit(gitInfo.path,gitInfo.fileName,function(){
+                callback(null)
+            });
+        })
+    }
+    else{
+        callback(null)
+    }
 }
 
 function ResolveConflict(path,data,callback){

@@ -1,15 +1,12 @@
 var fs = require('fs');
 var p = require('path');
+var git = require('../gitinterface/gitcommands');
 
 
 exports.folderPut = function(req, res){
-    UpdateFolder(req.body.path,req.body.newName,function(err){
-        if (err){
-            res.json({error:err});
-        }
-        else{
-            res.json({error:null});
-        }
+    UpdateFolder(req.body.path,req.body.newName,function(){
+        res.contentType('json');
+        res.json({success:true});
     });
 };
 
@@ -25,16 +22,9 @@ exports.folderPost = function(req, res){
 };
 
 function UpdateFolder(path,newName,callback){
-    //new path needs to be a full path
-    newName = path.substring(0,path.lastIndexOf("/")+1)+newName;
-    fs.rename(path,newName,function(err){
-        if (err){
-            callback(err.message);
-        }
-        else{
-            callback(null);
-        }
-    })
+    git.rename(path.substring(0,path.lastIndexOf("/")),path.substring(path.lastIndexOf("/")+1,path.length),newName,function(){
+        callback(null)
+    });
 }
 
 function CreateFolder(path,data,callback){

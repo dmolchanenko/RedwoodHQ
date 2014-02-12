@@ -255,6 +255,22 @@ exports.commit = function(workdir,file,callback){
     });
 };
 
+exports.rename = function(workdir,file,newName,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['mv',file,newName],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('rename stderr: ' + data);
+    });
+
+    git.on('exit', function (code) {
+        callback();
+    });
+};
+
 exports.deleteFiles = function(workdir,file,callback){
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
     var git = null;
@@ -325,7 +341,23 @@ exports.addAll = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        common.logger.error('add stderr: ' + data);
+        common.logger.error('addAll stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback();
+    });
+};
+
+exports.gitFetch = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['fetch'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('gitFetch stderr: ' + data);
     });
 
     git.on('close', function (code) {
