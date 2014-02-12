@@ -28,14 +28,16 @@ exports.scriptsPull = function(req,res){
     git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
         git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
             git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-                git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
-                    var files = [];
-                    if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                        files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
-                    }
-                    res.contentType('json');
-                    res.json({success:true,conflicts:files});
-                })
+                git.gitFetch(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                    git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+                        var files = [];
+                        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                            files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                        }
+                        res.contentType('json');
+                        res.json({success:true,conflicts:files});
+                    })
+                });
             });
         });
     });
