@@ -233,8 +233,8 @@ function startLauncher(executionID,threadID,callback){
     };
 
     if (foundConn != null){
-        foundConn.write(JSON.stringify({command:"exit"})+"\r\n",function(){
-            setTimeout(startProcess(),2000);
+        stopLauncher(executionID,threadID,function(){
+            startProcess();
         });
     }
     else{
@@ -265,22 +265,14 @@ function stopLauncher(executionID,threadID,callback){
                 common.logger.error(exception);
             }
             delete launcherProc[executionID+threadID.toString()];
-            //setTimeout(function(){
-            //    deleteDir(baseExecutionDir+"/"+executionID+"/launcher",callback)
-            //},2000);
-
         });
     }
-    //callback();
     //if there is runaway launcher try to kill it
-
     else{
         var conn;
         conn = net.connect(basePort+threadID, function(){
             conn.write(JSON.stringify({command:"exit"})+"\r\n");
-            setTimeout(function() { callback();}, 1000);
         }).on('error', function(err) {
-                callback();
                 //deleteDir(baseExecutionDir+"/"+executionID+"/launcher/",callback)
         });
     }
@@ -293,6 +285,8 @@ function stopLauncher(executionID,threadID,callback){
         }
         catch(err){}
     }
+
+    setTimeout(function() { callback();}, 2000);
 
 }
 
