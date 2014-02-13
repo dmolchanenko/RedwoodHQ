@@ -691,8 +691,7 @@ Ext.define("Redwood.controller.Scripts", {
             var win = Ext.create('Redwood.view.FileName',{
                 path:path,
                 fn: function(fileName){
-
-                    var newNode = selection.appendChild({name:fileName,text:fileName,fileType:"file",leaf:true,icon:me.getIconType(fileName),fullpath:path+"/"+fileName});
+                    var newNode = selection.appendChild({qtip:'This file is not yet pushed.',name:fileName,text:'<span style="color:blue">' + fileName + '</span>',fileType:"file",leaf:true,icon:me.getIconType(fileName),fullpath:path+"/"+fileName});
                     me.onScriptEdit(newNode);
                     me.getStore('Scripts').sort();
                     newNode.parentNode.expand();
