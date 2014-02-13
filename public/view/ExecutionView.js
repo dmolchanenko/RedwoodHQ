@@ -298,6 +298,7 @@ Ext.define('Redwood.view.ExecutionView', {
             ]
             },
             viewConfig: {
+                preserveScrollOnRefresh: true,
                 markDirty: false
             },
             plugins: [
