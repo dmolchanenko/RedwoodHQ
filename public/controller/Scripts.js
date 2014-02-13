@@ -686,6 +686,9 @@ Ext.define("Redwood.controller.Scripts", {
         if(this.treePanel.getSelectionModel().getSelection().length > 0){
             var me = this;
             var selection = this.treePanel.getSelectionModel().getSelection()[0];
+            if(selection.get("fileType") != "folder"){
+                selection = selection.parentNode;
+            }
             var path = me.getPathFromNode(selection);
 
             var win = Ext.create('Redwood.view.FileName',{
