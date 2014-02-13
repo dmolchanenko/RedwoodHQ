@@ -61,9 +61,24 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             }
         });
 
+        var UpdateMachinesCache = {};
         Ext.socket.on('UpdateMachines',function(machine){
-            var store = Ext.data.StoreManager.lookup("Machines");
-            me.updateStore(store,machine);
+            var updateMachine = function(machine){
+                var store = Ext.data.StoreManager.lookup("Machines");
+                me.updateStore(store,machine);
+            };
+
+            if(!UpdateExecutionsCache[machine._id]){
+                UpdateMachinesCache[machine._id] = machine;
+                setTimeout(function(){
+                    updateMachine(UpdateMachinesCache[machine._id]);
+                    delete UpdateMachinesCache[machine._id];
+                },2500)
+            }
+            else{
+                UpdateMachinesCache[machine._id] = machine;
+            }
+
         });
 
         Ext.socket.on('AddMachines',function(machine){

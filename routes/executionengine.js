@@ -1481,7 +1481,7 @@ function updateMachine(query,update,callback){
     db.collection('machines', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
             if(data != null){
-                realtime.emitMessage("UpdateMachines",data);
+                realtime.emitMessage("UpdateMachines",{_id:data._id,state:data.state,takenThreads:data.takenThreads});
             }
             if (callback) callback();
         });
