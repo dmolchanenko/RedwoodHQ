@@ -126,7 +126,7 @@ function startLauncher(executionID,threadID,callback){
             classPath = libPath+'*:'+launcherPath+'*';
         }
         else{
-            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe"
+            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe";
             classPath = libPath+'*;'+launcherPath+'*';
         }
         launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});

@@ -5,6 +5,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils
 import redwood.launcher.*
 
 import javax.imageio.ImageIO
+import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
 import java.awt.Robot
 import java.awt.Toolkit
@@ -18,7 +19,6 @@ import java.awt.image.BufferedImage
  * To change this template use File | Settings | File Templates.
  */
 class Launcher {
-
     public static output
 
     private static currentAction
@@ -186,8 +186,10 @@ class Launcher {
             finally{
             //catch(Exception ex){
                 if(!new File(id).exists()){
-                    BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
-                    ImageIO.write(image, "png", new File(id));
+                    if(!GraphicsEnvironment.getLocalGraphicsEnvironment().isHeadlessInstance()){
+                        BufferedImage image = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+                        ImageIO.write(image, "png", new File(id));
+                    }
                 }
             }
             action["screenshot"] = id

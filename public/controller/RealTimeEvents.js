@@ -428,15 +428,17 @@ Ext.define("Redwood.controller.RealTimeEvents", {
     },
 
     updateStore: function(store,item){
-        var record = store.findRecord("_id", item._id);
-        if(!record) return;
-        for(var propt in item){
-            if (propt != "_id"){
-                record.set(propt,item[propt]);
+        if(item){
+            var record = store.findRecord("_id", item._id);
+            if(!record) return;
+            for(var propt in item){
+                if (propt != "_id"){
+                    record.set(propt,item[propt]);
+                }
             }
+            store.fireEvent("beforesync",{update:[record]});
+            record.dirty = false;
         }
-        store.fireEvent("beforesync",{update:[record]});
-        record.dirty = false;
     },
 
     removeFromStore: function(store,item){
