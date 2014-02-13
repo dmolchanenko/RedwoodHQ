@@ -12,27 +12,27 @@ exports.heartbeatPost = function(req, res){
 
     findMachine(app.getDB(),data,ip,function(machine){
         if (machine == null){
-            createMachine(app.getDB(),{roles:["Default"],host:ip,vncport:data.vncPort,machineVars:[],port:data.port,maxThreads:1,description:"host name is:"+data.hostname,macAddress:data.macAddress})
+            createMachine(app.getDB(),{roles:["Default"],host:ip,vncport:data.vncport,machineVars:[],port:data.port,maxThreads:1,description:"host name is:"+data.hostname,macAddress:data.macAddress})
         }
         else{
             if (machine.macAddress){
                 if((machine.host != data.hostname) && (machine.host != ip)){
-                    updateMachine(app.getDB(),machine._id,{$set:{host:ip,vncport:data.vncPort,port:data.port,macAddress:data.macAddress}})
+                    updateMachine(app.getDB(),machine._id,{$set:{host:ip,vncport:data.vncport,port:data.port,macAddress:data.macAddress}})
                 }
                 else if((machine.vncport != data.vncport) || (machine.port != data.port)){
-                    updateMachine(app.getDB(),machine._id,{$set:{vncport:data.vncPort,port:data.port}})
+                    updateMachine(app.getDB(),machine._id,{$set:{vncport:data.vncport,port:data.port}})
                 }
             }
             else{
-                updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncPort,port:data.port}})
+                updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncport,port:data.port}})
             }
             //see if we need to update the agent
             if(data.agentVersion){
                 var localVersion = parseInt(app.Config.AgentVersion.replace(/\./g,''));
                 var agentVersion = parseInt(data.agentVersion.replace(/\./g,''));
-                if(agentVersion < localVersion){
+                if((agentVersion < localVersion) && (data.OS == "Windows")){
                     if(!updatingAgents[ip]){
-                        updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncPort,port:data.port,state:"Updating"}});
+                        updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncport,port:data.port,state:"Updating"}});
                         updatingAgents[ip] = ip;
                         sendFileToAgent(path.resolve(__dirname,"../public/agentsetup/")+"/Agent_RedwoodHQ_Setup.exe","Agent_RedwoodHQ_Setup.exe",ip,data.port,4,function(){
                             sendUpdateRequest(ip,data.port,4,function(){
@@ -42,7 +42,7 @@ exports.heartbeatPost = function(req, res){
                     }
                 }
                 else if(machine.state === "Updating"){
-                    updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncPort,port:data.port,state:""}});
+                    updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncport,port:data.port,state:""}});
                     if(updatingAgents[ip]){
                         delete updatingAgents[ip];
                     }

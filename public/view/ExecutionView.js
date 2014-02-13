@@ -248,21 +248,6 @@ Ext.define('Redwood.view.ExecutionView', {
             }
         });
 
-        me.arraysEqual = function(a,b){
-            function arraysAreEqual (a, b) {
-                if (a.length != b.length) {
-                    return false;
-                }
-
-                for (var i=0; i<a.length; i++) {
-                    if (a[i] != b[i]) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        };
         me.machinesListener = function(options,eOpts){
             if (options.create){
                 options.create.forEach(function(r){
@@ -290,19 +275,19 @@ Ext.define('Redwood.view.ExecutionView', {
                     if (r.get("vncport") != linkedRecord.get("vncport")){
                         linkedRecord.set("vncport", r.get("vncport"));
                     }
-                    if (me.arraysEqual(r.get("tag"),linkedRecord.get("tag"))){
+                    if (Ext.arraysEqual(r.get("tag"),linkedRecord.get("tag")) == false){
                         linkedRecord.set("tag", r.get("tag"));
                     }
                     if (r.get("description") != linkedRecord.get("description")){
                         linkedRecord.set("description", r.get("description"));
                     }
-                    if (me.arraysEqual(r.get("roles"),linkedRecord.get("roles"))){
+                    if (Ext.arraysEqual(r.get("roles"),linkedRecord.get("roles")) == false){
                         linkedRecord.set("roles", r.get("roles"));
                     }
                     if (r.get("state") != linkedRecord.get("state")){
                         linkedRecord.set("state", r.get("state"));
                     }
-                    if (me.arraysEqual(r.get("machineVars"),linkedRecord.get("machineVars"))){
+                    if (Ext.arraysEqual(r.get("machineVars"),linkedRecord.get("machineVars")) == false){
                         linkedRecord.set("machineVars", r.get("machineVars"));
                     }
                 });

@@ -3,7 +3,7 @@ var os = require('os');
 var common = require('../common');
 var macaddr = require('../macaddr');
 
-exports.startHeartBeat = function(server,serverPort,agentPort,vncPort,agentVersion){
+exports.startHeartBeat = function(server,serverPort,agentPort,vncPort,agentVersion,OS){
     /*
     var interfaces = os.networkInterfaces();
     var addresses = [];
@@ -45,7 +45,7 @@ exports.startHeartBeat = function(server,serverPort,agentPort,vncPort,agentVersi
         });
 
         // write data to request body
-        req.write(JSON.stringify({macAddress:macAddress,hostname:os.hostname(),port:agentPort,vncPort:vncPort,agentVersion:agentVersion}));
+        req.write(JSON.stringify({macAddress:macAddress,hostname:os.hostname(),port:agentPort,vncport:vncPort,agentVersion:agentVersion,OS:OS}));
         req.end();
     };
 

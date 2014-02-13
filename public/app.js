@@ -19,6 +19,19 @@ Ext.application({
             var id = partOne + '-' + partTwo + '-' + partThree;
             return id;
         };
+        Ext.arraysEqual = function(a,b){
+            if (a.length != b.length) {
+                return false;
+            }
+
+            for (var i=0; i<a.length; i++) {
+                if (a[i] != b[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
         Ext.tip.QuickTipManager.init();
         Ext.socket = io.connect('http://'+ document.location.host,{'reconnection delay': 5000});
 
