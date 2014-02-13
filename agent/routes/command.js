@@ -132,6 +132,7 @@ function startLauncher(executionID,threadID,callback){
         launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
+            if(data.toString().indexOf("WARNING") != -1) return;
             common.logger.error("launcher error:"+data.toString());
             launcherProc[executionID+portNumber.toString()] = null;
             if (actionCache[portNumber]){
@@ -285,7 +286,7 @@ function stopLauncher(executionID,threadID,callback){
         }
         catch(err){}
     }
-
+    delete launcherConn[executionID+basePort+threadID];
     setTimeout(function() { callback();}, 2000);
 
 }
