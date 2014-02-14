@@ -25,20 +25,13 @@ exports.Post = function(req, res){
     else if(command.command == "cleanup"){
         common.logger.info("cleaning up");
         setTimeout(function(){
-            cleanUpOldExecutions(command.executionID);
+            //cleanUpOldExecutions(command.executionID);
         },1*60*1000);
         var count = 0;
         var cleanUpDirs = function(){
             deleteDir(baseExecutionDir + "/"+command.executionID,function(){
             });
             res.send('{"error":null,"success":true}');
-            /*
-            cleanUpLibDir(command.executionID,function(){
-                cleanUpBinDir(command.executionID,function(){
-                    res.send('{"error":null,"success":true}');
-                })
-            });
-            */
         };
 
         if (Object.keys(launcherConn).length != 0){
@@ -47,6 +40,7 @@ exports.Post = function(req, res){
                     stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)) - basePort,function(){
                         count++;
                         if(count == Object.keys(launcherConn).length){
+                            delete launcherConn[propt];
                             cleanUpDirs()
                         }
                     })
@@ -54,6 +48,7 @@ exports.Post = function(req, res){
                 else{
                     count++;
                     if(count == Object.keys(launcherConn).length){
+                        delete launcherConn[propt];
                         cleanUpDirs()
                     }
                 }
@@ -311,6 +306,7 @@ function cleanUpOldExecutions(ignoreExecution){
                                     if (file.indexOf(".pid") != -1){
                                         var pid = fs.readFileSync(baseExecutionDir+"/"+dir+"/launcher/"+file).toString();
                                         process.kill(pid,"SIGTERM");
+                                        fs.unlink(baseExecutionDir+"/"+dir+"/launcher/"+file);
                                     }
                                 }
                                 catch(err){}
