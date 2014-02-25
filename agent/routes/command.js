@@ -124,6 +124,9 @@ function startLauncher(executionID,threadID,callback){
             javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe";
             classPath = libPath+'*;'+launcherPath+'*';
         }
+        if (fs.existsSync(baseExecutionDir+"/"+executionID+"/bin") == false){
+            fs.mkdirSync(baseExecutionDir+"/"+executionID+"/bin");
+        }
         launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
@@ -241,7 +244,7 @@ function startLauncher(executionID,threadID,callback){
                 });
             });
             foundConn.on("error",function(err){
-                common.logger.error(err);
+                //common.logger.error(err);
                 startProcess();
             })
         }
