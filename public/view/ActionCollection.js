@@ -110,6 +110,13 @@ Ext.define('Redwood.view.ActionCollection', {
 
         var me = this;
 
+        me.waitMsg = function(message){Ext.MessageBox.show({
+            msg: message+' Please wait...',
+            progressText: message+'...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
+        })};
 
         this.on("beforeitemcollapse",function(){
             me.lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
@@ -307,15 +314,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     }
                     //ctrl+a
                     else if ((e.getKey() == 65)&&(e.ctrlKey == true)){
-                        var waitMsg = function(){Ext.MessageBox.show({
-                            msg: 'Selecting All Actions Please wait...',
-                            progressText: 'Selecting Actions...',
-                            width:300,
-                            wait:true,
-                            waitConfig: {interval:200}
-                            //animateTarget: 'mb7'
-                        })};
-                        waitMsg();
+                        me.waitMsg("Selecting Actions");
                         setTimeout(function(){view.getSelectionModel().selectAll();Ext.MessageBox.hide();},0);
 
                         e.stopEvent();
@@ -496,6 +495,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.movingUp === true) {
                                 return;
                             }
+                            me.waitMsg("Moving Action Up");
                             me.movingUp = true;
                             this.setDisabled(true);
                             var html = me.getView().getNode(rowIndex);
@@ -521,6 +521,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.getSelectionModel().select(record);
+                            Ext.MessageBox.hide();
                         }
                     },
                     {
@@ -536,6 +537,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.movingDown == true){
                                 return;
                             }
+                            me.waitMsg("Moving Action Down");
                             me.movingDown = true;
                             this.setDisabled(true);
                             var html = me.getView().getNode(rowIndex);
@@ -560,6 +562,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             me.getSelectionModel().select(record);
+                            Ext.MessageBox.hide();
                         }
                     },
                     {
@@ -575,6 +578,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.removing == true){
                                 return;
                             }
+                            me.waitMsg("Removing Action");
                             me.removing = true;
                             this.setDisabled(true);
                             var topRowcount = 1;
@@ -616,6 +620,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.removing = false;
                             me.getView().updateLayout();
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
+                            Ext.MessageBox.hide();
                             //console.log(grid.getRoot().getChildAt())
                         }
                     }
@@ -1038,6 +1043,7 @@ Ext.define('Redwood.view.ActionCollection', {
 
 
         me.insertAction = function(actionName,actionSelected){
+            me.waitMsg("Inserting Action");
             var actionSelectedOrder;
             var rowOrderSelected;
 
@@ -1083,6 +1089,7 @@ Ext.define('Redwood.view.ActionCollection', {
             var rowIndex = me.getView().indexOf(newRecord);
             me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
             me.getSelectionModel().select(newRecord);
+            Ext.MessageBox.hide();
             //if (newRecord.childNodes.length > 0){
                 //me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
             //}
@@ -1095,6 +1102,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     tooltip:"Add Action",
                     itemId: "addAction",
                     handler: function(){
+                        me.waitMsg("Adding Action");
                         this.setDisabled(true);
                         //if store is empty
                         if(me.store.getRootNode().childNodes.length == 1){
@@ -1127,6 +1135,7 @@ Ext.define('Redwood.view.ActionCollection', {
                         if (newRecord.childNodes.length > 0){
                             me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
                         }
+                        Ext.MessageBox.hide();
                     }
                 },
                 {
@@ -1148,7 +1157,13 @@ Ext.define('Redwood.view.ActionCollection', {
                             }
                         });
                         if (actionsFound == 1){
-                            me.insertAction(actionPicker.getValue(),me.getSelectionModel().getSelection()[0]);
+                            var found = false;
+                            me.getSelectionModel().getSelection().forEach(function(node){
+                                if(node.get("actionname") && found == false){
+                                    found = true;
+                                    me.insertAction(actionPicker.getValue(),node);
+                                }
+                            })
                         }
 
                     }
@@ -1237,7 +1252,9 @@ Ext.define('Redwood.view.ActionCollection', {
         };
 
         this.copyToClipboard = function(){
+
             var data = [];
+            me.waitMsg("Making a Copy");
             this.getSelectionModel().getSelection().forEach(function(row){
                 if (row.get("order") != ""){
                     var children = [];
@@ -1252,6 +1269,7 @@ Ext.define('Redwood.view.ActionCollection', {
             });
             data.sort(function(a,b){return parseInt(a.order,10)-parseInt(b.order,10)});
             Ext.clipboard = {type:"action",data:data};
+            Ext.MessageBox.hide();
         };
 
         this.pasteFromClipboard = function(){
@@ -1396,7 +1414,9 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (index==Ext.clipboard.data.length-1){
                                 me.store.sort("rowOrder","ASC");
                                 var rowIndex = me.getView().indexOf(newRecord);
-                                me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
+                                if(me.getView().getNode(rowIndex)){
+                                    me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
+                                }
                                 me.getSelectionModel().select(newRecord);
                                 Ext.MessageBox.hide();
                             }

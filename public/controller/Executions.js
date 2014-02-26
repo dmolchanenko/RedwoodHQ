@@ -105,6 +105,13 @@ Ext.define("Redwood.controller.Executions", {
         if ((executionView === undefined)||(executionView.viewType != "Execution")){
             return;
         }
+        Ext.MessageBox.show({
+            msg: 'Stopping Execution',
+            progressText: 'Stopping...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
+        });
         var executionID = executionView.dataRecord.get("_id");
         if (!executionID) return;
         Ext.Ajax.request({
@@ -112,6 +119,7 @@ Ext.define("Redwood.controller.Executions", {
             method:"POST",
             jsonData : {executionID:executionID},
             success: function(response) {
+                if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                 executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
             }
         });
