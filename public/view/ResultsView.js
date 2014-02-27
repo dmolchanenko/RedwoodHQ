@@ -376,10 +376,10 @@ Ext.define('Redwood.view.ResultsView', {
                 },
                 {
                     xtype:"datecolumn",
-                    format:'m/d h:i:s',
+                    format:'m/d h:i:s:ms',
                     header: 'Date',
                     dataIndex: 'date',
-                    width: 100
+                    width: 120
                 },
                 {
                     header: 'Message',
