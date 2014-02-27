@@ -35,22 +35,20 @@ exports.Post = function(req, res){
         };
 
         if (Object.keys(launcherConn).length != 0){
+            var toDelete = [];
             for(var propt in launcherConn){
-                if(propt.indexOf(command.executionID) != -1){
-                    stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)) - basePort,function(){
-                        count++;
-                        if(count == Object.keys(launcherConn).length){
-                            delete launcherConn[propt];
-                            cleanUpDirs()
-                        }
-                    })
+                count++;
+                if(propt.toString().indexOf(command.executionID) != -1){
+                    toDelete.push(propt);
+                    stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)) - basePort,function(){});
                 }
-                else{
-                    count++;
-                    if(count == Object.keys(launcherConn).length){
-                        delete launcherConn[propt];
-                        cleanUpDirs()
-                    }
+                if(count == Object.keys(launcherConn).length){
+                    toDelete.forEach(function(conn){
+                        console.log("should delete:"+conn);
+                        delete launcherConn[conn];
+
+                    });
+                    cleanUpDirs()
                 }
             }
         }
