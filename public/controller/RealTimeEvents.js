@@ -53,12 +53,27 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.addToStore(Ext.data.StoreManager.lookup('Projects'),project);
         });
 
+        var UpdateResultCache = {};
         Ext.socket.on('UpdateResult',function(result){
-            var controller = Redwood.app.getController("Executions");
-            var foundTab = controller.tabPanel.down("#"+result._id);
-            if (foundTab){
-                foundTab.refreshResult(result);
+            var updateResult = function(result){
+                var controller = Redwood.app.getController("Executions");
+                var foundTab = controller.tabPanel.down("#"+result._id);
+                if (foundTab){
+                    foundTab.refreshResult(result);
+                }
+            };
+
+            if(!UpdateResultCache[result._id]){
+                UpdateResultCache[result._id] = result;
+                setTimeout(function(){
+                    updateResult(UpdateResultCache[result._id]);
+                    delete UpdateResultCache[result._id];
+                },3000)
             }
+            else{
+                UpdateResultCache[result._id] = result;
+            }
+
         });
 
         var UpdateMachinesCache = {};
