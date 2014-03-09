@@ -208,8 +208,11 @@ Ext.define('Redwood.view.TestCases', {
             listeners:{
                 itemdblclick: function(me, record, element, node_index, event) {
                     if (!record.get("tagValue")){
-                        var found = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",record.get("_id"));
-                        me.up('testcases').fireEvent('editTestCase',found);
+                        //var found = Ext.data.StoreManager.lookup('TestCases').findRecord("_id",record.get("_id"));
+                        var found = Ext.data.StoreManager.lookup('TestCases').query("_id",record.get("_id"),false,true,true).getAt(0);
+                        if(found){
+                            me.up('testcases').fireEvent('editTestCase',found);
+                        }
                     }
                 }
             }

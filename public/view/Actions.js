@@ -143,7 +143,7 @@ Ext.define('Redwood.view.Actions', {
             listeners:{
                 itemdblclick: function(me, record, element, node_index, event) {
                     if (!record.get("tagValue")){
-                        var found = Ext.data.StoreManager.lookup('Actions').findRecord("_id",record.get("_id"));
+                        var found = Ext.data.StoreManager.lookup('Actions').query("_id",record.get("_id"),false,true,true).getAt(0);
                         me.up('actions').fireEvent('editAction',found);
                     }
                 }

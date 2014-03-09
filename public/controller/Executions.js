@@ -119,8 +119,8 @@ Ext.define("Redwood.controller.Executions", {
             method:"POST",
             jsonData : {executionID:executionID},
             success: function(response) {
-                if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                 executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
+                if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
             }
         });
     },

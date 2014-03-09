@@ -83,7 +83,7 @@ Ext.define("Redwood.controller.Actions", {
         });
     },
     onEditAction: function(record,collapse){
-        var foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
+        var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.ActionView',{
                 title:record.get("name"),
@@ -93,7 +93,7 @@ Ext.define("Redwood.controller.Actions", {
             });
 
             this.tabPanel.add(tab);
-            foundIndex = this.tabPanel.items.findIndex("title",record.get("name"),0,false,true);
+            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
             if(!collapse == false){
                 tab.down("#actionDetails").collapse();
             }
