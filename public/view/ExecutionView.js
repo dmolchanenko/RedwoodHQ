@@ -263,6 +263,7 @@ Ext.define('Redwood.view.ExecutionView', {
             if (options.update){
                 options.update.forEach(function(r){
                     var linkedRecord = linkedMachineStore.findRecord("_id", r.get("_id"));
+                    if(!linkedRecord) return;
                     if (r.get("host") != linkedRecord.get("host")){
                         linkedRecord.set("host", r.get("host"));
                     }
