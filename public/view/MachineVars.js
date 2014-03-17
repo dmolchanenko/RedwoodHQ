@@ -119,7 +119,9 @@ Ext.define('Redwood.view.MachineVars', {
                     allowBlank: false,
                     listeners:{
                         validitychange: function(field,isValid){
-                            machineVarsGrid.rowEditor.editor.onFieldChange();
+                            if(machineVarsGrid.rowEditor.editor.onFieldChange){
+                                machineVarsGrid.rowEditor.editor.onFieldChange();
+                            }
                         },
                         focus: function(){
                             this.selectText();
