@@ -186,7 +186,8 @@ Ext.define('Redwood.view.ExecutionView', {
 
         var machines = [];
         var machinesStore = Ext.data.StoreManager.lookup('Machines');
-        machinesStore.each(function(machine){
+        //machinesStore.each(function(machine){
+        machinesStore.query("_id",/.*/).each(function(machine){
             //var foundMachine = false;
             var baseState = null;
             var baseStateTCID = null;
