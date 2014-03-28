@@ -50,7 +50,7 @@ Ext.define('Redwood.view.ExecutionView', {
 
         var variables = [];
         var variablesStore = Ext.data.StoreManager.lookup('Variables');
-        variablesStore.each(function(variable){
+        variablesStore.query("_id",/.*/).each(function(variable){
             var foundVarValue = variable.get("value");
             if (me.dataRecord != null){
                 me.dataRecord.get("variables").forEach(function(recordedVariable){
