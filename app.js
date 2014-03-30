@@ -237,12 +237,14 @@ common.initLogger("server");
 common.parseConfig(function(){
     common.initDB(common.Config.DBPort,function(){
         common.cleanUpExecutions();
+        common.cleanUpUserStatus(function(){
+            var server = require('http').createServer(app);
+            server.listen(common.Config.AppServerPort, function(){
+              realtime.initSocket(server);
+               common.logger.log("Express server listening on port %d in %s mode", common.Config.AppServerPort, app.settings.env);
+            });
+        });
         auth.loadSessions();
     });
 
-    var server = require('http').createServer(app);
-    server.listen(common.Config.AppServerPort, function(){
-        realtime.initSocket(server);
-      console.log("Express server listening on port %d in %s mode", common.Config.AppServerPort, app.settings.env);
-    });
 });

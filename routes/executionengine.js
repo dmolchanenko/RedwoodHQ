@@ -24,7 +24,7 @@ exports.stopexecutionPost = function(req, res){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
     git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
-
+    common.logger.log("Stop button was pushed");
     cleanExecutionMachines(req.body.executionID,function(){
         updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
             executionsRoute.updateExecutionTotals(req.body.executionID);
