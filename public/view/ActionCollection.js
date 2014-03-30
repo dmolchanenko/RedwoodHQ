@@ -618,10 +618,10 @@ Ext.define('Redwood.view.ActionCollection', {
                                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
                             }
                             me.removing = false;
-                            me.getView().updateLayout();
+                            me.getView().refresh();
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             Ext.MessageBox.hide();
-                            //console.log(grid.getRoot().getChildAt())
+                            console.log(lastScrollPos)
                         }
                     }
                 ]
@@ -846,7 +846,7 @@ Ext.define('Redwood.view.ActionCollection', {
         //refresh the grid to avoid bottom rows to become invisible due to
         //word wrapping
         this.cellEditing.on("edit",function(editor,e,eOpt){
-            me.getView().updateLayout();
+            me.getView().refresh();
             me.getSelectionModel().select(e.record);
 
             var scrollPlus = 0;
