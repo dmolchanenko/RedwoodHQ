@@ -364,10 +364,14 @@ Ext.define('Redwood.view.ResultsView', {
             store: me.logStore,
             itemId:"executionLogs",
             selType: 'rowmodel',
+            height:500,
+            overflowY: 'auto',
             viewConfig: {
                 markDirty: false,
                 enableTextSelection: true
             },
+            plugins: [
+                "bufferedrenderer"],
             columns:[
                 {
                     header: 'Action Name',
