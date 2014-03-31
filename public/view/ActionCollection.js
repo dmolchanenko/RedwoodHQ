@@ -1086,13 +1086,21 @@ Ext.define('Redwood.view.ActionCollection', {
             var newRecord = me.store.getRootNode().appendChild(action);
             me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
             me.store.sort("rowOrder","ASC");
-            var rowIndex = me.getView().indexOf(newRecord);
-            me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
-            me.getSelectionModel().select(newRecord);
+            var count = 0;
+            me.store.getRootNode().cascadeBy(function(node,arg2){
+                if(node === newRecord) {
+                    me.plugins[0].scrollTo(count-1,true);
+                    return false;
+                }
+                count++;
+            });
+
+            //me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
+            //me.getSelectionModel().select(newRecord);
             Ext.MessageBox.hide();
-            //if (newRecord.childNodes.length > 0){
-                //me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
-            //}
+            if (newRecord.childNodes.length > 0){
+                me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
+            }
 
         };
 
@@ -1127,11 +1135,9 @@ Ext.define('Redwood.view.ActionCollection', {
                             action.rowOrder = action.order + (action.order - 1);
                         }
                         var newRecord = actionsGrid.store.getRootNode().appendChild(action);
-                        actionsGrid.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
+                        var node = actionsGrid.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
                         this.setDisabled(false);
-                        var rowIndex = me.getView().indexOf(newRecord);
-                        me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
-                        me.getSelectionModel().select(newRecord);
+                        me.plugins[0].scrollTo(newRecord.get("rowOrder")+5000,true);
                         if (newRecord.childNodes.length > 0){
                             me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
                         }
