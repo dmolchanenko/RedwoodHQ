@@ -519,7 +519,6 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.movingUp = false;
                             this.setDisabled(false);
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
-                            //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.getSelectionModel().select(record);
                             Ext.MessageBox.hide();
                         }
@@ -1095,8 +1094,6 @@ Ext.define('Redwood.view.ActionCollection', {
                 count++;
             });
 
-            //me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
-            //me.getSelectionModel().select(newRecord);
             Ext.MessageBox.hide();
             if (newRecord.childNodes.length > 0){
                 me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
@@ -1345,9 +1342,15 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:Ext.clipboard.data[i].rowOrder+1});
 
                             if (i==Ext.clipboard.data.length-1){
-                                var rowIndex = me.getView().indexOf(newRecord);
-                                me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
-                                me.getSelectionModel().select(newRecord);
+                                var count = 0;
+                                me.store.getRootNode().cascadeBy(function(node,arg2){
+                                    if(node === newRecord) {
+                                        me.plugins[0].scrollTo(count-1,true);
+                                        return false;
+                                    }
+                                    count++;
+                                });
+
                                 Ext.MessageBox.hide();
                             }
                         }
@@ -1419,11 +1422,14 @@ Ext.define('Redwood.view.ActionCollection', {
 
                             if (index==Ext.clipboard.data.length-1){
                                 me.store.sort("rowOrder","ASC");
-                                var rowIndex = me.getView().indexOf(newRecord);
-                                if(me.getView().getNode(rowIndex)){
-                                    me.getView().getNode(rowIndex).scrollIntoView(me.parentPanel.getEl());
-                                }
-                                me.getSelectionModel().select(newRecord);
+                                var count = 0;
+                                me.store.getRootNode().cascadeBy(function(node,arg2){
+                                    if(node === newRecord) {
+                                        me.plugins[0].scrollTo(count-1,true);
+                                        return false;
+                                    }
+                                    count++;
+                                });
                                 Ext.MessageBox.hide();
                             }
                         });
