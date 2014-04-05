@@ -7,6 +7,7 @@ import org.openqa.selenium.WebElement
 class Click{
   
   public void run(def params){
+
     WebElement element = Elements.find(params,Browser.Driver)
     //try catch is a workaround for a webdriver bug where element exists and visible but
     //webdriver is unable to click it

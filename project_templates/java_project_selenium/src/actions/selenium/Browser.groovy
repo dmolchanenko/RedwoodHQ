@@ -17,26 +17,25 @@ class Browser{
   
   //start browser
   public void run(def params){
-    println params
+
 	sleep(1000)
     if (params."Browser Type" == "Firefox"){
       Driver = new FirefoxDriver()
     }
     else if (params."Browser Type" == "Chrome"){
-      def service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
+      def service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(new File("chromedriver.exe")).build()
       service.start()
       Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome())
     }
     else{
-      
-      def service = new InternetExplorerDriverService.Builder().usingDriverExecutable(new File("IEDriverServer.exe")).build()
-      service.start()
+      def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9516).usingDriverExecutable(new File("IEDriverServer.exe")).build()
+      serviceIE.start()
       DesiredCapabilities d = DesiredCapabilities.internetExplorer()
       d.setCapability("nativeEvents", false)
-      d.setCapability("forceCreateProcessApi", true)
-      d.setCapability("browserCommandLineSwitches", "-private")
-       
-      Driver = new RemoteWebDriver(service.getUrl(),d)
+      d.setCapability(InternetExplorerDriver.INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS,true);
+
+      Driver = new RemoteWebDriver(serviceIE.getUrl(),d)
+
     }
     
     if (params.URL){
