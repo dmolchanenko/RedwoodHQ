@@ -108,8 +108,13 @@ exports.scriptsCopy = function(req, res){
 exports.CreateNewProject = function(projectName,language,template,callback){
     var templatePath = "";
     if(language == "Java/Groovy"){
-        template = "java_project";
-        if (template == "Selenium") template = "java_project_selenium";
+
+        if (template == "Selenium") {
+            template = "java_project_selenium";
+        }
+        else{
+            template = "java_project";
+        }
         //templatePath = path.resolve(__dirname,"../project_templates/"+"multi_test");
         templatePath = path.resolve(__dirname,"../project_templates/"+template);
     }
@@ -179,13 +184,15 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                         });
                                     }
                                 });
+                                console.log('--eval var projectName="'+projectName+'" '+path.resolve(__dirname,"../project_templates/"+template+".js"));
                                 var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
+                                //var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','localhost:27017/automationframework','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
                                 mongoScript.stdout.on('data', function (data) {
-                                    common.logger.info(data);
+                                    common.logger.info(data.toString());
                                 });
 
                                 mongoScript.stderr.on('data', function (data) {
-                                    common.logger.error('stderr: ' + data);
+                                    common.logger.error('stderr: ' + data.toString());
                                 });
 
                                 mongoScript.on('exit', function (code) {
