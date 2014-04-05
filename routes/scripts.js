@@ -62,6 +62,21 @@ exports.scriptsDelete = function(req, res){
     req.body.forEach(function(script, index, array){
         git.delete(rootDir+req.cookies.project+"/"+req.cookies.username,script.fullpath,function(){
             git.commit(rootDir+req.cookies.project+"/"+req.cookies.username,"",function(){
+                fs.exists(rootDir+req.cookies.project+"/"+req.cookies.username+"/bin",function(exists){
+                    if(exists == false){
+                        fs.mkdir(rootDir+req.cookies.project+"/"+req.cookies.username+"/bin")
+                    }
+                });
+                fs.exists(rootDir+req.cookies.project+"/"+req.cookies.username+"/src",function(exists){
+                    if(exists == false){
+                        fs.mkdir(rootDir+req.cookies.project+"/"+req.cookies.username+"/src")
+                    }
+                });
+                fs.exists(rootDir+req.cookies.project+"/"+req.cookies.username+"/External Libraries",function(exists){
+                    if(exists == false){
+                        fs.mkdir(rootDir+req.cookies.project+"/"+req.cookies.username+"/External Libraries")
+                    }
+                });
                 res.json({error:null});
             })
         })
