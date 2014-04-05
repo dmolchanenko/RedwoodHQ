@@ -14,6 +14,32 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             controller.onImageRecorded(image._id);
         });
 
+        Ext.socket.on('CollaborateScript'+Ext.util.Cookies.get('username'),function(msg){
+            //console.log(msg);
+            var controller = Redwood.app.getController("Collaboration");
+            if(msg.operation === "requestPermission"){
+                controller.requestCollab(msg.username,msg.name);
+            }
+            else if(msg.operation === "requestDenied"){
+                controller.requestDenied();
+            }
+            else if(msg.operation === "requestApproved"){
+                controller.requestApproved(msg.username);
+            }
+            else if(msg.operation === "startSession"){
+                controller.startSession(msg.username,msg.text,msg.scriptName,msg.editorType);
+            }
+            else if(msg.operation === "change"){
+                controller.performChange(msg.change);
+            }
+            else if(msg.operation === "selectionChange"){
+                controller.performSelectionChange(msg.change);
+            }
+            else if(msg.operation === "cursorChange"){
+                controller.performCursorChange(msg.change);
+            }
+        });
+
         Ext.socket.on('StepsRecorded'+Ext.util.Cookies.get('username'),function(recording){
             var controller = Redwood.app.getController("TestCases");
             var foundTab = controller.tabPanel.getActiveTab();
@@ -36,6 +62,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('Login',function(username){
             if (username === Ext.util.Cookies.get('username')){
+                Ext.socket.disconnect();
                 Ext.Msg.show({
                     title:'Invalid Session',
                     msg: 'This user was logged on somewhere else, this session is invalid.',

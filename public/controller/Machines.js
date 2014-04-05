@@ -43,6 +43,7 @@ Ext.define("Redwood.controller.Machines", {
                 dataRecord: record.get("machineVars"),
                 onMachineVarsSave:function(vars){
                     record.set("machineVars",vars);
+                    record.dirty = true;
                     store.sync();
                 }
             });

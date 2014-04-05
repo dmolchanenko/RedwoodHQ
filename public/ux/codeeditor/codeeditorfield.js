@@ -85,6 +85,39 @@ Ext.define('Redwood.ux.CodeEditorField', {
             }
         });
         this.editor.on("change",function(cm,changeOpt){
+            if(me.up("codeeditorpanel").inCollab === true){
+                //console.log(changeOpt);
+                if(changeOpt.origin != undefined){
+                    if(changeOpt.origin === "redo" || changeOpt.origin === "undo" || changeOpt.origin === "paste" || changeOpt.origin.indexOf("+") === 0){
+                        Redwood.app.getController("Collaboration").sendChange(changeOpt);
+                    }
+                }
+            }
+            me.onChange(cm,changeOpt);
+        });
+        this.editor.on("beforeSelectionChange",function(cm,changeOpt){
+            if(me.up("codeeditorpanel").inCollab === true){
+                Redwood.app.getController("Collaboration").sendSelectionChange(changeOpt);
+            }
+        });
+
+        this.editor.on("cursorActivity",function(cm){
+            if(me.up("codeeditorpanel").inCollab === true){
+                Redwood.app.getController("Collaboration").sendCursorChange(cm.getCursor());
+            }
+        });
+        this.editor.on("beforeChange",function(cm,changeOpt){
+            //console.log(changeOpt);
+            if(me.up("codeeditorpanel").inCollab === true && me.up("codeeditorpanel").collabClient === true){
+                if(changeOpt.origin != undefined){
+                    if(changeOpt.origin === "redo" || changeOpt.origin === "undo" || changeOpt.origin === "paste" || changeOpt.origin.indexOf("+") === 0){
+                        changeOpt.cancel();
+                        delete changeOpt.cancel;
+                        changeOpt.returnBack = true;
+                        Redwood.app.getController("Collaboration").sendChange(changeOpt);
+                    }
+                }
+            }
             me.onChange(cm,changeOpt);
         });
     },

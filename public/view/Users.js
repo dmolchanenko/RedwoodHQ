@@ -16,6 +16,21 @@ Ext.define('Redwood.view.Users', {
 
         this.columns = [
             {
+                header: 'Status',
+                dataIndex: 'status',
+                //flex: 1,
+                width: 40,
+                renderer:function(value, meta, record){
+                    if(value == "online"){
+                        meta.style = 'background-image: url(images/online.png);background-position: center; background-repeat: no-repeat;';
+                        meta.tdAttr = 'data-qtip="User is Online"';
+                    }
+                    else{
+                        meta.style = 'background-image: url(images/offline.png);background-position: center; background-repeat: no-repeat;';
+                        meta.tdAttr = 'data-qtip="User is Offline"';
+                    }
+                }
+            },            {
                 header: 'User ID',
                 dataIndex: 'username',
                 //flex: 1,

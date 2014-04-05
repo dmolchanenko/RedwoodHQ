@@ -82,6 +82,38 @@ Ext.define('Redwood.view.Viewport', {
                         },
                         "",
                         {
+                            xtype:"button",
+                            icon: 'images/talk.png',
+                            tooltip: "Notifications",
+                            arrowCls:"",
+                            hidden: true,
+                            menu: {
+                                xtype:"menu",
+                                plain:true,
+                                showSeparator: false,
+
+                                items:[
+                                    {
+                                        text:"User Name",
+                                        //xtype:"panel",
+                                        //html: "asdfsdfds",
+                                        menu:{
+                                            plain:true,
+                                            width:24,
+                                            showSeparator: false,
+                                            //floating: false,
+                                            items:[
+                                                {
+                                                    disabled: true,
+                                                    text:"Share"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
                             xtype:"combo",
                             store: Ext.data.StoreManager.lookup('Projects'),
                             queryMode: 'local',
@@ -137,27 +169,30 @@ Ext.define('Redwood.view.Viewport', {
                             xtype:"button",
                             text: Ext.util.Cookies.get("username",""),
                             arrowAlign: 'right',
-                            menu: [
-                                {
-                                    text: 'Logout',
-                                    handler : function() {
-                                        Ext.Msg.show({
-                                            title:'Logout Confirmation',
-                                            msg: 'Are you sure you want to logout?<br>Please note that all unsaved changes will be lost.',
-                                            buttons: Ext.Msg.YESNO,
-                                            icon: Ext.Msg.QUESTION,
-                                            fn: function(id){
-                                                if (id == "yes"){
-                                                    Ext.util.Cookies.set("sessionid","");
-                                                    window.location.reload(true);
+                            menu:{
+                                plain:true,
+                                items:[
+                                    {
+                                        text: 'Logout',
+                                        handler : function() {
+                                            Ext.Msg.show({
+                                                title:'Logout Confirmation',
+                                                msg: 'Are you sure you want to logout?<br>Please note that all unsaved changes will be lost.',
+                                                buttons: Ext.Msg.YESNO,
+                                                icon: Ext.Msg.QUESTION,
+                                                fn: function(id){
+                                                    if (id == "yes"){
+                                                        Ext.util.Cookies.set("sessionid","");
+                                                        window.location.reload(true);
+                                                    }
                                                 }
-                                            }
-                                        });
+                                            });
 
+                                        }
                                     }
-                                }
-                            ]
+                                ]
 
+                            }
                         }
                     ]
 

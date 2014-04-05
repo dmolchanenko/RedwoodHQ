@@ -12,6 +12,15 @@ var newAction = Ext.create('Ext.Action', {
     }
 });
 
+var recordStepsAction = Ext.create('Ext.Action', {
+    icon: 'images/media_record.png',
+    tooltip: "Start Looking Glass Utility",
+    margin: "0 3 0 3",
+    handler: function(widget, event) {
+        Redwood.app.getController("Scripts").onRecordSteps();
+    }
+});
+
 var saveAction = Ext.create('Ext.Action', {
     icon: "images/save.gif",
     tooltip: "Save Selected Action",
@@ -178,7 +187,8 @@ Ext.define('Redwood.view.Actions', {
                         " ",
                         deleteAction,
                         "-",
-                        cloneAction
+                        cloneAction,
+                        recordStepsAction
                     ]
                 },
                 items:[

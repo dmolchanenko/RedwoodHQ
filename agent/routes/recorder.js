@@ -36,7 +36,7 @@ exports.record = function(req, res){
 
     recordProc.on('close', function (code) {
         data.recording = cmdCache;
-        sendRecordingResult(data,common.Config.AppServerIPHost,common.Config.AppServerPort);
+        //sendRecordingResult(data,common.Config.AppServerIPHost,common.Config.AppServerPort);
     });
 
 };

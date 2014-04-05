@@ -117,5 +117,13 @@ exports.cleanUpExecutions = function(){
     });
 };
 
+exports.cleanUpUserStatus = function(callback){
+    db.collection('users', function(err, collection) {
+        collection.update({},{$set:{status:""}},{multi:true},function(){
+            callback();
+        });
+    });
+};
+
 
 

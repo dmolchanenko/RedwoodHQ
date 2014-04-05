@@ -43,6 +43,7 @@ Ext.define("Redwood.controller.Scripts", {
                 pushChanges: this.onPushChanges,
                 pullChanges: this.onPullChanges,
                 recordImage: this.onRecordImage,
+                recordSteps: this.onRecordSteps,
                 imageEdit:this.onImageEdit
 
             },
@@ -57,6 +58,18 @@ Ext.define("Redwood.controller.Scripts", {
     onRecordImage: function(){
         Ext.Ajax.request({
             url:"/recordimage",
+            method:"POST",
+            jsonData : {},
+            success: function(response) {
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+    },
+
+    onRecordSteps: function(){
+        Ext.Ajax.request({
+            url:"/record",
             method:"POST",
             jsonData : {},
             success: function(response) {
@@ -802,6 +815,7 @@ Ext.define("Redwood.controller.Scripts", {
             if (record.get("inConflict") == false){
 
                 tab = this.tabPanel.add({
+                    inCollab:false,
                     inConflict:false,
                     path:record.get("fullpath"),
                     editorType:editorType,

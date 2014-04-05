@@ -125,7 +125,8 @@ function startLauncher(executionID,threadID,callback){
         if (fs.existsSync(baseExecutionDir+"/"+executionID+"/bin") == false){
             fs.mkdirSync(baseExecutionDir+"/"+executionID+"/bin");
         }
-        launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+        //launcherProc[executionID+portNumber.toString()] = require('child_process').execFile(javaPath+ " -cp " + classPath + " -Xmx512m "+"redwood.launcher.Launcher "+portNumber.toString(),{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+        launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
             if(data.toString().indexOf("WARNING") != -1) return;

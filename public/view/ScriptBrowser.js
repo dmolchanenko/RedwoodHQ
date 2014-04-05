@@ -16,6 +16,31 @@ var recordImageAction = Ext.create('Ext.Action', {
     }
 });
 
+var recordStepsAction = Ext.create('Ext.Action', {
+    icon: 'images/media_record.png',
+    tooltip: "Start Looking Glass Utility",
+    margin: "0 3 0 3",
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('recordSteps');
+    }
+});
+
+var shareScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/share.png',
+    tooltip: "Collaborate with another user.",
+    margin: "0 3 0 3",
+    handler: function(widget, event) {
+        var tab = this.up('scriptBrowser').down("#scriptstab").getActiveTab();
+        if(tab){
+            Redwood.app.getController("Collaboration").onShareScript(tab);
+        }
+        else{
+            Ext.Msg.alert('Error', "Please open script you want to share.");
+        }
+
+    }
+});
+
 var pullAction = Ext.create('Ext.Action', {
     icon: 'images/uninstall.png',
     tooltip: "Pull Latest Changes From Master Branch",
@@ -555,6 +580,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                 "-",
                 pushAction,
                 pullAction,
+                recordStepsAction,
                 "->",
                 findText,
                 findPrev,

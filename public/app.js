@@ -44,7 +44,12 @@ Ext.application({
                 waitConfig: {interval:200}
             });
         });
-        Ext.socket.on('connect', function(){if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();});
+        Ext.socket.on('connect', function(){
+            if (Ext.MessageBox.isVisible()){
+                Ext.MessageBox.hide();
+            }
+            Ext.socket.emit("userConnected",{username:Ext.util.Cookies.get('username')});
+        });
 
         this.getController("RealTimeEvents").startEvents();
         var uri = Ext.Object.fromQueryString(location.search);
