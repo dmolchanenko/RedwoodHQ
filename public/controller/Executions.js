@@ -362,8 +362,12 @@ Ext.define("Redwood.controller.Executions", {
                             Ext.Msg.alert('Error', obj.error);
                         }
                         record.set("testcases",obj.executiontestcases);
+                        var status = "";
+                        if(record.get("status") == "Running"){
+                            status = " [Running]"
+                        }
                         var tab = Ext.create('Redwood.view.ExecutionView',{
-                            title:"[Execution] " + record.get("name"),
+                            title:"[Execution] " + record.get("name")+status,
                             closable:true,
                             dataRecord:record,
                             itemId:record.get("_id")
