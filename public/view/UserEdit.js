@@ -74,12 +74,12 @@ Ext.define('Redwood.view.UserEdit', {
                             Ext.data.StoreManager.lookup('Users').sync();
                             window.close();
                         }else{
-                            Ext.Ajax.request({
-                                url:"/canadduser",
-                                method:"POST",
-                                success: function(response) {
-                                    var obj = Ext.decode(response.responseText);
-                                    if(obj.ableToAdd === true){
+                            //Ext.Ajax.request({
+                            //    url:"/canadduser",
+                            //    method:"POST",
+                            //    success: function(response) {
+                                    //var obj = Ext.decode(response.responseText);
+                                    //if(obj.ableToAdd === true){
                                         var newUser = {};
                                         newUser.name = form.getFieldValues().name;
                                         newUser.tag = form.getFieldValues().tag;
@@ -91,13 +91,13 @@ Ext.define('Redwood.view.UserEdit', {
                                         Ext.data.StoreManager.lookup('UserTags').sync();
                                         Ext.data.StoreManager.lookup('Users').sync();
                                         window.close();
-                                    }
-                                    else{
-                                        Ext.Msg.show({title: "License Error",msg:"Unable to add new user, license limit is reached.",iconCls:'error',buttons : Ext.MessageBox.OK});
-                                        window.close();
-                                    }
-                                }
-                            });
+                                    //}
+                            //        else{
+                            //            Ext.Msg.show({title: "License Error",msg:"Unable to add new user, license limit is reached.",iconCls:'error',buttons : Ext.MessageBox.OK});
+                            //            window.close();
+                            //        }
+                            //    }
+                            //});
                         }
 
                         //this.up('form').up('window').close();
@@ -163,6 +163,7 @@ Ext.define('Redwood.view.UserEdit', {
                     xtype:'combo',
                     afterLabelTextTpl: this.requiredText,
                     fieldLabel: 'Role',
+                    hidden:true,
                     store: ["Admin","User"],
                     name: 'role',
                     forceSelection: true,

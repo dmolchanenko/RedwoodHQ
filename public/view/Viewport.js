@@ -4,8 +4,8 @@ var adminStore = Ext.create('Ext.data.TreeStore', {
         children: [
             { text: "Users", leaf: true,icon:"images/user_go.png" },
             { text: "Projects", leaf: true,icon:"images/project.png" },
-            { text: "Email", leaf: true,icon:"images/e-mail.png" },
-            { text: "License", leaf: true,icon:"images/pc.png" }
+            { text: "Email", leaf: true,icon:"images/e-mail.png" }//,
+            //{ text: "License", leaf: true,icon:"images/pc.png" }
         ]
     }
 });
