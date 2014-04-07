@@ -37,19 +37,26 @@ exports.initDB = function(port,callback){
         Server = mongo.Server,
         Db = mongo.Db;
 
-    var dbServer = new Server('localhost', parseInt(port), {auto_reconnect: true,safe:true});
-    db = new Db('automationframework', dbServer);
-
-    db.open(function(err, db) {
-        if(!err) {
-            if (callback) callback();
-            console.log("DB connected");
-        }
-        else{
-            console.error("Couldn't connect to MongoDB", err.message);
-            process.exit(1);
-        }
-    });
+    var dbRetry = 120;
+    var connect = function(){
+        var dbServer = new Server('localhost', parseInt(port), {auto_reconnect: true,safe:true});
+        db = new Db('automationframework', dbServer);
+        db.open(function(err, db) {
+            if(!err) {
+                if (callback) callback();
+                console.log("DB connected");
+            }
+            else{
+                if(dbRetry == 0){
+                    console.error("Couldn't connect to MongoDB", err.message);
+                    process.exit(1);
+                }
+                dbRetry--;
+                setTimeout(connect,1000);
+            }
+        });
+    };
+    connect()
 
 };
 
