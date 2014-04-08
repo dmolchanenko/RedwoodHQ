@@ -50,6 +50,7 @@ Ext.define('Redwood.view.Users', {
             {
                 header: 'Role',
                 dataIndex: 'role',
+                hidden:true,
                 width: 200
             },
             {
