@@ -26,7 +26,7 @@ exports.record = function(req, res){
 
     var cmdCache = "";
     recordProc.stderr.on('data', function (data) {
-        common.logger.error("error recording: "+data.toString());
+        //common.logger.error("error recording: "+data.toString());
         //sendRecordingResult({error:data.toString()},common.Config.AppServerIPHost,common.Config.AppServerPort);
     });
 
