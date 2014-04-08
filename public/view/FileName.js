@@ -73,7 +73,7 @@ Ext.define('Redwood.view.FileName', {
                                         if (path.slice(-4) != "/src"){
                                             var packageStr = path.substr(path.lastIndexOf("/src/")+5,path.length-1);
                                             packageStr = packageStr.replace(/\//g,".");
-                                            text = "package " + packageStr + "\r\n";
+                                            text = "package " + packageStr + ";\r\n";
                                         }
 
                                     }
