@@ -21,7 +21,8 @@ exports.record = function(req, res){
     }
 
     //console.log(javaPath+" -Xmx512m -Djava.library.path="+baseDir+"\\lib -jar ImageAutomation.jar temp.png");
-    var recordProc = spawn(javaPath,["-Xmx512m","-jar","../SeleniumRecorder.jar",req.body.browser,req.body.url],{env:{PATH:baseDir+"\\lib"},cwd:baseDir+"\\lib"});
+    var recordProc = spawn(javaPath,["-Xmx512m","-cp","../LookingGlass.jar;../lib/*","com.primatest.ui.MainWindow",req.body.browser,req.body.url],{env:{PATH:baseDir+"\\lib"},cwd:baseDir+"\\lib"});
+    //var recordProc = spawn(javaPath,["-Xmx512m","-jar","../LookingGlass.jar",req.body.browser,req.body.url],{env:{PATH:baseDir+"\\lib"},cwd:baseDir+"\\lib"});
 
     var cmdCache = "";
     recordProc.stderr.on('data', function (data) {
