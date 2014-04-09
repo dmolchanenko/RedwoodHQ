@@ -73,8 +73,8 @@ Ext.define("Redwood.controller.Scripts", {
             method:"POST",
             jsonData : {},
             success: function(response) {
-                //Ext.MessageBox.hide();
-                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+                var obj = Ext.decode(response.responseText);
+                if(obj.error) Ext.Msg.alert('Error', obj.error);
             }
         });
     },

@@ -11,11 +11,6 @@ exports.record = function(req, res){
     var username = req.cookies.username;
     var ip = req.connection.remoteAddress;
 
-    res.contentType('json');
-    res.json({
-        success: true
-    });
-
     console.log(ip);
     var options = {
         hostname: ip,
@@ -31,10 +26,18 @@ exports.record = function(req, res){
         response.setEncoding('utf8');
         response.on('data', function (chunk) {
         });
+        res.contentType('json');
+        res.json({
+            success: true
+        });
     });
 
     request.on('error', function(e) {
         console.log('recordImage problem with request: ' + e.message);
+        res.contentType('json');
+        res.json({
+            error: "Unable to connect to agent.<br/> If it is not installed please use <b>'Download Agent'</b> link on top left corner."
+        });
         if (callback) callback("Unable to connect to machine: "+ip + " error: " + e.message);
     });
 
