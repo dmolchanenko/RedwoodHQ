@@ -12,7 +12,7 @@ var newAction = Ext.create('Ext.Action', {
     }
 });
 
-var recordStepsAction = Ext.create('Ext.Action', {
+var recordStepsActionActions = Ext.create('Ext.Action', {
     icon: 'images/media_record.png',
     tooltip: "Start Looking Glass Utility",
     margin: "0 3 0 3",
@@ -188,7 +188,7 @@ Ext.define('Redwood.view.Actions', {
                         deleteAction,
                         "-",
                         cloneAction,
-                        recordStepsAction
+                        recordStepsActionActions
                     ]
                 },
                 items:[
