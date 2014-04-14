@@ -3,7 +3,7 @@
   , "version": "0.0.1"
   , "private": true
   , "dependencies": {
-      "express": ">=3.0.0"
+      "express": "3.0.0"
     , "mongodb": "0.9.9-8"
     , "cron": "1.0.1"
     , "nodeunit": ">=0.7.4"
@@ -13,7 +13,7 @@
     , "forever-monitor" : "1.1.0"
     , "xml-writer" : "1.4.0"
     , "nodemailer" : "0.5.2"
-    , "winston" : ">=0.7.2"
-    , "multiparty" : ">=3.1.1"
+    , "winston" : "0.7.2"
+    , "multiparty" : "3.1.1"
   }
 }
