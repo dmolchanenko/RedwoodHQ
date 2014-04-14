@@ -1,4 +1,4 @@
-package selenium;
+package actions.selenium;
 
 
 import actions.selenium.utils.Elements
