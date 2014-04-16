@@ -9,7 +9,7 @@ Here is the quick [overview video](https://www.youtube.com/watch?v=I0LfqUWI8Zg) 
 
 Download installer files from [www.RedwoodHQ.com](https://twitter.com/tectonic) website.
 
-All documentation is located [here](http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/redwoodhq-overview) with Quick Start Guide to install and do initial automated test cases.
+All documentation is located [here](http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/redwoodhq-overview) with [Quick Start Guide](http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/quick-start-guide) to install and do initial automated test cases.
 
 To get community support of the product or just discuss it and Test Automation in general visit [Google groups forum](https://groups.google.com/forum/#!forum/primatest-automation)
 
