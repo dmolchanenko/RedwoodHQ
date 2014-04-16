@@ -1,12 +1,6 @@
 RedwoodHQ
 =======
 
-------------------------------------------------------------------------
-
-RedwoodHQ Copyright (c) 2012 by PrimaTest, Inc. This program is distributed under GNU General Public License, Version 3, as published by the Free Software Foundation.
-
-------------------------------------------------------------------------
-
 RedwoodHQ is a free Open Source test automation framework that allows multiple users to develop automation code, create readable action/keyword driven test cases and execute them all under a single Web interface.
 
 RedwoodHQ supports any Java/Groovy code or test tools like Selenium, Appium, etc., can be used for back-end as well as front-end automation and has already proven itself in companies like ‘Hitachi Data Systems’.
@@ -18,5 +12,11 @@ Download installer files from [www.RedwoodHQ.com](https://twitter.com/tectonic) 
 All documentation is located [here](http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/redwoodhq-overview) with [Quick Start Guide](http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/quick-start-guide) to install and do initial automated test cases.
 
 To get community support of the product or just discuss it and Test Automation in general visit [Google groups forum](https://groups.google.com/forum/#!forum/primatest-automation).
+
+------------------------------------------------------------------------
+
+RedwoodHQ Copyright (c) 2012 by PrimaTest, Inc. This program is distributed under GNU General Public License, Version 3, as published by the Free Software Foundation.
+
+------------------------------------------------------------------------
 
 
