@@ -313,6 +313,13 @@ exports.delete = function(workdir,file,callback){
     });
 
     git.on('close', function (code) {
+        if(stats.isDirectory() == true){
+            fs.exists(file,function(exists){
+                if (exists == true){
+                    fs.rmdir(file)
+                }
+            })
+        }
         if(callback) callback();
     });
 };
