@@ -223,7 +223,33 @@ var newScriptAction = Ext.create('Ext.Action', {
         if (editor == undefined){
             editor = this.up('#treeContext').scriptEditor;
         }
-        editor.fireEvent('newScript');
+        editor.fireEvent('newScript',"script");
+    }
+});
+
+var newGroovyScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/fileTypeGroovy.png',
+    text: 'Groovy Action',
+    tooltip: "New Groovy Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"groovyAction");
+    }
+});
+
+var newJavaScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/fileTypeJava.png',
+    text: 'Java Action',
+    tooltip: "New Java Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"javaAction");
     }
 });
 
@@ -315,6 +341,8 @@ var newMenuItem = Ext.create('Ext.Action', {
     iconCls: 'icon-add',
     menu: new Ext.menu.Menu({
         items: [
+            newJavaScriptAction,
+            newGroovyScriptAction,
             newScriptAction,
             newFolderAction,
             uploadAction
@@ -331,6 +359,8 @@ var newItemButton = Ext.create('Ext.button.Split',{
     },
     menu: new Ext.menu.Menu({
         items: [
+            newJavaScriptAction,
+            newGroovyScriptAction,
             newScriptAction,
             newFolderAction,
             uploadAction
@@ -500,6 +530,8 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                     deleteScriptAction.setDisabled(true);
                                     if (node.get("fileType") === "libs"){
                                         newScriptAction.setDisabled(true);
+                                        newGroovyScriptAction.setDisabled(true);
+                                        newJavaScriptAction.setDisabled(true);
                                         newFolderAction.setDisabled(true);
                                     }
                                     foundRootItem = true;
@@ -508,6 +540,8 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             });
                             if (foundRootItem === false){
                                 newScriptAction.setDisabled(false);
+                                newGroovyScriptAction.setDisabled(false);
+                                newJavaScriptAction.setDisabled(false);
                                 newFolderAction.setDisabled(false);
                                 deleteScriptAction.setDisabled(false);
                                 copyAction.setDisabled(false);

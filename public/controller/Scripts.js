@@ -695,7 +695,7 @@ Ext.define("Redwood.controller.Scripts", {
         return path;
     },
 
-    onNewScript: function(){
+    onNewScript: function(type){
         if(this.treePanel.getSelectionModel().getSelection().length > 0){
             var me = this;
             var selection = this.treePanel.getSelectionModel().getSelection()[0];
@@ -706,6 +706,7 @@ Ext.define("Redwood.controller.Scripts", {
 
             var win = Ext.create('Redwood.view.FileName',{
                 path:path,
+                objectType:type,
                 fn: function(fileName){
                     var newNode = selection.appendChild({qtip:'This file is not yet pushed.',name:fileName,text:'<span style="color:blue">' + fileName + '</span>',fileType:"file",leaf:true,icon:me.getIconType(fileName),fullpath:path+"/"+fileName});
                     me.onScriptEdit(newNode);

@@ -44,8 +44,19 @@ Ext.define('Redwood.view.FileName', {
                                 btn.handler.call(btn.scope, btn, Ext.EventObject);
                             }
                         },
-                        afterrender: function(me){
-                            me.selectText();
+                        afterrender: function(field){
+                            if(me.objectType === "groovyAction"){
+                                field.setValue("GroovyAction.groovy");
+                                field.selectText(0,12);
+                            }
+                            else if(me.objectType === "javaAction"){
+                                field.setValue("JavaAction.java");
+                                field.selectText(0,10);
+                            }
+                            else{
+                                field.selectText();
+                            }
+                            field.focus();
                         }
                     }
                 }],
@@ -73,7 +84,14 @@ Ext.define('Redwood.view.FileName', {
                                         if (path.slice(-4) != "/src"){
                                             var packageStr = path.substr(path.lastIndexOf("/src/")+5,path.length-1);
                                             packageStr = packageStr.replace(/\//g,".");
-                                            text = "package " + packageStr + ";\r\n";
+                                            text = "package " + packageStr + ";\r\n\r\n";
+                                            console.log(window.objectType);
+                                        }
+                                        if(window.objectType === "groovyAction"){
+                                            text = text+"\r\nclass "+fileName.split(".")[0]+"{\r\n  public void run(def params){\r\n    \r\n  }\r\n}";
+                                        }
+                                        else if(window.objectType === "javaAction"){
+                                            text = text+"import java.util.*;\r\n\r\nclass "+fileName.split(".")[0]+"{\r\n  public void run(HashMap<String, Object> params){\r\n    \r\n  }\r\n}";
                                         }
 
                                     }
