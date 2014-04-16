@@ -7,7 +7,7 @@ RedwoodHQ supports any Java/Groovy code or test tools like Selenium, Appium, etc
 
 Here is the quick [overview video](https://www.youtube.com/watch?v=I0LfqUWI8Zg) of RedwoodHQ in action.
 
-Download installer files from [www.RedwoodHQ.com](https://twitter.com/tectonic) website.
+Download installer files from [www.RedwoodHQ.com](http://www.redwoodhq.com) website.
 
 All documentation is located [here](http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/redwoodhq-overview) with [Quick Start Guide](http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/quick-start-guide) to install and do initial automated test cases.
 
