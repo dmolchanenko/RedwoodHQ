@@ -62,6 +62,7 @@ import java.awt.event.WindowListener
 class MainWindow extends JFrame implements WindowListener {
 
     public LookingGlass glass
+    public def jarPath = new File(this.class.getProtectionDomain().getCodeSource().getLocation().getPath()).parentFile.absolutePath
     public CodeTab codeTab
     DOMParser  parser = new DOMParser ()
     public def xpath =  XPathFactory.newInstance().newXPath()
@@ -82,19 +83,67 @@ class MainWindow extends JFrame implements WindowListener {
     JCheckBoxMenuItem alwaysOnTop
     JMenuBar menubar
     JMenu fileMenu
+    JButton startBtn
+    IDEView ideView
 
     public MainWindow(){
+
+        if(!new File(jarPath+"/images").exists()){
+            jarPath = System.getProperty("user.dir")
+        }
+
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
         setTitle("Looking Glass")
         setSize(800, 500)
         setLocationRelativeTo(null)
         setDefaultCloseOperation(EXIT_ON_CLOSE)
         addWindowListener(this)
+        this.setLayout(new MigLayout())
 
         menubar = new JMenuBar();
 
+        JMenu browserMenu = new JMenu("Browsers")
+        JMenuItem fireFoxMenuItem = new JMenuItem("Start Firefox")
+        fireFoxMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Firefox"
+                startBrowser()
+            }
+        });
+        JMenuItem chromeMenuItem = new JMenuItem("Start Chrome")
+        chromeMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Chrome"
+                startBrowser()
+            }
+        });
+        JMenuItem ieMenuItem = new JMenuItem("Internet Explorer")
+        ieMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Internet Explorer"
+                startBrowser()
+            }
+        });
+        JMenuItem safariMenuItem = new JMenuItem("Start Safari")
+        safariMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Safari"
+                startBrowser()
+            }
+        });
+
+
         fileMenu = new JMenu("File")
         fileMenu.setMnemonic(KeyEvent.VK_F)
+        browserMenu.setMnemonic(KeyEvent.VK_B)
+        browserMenu.add(fireFoxMenuItem)
+        browserMenu.add(chromeMenuItem)
+        browserMenu.add(ieMenuItem)
+        browserMenu.add(safariMenuItem)
 
         JMenuItem eMenuItem = new JMenuItem("Exit")
         alwaysOnTop = new JCheckBoxMenuItem("Always On Top")
@@ -124,11 +173,14 @@ class MainWindow extends JFrame implements WindowListener {
         fileMenu.add(eMenuItem)
 
         menubar.add(fileMenu)
+        menubar.add(browserMenu)
 
         JPanel mainPanel = new JPanel()
+        JPanel commonPanel = new JPanel()
         JPanel midPanel = new JPanel()
         JPanel topPanel = new JPanel()
         JPanel botPanel = new JPanel()
+        commonPanel.setLayout(new MigLayout())
         midPanel.setLayout(new MigLayout())
         mainPanel.setLayout(new MigLayout())
         topPanel.setLayout(new MigLayout())
@@ -136,11 +188,26 @@ class MainWindow extends JFrame implements WindowListener {
 
         JTabbedPane tabbedPane = new JTabbedPane()
         tabbedPane.addTab("Inspector",mainPanel);
-        codeTab = new CodeTab()
-        codeTab.mainWindow = this
+        codeTab = new CodeTab(this)
         tabbedPane.addTab("Code",codeTab);
+        ideView = new IDEView()
+        tabbedPane.addTab("Project",ideView);
+        /*
+        ImageIcon firefoxIcon = createImageIcon("images/firefox.png")
+        JButton firefoxBtn = new JButton(firefoxIcon)
+        firefoxBtn.addActionListener(new ActionListener() {
+            void actionPerformed(ActionEvent actionEvent) {
+                SelectedBrowser = "Firefox"
+                startBrowser()
+            }
+        })
+        commonPanel.setBounds(20,20,20,20)
+        commonPanel.add(firefoxBtn)
+        add(commonPanel,"wrap,height 20::")
+        */
         add(tabbedPane)
-        //add(mainPanel)
+
+
 
 
         String[] idStrings = ["XPath", "ID", "Name","CSS Selector","Class Name","Tag Name","Link Text","Partial Link Text"]
@@ -204,7 +271,7 @@ class MainWindow extends JFrame implements WindowListener {
 
         idField = new JTextField(500)
         infoLabel = new JLabel("<html><font color=blue>Select Browser Type and click Open button.</font></html>")
-        JButton startButn = new startBtn("Open")
+        startBtn = new startBtn("Open")
         ImageIcon pointerBtnIcon = createImageIcon("images/find.png")
         ImageIcon copyBtnIcon = createImageIcon("images/copy.png")
         pointerBtn = new pointerBtn("",pointerBtnIcon)
@@ -237,7 +304,7 @@ class MainWindow extends JFrame implements WindowListener {
         JScrollPane treeView = new JScrollPane(DOMtree);
 
         topPanel.add(browserList)
-        topPanel.add(startButn)
+        topPanel.add(startBtn)
         topPanel.add(pointerBtn)
 
         midPanel.add(idTypeList,"growx")
@@ -257,10 +324,11 @@ class MainWindow extends JFrame implements WindowListener {
         setAlwaysOnTop(true)
     }
 
-    protected static ImageIcon createImageIcon(String path) {
+    protected ImageIcon createImageIcon(String path) {
         //println System.getProperty("user.dir")+path
         //return new ImageIcon(imgURL);
-        return new ImageIcon(System.getProperty("user.dir")+"/"+path);
+        //return new ImageIcon(System.getProperty("user.dir")+"/"+path);
+        return new ImageIcon(jarPath+"/"+path);
     }
 
 
@@ -287,11 +355,16 @@ class MainWindow extends JFrame implements WindowListener {
     public void windowOpened(WindowEvent e) {
         if(new File("lastCode.tmp").exists()){
             codeTab.textArea.setText(new File("lastCode.tmp").text)
+            codeTab.textArea.setCaretPosition(0)
+        }
+        if(new File("lastImports.tmp").exists()){
+            codeTab.codeTab.selectedImports = new File("lastImports.tmp").text
         }
     }
 
     void windowClosing(WindowEvent windowEvent) {
         new File("lastCode.tmp").setText(codeTab.textArea.getText())
+        new File("lastImports.tmp").setText(codeTab.selectedImports)
     }
 
     public void windowClosed(WindowEvent e) {
@@ -387,6 +460,26 @@ class MainWindow extends JFrame implements WindowListener {
         }
     }
 
+    public startBrowser(){
+        startBtn.setEnabled(false)
+        startBtn.setText("Opening...")
+        def exceptionClosure = {ex ->
+            JOptionPane.showMessageDialog(mainWindow,
+                    "Error starting browser: "+ex.message,
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            startBtn.setEnabled(true)
+            startBtn.setText("Open")
+        }
+        glass = new LookingGlass({pointerBtn.setEnabled(true);startBtn.setEnabled(true);startBtn.setText("Open")},exceptionClosure)
+        codeTab.glass = glass
+        infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
+        glass.BrowserType = SelectedBrowser
+        //glass.start()
+        Thread t = new Thread(glass);
+        t.start();
+    }
+
     class startBtn extends JButton implements ActionListener {
 
         public startBtn(String text) {
@@ -395,24 +488,8 @@ class MainWindow extends JFrame implements WindowListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            this.setEnabled(false)
-            this.setText("Opening...")
-            def exceptionClosure = {ex ->
-                JOptionPane.showMessageDialog(mainWindow,
-                        "Error starting browser: "+ex.message,
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                this.setEnabled(true)
-                this.setText("Open")
-            }
-            glass = new LookingGlass({pointerBtn.setEnabled(true);this.setEnabled(true);this.setText("Open")},exceptionClosure)
-            codeTab.glass = glass
-            infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
-            glass.BrowserType = SelectedBrowser
-            //glass.start()
-            Thread t = new Thread(glass);
-            t.start();
-
+            startBrowser()
+            return
         }
     }
 
@@ -442,7 +519,7 @@ class MainWindow extends JFrame implements WindowListener {
             infoLabel.setText("<html>$response.text</html>")
         }
         autoSelect = true
-        selectUINodeByXpath(response.xpath)
+        if(response.xpath) selectUINodeByXpath(response.xpath)
         autoSelect = false
         performActionBtn.setEnabled(true)
     }
