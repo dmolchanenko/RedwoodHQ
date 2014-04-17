@@ -896,7 +896,8 @@ Ext.define('Redwood.view.ActionCollection', {
         this.plugins= ["bufferedrenderer",this.cellEditing];
 
         this.createAction = function(name,store){
-            var foundAction = store.findRecord("name",name);
+            //var foundAction = store.findRecord("name",name);
+            var foundAction = store.query("name",name).getAt(0);
             if(foundAction === null){
                 //Ext.Msg.alert("Error","Action '" + actionPicker.getValue() + "' is not found");
                 return null;
