@@ -492,6 +492,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                         listeners: {
                             itemcontextmenu: function(view, rec, node, index, e) {
                                 e.stopEvent();
+                                view.getSelectionModel().select(rec);
                                 contextMenu.treePanel = view;
                                 contextMenu.scriptEditor = scriptEditor;
                                 contextMenu.showAt(e.getXY());
@@ -515,6 +516,9 @@ Ext.define('Redwood.view.ScriptBrowser', {
                         },
                         load: function(){
                             this.getSelectionModel().select(this.getRootNode().getChildAt(0));
+                        },
+                        itemclick: function(me,record,item,index,evt,eOpts){
+                            //console.log(evt)
                         },
                         selectionchange: function(model,selected,eOpts){
                             if ((selected.length === 0)||(selected.length > 1)){
