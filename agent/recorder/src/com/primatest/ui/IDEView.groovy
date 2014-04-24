@@ -1,6 +1,7 @@
 package com.primatest.ui
 
 import com.jidesoft.swing.JideTabbedPane
+import groovy.json.JsonBuilder
 import net.miginfocom.swing.MigLayout
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants
@@ -9,6 +10,9 @@ import org.fife.ui.rtextarea.RTextScrollPane
 import javax.swing.JPanel
 import javax.swing.JSplitPane
 import javax.swing.JTabbedPane
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,14 +25,17 @@ class IDEView extends JPanel {
 
     def fileView
     JTabbedPane tabbedPane
-    IDEView(){
+    def mainWindow
+    def currentProjectSettings = [:]
+    IDEView(mainWin,projectPath,projectName){
+        mainWindow = mainWin
         this.setLayout(new MigLayout())
         tabbedPane = new JideTabbedPane()
         tabbedPane.setUseDefaultShowCloseButtonOnTab(false);
         tabbedPane.setShowCloseButtonOnTab(true);
 
 
-        fileView = new FileExplorer("Dima","c:\\SeleniumRecorder",this)
+        fileView = new FileExplorer(projectPath,projectName,this)
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 fileView, tabbedPane);
@@ -65,5 +72,28 @@ class IDEView extends JPanel {
         textArea.setCaretPosition(0)
         tabbedPane.add(file.name,codeView)
         tabbedPane.setSelectedComponent(codeView)
+    }
+
+    def newProject(def name,def path){
+        new File(path+"/.lg").mkdir()
+        new File(path+"/bin").mkdir()
+        new File(path+"/External Libraries").mkdir()
+
+        new File(System.getProperty("user.dir")+"/lib").eachFileMatch(~"*.selenium.*"){
+            Path source = Paths.get(it.absolutePath)
+            Path target = Paths.get(path+"/External Libraries/"+it.name)
+            Files.copy(source, target)
+        }
+
+        Path source = Paths.get(System.getProperty("user.dir")+"/lib")
+        Path target = Paths.get(path+"/External Libraries/"+it.name)
+        Files.copy(source, target)
+
+        new File(path+"/src").mkdir()
+        currentProjectSettings = [:]
+        currentProjectSettings.Name = name
+
+        new File(path+"/.lg/projectSettings.json") << new JsonBuilder( currentProjectSettings ).toPrettyString()
+
     }
 }

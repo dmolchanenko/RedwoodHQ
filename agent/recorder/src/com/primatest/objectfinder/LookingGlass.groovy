@@ -509,7 +509,7 @@ else{
                 RecDriver = new SafariDriver()
             }
             else{
-                def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9517).usingDriverExecutable(new File("lib/IEDriverServer.exe")).build()
+                def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9517).usingDriverExecutable(new File(libDir+"IEDriverServer.exe")).build()
                 serviceIE.start()
                 DesiredCapabilities d = DesiredCapabilities.internetExplorer()
                 d.setCapability("nativeEvents", false)

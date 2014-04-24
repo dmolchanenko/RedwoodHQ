@@ -139,7 +139,7 @@ class CodeTab extends JPanel{
         topPanel.add(driverName)
         topPanel.add(importBtn)
         add(topPanel,"wrap")
-        add(splitPane)
+        add(splitPane,"grow,push")
         //add(codeView,"span, grow,height 200:1200:")
         //add(outputView,"span, grow,height 100::")
         recorder = new Recorder()

@@ -255,7 +255,7 @@ document.lookingGlassLastCallback([]);
 
     public def record(def returnClosure)
     {
-
+        sleep(10)
         this.returnClosure = returnClosure
         if(RecDriver == null) return ""
 

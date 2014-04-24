@@ -146,6 +146,20 @@ class MainWindow extends JFrame implements WindowListener {
         browserMenu.add(safariMenuItem)
 
         JMenuItem eMenuItem = new JMenuItem("Exit")
+        JMenuItem newProjectItem = new JMenuItem("New Project...")
+        newProjectItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                NewProject projectDlg = new NewProject(mainWindow)
+                projectDlg.pack()
+                projectDlg.setLocationRelativeTo(mainWindow)
+                projectDlg.setVisible(true)
+                if (projectDlg.dialogResult == 0){
+                    ideView.newProject(projectDlg.nameField.text ,projectDlg.locationField.text)
+                }
+            }
+        });
+
         alwaysOnTop = new JCheckBoxMenuItem("Always On Top")
         alwaysOnTop.setSelected(true)
         eMenuItem.setMnemonic(KeyEvent.VK_E)
@@ -169,6 +183,7 @@ class MainWindow extends JFrame implements WindowListener {
             }
         });
 
+        //fileMenu.add(newProjectItem)
         fileMenu.add(alwaysOnTop)
         fileMenu.add(eMenuItem)
 
@@ -187,11 +202,11 @@ class MainWindow extends JFrame implements WindowListener {
         botPanel.setLayout(new MigLayout())
 
         JTabbedPane tabbedPane = new JTabbedPane()
+        //ideView = new IDEView(this,null,null)
+        //tabbedPane.addTab("Project",ideView);
         tabbedPane.addTab("Inspector",mainPanel);
         codeTab = new CodeTab(this)
         tabbedPane.addTab("Code",codeTab);
-        ideView = new IDEView()
-        tabbedPane.addTab("Project",ideView);
         /*
         ImageIcon firefoxIcon = createImageIcon("images/firefox.png")
         JButton firefoxBtn = new JButton(firefoxIcon)
