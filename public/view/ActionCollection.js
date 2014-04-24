@@ -1108,15 +1108,17 @@ Ext.define('Redwood.view.ActionCollection', {
                     tooltip:"Add Action",
                     itemId: "addAction",
                     handler: function(){
+                        var actionPicker = this.up("toolbar").down("#actionpicker");
+                        if (actionPicker.getValue() == null || actionPicker.getValue() == "") return;
                         me.waitMsg("Adding Action");
                         this.setDisabled(true);
                         //if store is empty
                         if(me.store.getRootNode().childNodes.length == 1){
                             me.store.getRootNode().removeAll();
                         }
-                        var actionPicker = this.up("toolbar").down("#actionpicker");
                         var action = me.createAction(actionPicker.getValue(),actionPicker.store);
                         if (action === null) {
+                            Ext.MessageBox.hide();
                             this.setDisabled(false);
                             return;
                         }
