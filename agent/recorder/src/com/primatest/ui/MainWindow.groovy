@@ -1,12 +1,13 @@
 package com.primatest.ui
 
+import com.jidesoft.swing.FolderChooser
 import com.primatest.objectfinder.LookingGlass
+import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import net.miginfocom.swing.MigLayout
 import org.cyberneko.html.parsers.DOMParser
 import org.gpl.JSplitButton.JSplitButton
 import org.gpl.JSplitButton.action.SplitButtonActionListener
-import org.testng.annotations.Test
 import org.xml.sax.InputSource
 
 
@@ -14,6 +15,7 @@ import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JCheckBoxMenuItem
 import javax.swing.JComboBox
+import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JMenu
@@ -62,6 +64,7 @@ import java.awt.event.WindowListener
 class MainWindow extends JFrame implements WindowListener {
 
     public LookingGlass glass
+    public LGSettings = [:]
     public def jarPath = new File(this.class.getProtectionDomain().getCodeSource().getLocation().getPath()).parentFile.absolutePath
     public CodeTab codeTab
     DOMParser  parser = new DOMParser ()
@@ -156,6 +159,23 @@ class MainWindow extends JFrame implements WindowListener {
                 projectDlg.setVisible(true)
                 if (projectDlg.dialogResult == 0){
                     ideView.newProject(projectDlg.nameField.text ,projectDlg.locationField.text)
+                    LGSettings.lastProjectPath = projectDlg.locationField.text
+                }
+            }
+        });
+
+        JMenuItem openProjectItem = new JMenuItem("Open Project")
+        openProjectItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                ProjectFileChooser fc = new ProjectFileChooser()
+               fc.setFileView(new ProjectFileView())
+                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
+                fc.updateUI()
+                int returnVal = fc.showOpenDialog(mainWindow)
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    ideView.openProject(fc.getSelectedFile())
+                    LGSettings.lastProjectPath = fc.getSelectedFile().absolutePath
                 }
             }
         });
@@ -183,7 +203,8 @@ class MainWindow extends JFrame implements WindowListener {
             }
         });
 
-        //fileMenu.add(newProjectItem)
+        fileMenu.add(newProjectItem)
+        fileMenu.add(openProjectItem)
         fileMenu.add(alwaysOnTop)
         fileMenu.add(eMenuItem)
 
@@ -202,11 +223,11 @@ class MainWindow extends JFrame implements WindowListener {
         botPanel.setLayout(new MigLayout())
 
         JTabbedPane tabbedPane = new JTabbedPane()
-        //ideView = new IDEView(this,null,null)
-        //tabbedPane.addTab("Project",ideView);
+        ideView = new IDEView(this,null,null)
+        tabbedPane.addTab("Project",ideView);
         tabbedPane.addTab("Inspector",mainPanel);
         codeTab = new CodeTab(this)
-        tabbedPane.addTab("Code",codeTab);
+        tabbedPane.addTab("Code Snippet",codeTab);
         /*
         ImageIcon firefoxIcon = createImageIcon("images/firefox.png")
         JButton firefoxBtn = new JButton(firefoxIcon)
@@ -375,11 +396,16 @@ class MainWindow extends JFrame implements WindowListener {
         if(new File("lastImports.tmp").exists()){
             codeTab.codeTab.selectedImports = new File("lastImports.tmp").text
         }
+        if(new File("lgSettings.json").exists()){
+            LGSettings = new JsonSlurper().parseText(new File("lgSettings.json").text)
+            if(LGSettings.lastProjectPath) ideView.openProject(new File(LGSettings.lastProjectPath))
+        }
     }
 
     void windowClosing(WindowEvent windowEvent) {
         new File("lastCode.tmp").setText(codeTab.textArea.getText())
         new File("lastImports.tmp").setText(codeTab.selectedImports)
+        new File("lgSettings.json").setText(new JsonBuilder( LGSettings ).toPrettyString())
     }
 
     public void windowClosed(WindowEvent e) {

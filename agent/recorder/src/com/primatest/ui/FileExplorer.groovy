@@ -10,6 +10,7 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*
 import javax.swing.event.TreeSelectionEvent
 import javax.swing.event.TreeSelectionListener
+import javax.swing.filechooser.FileSystemView
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
@@ -40,6 +41,7 @@ public class FileExplorer extends JPanel {
     JPanel treePanel
     JMenuItem newFileMenu
     JMenuItem deleteMenu
+    JMenuItem renameMenu
     JMenu newMenu
 
     public FileExplorer(def ProjectName,def projectPath,mainView){
@@ -66,12 +68,103 @@ public class FileExplorer extends JPanel {
                 dlg.setLocationRelativeTo(mainView.mainWindow)
                 dlg.setVisible(true)
                 if (dlg.dialogResult == 0){
-                    //fileTree.get
+                    File parentFile = fileTree.getSelectionPath().getLastPathComponent().file
+                    FileNode parentNode
+                    if(!parentFile.isDirectory()){
+                        parentFile = parentFile.getParentFile()
+                        parentNode = fileTree.getSelectionPath().getLastPathComponent().parent
+                    }
+                    else{
+                        parentNode = fileTree.getSelectionPath().getLastPathComponent()
+                    }
+                    String newFilePath = parentFile.absolutePath+"/"+dlg.textField.getText()
+                    File newFile = mainView.createNewFile(newFilePath)
+                    FileNode childNode = new FileNode(dlg.textField.getText(),newFile,"file")
+                    parentNode.add(childNode)
+                    fileTree.getModel().reload(fileTree.getSelectionPath().getLastPathComponent())
+                }
+            }
+        })
+
+        JMenuItem newDirMenu = new JMenuItem("Directory")
+        newDirMenu.addActionListener(new ActionListener() {
+            void actionPerformed(ActionEvent actionEvent) {
+                FileDialog dlg = new FileDialog(mainView.mainWindow,"New Directory")
+                dlg.pack()
+                dlg.setLocationRelativeTo(mainView.mainWindow)
+                dlg.setVisible(true)
+                if (dlg.dialogResult == 0){
+                    File parentFile = fileTree.getSelectionPath().getLastPathComponent().file
+                    FileNode parentNode
+                    if(!parentFile.isDirectory()){
+                        parentFile = parentFile.getParentFile()
+                        parentNode = fileTree.getSelectionPath().getLastPathComponent().parent
+                    }
+                    else{
+                        parentNode = fileTree.getSelectionPath().getLastPathComponent()
+                    }
+                    String newFilePath = parentFile.absolutePath+"/"+dlg.textField.getText()
+                    File newFile = new File(newFilePath)
+                    newFile.mkdir()
+                    FileNode childNode = new FileNode(dlg.textField.getText(),newFile,"file")
+                    parentNode.add(childNode)
+                    fileTree.getModel().reload(fileTree.getSelectionPath().getLastPathComponent())
+                }
+            }
+        })
+
+        renameMenu = new JMenuItem("Rename")
+        renameMenu.addActionListener(new ActionListener() {
+            void actionPerformed(ActionEvent actionEvent) {
+                FileDialog dlg = new FileDialog(mainView.mainWindow,"Rename")
+                dlg.pack()
+                dlg.setLocationRelativeTo(mainView.mainWindow)
+                dlg.textField.setText(fileTree.getSelectionPath().getLastPathComponent().file.name)
+                dlg.setVisible(true)
+                if (dlg.dialogResult == 0){
+                    File file = fileTree.getSelectionPath().getLastPathComponent().file
+                    file.renameTo(file.parentFile.absolutePath +"/" + dlg.textField.getText())
+                    fileTree.getSelectionPath().getLastPathComponent().file = new File(file.parentFile.absolutePath +"/" + dlg.textField.getText())
+                    fileTree.getSelectionPath().getLastPathComponent().setUserObject(fileTree.getSelectionPath().getLastPathComponent().file.name)
+                    mainView.renameFile(file,fileTree.getSelectionPath().getLastPathComponent().file)
+                    fileTree.getModel().reload(fileTree.getSelectionPath().getLastPathComponent())
                 }
             }
         })
         deleteMenu =new JMenuItem("Delete")
+
+        deleteMenu.addActionListener(new ActionListener() {
+            void actionPerformed(ActionEvent actionEvent) {
+                File toDelete = fileTree.getSelectionPath().getLastPathComponent().file
+                def message
+                if(toDelete.isDirectory()){
+                    message = "Are you sure you want to delete directory: ${fileTree.getSelectionPath().getLastPathComponent()} and all files under it?\r\n You will be unable to undo this operation."
+                }
+                else{
+                    message = "Are you sure you want to delete file: ${fileTree.getSelectionPath().getLastPathComponent()} ?"
+                }
+                int n = JOptionPane.showConfirmDialog(
+                        mainView.mainWindow,
+                        message,
+                        "Warning",
+                        JOptionPane.YES_NO_OPTION);
+                if (n == 0){
+                    if(toDelete.isDirectory()){
+                        toDelete.eachFileRecurse {
+                            mainView.removeFileFromView(it)
+                        }
+                        toDelete.deleteDir()
+                    }
+                    else{
+                        mainView.removeFileFromView(toDelete)
+                        toDelete.delete()
+                    }
+                    fileTree.getModel().removeNodeFromParent(fileTree.getSelectionPath().getLastPathComponent())
+                }
+            }
+        })
         newMenu.add(newFileMenu)
+        newMenu.add(newDirMenu)
 
         //popup.set
 
@@ -97,6 +190,7 @@ public class FileExplorer extends JPanel {
                         }
                         if(fileTree.getSelectionCount() == 1){
                             popup.add(newMenu)
+                            popup.add(renameMenu)
                         }
 
                         if(showDelete){
@@ -113,18 +207,7 @@ public class FileExplorer extends JPanel {
                         def selectedNode =  selPath.getLastPathComponent()
                         if(selectedNode.file == null) return
                         if(selectedNode.file.isDirectory()) return
-                        if(selectedNode.file.name.endsWith(".groovy")){
-                            mainView.openGroovyFile(selectedNode.file)
-                        }
-                        else if(selectedNode.file.name.endsWith(".java")){
-                            mainView.openJavaFile(selectedNode.file)
-                        }
-                        else if(selectedNode.file.name.endsWith(".xml")){
-                            mainView.openXMLFile(selectedNode.file)
-                        }
-                        else {
-                            mainView.openTextFile(selectedNode.file)
-                        }
+                        mainView.openFile(selectedNode.file)
                         //myDoubleClick(selRow, selPath);
                     }
 
@@ -153,14 +236,14 @@ public class FileExplorer extends JPanel {
                     setIcon(groovyIcon)
                 else if (value.file.name.endsWith(".java"))
                     setIcon(javaIcon)
+                else if(value.file.isDirectory()){
+                    FileSystemView view=FileSystemView.getFileSystemView()
+                    setIcon(view.getSystemIcon(value.file))
+                }
                 return c
             }
         });
         add(treeView,"span,push, grow,height 200:3000:")
-    }
-
-    public openFile(def file){
-        mainView.openGroovyFile(file)
     }
 
     public readDirectory(def path){
@@ -193,8 +276,10 @@ class FileNode extends DefaultMutableTreeNode implements Comparable {
     }
     public int compareTo(final Object o) {
         if (this.file.isDirectory() && !o.file.isDirectory()){
-            String compStr = "!"+file.name
-            return compStr.compareToIgnoreCase(o.toString())
+            return -1
+        }
+        else if(!this.file.isDirectory() && o.file.isDirectory()){
+            return 1
         }
         return this.toString().compareToIgnoreCase(o.toString())
     }
@@ -202,6 +287,7 @@ class FileNode extends DefaultMutableTreeNode implements Comparable {
 
 
 class FileDialog extends StandardDialog{
+    JTextField textField
 
     public FileDialog(def parent,String title){
         super((Frame) parent, title)
@@ -213,7 +299,7 @@ class FileDialog extends StandardDialog{
 
     JComponent createContentPanel() {
         JPanel panel = new JPanel()
-        JTextField textField = new JTextField(25)
+        textField = new JTextField(25)
         panel.setLayout(new MigLayout())
         panel.add(textField,"grow,push,height 20:20:20")
         setInitFocusedComponent(textField)
@@ -229,17 +315,20 @@ class FileDialog extends StandardDialog{
         cancelButton.setName("Cancel")
         cancelButton.setAction(new AbstractAction(UIDefaultsLookup.getString("OptionPane.cancelButtonText")) {
             public void actionPerformed(ActionEvent e) {
-                setDialogResult(RESULT_CANCELLED);
-                setVisible(false);
-                dispose();
+                setDialogResult(RESULT_CANCELLED)
+                setVisible(false)
+                dispose()
             }
         });
 
         okButton.setAction(new AbstractAction(UIDefaultsLookup.getString("OptionPane.okButtonText")) {
             public void actionPerformed(ActionEvent e) {
-                setDialogResult(RESULT_AFFIRMED);
-                setVisible(false);
-                dispose();
+                if(textField.getText() == ""){
+                    return
+                }
+                setDialogResult(RESULT_AFFIRMED)
+                setVisible(false)
+                dispose()
             }
         });
 
