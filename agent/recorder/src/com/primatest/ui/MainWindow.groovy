@@ -223,10 +223,10 @@ class MainWindow extends JFrame implements WindowListener {
         botPanel.setLayout(new MigLayout())
 
         JTabbedPane tabbedPane = new JTabbedPane()
+        codeTab = new CodeTab(this)
         ideView = new IDEView(this,null,null)
         tabbedPane.addTab("Project",ideView);
         tabbedPane.addTab("Inspector",mainPanel);
-        codeTab = new CodeTab(this)
         tabbedPane.addTab("Code Snippet",codeTab);
         /*
         ImageIcon firefoxIcon = createImageIcon("images/firefox.png")
@@ -389,23 +389,24 @@ class MainWindow extends JFrame implements WindowListener {
     }
 
     public void windowOpened(WindowEvent e) {
-        if(new File("lastCode.tmp").exists()){
+        if(new File("config/lastCode.tmp").exists()){
             codeTab.textArea.setText(new File("lastCode.tmp").text)
             codeTab.textArea.setCaretPosition(0)
         }
-        if(new File("lastImports.tmp").exists()){
+        if(new File("config/lastImports.tmp").exists()){
             codeTab.codeTab.selectedImports = new File("lastImports.tmp").text
         }
-        if(new File("lgSettings.json").exists()){
+        if(new File("config/lgSettings.json").exists()){
             LGSettings = new JsonSlurper().parseText(new File("lgSettings.json").text)
             if(LGSettings.lastProjectPath) ideView.openProject(new File(LGSettings.lastProjectPath))
         }
     }
 
     void windowClosing(WindowEvent windowEvent) {
-        new File("lastCode.tmp").setText(codeTab.textArea.getText())
-        new File("lastImports.tmp").setText(codeTab.selectedImports)
-        new File("lgSettings.json").setText(new JsonBuilder( LGSettings ).toPrettyString())
+        ideView.saveAll()
+        new File("config/lastCode.tmp").setText(codeTab.textArea.getText())
+        new File("config/lastImports.tmp").setText(codeTab.selectedImports)
+        new File("config/lgSettings.json").setText(new JsonBuilder( LGSettings ).toPrettyString())
     }
 
     public void windowClosed(WindowEvent e) {

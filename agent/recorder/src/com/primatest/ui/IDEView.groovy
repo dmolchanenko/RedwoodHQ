@@ -19,13 +19,15 @@ import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
-import javax.swing.JTabbedPane
-import javax.swing.JTextArea
+import javax.swing.JTextField
 import javax.swing.JToolBar
 import javax.swing.KeyStroke
+import javax.swing.event.ChangeEvent
+import javax.swing.event.ChangeListener
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 import java.awt.BorderLayout
@@ -46,20 +48,34 @@ import java.nio.file.Paths
  */
 class IDEView extends JPanel {
 
+    def currentTextArea
     def fileView
-    JTabbedPane tabbedPane
+    LGTabbedPane tabbedPane
     def mainWindow
     def currentProjectSettings = [:]
     JSplitPane splitPane
     JEditorPane compileOutput
     def currentProjectDir = null
+    RecordButton recordButton
+    JTextField driverName
 
     IDEView(mainWin,projectPath,projectName){
         mainWindow = mainWin
         this.setLayout(new MigLayout())
-        tabbedPane = new JideTabbedPane()
-        tabbedPane.setUseDefaultShowCloseButtonOnTab(false);
-        tabbedPane.setShowCloseButtonOnTab(true);
+        tabbedPane = new LGTabbedPane()
+        tabbedPane.setUseDefaultShowCloseButtonOnTab(false)
+        tabbedPane.setShowCloseButtonOnTab(true)
+        tabbedPane.addChangeListener(new ChangeListener() {
+            void stateChanged(ChangeEvent changeEvent) {
+                if(tabbedPane.getSelectedComponent() != null){
+                    currentTextArea = tabbedPane.getSelectedComponent().textArea
+                    recordButton.textArea = tabbedPane.getSelectedComponent().textArea
+                }
+                else{
+                    currentTextArea = null
+                }
+            }
+        })
 
         compileOutput = new JEditorPane()
         compileOutput.setEditorKit(JEditorPane.createEditorKitForContentType("text/html"))
@@ -95,6 +111,12 @@ class IDEView extends JPanel {
 
         JToolBar toolBar = new JToolBar()
         toolBar.setFloatable(false)
+        JLabel nameLabel = new JLabel("Driver variable name:")
+        JLabel blankLabel = new JLabel("    ")
+        driverName = new JTextField(15)
+        driverName.setText("driver")
+        recordButton = new RecordButton(mainWindow,currentTextArea,driverName)
+
         ImageIcon saveIcon = new ImageIcon(mainWindow.jarPath+"/images/saveAll.png");
         ImageIcon compileIcon = new ImageIcon(mainWindow.jarPath+"/images/compile.png");
         JButton compileButton = new JButton(compileIcon)
@@ -124,6 +146,10 @@ class IDEView extends JPanel {
         saveButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keySave, "performSave")
         toolBar.add(saveButton)
         toolBar.add(compileButton)
+        toolBar.add(recordButton)
+        toolBar.add(blankLabel)
+        toolBar.add(nameLabel)
+        toolBar.add(driverName)
 
         add(toolBar,"wrap")
         add(verticalSplitPane,"push, grow,height 200:3000:")
@@ -132,7 +158,7 @@ class IDEView extends JPanel {
 
     def compile(){
         if(!currentProjectDir) return
-
+        saveAll()
         def antFile = new File(currentProjectDir + "/build.xml")
         def project = new Project()
         project.init()
@@ -307,5 +333,12 @@ class IDEView extends JPanel {
         newFile.createNewFile()
         openFile(newFile)
         return newFile
+    }
+}
+
+class LGTabbedPane extends JideTabbedPane{
+    public void removeTabAt(int index){
+        this.getComponentAt(index).file.setText(this.getComponentAt(index).textArea.getText())
+        super.removeTabAt(index)
     }
 }
