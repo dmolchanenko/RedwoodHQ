@@ -501,6 +501,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             var html = me.getView().getNode(rowIndex);
                             var record = me.getView().getRecord(html);
                             if (record.get("order") == "1"){
+                                Ext.MessageBox.hide();
                                 me.movingUp = false;
                                 return;
                             }
@@ -544,6 +545,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             var recordDownOrder = (parseInt(record.get("order"))) + 1;
                             var recordDown = me.store.getRootNode().findChild("order",recordDownOrder.toString());
                             if (recordDown == null){
+                                Ext.MessageBox.hide();
                                 me.movingDown = false;
                                 return;
                             }
