@@ -325,6 +325,7 @@ class CodeTab extends JPanel{
                 return
             }
             recorder.RecDriver = glass.RecDriver
+            firstActionRecorded = false
             recording = true
             mainWindow.pointerBtn.setEnabled(false)
             mainWindow.performActionBtn.setEnabled(false)

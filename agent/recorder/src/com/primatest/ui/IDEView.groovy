@@ -1,17 +1,22 @@
 package com.primatest.ui
 
+import com.jidesoft.swing.JideSplitButton
 import com.jidesoft.swing.JideTabbedPane
 import com.jidesoft.swing.Searchable
 import com.jidesoft.swing.SearchableBar
 import com.jidesoft.swing.SearchableUtils
+import com.primatest.execution.ExecutionEngine
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
+import groovy.ui.SystemOutputInterceptor
 import net.miginfocom.swing.MigLayout
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.ProjectHelper
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants
 import org.fife.ui.rtextarea.RTextScrollPane
+import org.gpl.JSplitButton.JSplitButton
+import org.gpl.JSplitButton.action.SplitButtonActionListener
 
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -20,7 +25,9 @@ import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JLabel
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
 import javax.swing.JTextField
@@ -30,6 +37,8 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
+import javax.swing.event.PopupMenuEvent
+import javax.swing.event.PopupMenuListener
 import java.awt.BorderLayout
 import java.awt.Event
 import java.awt.event.ActionEvent
@@ -49,7 +58,7 @@ import java.nio.file.Paths
 class IDEView extends JPanel {
 
     def currentTextArea
-    def fileView
+    FileExplorer fileView
     LGTabbedPane tabbedPane
     def mainWindow
     def currentProjectSettings = [:]
@@ -58,6 +67,8 @@ class IDEView extends JPanel {
     def currentProjectDir = null
     RecordButton recordButton
     JTextField driverName
+    def nameAppend = 0
+    def execThread
 
     IDEView(mainWin,projectPath,projectName){
         mainWindow = mainWin
@@ -117,8 +128,83 @@ class IDEView extends JPanel {
         driverName.setText("driver")
         recordButton = new RecordButton(mainWindow,currentTextArea,driverName)
 
-        ImageIcon saveIcon = new ImageIcon(mainWindow.jarPath+"/images/saveAll.png");
-        ImageIcon compileIcon = new ImageIcon(mainWindow.jarPath+"/images/compile.png");
+        ImageIcon saveIcon = new ImageIcon(mainWindow.jarPath+"/images/saveAll.png")
+        ImageIcon compileIcon = new ImageIcon(mainWindow.jarPath+"/images/compile.png")
+        ImageIcon playIcon = new ImageIcon(mainWindow.jarPath+"/images/play.png")
+        JButton playButton = new JButton(playIcon)
+        playButton.addActionListener(new ActionListener() {
+            void actionPerformed(ActionEvent actionEvent) {
+
+                if(tabbedPane.getSelectedComponent() != null){
+                    saveAll()
+                    if(compile() == false){
+                        return
+                    }
+                    if(!new File("temp").exists()){
+                        new File("temp").mkdir()
+                    }
+                    new File("temp/").eachFile {
+                        try{
+                            it.delete()
+                        }
+                        catch (Exception ex){
+                            println ex.message
+                        }
+                    }
+                    nameAppend++
+                    def tempName = ""
+                    new File(currentProjectDir+"/build/jar/").eachFileMatch(~".*jar"){
+                        def source = Paths.get(it.absolutePath)
+                        tempName = "temp/${it.name}${nameAppend}"
+                        def target = Paths.get(tempName)
+                        Files.copy(source, target)
+                    }
+                    def driver
+                    if(mainWindow.glass == null){
+                        driver = null
+                    }
+                    else{
+                        driver = mainWindow.glass.RecDriver
+                    }
+                    def imports = ""
+                    tabbedPane.selectedComponent.textArea.getText().eachLine(){
+                        if(it.contains("import ")){
+                            imports = imports + it+"\r\n"
+                        }
+                    }
+                    compileOutput.setText("")
+                    def systemOutInterceptor = new SystemOutputInterceptor({ String s ->
+                        compileOutput.getDocument().insertString(compileOutput.getDocument().length,s,null)
+                        return false})
+                    systemOutInterceptor.start()
+                    execThread = new Thread(new Runnable() {
+                        public void run() {
+                            def printlnException = {ex->
+                                println ex.message
+                                ex.getStackTrace().each{
+                                    println it
+                                }
+                            }
+                            try{
+                                ExecutionEngine.runCodeSnippet(imports+tabbedPane.selectedComponent.textArea.getSelectedText(),driver,"driver",currentProjectDir.replace("\\","/")+"/build/jar/Selenium.jar")
+                                //ExecutionEngine.runCodeSnippet(imports+tabbedPane.selectedComponent.textArea.getSelectedText(),driver,"driver",tempName)
+                            }
+                            catch(Exception ex){
+                                printlnException(ex)
+                            }
+                            catch(Error ex){
+                                printlnException(ex)
+                            }
+                            finally{
+                                systemOutInterceptor.stop()
+                            }
+                        }
+                    })
+                    execThread.start()
+                    //ExecutionEngine.runJavaTestCase(tabbedPane.getSelectedComponent().file)
+                }
+            }
+        })
         JButton compileButton = new JButton(compileIcon)
         compileButton.setToolTipText("Compile")
         compileButton.addActionListener(new ActionListener() {
@@ -147,6 +233,7 @@ class IDEView extends JPanel {
         toolBar.add(saveButton)
         toolBar.add(compileButton)
         toolBar.add(recordButton)
+        toolBar.add(playButton)
         toolBar.add(blankLabel)
         toolBar.add(nameLabel)
         toolBar.add(driverName)
@@ -156,8 +243,8 @@ class IDEView extends JPanel {
         //add(splitPane,"push, grow,height 200:3000:")
     }
 
-    def compile(){
-        if(!currentProjectDir) return
+    def boolean compile(){
+        if(!currentProjectDir) return false
         saveAll()
         def antFile = new File(currentProjectDir + "/build.xml")
         def project = new Project()
@@ -167,33 +254,41 @@ class IDEView extends JPanel {
             compileOutput.setText("Compiling...")
             project.executeTarget(project.defaultTarget)
             compileOutput.setText("BUILD SUCCESSFUL")
+            return true
         }
         catch (Exception ex){
-            String details = ""
-            ex.cause.toString().eachLine {line->
-                def found = null
-                if (line.contains(".groovy")){
-                    found = ".groovy"
-                }
-                else if(line.contains(".java")){
-                    found = ".java"
-                }
-                if(found != null){
-                    if(line.contains(currentProjectDir)){
-                        def fileName = line.substring(line.indexOf(currentProjectDir),line.indexOf(found)+found.size())
-                        fileName = fileName + ":"+line.tokenize(fileName)[0]
-                        details = details + "<br/>" + line.replace(fileName,"<a href=\"${fileName}\">${fileName}</a>")
-                    }
-                }
-                else{
-                    details = details + "<br/>" + line
-                }
-            }
-            compileOutput.setText(ex.message+"<br/>"+details)
+
+            compileOutput.setText(ex.message+"<br/>"+causeToHtml(ex.cause))
+            return false
         }
     }
 
+    def causeToHtml(def trace){
+        String details = ""
+        trace.toString().eachLine {line->
+            def found = null
+            if (line.contains(".groovy")){
+                found = ".groovy"
+            }
+            else if(line.contains(".java")){
+                found = ".java"
+            }
+            if(found != null){
+                if(line.contains(currentProjectDir)){
+                    def fileName = line.substring(line.indexOf(currentProjectDir),line.indexOf(found)+found.size())
+                    fileName = fileName + ":"+line.tokenize(fileName)[0]
+                    details = details + "<br/>" + line.replace(fileName,"<a href=\"${fileName}\">${fileName}</a>")
+                }
+            }
+            else{
+                details = details + "<br/>" + line
+            }
+        }
+        return  details
+    }
+
     def saveAll(){
+        if(tabbedPane == null) return
         for(int i = 0;i<tabbedPane.getTabCount();i++){
             tabbedPane.getComponentAt(i).file.setText(tabbedPane.getComponentAt(i).textArea.getText())
         }
@@ -328,8 +423,9 @@ class IDEView extends JPanel {
         splitPane.setDividerLocation(250)
     }
 
-    File createNewFile(String path){
+    File createNewFile(String path,String text){
         File newFile = new File(path)
+        newFile.setText(text)
         newFile.createNewFile()
         openFile(newFile)
         return newFile

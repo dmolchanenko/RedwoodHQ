@@ -76,7 +76,7 @@ function FindFiles(path,callback){
 function FindClasses(path,callback){
     var classes = [];
     var err = false;
-    var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
+    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
     });
@@ -117,7 +117,7 @@ function FindMethods(path,classname,callback){
     //var proc = spawn("vendor/Java/bin/java.exe",["-cp",'utils/lib/*;vendor/groovy/*;utils/*',"MethodList",path,classname]);
     //console.log ('"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"');
     //var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",'"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"',"MethodList",path,classname]);
-    var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,classname]);
+    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,classname]);
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
     });

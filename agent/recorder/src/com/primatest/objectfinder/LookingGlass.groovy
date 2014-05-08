@@ -418,6 +418,7 @@ else{
 
         try{
             RecDriver.findElement(By.xpath("//*[1]"))
+            println "getting html"
             def html = js.executeAsyncScript(getRawHtmlScript)
             return html
         }
@@ -466,10 +467,7 @@ else{
         catch (Exception ex){
             if(ex.message.contains("unload") || ex.message.contains("reload")){
                 RecDriver.findElement(By.xpath("//*[1]"))
-                println "reloading"
                 reloadHTML()
-                println "reloading2"
-                println "unloaded"
                 return recording()
             }
             else{

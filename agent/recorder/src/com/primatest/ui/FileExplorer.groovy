@@ -40,6 +40,7 @@ public class FileExplorer extends JPanel {
     JidePopupMenu popup
     JPanel treePanel
     JMenuItem newFileMenu
+    JMenuItem newTCMenu
     JMenuItem deleteMenu
     JMenuItem renameMenu
     JMenu newMenu
@@ -68,20 +69,22 @@ public class FileExplorer extends JPanel {
                 dlg.setLocationRelativeTo(mainView.mainWindow)
                 dlg.setVisible(true)
                 if (dlg.dialogResult == 0){
-                    File parentFile = fileTree.getSelectionPath().getLastPathComponent().file
-                    FileNode parentNode
-                    if(!parentFile.isDirectory()){
-                        parentFile = parentFile.getParentFile()
-                        parentNode = fileTree.getSelectionPath().getLastPathComponent().parent
-                    }
-                    else{
-                        parentNode = fileTree.getSelectionPath().getLastPathComponent()
-                    }
-                    String newFilePath = parentFile.absolutePath+"/"+dlg.textField.getText()
-                    File newFile = mainView.createNewFile(newFilePath)
-                    FileNode childNode = new FileNode(dlg.textField.getText(),newFile,"file")
-                    parentNode.add(childNode)
-                    fileTree.getModel().reload(fileTree.getSelectionPath().getLastPathComponent())
+                    createNewFile("",dlg,false)
+                }
+            }
+        })
+
+        newTCMenu = new JMenuItem("JUnit Test Case")
+        newTCMenu.addActionListener(new ActionListener() {
+            void actionPerformed(ActionEvent actionEvent) {
+                FileDialog dlg = new FileDialog(mainView.mainWindow,"New Test Case File Name")
+                dlg.pack()
+                dlg.setLocationRelativeTo(mainView.mainWindow)
+                dlg.textField.setText("TestCase.java")
+                dlg.textField.select(0,8)
+                dlg.setVisible(true)
+                if (dlg.dialogResult == 0){
+                    createNewFile(new File("config/testCaseTemplate.java").getText(),dlg,true)
                 }
             }
         })
@@ -163,6 +166,7 @@ public class FileExplorer extends JPanel {
                 }
             }
         })
+        newMenu.add(newTCMenu)
         newMenu.add(newFileMenu)
         newMenu.add(newDirMenu)
 
@@ -244,6 +248,75 @@ public class FileExplorer extends JPanel {
             }
         });
         add(treeView,"span,push, grow,height 200:3000:")
+    }
+
+    def createNewFile(text,dlg,boolean code){
+        File parentFile = fileTree.getSelectionPath().getLastPathComponent().file
+        FileNode parentNode
+        if(!parentFile.isDirectory()){
+            parentFile = parentFile.getParentFile()
+            parentNode = fileTree.getSelectionPath().getLastPathComponent().parent
+        }
+        else{
+            parentNode = fileTree.getSelectionPath().getLastPathComponent()
+        }
+        String newFilePath = parentFile.absolutePath+"/"+dlg.textField.getText()
+        if(new File(newFilePath).exists()){
+            JOptionPane.showMessageDialog(mainView.mainWindow,
+                    "File with same name already exists.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return
+        }
+        File newFile
+        if(code){
+            def packageName = ""
+            File fileCount = parentFile
+            while(fileCount.name != "src"){
+                fileCount = fileCount.parentFile
+                if(packageName == ""){
+                    packageName = fileCount.name
+                }
+                else{
+                    packageName = fileCount.name + "." + packageName
+                }
+            }
+            if(packageName != ""){
+                text = "package ${packageName};\r\n"+ text
+            }
+
+            boolean found = false
+            def newText = ""
+            text.eachLine {
+
+                if(it.contains("class") && found == false){
+                    found = true
+                    def foundClass = it.trim().find( /class[^A-Za-z].*[A-Za-z]/)
+                    if(foundClass != null){
+                        foundClass = foundClass.replace("class","").trim()
+                        newText =  newText + it.replaceFirst(foundClass,dlg.textField.getText().tokenize(".")[0])+ "\r\n"
+                    }
+
+                }
+                else{
+                    newText = newText + it + "\r\n"
+                }
+            }
+            text = newText
+        }
+        try{
+           newFile = mainView.createNewFile(newFilePath,text)
+        }
+        catch(Exception ex){
+            JOptionPane.showMessageDialog(mainView.mainWindow,
+                    ex.message,
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return
+        }
+        FileNode childNode = new FileNode(dlg.textField.getText(),newFile,"file")
+        parentNode.add(childNode)
+        fileTree.getModel().reload(fileTree.getSelectionPath().getLastPathComponent())
     }
 
     public readDirectory(def path){

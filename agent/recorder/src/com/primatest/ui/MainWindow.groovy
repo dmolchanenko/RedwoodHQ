@@ -1,6 +1,6 @@
 package com.primatest.ui
 
-import com.jidesoft.swing.FolderChooser
+import com.primatest.execution.ExecutionAPI
 import com.primatest.objectfinder.LookingGlass
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
@@ -390,19 +390,22 @@ class MainWindow extends JFrame implements WindowListener {
 
     public void windowOpened(WindowEvent e) {
         if(new File("config/lastCode.tmp").exists()){
-            codeTab.textArea.setText(new File("lastCode.tmp").text)
+            codeTab.textArea.setText(new File("config/lastCode.tmp").text)
             codeTab.textArea.setCaretPosition(0)
         }
         if(new File("config/lastImports.tmp").exists()){
-            codeTab.codeTab.selectedImports = new File("lastImports.tmp").text
+            codeTab.codeTab.selectedImports = new File("config/lastImports.tmp").text
         }
         if(new File("config/lgSettings.json").exists()){
-            LGSettings = new JsonSlurper().parseText(new File("lgSettings.json").text)
+            LGSettings = new JsonSlurper().parseText(new File("config/lgSettings.json").text)
             if(LGSettings.lastProjectPath) ideView.openProject(new File(LGSettings.lastProjectPath))
         }
     }
 
     void windowClosing(WindowEvent windowEvent) {
+        if(!new File("config").exists()){
+            new File("config").mkdir()
+        }
         ideView.saveAll()
         new File("config/lastCode.tmp").setText(codeTab.textArea.getText())
         new File("config/lastImports.tmp").setText(codeTab.selectedImports)
@@ -520,6 +523,9 @@ class MainWindow extends JFrame implements WindowListener {
         //glass.start()
         Thread t = new Thread(glass);
         t.start();
+        Thread t2 = new Thread(new ExecutionAPI());
+        t2.start();
+
     }
 
     class startBtn extends JButton implements ActionListener {
@@ -749,13 +755,27 @@ class MainWindow extends JFrame implements WindowListener {
     }
 
     public void parseHTML(String html){
+        /*
+        URL url = new URL("http://www.example.com");
+        StringWebResponse response = new StringWebResponse(html, url);
+        WebClient client = new WebClient()
+        client.getOptions().setJavaScriptEnabled(false)
+        HtmlPage page = HTMLParser.parseHtml(response, client.getCurrentWindow());
+        println page.getByXPath("//*[@id='studio-image']")
+        //println page.getByXPath("//*[@id='studio-image']/DIV[1]")
+
+        System.out.println(page);
+        */
+
         uiToXMLHash = [:]
         alreadyIncludedHash = [:]
         parser.reset()
-        int index = html.indexOf("<head>")
+        int index = html.indexOf("<head")
         if(index != 0 && index != -1){
             html = html.substring(index,html.size())
         }
+        //html = html.replaceAll("<source src=\"http://radiotime-cms-dev.s3.amazonaws.com/developers/home.mp4\" type=\"video/mp4\">","")
+        //html = html.replaceAll("<source src=\"http://radiotime-cms-dev.s3.amazonaws.com/developers/home.ogv\" type=\"video/ogg\">","")
         parser.parse(new InputSource(new StringReader(html)))
 
         /*

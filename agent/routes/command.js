@@ -119,7 +119,7 @@ function startLauncher(executionID,threadID,callback){
             classPath = libPath+'*:'+launcherPath+'*';
         }
         else{
-            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe";
+            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
             classPath = libPath+'*;'+launcherPath+'*';
         }
         if (fs.existsSync(baseExecutionDir+"/"+executionID+"/bin") == false){

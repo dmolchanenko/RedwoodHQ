@@ -28,6 +28,7 @@ class RecordButton extends JButton implements ActionListener {
     boolean firstActionRecorded
     def lastURL
     def driverName
+    def leadSpace = null
 
     class ObjectLocator extends SwingWorker<String, Object> {
         ObjectLocator() {
@@ -101,6 +102,8 @@ class RecordButton extends JButton implements ActionListener {
                     JOptionPane.ERROR_MESSAGE);
             return
         }
+        leadSpace = null
+        firstActionRecorded = false
         mainWindow.codeTab.recorder.RecDriver = mainWindow.glass.RecDriver
         recording = true
         mainWindow.pointerBtn.setEnabled(false)
@@ -110,7 +113,12 @@ class RecordButton extends JButton implements ActionListener {
     }
 
     public void addRecording(def recordings){
-        if(recordings.size()>0) firstActionRecorded = true
+        if(recordings.size()>0) {
+            firstActionRecorded = true
+        }
+        if (leadSpace == null){
+            leadSpace = textArea.getText()[textArea.getCaretPosition()-textArea.getCaretOffsetFromLineStart()..textArea.getCaretPosition()-1]
+        }
         if(!firstActionRecorded && mainWindow.glass.RecDriver.getCurrentUrl() != null && mainWindow.glass.RecDriver.getCurrentUrl().startsWith("http://")){
             if(lastURL == null || lastURL != mainWindow.glass.RecDriver.getCurrentUrl()){
                 lastURL = mainWindow.glass.RecDriver.getCurrentUrl()
@@ -162,7 +170,9 @@ class RecordButton extends JButton implements ActionListener {
 
     def setRecordedText(def text){
         int caretPos = textArea.getCaretPosition()
-        textArea.insert(text,caretPos)
-        //textArea.setCaretPosition(caretPos+text.size())
+        if(firstActionRecorded == true)
+            textArea.insert(leadSpace+text,caretPos)
+        else
+            textArea.insert(text,caretPos)
     }
 }

@@ -4,7 +4,7 @@ var common = require('../common');
 var fs = require('fs');
 
 exports.filesInConflict = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['diff','--name-only','--diff-filter=U'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff','--name-only','--diff-filter=U'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -23,7 +23,7 @@ exports.filesInConflict = function(workdir,callback){
 };
 
 exports.commitsSinceDate = function(workdir,date,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['rev-list','--count','--since='+date,'HEAD'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rev-list','--count','--since='+date,'HEAD'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -46,7 +46,7 @@ exports.lsFiles = function(workdir,query,callback){
     params.unshift("-o");
     params.unshift("-c");
     params.unshift("ls-files");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),params,{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),params,{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -65,7 +65,7 @@ exports.lsFiles = function(workdir,query,callback){
 };
 
 exports.filesNotPushed = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['diff','--name-only','origin/master', 'HEAD'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff','--name-only','origin/master', 'HEAD'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -84,7 +84,7 @@ exports.filesNotPushed = function(workdir,callback){
 };
 
 exports.showFileContents = function(workdir,file,version,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['show','HEAD:'+file],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['show','HEAD:'+file],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -103,7 +103,7 @@ exports.showFileContents = function(workdir,file,version,callback){
 };
 
 exports.initBare = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['--bare','init'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['--bare','init'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -119,7 +119,7 @@ exports.initBare = function(workdir,callback){
 };
 
 exports.setGitUser = function(workdir,userName,eMail,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['config','user.name',userName],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['config','user.name',userName],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -130,7 +130,7 @@ exports.setGitUser = function(workdir,userName,eMail,callback){
     });
 
     git.on('close', function (code) {
-        var git2  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['config','user.email',eMail],{cwd: workdir,timeout:300000});
+        var git2  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['config','user.email',eMail],{cwd: workdir,timeout:300000});
         git2.on('close', function (code) {
             if (callback) callback();
         });
@@ -138,7 +138,7 @@ exports.setGitUser = function(workdir,userName,eMail,callback){
 };
 
 exports.init = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['init'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['init'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -155,7 +155,7 @@ exports.init = function(workdir,callback){
 
 exports.push = function(workdir,callback){
     common.logger.info("push");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['push','origin','master'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push','origin','master'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -172,7 +172,7 @@ exports.push = function(workdir,callback){
 
 exports.pull = function(workdir,callback){
     common.logger.info("pull");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['pull','origin','master'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','origin','master'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -189,7 +189,7 @@ exports.pull = function(workdir,callback){
 
 exports.clone = function(workdir,dirToClone,callback){
     common.logger.info("clone");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['clone',dirToClone,'.'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['clone',dirToClone,'.'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -205,7 +205,7 @@ exports.clone = function(workdir,dirToClone,callback){
 };
 
 exports.copyFiles = function(workdir,file,dest,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/cp.exe'),['-R',file,dest],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/cp'),['-R',file,dest],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -223,7 +223,7 @@ exports.copyFiles = function(workdir,file,dest,callback){
 
 exports.add = function(workdir,file,callback){
     common.logger.info("add");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['add',file],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['add',file],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -240,7 +240,7 @@ exports.add = function(workdir,file,callback){
 
 exports.commit = function(workdir,file,callback){
     common.logger.info("commit");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit',file,'-m','auto comment'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['commit',file,'-m','auto comment'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -256,7 +256,7 @@ exports.commit = function(workdir,file,callback){
 };
 
 exports.rename = function(workdir,file,newName,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['mv',file,newName],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['mv',file,newName],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -274,7 +274,7 @@ exports.rename = function(workdir,file,newName,callback){
 exports.deleteFiles = function(workdir,file,callback){
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
     var git = null;
-    git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/rm.exe'),['-R',file],{cwd: workdir,timeout:300000});
+    git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/rm'),['-R',file],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -298,10 +298,10 @@ exports.delete = function(workdir,file,callback){
     var stats = fs.lstatSync(file);
     var git = null;
     if (stats.isDirectory() == true){
-        git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['rm','-r',file],{cwd: workdir,timeout:300000});
+        git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rm','-r',file],{cwd: workdir,timeout:300000});
     }
     else{
-        git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['rm','-f',file],{cwd: workdir,timeout:300000});
+        git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rm','-f',file],{cwd: workdir,timeout:300000});
     }
 
     git.stdout.on('data', function (data) {
@@ -325,7 +325,7 @@ exports.delete = function(workdir,file,callback){
 };
 
 exports.commitAll = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','auto comment'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['commit','-a','-m','auto comment'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -341,7 +341,7 @@ exports.commitAll = function(workdir,callback){
 };
 
 exports.addAll = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['add','-A'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['add','-A'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
@@ -357,7 +357,7 @@ exports.addAll = function(workdir,callback){
 };
 
 exports.gitFetch = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['fetch'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['fetch'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);

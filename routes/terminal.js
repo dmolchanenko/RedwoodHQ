@@ -6,7 +6,7 @@ exports.operation = function(msg, id,callback){
         if (terminals[id] != undefined){
             terminals[id].proc.kill();
         }
-        terminals[id] = {proc:spawn('vendor/Git/bin/sh.exe',['--login', '-i'])};
+        terminals[id] = {proc:spawn('vendor/Git/bin/sh',['--login', '-i'])};
         terminals[id].proc.stdout.on('data', function(data) {
             callback(data.toString());
         });
