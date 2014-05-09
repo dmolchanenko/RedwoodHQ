@@ -1,7 +1,7 @@
 var forever = require('forever-monitor');
 var fs = require('fs');
 var path = require('path');
-var dbPath =  __dirname + "/vendor/MongoDB/bin/mongod.exe";
+var dbPath =  __dirname + "/vendor/MongoDB/bin/mongod";
 var logPath = __dirname + "/logs";
 var common = require('./common');
 var dataPath = __dirname + "/data/db";
