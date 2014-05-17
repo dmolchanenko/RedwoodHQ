@@ -1,5 +1,5 @@
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads,hostname2:threads] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
+    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
     .demand(['name','testset','machines','project','user'])
     .argv;
 var common = require('../common');
@@ -72,19 +72,17 @@ common.parseConfig(function(){
 
 function saveExecutionTestCases(testsetID,executionID,callback){
     var testcases = [];
-    var count = 0;
     db.collection('testsets', function(err, testSetCollection) {
         db.collection('executiontestcases', function(err, ExeTCCollection) {
             //console.log(testsetID);
             testSetCollection.findOne({_id:db.bson_serializer.ObjectID(testsetID.toString())}, {testcases:1}, function(err, dbtestcases) {
-                dbtestcases.testcases.forEach(function(testcase){
+                dbtestcases.testcases.forEach(function(testcase,index){
                     db.collection('testcases', function(err, tcCollection) {
                         tcCollection.findOne({_id:db.bson_serializer.ObjectID(testcase._id.toString())},{name:1},function(err,dbtestcase){
                             var insertTC = {executionID:executionID,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
                             testcases.push(insertTC);
                             ExeTCCollection.insert(insertTC, {safe:true},function(err,returnData){
-                                count++;
-                                if(count == dbtestcases.testcases.length){
+                                if(index+1 == dbtestcases.testcases.length){
                                     callback(testcases);
                                 }
                             });
@@ -353,11 +351,34 @@ function formatMachines(climachines,callback){
     db.collection('machines', function(err, collection) {
         climachines.forEach(function(machine){
             collection.findOne({host:machine.split(":")[0]}, {}, function(err, dbmachine) {
+                if(!dbmachine){
+                    console.log("Machine: " +machine.split(":")[0]+" not found.");
+                    process.exit(1)
+                }
                 dbmachine.threads = machine.split(":")[1];
-                machines.push(dbmachine);
                 count++;
-                if(count == climachines.length){
-                    callback(machines);
+                if(machine.split(":").length == 3){
+                    db.collection('actions', function(err, actionCollection) {
+                        actionCollection.findOne({name:machine.split(":")[2]}, {}, function(err, action) {
+                            if(action){
+                                dbmachine.baseState = action._id;
+                                machines.push(dbmachine);
+                                if(count == climachines.length){
+                                    callback(machines);
+                                }
+                            }
+                            else{
+                                console.log("Suite Base state: " +machine.split(":")[2]+" not found.");
+                                process.exit(1)
+                            }
+                        });
+                    });
+                }
+                else{
+                    machines.push(dbmachine);
+                    if(count == climachines.length){
+                        callback(machines);
+                    }
                 }
             });
         });
