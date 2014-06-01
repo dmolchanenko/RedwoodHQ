@@ -1,4 +1,5 @@
 var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var path = require('path');
 var common = require('../common');
 var fs = require('fs');
@@ -205,14 +206,14 @@ exports.clone = function(workdir,dirToClone,callback){
 };
 
 exports.copyFiles = function(workdir,file,dest,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/cp'),['-R',file,dest],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/cp.exe'),['-R',file,dest],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
-        common.logger.info('stdout: ' + data);
+        common.logger.info('stdout: ' + data.toString());
     });
 
     git.stderr.on('data', function (data) {
-        common.logger.error('add stderr: ' + data);
+        common.logger.error('copy stderr: ' + data.toString());
     });
 
     git.on('close', function (code) {

@@ -25,6 +25,8 @@ var express = require('express')
   , terminal = require('./routes/terminal')
   , realtime = require('./routes/realtime')
   , testsets = require('./routes/testsets')
+  , hosts = require('./routes/hosts')
+  , templates = require('./routes/templates')
   , testcases = require('./routes/testcases')
   , testcaseTags = require('./routes/testcaseTags')
   , executions = require('./routes/executions')
@@ -190,6 +192,18 @@ app.get('/testsets', auth.auth, testsets.testsetsGet);
 app.put('/testsets/:id',auth.auth, testsets.testsetsPut);
 app.post('/testsets',auth.auth, testsets.testsetsPost);
 app.del('/testsets/:id',auth.auth, testsets.testsetsDelete);
+
+//hosts
+app.get('/hosts', auth.auth, hosts.hostsGet);
+app.put('/hosts/:id',auth.auth, hosts.hostsPut);
+app.post('/hosts',auth.auth, hosts.hostsPost);
+app.del('/hosts/:id',auth.auth, hosts.hostsDelete);
+
+//templates
+app.get('/templates', auth.auth, templates.templatesGet);
+app.put('/templates/:id',auth.auth, templates.templatesPut);
+app.post('/templates',auth.auth, templates.templatesPost);
+app.del('/templates/:id',auth.auth, templates.templatesDelete);
 
 //userStates
 /*

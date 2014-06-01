@@ -13,6 +13,7 @@ var realtime = require("../routes/realtime");
 var git = require('../gitinterface/gitcommands');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var nodemailer = require("nodemailer");
+var spawn = require('child_process').spawn;
 var db;
 
 exports.stopexecutionPost = function(req, res){
@@ -53,6 +54,7 @@ exports.startexecutionPost = function(req, res){
     var machines = req.body.machines;
     var variables = {};
     var testcases = req.body.testcases;
+    var template = null;
 
     req.body.variables.forEach(function(variable){
         variables[variable.name] = variable.value;
@@ -88,8 +90,11 @@ exports.startexecutionPost = function(req, res){
         return;
     }
 
-    executions[executionID] = {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
+    if(req.body.templates){
+        template = req.body.templates[0]
+    }
 
+    executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
         if (err != null){
@@ -102,7 +107,6 @@ exports.startexecutionPost = function(req, res){
             git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar","jar_"+executionID,function(){
                 cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
                     executions[executionID].sourceCache = sourceCache;
-                    //updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
                     verifyMachineState(machines,function(err){
                         if(err){
                             updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
@@ -112,22 +116,41 @@ exports.startexecutionPost = function(req, res){
                             delete executions[executionID];
                             return;
                         }
-                        res.contentType('json');
-                        res.json({success:true});
-                        lockMachines(machines,executionID,function(){
-
-                            getGlobalVars(executionID,function(){
-                                testcases.forEach(function(testcase){
-                                    executions[executionID].testcases[testcase.testcaseID] = testcase;
-                                });
-                                //see if there is a base state
-                                suiteBaseState(executionID,machines,function(){
-                                    //magic happens here
-                                    applyMultiThreading(executionID,function(){
-                                        updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
-                                            executeTestCases(executions[executionID].testcases,executionID);
+                        VerifyCloudCapacity(executions[executionID].template,function(response){
+                            if(response.err || response.capacityAvailable == false){
+                                var message = "";
+                                if(response.err){
+                                    message = response.err
+                                }
+                                else{
+                                    message = "Cloud does not have the capacity to run this execution."
+                                }
+                                updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
+                                res.contentType('json');
+                                res.json({error:message});
+                                git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                                delete executions[executionID];
+                                return;
+                            }
+                            res.contentType('json');
+                            res.json({success:true});
+                            lockMachines(machines,executionID,function(){
+                                StartCloudMachines(template,function(cloudMachines){
+                                    executions[executionID].machines = machines.concat(cloudMachines);
+                                    getGlobalVars(executionID,function(){
+                                        testcases.forEach(function(testcase){
+                                            executions[executionID].testcases[testcase.testcaseID] = testcase;
                                         });
-                                    })
+                                        //see if there is a base state
+                                        suiteBaseState(executionID,executions[executionID].machines,function(){
+                                            //magic happens here
+                                            applyMultiThreading(executionID,function(){
+                                                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
+                                                    executeTestCases(executions[executionID].testcases,executionID);
+                                                });
+                                            })
+                                        });
+                                    });
                                 });
                             });
                         });
@@ -191,7 +214,10 @@ function applyMultiThreading(executionID,callback){
     executions[executionID].machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
-                var startThread = dbMachine.takenThreads - machine.threads;
+                var startThread = 0;
+                if(dbMachine){
+                    startThread = dbMachine.takenThreads - machine.threads;
+                }
                 common.logger.info("staring at:"+startThread);
                 machine.threadID = startThread;
                 //if more than one thread run base state if not let it go
@@ -1490,6 +1516,7 @@ function updateMachine(query,update,callback){
 
 function verifyMachineState(machines,callback){
     var machineCount = 0;
+    if(machines.length == 0 && callback) callback();
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
@@ -1509,9 +1536,110 @@ function verifyMachineState(machines,callback){
     });
 }
 
+function VerifyCloudCapacity(template,callback){
+    if(template == null) {
+        callback({capacityAvailable:true});
+        return;
+    }
+    db.collection('hosts', function(err, collection) {
+        var hosts = [];
+        collection.find({}, {}, function(err, cursor) {
+            cursor.each(function(err, host) {
+                if(host == null) {
+                    if(hosts.length == 0){
+                        callback({err:"Error: No hosts are found."});
+                        return
+                    }
+
+                    var appDir = path.resolve(__dirname,"../")+"/";
+                    //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
+                    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:template.instances})]);
+
+                    var cache = "";
+                    proc.stdout.on('data', function (data) {
+                        cache = cache + data.toString();
+                    });
+
+                    proc.stderr.on('data', function (data) {
+                        common.logger.error('Cloud stderr: ' + data.toString());
+                    });
+
+                    proc.on('close', function (code) {
+                        var response = JSON.parse(cache);
+                        callback(response);
+                    });
+                    return;
+                }
+                hosts.push(host);
+            });
+        })
+    });
+}
+
+function StartCloudMachines(template,callback){
+    if(template == null) {
+        callback([]);
+        return;
+    }
+    db.collection('hosts', function(err, collection) {
+        var hosts = [];
+        collection.find({}, {}, function(err, cursor) {
+            cursor.each(function(err, host) {
+                if(host == null) {
+                    if(hosts.length == 0){
+                        callback({err:"Error: No hosts are found."});
+                        return
+                    }
+
+                    var appDir = path.resolve(__dirname,"../")+"/";
+                    //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
+                    console.log({operation:"startCloudMachines",hosts:hosts,template:template});
+                    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"startCloudMachines",hosts:hosts,template:template})]);
+
+                    var cache = "";
+                    proc.stdout.on('data', function (data) {
+                        cache = cache + data.toString();
+                    });
+
+                    proc.stderr.on('data', function (data) {
+                        common.logger.error('Cloud stderr: ' + data.toString());
+                        callback({err:data.toString()})
+                    });
+
+                    proc.on('close', function (code) {
+                        var response = JSON.parse(cache);
+                        var cloudMachines = [];
+                        response.forEach(function(machine,index){
+                            cloudMachines.push({
+                                host:machine.IP,
+                                machineVars:[],
+                                maxThreads:1000,
+                                port:5009,
+                                result:"",
+                                roles:["Default"],
+                                threads:template.threads,
+                                vncport: 3006,
+                                cloud:true,
+                                vmName:machine.vmName,
+                                vmHost:machine.host
+                            });
+                            if(index == response.length-1){
+                                callback(cloudMachines)
+                            }
+                        });
+                    });
+                    return;
+                }
+                hosts.push(host);
+            });
+        })
+    });
+}
+
 
 function lockMachines(machines,executionID,callback){
     var machineCount = 0;
+    if(machines.length == 0 && callback) callback();
     machines.forEach(function(machine){
         updateExecutionMachine(executionID,machine._id,"","");
         db.collection('machines', function(err, collection) {
@@ -1576,7 +1704,14 @@ function unlockMachines(allmachines,callback){
                     })
                 }
                 else{
-                    if(callback) callback();
+                    //if(callback) callback();
+                    machineCount++;
+                    if (machineCount == machines.length){
+                        if(callback) callback();
+                    }
+                    else{
+                        nextMachine();
+                    }
                 }
             })
         });

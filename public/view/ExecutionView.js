@@ -258,12 +258,12 @@ Ext.define('Redwood.view.ExecutionView', {
             }
             if (options.destroy){
                 options.destroy.forEach(function(r){
-                    if (r) linkedMachineStore.remove(linkedMachineStore.findRecord("_id", r.get("_id")));
+                    if (r) linkedMachineStore.remove(linkedMachineStore.query("_id", r.get("_id")).getAt(0));
                 });
             }
             if (options.update){
                 options.update.forEach(function(r){
-                    var linkedRecord = linkedMachineStore.findRecord("_id", r.get("_id"));
+                    var linkedRecord = linkedMachineStore.query("_id", r.get("_id").getAt(0));
                     if(!linkedRecord) return;
                     if (r.get("host") != linkedRecord.get("host")){
                         linkedRecord.set("host", r.get("host"));
@@ -478,6 +478,226 @@ Ext.define('Redwood.view.ExecutionView', {
                     dataIndex: 'tag',
                     //flex: 1,
                     width: 250
+                }
+            ]
+
+        });
+
+        var templates = [];
+        var templatesStore = Ext.data.StoreManager.lookup('Templates');
+
+        templatesStore.query("_id",/.*/).each(function(template){
+            //var foundMachine = false;
+            var baseState = null;
+            var baseStateTCID = null;
+            var result = null;
+            var resultID = null;
+            var threads = 1;
+            var instances = 1;
+            if ((me.dataRecord != null)&&(me.dataRecord.get("templates"))){
+                me.dataRecord.get("templates").forEach(function(recordedTemplate){
+                    if(recordedTemplate._id === template.get("_id")){
+                        //baseState = recordedTemplate.baseState;
+                        //baseStateTCID = recordedTemplate.baseStateTCID;
+                        result = recordedTemplate.result;
+                        //resultID = recordedTemplate.resultID;
+                        if (recordedTemplate.threads){
+                            threads = recordedTemplate.threads;
+                        }
+                        else{
+                            threads = 1;
+                        }
+
+                        if (recordedTemplate.instances){
+                            instances = recordedTemplate.instances;
+                        }
+                        else{
+                            instances = 1;
+                        }
+                    }
+                })
+            }
+            //if (baseStateTCID == null) baseStateTCID = Ext.uniqueId();
+            templates.push({name:template.get("name"),threads:threads,instances:instances,result:result,description:template.get("description"),_id:template.get("_id")});
+            //templates.push({host:template.get("name"),tag:template.get("tag"),state:template.get("state"),maxThreads:template.get("maxThreads"),threads:threads,result:result,resultID:resultID,baseState:baseState,baseStateTCID:baseStateTCID,description:template.get("description"),roles:template.get("roles"),port:template.get("port"),vncport:template.get("vncport"),_id:template.get("_id")})
+        });
+
+        var linkedTemplateStore =  new Ext.data.Store({
+            fields: [
+                {name: 'name',     type: 'string'},
+                {name: 'instances',     type: 'int'},
+                {name: 'threads',     type: 'int'},
+                {name: 'result',     type: 'string'},
+                {name: 'description',     type: 'string'},
+                {name: '_id',     type: 'string'}
+            ],
+            data: templates/*,
+            listeners:{
+                update:function(store, record, operation, modifiedFieldNames){
+
+                    if (me.loadingData === false){
+                        if (modifiedFieldNames){
+                            modifiedFieldNames.forEach(function(field){
+                                if (field === "baseState"){
+                                    me.markDirty();
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+            */
+        });
+
+        me.templatesListener = function(options,eOpts){
+            if (options.create){
+                options.create.forEach(function(r){
+                    r.set("threads",1);
+                    r.set("instances",1);
+                    linkedTemplateStore.add(r);
+                });
+            }
+            if (options.destroy){
+                options.destroy.forEach(function(r){
+                    if (r) linkedTemplateStore.remove(linkedTemplateStore.query("_id", r.get("_id")).getAt(0));
+                });
+            }
+            if (options.update){
+                options.update.forEach(function(r){
+                    var linkedRecord = linkedTemplateStore.query("_id", r.get("_id")).getAt(0);
+                    if(!linkedRecord) return;
+                    if (r.get("name") != linkedRecord.get("name")){
+                        linkedRecord.set("host", r.get("name"));
+                    }
+                    if (r.get("description") != linkedRecord.get("description")){
+                        linkedRecord.set("description", r.get("description"));
+                    }
+                });
+            }
+        };
+
+        templatesStore.on("beforesync", me.templatesListener);
+
+        var templatesGrid = new Ext.grid.Panel({
+            store: linkedTemplateStore,
+            itemId:"executionTemplates",
+            selType: 'rowmodel',
+            tbar:{
+            xtype: 'toolbar',
+            dock: 'top',
+            items: [
+                {
+                    width: 400,
+                    fieldLabel: 'Search',
+                    labelWidth: 50,
+                    xtype: 'searchfield',
+                    paramNames: ["name"],
+                    store: linkedTemplateStore
+                }
+            ]
+            },
+            viewConfig: {
+                preserveScrollOnRefresh: true,
+                markDirty: false
+            },
+            plugins: [
+                Ext.create('Ext.grid.plugin.CellEditing', {
+                clicksToEdit: 1,
+                listeners:{
+                    beforeedit: function(editor,e){
+                        if(e.field == "threads"){
+                            templatesGrid.editingRecord = e.record;
+                        }
+                        else if(e.field == "instances"){
+                            templatesGrid.editingRecord = e.record;
+                        }
+
+                    }
+                }
+            })],
+            maxHeight: 250,
+            minHeight: 150,
+            manageHeight: true,
+            flex: 1,
+            overflowY: 'auto',
+            selModel: Ext.create('Ext.selection.CheckboxModel', {
+                singleSelect: true,
+                mode:"SINGLE",
+                sortable: true,
+                stateful: true,
+                showHeaderCheckbox: true
+            }),
+            listeners:{
+                edit: function(editor, e ){
+                    templatesGrid.getSelectionModel().select([e.record]);
+                }
+            },
+            columns:[
+                {
+                    header: 'Name',
+                    dataIndex: 'name',
+                    itemId:"nameColumn",
+                    width: 200
+                },
+                {
+                    header: 'Instances',
+                    dataIndex: 'instances',
+                    width: 100,
+                    editor: {
+                        xtype: 'numberfield',
+                        allowBlank: false,
+                        minValue: 1,
+                        listeners:{
+                            focus: function(field){
+                                //field.setMaxValue(machinesGrid.editingRecord.get("maxThreads"))
+                            }
+                        }
+                    }
+                },
+                {
+                    header: 'Threads',
+                    dataIndex: 'threads',
+                    width: 100,
+                    editor: {
+                        xtype: 'numberfield',
+                        allowBlank: false,
+                        minValue: 1,
+                        listeners:{
+                            focus: function(field){
+                                //field.setMaxValue(machinesGrid.editingRecord.get("maxThreads"))
+                            }
+                        }
+                    }
+                },
+                {
+                    header: 'Description',
+                    dataIndex: 'description',
+                    flex: 1
+                },
+                {
+                    header: "Result",
+                    dataIndex: "result",
+                    width: 120
+                    /*
+                    renderer: function(value,style,record){
+                        //style.tdAttr = 'data-qtip="' + record.get("error") + '"';
+                        if((value == "") &&(record.get("resultID")) &&(record.get("baseState"))){
+                            value = "Running";
+                        }
+                        if ((value == "Passed") || (value == "Running")){
+                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                            //return "<p style='color:green'>"+value+"</p>"
+                        }
+                        else if (value == "Failed"){
+                            return "<a style= 'color: red;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                            //return "<p style='color:red'>"+value+"</p>"
+                        }
+                        else{
+                            return value;
+                        }
+
+                    }
+                    */
                 }
             ]
 
@@ -872,6 +1092,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 }
             }
         });
+
 
         this.items = [
             {
@@ -1359,6 +1580,16 @@ Ext.define('Redwood.view.ExecutionView', {
             },
             {
                 xtype: 'fieldset',
+                title: 'Cloud',
+                flex: 1,
+                collapsible: true,
+                collapsed: true,
+                items:[
+                    templatesGrid
+                ]
+            },
+            {
+                xtype: 'fieldset',
                 title: 'Select Machines',
                 flex: 1,
                 collapsible: true,
@@ -1489,6 +1720,15 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
         return machines;
+    },
+    getSelectedTemplates: function(){
+        var templates = [];
+
+        this.down("#executionTemplates").getSelectionModel().getSelection().forEach(function(template){
+            templates.push(template.data);
+        });
+
+        return templates;
     },
     getExecutionData: function(){
         var execution = {};

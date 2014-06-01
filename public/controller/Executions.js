@@ -168,6 +168,7 @@ Ext.define("Redwood.controller.Executions", {
         }
 
         var machines = executionView.getSelectedMachines();
+        var templates = executionView.getSelectedTemplates();
         var testcases = executionView.getSelectedTestCases();
         var ignoreStatus = executionView.down("#ignoreStatus").getValue();
         var ignoreAfterState = executionView.down("#ignoreAfterState").getValue();
@@ -189,8 +190,8 @@ Ext.define("Redwood.controller.Executions", {
             return;
         }
 
-        if (machines.length == 0){
-            Ext.Msg.alert('Error', "Please select machines to run the execution on.");
+        if (machines.length == 0 && templates.length == 0){
+            Ext.Msg.alert('Error', "Please select phisical or cloud machines to run the execution on.");
             return;
         }
         if (testcases.length == 0){
@@ -237,7 +238,7 @@ Ext.define("Redwood.controller.Executions", {
             Ext.Ajax.request({
                 url:"/executionengine/startexecution",
                 method:"POST",
-                jsonData : {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
+                jsonData : {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines,templates:templates},
                 success: function(response) {
                     if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                     var obj = Ext.decode(response.responseText);

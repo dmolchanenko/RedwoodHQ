@@ -280,6 +280,36 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,action);
         });
 
+        Ext.socket.on('UpdateTemplates',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Templates");
+            me.updateStore(store,testCase);
+        });
+
+        Ext.socket.on('AddTemplates',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Templates");
+            me.addToStore(store,testCase);
+        });
+
+        Ext.socket.on('DeleteTemplates',function(action){
+            var store = Ext.data.StoreManager.lookup("Templates");
+            me.removeFromStore(store,action);
+        });
+
+        Ext.socket.on('UpdateHosts',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Hosts");
+            me.updateStore(store,testCase);
+        });
+
+        Ext.socket.on('AddHosts',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Hosts");
+            me.addToStore(store,testCase);
+        });
+
+        Ext.socket.on('DeleteHosts',function(action){
+            var store = Ext.data.StoreManager.lookup("Hosts");
+            me.removeFromStore(store,action);
+        });
+
         Ext.socket.on('UpdateTestSets',function(set){
             var store = Ext.data.StoreManager.lookup("TestSets");
             me.updateStore(store,set);
