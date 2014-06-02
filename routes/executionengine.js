@@ -125,9 +125,9 @@ exports.startexecutionPost = function(req, res){
                                 else{
                                     message = "Cloud does not have the capacity to run this execution."
                                 }
-                                updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
+                                updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
                                 res.contentType('json');
-                                res.json({error:message});
+                                res.json({error:"Cloud Error: "+message});
                                 git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
                                 delete executions[executionID];
                                 return;
@@ -135,7 +135,16 @@ exports.startexecutionPost = function(req, res){
                             res.contentType('json');
                             res.json({success:true});
                             lockMachines(machines,executionID,function(){
+                                updateExecution({_id:executionID},{$set:{cloudStatus:"Provisioning Virtual Machines..."}},false);
                                 StartCloudMachines(template,function(cloudMachines){
+                                    if(cloudMachines.err){
+                                        unlockMachines(machines);
+                                        updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
+                                        git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                                        delete executions[executionID];
+                                        return;
+                                    }
+                                    updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
                                     executions[executionID].machines = machines.concat(cloudMachines);
                                     getGlobalVars(executionID,function(){
                                         testcases.forEach(function(testcase){
@@ -1603,11 +1612,15 @@ function StartCloudMachines(template,callback){
 
                     proc.stderr.on('data', function (data) {
                         common.logger.error('Cloud stderr: ' + data.toString());
-                        callback({err:data.toString()})
+                        //callback({err:data.toString()})
                     });
 
                     proc.on('close', function (code) {
                         var response = JSON.parse(cache);
+                        if(response.err){
+                            callback(response);
+                            return;
+                        }
                         var cloudMachines = [];
                         response.forEach(function(machine,index){
                             cloudMachines.push({

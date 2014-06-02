@@ -365,6 +365,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
                 if (foundTab){
                     foundTab.updateTotals(execution);
+                    foundTab.updateCloudStatus(execution);
                 }
             };
 

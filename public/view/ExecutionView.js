@@ -567,7 +567,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     var linkedRecord = linkedTemplateStore.query("_id", r.get("_id")).getAt(0);
                     if(!linkedRecord) return;
                     if (r.get("name") != linkedRecord.get("name")){
-                        linkedRecord.set("host", r.get("name"));
+                        linkedRecord.set("name", r.get("name"));
                     }
                     if (r.get("description") != linkedRecord.get("description")){
                         linkedRecord.set("description", r.get("description"));
@@ -746,6 +746,10 @@ Ext.define('Redwood.view.ExecutionView', {
             me.chartStore.findRecord("name","Failed").set("data",execution.failed);
             me.chartStore.findRecord("name","Not Run").set("data",execution.notRun);
 
+        };
+
+        me.updateCloudStatus = function(execution){
+            me.down("#cloudStatus").setValue(execution.cloudStatus);
         };
 
         me.initialTotals = function(){
@@ -1583,8 +1587,23 @@ Ext.define('Redwood.view.ExecutionView', {
                 title: 'Cloud',
                 flex: 1,
                 collapsible: true,
-                collapsed: true,
+                collapsed: false,
                 items:[
+                    {
+                        xtype:"displayfield",
+                        fieldLabel: "Status",
+                        itemId:"cloudStatus",
+                        value: "",
+                        renderer: function(value,meta){
+                            if(value.indexOf("Error:") != -1){
+                                return "<p style='font-weight:bold;color:red'>"+value+"</p>";
+                            }
+                            else{
+                                return "<p style='font-weight:bold;color:green'>"+value+"</p>";
+                            }
+                        }
+
+                    },
                     templatesGrid
                 ]
             },
@@ -1625,6 +1644,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 me.down("#ignoreScreenshots").setValue(me.dataRecord.get("ignoreScreenshots"));
                 me.down("#allScreenshots").setValue(me.dataRecord.get("allScreenshots"));
                 me.down("#ignoreAfterState").setValue(me.dataRecord.get("ignoreAfterState"));
+                me.down("#cloudStatus").setValue(me.dataRecord.get("cloudStatus"));
                 if (me.dataRecord.get("locked") == true){
                     me.down("#locked").setIcon("images/lock_ok.png");
                     me.down("#locked").setText("Unlock");
