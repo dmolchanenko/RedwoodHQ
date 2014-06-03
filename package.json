@@ -7,7 +7,7 @@
     , "mongodb": "0.9.9-8"
     , "cron": "1.0.1"
     , "nodeunit": ">=0.7.4"
-    , "socket.io": ">=0.9.16"
+    , "socket.io": "0.9.16"
     , "walk" : "2.2.1"
     , "optimist" : "0.5.2"
     , "forever-monitor" : "1.1.0"
