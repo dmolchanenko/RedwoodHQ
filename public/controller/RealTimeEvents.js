@@ -14,6 +14,46 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             controller.onImageRecorded(image._id);
         });
 
+        Ext.socket.on('TCImportDone'+Ext.util.Cookies.get('username'),function(totalCount){
+            Ext.MessageBox.hide();
+            Ext.Msg.show({title: "Test Cases Imported",msg:"Imported "+totalCount+" test cases.",buttons : Ext.MessageBox.OK});
+        });
+
+        Ext.socket.on('GetAllTestCases'+Ext.util.Cookies.get('username'),function(data){
+            Ext.MessageBox.hide();
+            var win = null;
+            if(data.testcases.length === 0 && data.import === true){
+                Ext.Msg.show({title: "No Tests Found",msg:"No unit tests are found or all have been imported already.",buttons : Ext.MessageBox.OK});
+            }
+            else if(data.import === true){
+                win = Ext.create('Redwood.view.UnitTests',{
+                    title:"Select Test Cases to Import",
+                    importFlag:data.import,
+                    dataRecord: data.testcases
+                });
+                win.show();
+            }
+            else{
+                win = Ext.create('Redwood.view.UnitTests',{
+                    title:"Select Test Case to Run",
+                    importFlag:data.import,
+                    dataRecord: data.testcases
+                });
+                win.show();
+            }
+        });
+
+        Ext.socket.on('FilesUploaded'+Ext.util.Cookies.get('username'),function(){
+            var controller = Redwood.app.getController("Scripts");
+            var expandedNodes = controller.getExpandedNodes(controller.treePanel.getRootNode());
+            controller.getStore('Scripts').reload({callback:function(){
+                    controller.expandNodes(expandedNodes);
+            }});
+            Ext.MessageBox.hide();
+
+            Ext.Msg.alert('Success', "Files have been uploaded.");
+        });
+
         Ext.socket.on('CollaborateScript'+Ext.util.Cookies.get('username'),function(msg){
             //console.log(msg);
             var controller = Redwood.app.getController("Collaboration");

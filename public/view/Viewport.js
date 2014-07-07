@@ -17,8 +17,8 @@ var executionStore = Ext.create('Ext.data.TreeStore', {
             { text: "Executions", leaf: true,icon:"images/user_go.png" },
             { text: "Test Sets", leaf: true,icon:"images/project.png" },
             { text: "Variables", leaf: true },
-            { text: "Machines", leaf: true,icon:"images/pc.png" },
-            { text: "Cloud", leaf: true,icon:"images/cloud.png" }
+            { text: "Machines", leaf: true,icon:"images/pc.png" }
+            //{ text: "Cloud", leaf: true,icon:"images/cloud.png" }
         ]
     }
 });

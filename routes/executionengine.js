@@ -135,7 +135,12 @@ exports.startexecutionPost = function(req, res){
                             res.contentType('json');
                             res.json({success:true});
                             lockMachines(machines,executionID,function(){
-                                updateExecution({_id:executionID},{$set:{cloudStatus:"Provisioning Virtual Machines..."}},false);
+                                if(executions[executionID].template){
+                                    updateExecution({_id:executionID},{$set:{cloudStatus:"Provisioning Virtual Machines..."}},false);
+                                }
+                                else{
+                                    updateExecution({_id:executionID},{$set:{cloudStatus:""}},false);
+                                }
                                 StartCloudMachines(template,function(cloudMachines){
                                     if(cloudMachines.err){
                                         unlockMachines(machines);
@@ -144,7 +149,9 @@ exports.startexecutionPost = function(req, res){
                                         delete executions[executionID];
                                         return;
                                     }
-                                    updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                    if(executions[executionID].template){
+                                        updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                    }
                                     executions[executionID].machines = machines.concat(cloudMachines);
                                     getGlobalVars(executionID,function(){
                                         testcases.forEach(function(testcase){
@@ -662,7 +669,7 @@ function startTCExecution(id,variables,executionID,callback){
             };
 
             //if test case is a script and NOT an action collection
-            if (testcase.dbTestCase.type === "script"){
+            if (testcase.dbTestCase.type !== "collection"){
                 if ((testcase.script == "") || (!testcase.script)){
                     result.error = "Test Case does not have a script assigned";
                     result.status = "Finished";
@@ -680,6 +687,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.script = testcase.script;
                 agentInstructions.resultID = result._id.__id;
                 agentInstructions.parameters = [];
+                agentInstructions.type = testcase.dbTestCase.type;
 
                 var actionHost = "Default";
                 //if(action.dbAction.host != "") actionHost = action.dbAction.host;
@@ -936,7 +944,6 @@ exports.actionresultPost = function(req, res){
         action.dbAction.parameters.forEach(function(parameter){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
         });
-
 
         var runBaseState = function(){
             agentBaseState(execution.project+"/"+execution.username,req.body.executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
@@ -1320,7 +1327,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
         }
         else{
             retryCount--;
-            sendFileToAgent(file,dest,agentHost,port,retryCount,callback);
+            setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,callback),1000)
         }
     });
 
@@ -1372,7 +1379,7 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
         }
         else{
             retryCount--;
-            sendAgentCommand(agentHost,port,command,retryCount,callback)
+            setTimeout(sendAgentCommand(agentHost,port,command,retryCount,callback),1000)
         }
     });
 
@@ -1474,7 +1481,6 @@ function updateExecution(query,update,finished,callback){
             if(finished === true){
                 realtime.emitMessage("FinishExecution",data);
             }
-            realtime.emitMessage("UpdateExecutions",data);
             if (callback){
                 callback(err);
             }
@@ -1948,8 +1954,9 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
         db.collection('testcases', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
                 if(testcase == null) callback(null);
-                if (testcase.type == "script"){
-                    testcaseDetails = {dbTestCase:testcase,script:testcase.script,afterState:false,name:testcase.name};
+                //if (testcase.type == "script"){
+                if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"){
+                    testcaseDetails = {type:testcase.type,dbTestCase:testcase,script:testcase.script,afterState:false,name:testcase.name};
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
                     callback(testcaseDetails,testcaseResults,["Default"]);
                 }

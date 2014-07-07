@@ -14,6 +14,9 @@ Ext.define('Redwood.view.ResultsView', {
     listeners:{
         afterrender: function(me){
             if (me.dataRecord.testcase.script){
+                if(me.dataRecord.screenshot){
+                    me.down("#screenShots").addNewScreenShot(me.dataRecord.screenshot._id);
+                }
                 me.down("#results").hide();
                 me.down("#error").show();
                 me.down("#trace").show();
@@ -309,7 +312,7 @@ Ext.define('Redwood.view.ResultsView', {
                     width:240,
                     renderer: function(value,meta,record){
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p style='color:red;font-weight: bold;'>"+value+"</p>";
+                        return "<p style='color:red;font-weight: bold;'>"+Ext.util.Format.htmlEncode(value)+"</p>";
                     }
                 },
                 {
@@ -409,14 +412,24 @@ Ext.define('Redwood.view.ResultsView', {
                 border: false
             },
             addNewScreenShot: function(node){
-                var path = node.getPath("name");
-                path = path.substring(2,path.length);
-                var html = "<h1>"+path+"</h1>";
-                html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>';
-                screenShots.add({
-                    node: node,
-                    html: html
-                })
+                var html;
+                if(node.getPath){
+                    var path = node.getPath("name");
+                    path = path.substring(2,path.length);
+                    html = "<h1>"+path+"</h1>";
+                    html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>';
+                    screenShots.add({
+                        node: node,
+                        html: html
+                    })
+                }
+                else{
+                    html = '<p><a href="javascript:openScreenShot(&quot;'+ node +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node +'" height="360"></a></p>';
+                    screenShots.add({
+                        node: null,
+                        html: html
+                    })
+                }
             },
             tbar: [
                 {
@@ -529,7 +542,7 @@ Ext.define('Redwood.view.ResultsView', {
                         value:me.dataRecord.testcase.error,
                         anchor:'90%',
                         renderer: function(value,field){
-                            return "<p style='font-weight:bold;color:red'>"+value+"</p>"
+                            return "<p style='font-weight:bold;color:red'>"+Ext.util.Format.htmlEncode(value)+"</p>"
                         }
                     },
                     {

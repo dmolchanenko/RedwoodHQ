@@ -251,7 +251,7 @@ exports.commit = function(workdir,file,callback){
         common.logger.error('commit stderr: ' + data);
     });
 
-    git.on('exit', function (code) {
+    git.on('close', function (code) {
         callback();
     });
 };

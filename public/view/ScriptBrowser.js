@@ -16,6 +16,20 @@ var recordImageAction = Ext.create('Ext.Action', {
     }
 });
 
+var uploadFiles = Ext.create('Ext.Action', {
+    icon: 'images/uploadFolders.png',
+    tooltip: "Upload multiple directories and files.",
+    //margin: "0 3 0 3",
+    text:"Upload Directories",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('uploadFiles');
+    }
+});
+
 var recordStepsAction = Ext.create('Ext.Action', {
     icon: 'images/media_record.png',
     tooltip: "Start Looking Glass Utility",
@@ -89,6 +103,24 @@ var uploadAction = Ext.create('Ext.Action', {
     handler: function(widget, event) {
         //uploadActionHidden.handler.call(uploadActionHidden.scope, uploadActionHidden, Ext.EventObject)
         uploadActionHidden.fileInputEl.dom.click();
+    }
+});
+
+var importAllTCsAction = Ext.create('Ext.Action', {
+    tooltip: "Import TestNG/Junit Test Cases.",
+    text:"Import Test Cases",
+    icon: 'images/import.png',
+    handler: function(widget, event) {
+        Redwood.app.getController("Scripts").onImportAllTCs();
+    }
+});
+
+var runTCAction = Ext.create('Ext.Action', {
+    tooltip: "Run TestNG/Junit Test Case in opened script.",
+    //text:"Import Test Cases",
+    icon: 'images/play.png',
+    handler: function(widget, event) {
+        Redwood.app.getController("Scripts").onRunTC();
     }
 });
 
@@ -345,7 +377,8 @@ var newMenuItem = Ext.create('Ext.Action', {
             newGroovyScriptAction,
             newScriptAction,
             newFolderAction,
-            uploadAction
+            uploadAction,
+            uploadFiles
         ]
     })
 });
@@ -363,7 +396,22 @@ var newItemButton = Ext.create('Ext.button.Split',{
             newGroovyScriptAction,
             newScriptAction,
             newFolderAction,
-            uploadAction
+            uploadAction,
+            uploadFiles
+        ]
+    })
+});
+
+var importTCButton = Ext.create('Ext.button.Split',{
+    text: "Import Test Cases",
+    itemId:"importTCMenu",
+    icon: 'images/import.png',
+    handler: function(){
+        this.showMenu();
+    },
+    menu: new Ext.menu.Menu({
+        items: [
+            importAllTCsAction
         ]
     })
 });
@@ -619,6 +667,11 @@ Ext.define('Redwood.view.ScriptBrowser', {
                 pushAction,
                 pullAction,
                 recordStepsAction,
+                "-",
+                runTCAction,
+                "-",
+                importAllTCsAction,
+                //importTCButton,
                 "->",
                 findText,
                 findPrev,

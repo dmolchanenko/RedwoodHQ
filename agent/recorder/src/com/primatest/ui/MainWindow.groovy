@@ -63,7 +63,7 @@ import java.awt.event.WindowListener
 //class MainWindow extends JFrame implements NativeKeyListener, WindowListener {
 class MainWindow extends JFrame implements WindowListener {
 
-    public LookingGlass glass
+    //public LookingGlass glass
     public LGSettings = [:]
     public def jarPath = new File(this.class.getProtectionDomain().getCodeSource().getLocation().getPath()).parentFile.absolutePath
     public CodeTab codeTab
@@ -88,6 +88,7 @@ class MainWindow extends JFrame implements WindowListener {
     JMenu fileMenu
     JButton startBtn
     IDEView ideView
+    ExecutionAPI execAPI
 
     public MainWindow(){
 
@@ -169,7 +170,7 @@ class MainWindow extends JFrame implements WindowListener {
             @Override
             public void actionPerformed(ActionEvent event) {
                 ProjectFileChooser fc = new ProjectFileChooser()
-               fc.setFileView(new ProjectFileView())
+                fc.setFileView(new ProjectFileView())
                 fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
                 fc.updateUI()
                 int returnVal = fc.showOpenDialog(mainWindow)
@@ -325,7 +326,7 @@ class MainWindow extends JFrame implements WindowListener {
                 if (node == null) return
                 def domnode = uiToXMLHash.find{it.value == node}
                 if (domnode == null) return
-                ShownElement = glass.getElementID(generateXPathFromDOM(domnode.key))
+                ShownElement = execAPI.getElementID(generateXPathFromDOM(domnode.key))
                 setIDValue()
                 //Object nodeInfo = node.getUserObject()
                 //println nodeInfo
@@ -521,11 +522,11 @@ class MainWindow extends JFrame implements WindowListener {
         infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
         glass.BrowserType = SelectedBrowser
         //glass.start()
-        Thread t = new Thread(glass);
-        t.start();
-        Thread t2 = new Thread(new ExecutionAPI());
-        t2.start();
-
+        Thread t = new Thread(glass)
+        t.start()
+        execAPI = new ExecutionAPI()
+        Thread t2 = new Thread(execAPI)
+        t2.start()
     }
 
     class startBtn extends JButton implements ActionListener {

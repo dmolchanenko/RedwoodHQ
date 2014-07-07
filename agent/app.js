@@ -3,6 +3,7 @@ var command = require('./routes/command');
 var imageautomation = require('./routes/imageautomation');
 var recorder = require('./routes/recorder');
 var fileupload = require('./routes/fileupload');
+var uploadfiles = require('./routes/uploadfiles');
 var heartbeat = require('./routes/heartbeat');
 var update = require('./routes/update');
 var common = require('./common');
@@ -22,6 +23,7 @@ app.configure(function(){
 app.post('/command',command.Post);
 app.post('/update',update.Post);
 app.post('/fileupload',fileupload.Post);
+app.post('/uploadfiles',uploadfiles.uploadFiles);
 app.post('/recordimage',imageautomation.recordImage);
 app.post('/startrecording',recorder.record);
 

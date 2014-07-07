@@ -27,6 +27,9 @@ var express = require('express')
   , testsets = require('./routes/testsets')
   , hosts = require('./routes/hosts')
   , templates = require('./routes/templates')
+  , uploadFiles = require('./routes/uploadFiles')
+  , importtcs = require('./routes/importtcs')
+  //, rununittest = require('./routes/rununittest')
   , testcases = require('./routes/testcases')
   , testcaseTags = require('./routes/testcaseTags')
   , executions = require('./routes/executions')
@@ -91,6 +94,19 @@ app.post('/aggregate',auth.auth,aggregate.aggregatePost);
 app.post('/recordimage',auth.auth,imageautomation.recordImage);
 app.get('/image/:id',auth.auth,imageautomation.getImage);
 app.post('/recordedimage',imageautomation.recordedImage);
+
+//uploadFiles
+app.post('/uploadfiles',auth.auth,uploadFiles.uploadFiles);
+app.post('/uploadfromagent',uploadFiles.uploadFromAgent);
+app.post('/uploadfilesdone',uploadFiles.uploadDone);
+
+//importAllTCs
+app.post('/importalltcs',importtcs.importAllTCs);
+app.post('/getallunittcs',importtcs.getAllUnitTests);
+app.post('/importselectedtcs',importtcs.importSelectedTCs);
+
+//rununittest
+//app.post('/rununittest',rununittest.runUnitTest);
 
 //recorder
 app.post('/record',auth.auth,recorder.record);

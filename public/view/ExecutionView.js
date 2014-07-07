@@ -263,7 +263,7 @@ Ext.define('Redwood.view.ExecutionView', {
             }
             if (options.update){
                 options.update.forEach(function(r){
-                    var linkedRecord = linkedMachineStore.query("_id", r.get("_id").getAt(0));
+                    var linkedRecord = linkedMachineStore.query("_id", r.get("_id")).getAt(0);
                     if(!linkedRecord) return;
                     if (r.get("host") != linkedRecord.get("host")){
                         linkedRecord.set("host", r.get("host"));
@@ -1587,6 +1587,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 title: 'Cloud',
                 flex: 1,
                 collapsible: true,
+                hidden:true,
                 collapsed: false,
                 items:[
                     {

@@ -69,7 +69,6 @@ sendFileToServer = function(file,id,url,host,port,cookie,callback){
     var req = http.request(options, function(res) {
         //res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            console.log(chunk.toString());
             if (callback) callback();
         });
     });

@@ -113,7 +113,30 @@ class Launcher {
                 }
             }
 
-            def returnValue = Class.forName(className).newInstance()."$methodName"(params)
+            def returnValue = null
+
+            if(action.type && action.type != "script"){
+                if(action.type == "junit"){
+                    org.junit.runner.Request request = org.junit.runner.Request.method(Class.forName(className),methodName)
+                    org.junit.runner.Result result = new org.junit.runner.JUnitCore().run(request)
+                    if(result.wasSuccessful() == false){
+                        throw result.getFailures().get(0).getException()
+                    }
+                }
+                else if(action.type == "testng"){
+                    org.testng.TestListenerAdapter tla = new org.testng.TestListenerAdapter()
+                    org.testng.TestNG testng = new org.testng.TestNG(false)
+                    testng.addListener(tla)
+                    testng.m_commandLineMethods = Arrays.asList(action.script)
+                    testng.run()
+                    if(testng.hasFailure()){
+                        throw tla.getFailedTests().get(0).getThrowable()
+                    }
+                }
+            }
+            else{
+                returnValue = Class.forName(className).newInstance()."$methodName"(params)
+            }
             if (returnValue){
                 if(action.returnValueName){
                     returnValues."$action.returnValueName" = returnValue

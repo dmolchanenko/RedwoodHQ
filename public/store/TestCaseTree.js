@@ -106,7 +106,7 @@ Ext.define('Redwood.store.TestCaseTree', {
                 name = action.name;
             }
             //actionsCombo.add(r);
-            if(tags.length > 0){
+            if(tags && tags.length > 0){
                 tags.forEach(function(tagInAction){
                     var foundTag = me.getRootNode().findChild("tagValue",tagInAction);
                     if (foundTag == null){
