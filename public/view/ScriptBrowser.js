@@ -119,6 +119,7 @@ var runTCAction = Ext.create('Ext.Action', {
     tooltip: "Run TestNG/Junit Test Case in opened script.",
     //text:"Import Test Cases",
     icon: 'images/play.png',
+    hidden:true,
     handler: function(widget, event) {
         Redwood.app.getController("Scripts").onRunTC();
     }
