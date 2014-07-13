@@ -29,7 +29,7 @@ var express = require('express')
   , templates = require('./routes/templates')
   , uploadFiles = require('./routes/uploadFiles')
   , importtcs = require('./routes/importtcs')
-  //, rununittest = require('./routes/rununittest')
+  , rununittest = require('./routes/rununittest')
   , testcases = require('./routes/testcases')
   , testcaseTags = require('./routes/testcaseTags')
   , executions = require('./routes/executions')
@@ -106,7 +106,10 @@ app.post('/getallunittcs',importtcs.getAllUnitTests);
 app.post('/importselectedtcs',importtcs.importSelectedTCs);
 
 //rununittest
-//app.post('/rununittest',rununittest.runUnitTest);
+app.post('/rununittest',rununittest.runUnitTest);
+app.post('/rununittest/result',rununittest.unitTestResult);
+app.post('/rununittest/log',rununittest.unitTestLog);
+app.post('/stopunittest',rununittest.stopUnitTest);
 
 //recorder
 app.post('/record',auth.auth,recorder.record);

@@ -127,6 +127,14 @@ Ext.define('Redwood.view.UnitTests', {
                                     //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
                                 }
                             });
+                            Ext.getCmp('runUnitTest').setIcon('images/stop.png');
+                            Ext.getCmp('scriptOutputPanel').expand();
+                            var elem = Ext.getCmp('scriptOutputPanel').down("#compileOutput").getEl();
+                            while (elem.dom.hasChildNodes()) {
+                                elem.dom.removeChild(elem.dom.lastChild);
+                            }
+                            Ext.DomHelper.append(elem, {tag: 'div',html:"Starting Test..."});
+                            Ext.getCmp('scriptOutputPanel').expand();
                         }
                         me.close();
                     }

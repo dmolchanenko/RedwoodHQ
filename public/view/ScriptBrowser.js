@@ -117,11 +117,17 @@ var importAllTCsAction = Ext.create('Ext.Action', {
 
 var runTCAction = Ext.create('Ext.Action', {
     tooltip: "Run TestNG/Junit Test Case in opened script.",
-    //text:"Import Test Cases",
     icon: 'images/play.png',
-    hidden:true,
+    id:"runUnitTest",
+    //hidden:true,
     handler: function(widget, event) {
-        Redwood.app.getController("Scripts").onRunTC();
+        if(widget.icon == 'images/play.png'){
+            Redwood.app.getController("Scripts").onRunTC();
+        }
+        else{
+            Redwood.app.getController("Scripts").onStopTC();
+            widget.setIcon('images/play.png');
+        }
     }
 });
 
@@ -496,6 +502,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     region: "south",
                     split: true,
                     itemId: "outputPanel",
+                    id: "scriptOutputPanel",
                     xtype: "panel",
                     height: 200,
                     collapseDirection:"down",
@@ -670,10 +677,10 @@ Ext.define('Redwood.view.ScriptBrowser', {
                 recordStepsAction,
                 "-",
                 runTCAction,
-                "-",
-                importAllTCsAction,
                 //importTCButton,
                 "->",
+                importAllTCsAction,
+                "-",
                 findText,
                 findPrev,
                 findNext,

@@ -90,7 +90,7 @@ exports.getAllUnitTests = function(req,res){
                         }
                     }
                 });
-                if (total == processed) {
+                if (total == processed && TCs.length == 0) {
                     realtime.emitMessage("GetAllTestCases"+req.cookies.username,{testcases:allTCs,import:req.body.import});
                 }
             }

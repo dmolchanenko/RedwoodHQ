@@ -177,6 +177,8 @@ exports.startexecutionPost = function(req, res){
     });
 };
 
+exports.compileBuild = function(project,username,callback){compileBuild(project,username,callback)};
+
 function compileBuild(project,username,callback){
     var workDir = rootDir+project+"/"+username;
 
@@ -321,6 +323,7 @@ function suiteBaseState(executionID,machines,callback){
     });
 }
 
+exports.cacheSourceCode = function(rootPath,callback){cacheSourceCode(rootPath,callback)};
 
 function cacheSourceCode(rootPath,callback){
     git.lsFiles(rootPath,["*.groovy","*.java"],function(data){
@@ -1058,6 +1061,8 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     });
 }
 
+exports.formatTrace = function(trace,sourceCache,callback){formatTrace(trace,sourceCache,callback)};
+
 function formatTrace(trace,sourceCache,callback){
     var newTrace = "";
     var traceCount = 0;
@@ -1186,13 +1191,16 @@ function markFinishedResults(results,sourceCache,callback){
 }
 
 
+exports.agentBaseState = function(project,executionID,agentHost,port,threadID,callback){agentBaseState(project,executionID,agentHost,port,threadID,callback)};
+
 function agentBaseState(project,executionID,agentHost,port,threadID,callback){
     sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},3,function(message){
         if (message.error){
             callback(message.error);
             return;
         }
-        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(){
+        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(error){
+            if(error) {callback(error);return}
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
                     syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
@@ -1243,15 +1251,21 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
     var walker = walk.walkSync(rootPath);
     var fileCount = 0;
     var files = [];
+    var foundError = false;
 
     var sendFiles = function(){
+        if(foundError) return;
         fileCount++;
         if (!files[fileCount-1]){
             callback();
             return;
         }
-        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,function(){
-
+        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,function(error){
+            if(error){
+                foundError = true;
+                callback(error);
+                return;
+            }
             if(fileCount === files.length){
                 callback();
             }
@@ -1322,7 +1336,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
 
     req.on('error', function(e) {
         if(retryCount <= 0){
-            if (callback) callback();
+            if (callback) callback({error:'sendFileToAgent problem with request: ' + e.message+ ' file:'+file});
             common.logger.error('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
         }
         else{
@@ -1337,6 +1351,8 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
         req.end('\r\n------' + boundary + '--\r\n');
     });
 }
+
+exports.sendAgentCommand = function(agentHost,port,command,retryCount,callback){sendAgentCommand(agentHost,port,command,retryCount,callback)};
 
 function sendAgentCommand(agentHost,port,command,retryCount,callback){
     common.logger.info(command);
@@ -1528,6 +1544,8 @@ function updateMachine(query,update,callback){
         });
     });
 }
+
+exports.verifyMachineState = function(machines,callback){verifyMachineState(machines,callback)};
 
 function verifyMachineState(machines,callback){
     var machineCount = 0;

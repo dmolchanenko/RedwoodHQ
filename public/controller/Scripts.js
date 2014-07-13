@@ -56,6 +56,20 @@ Ext.define("Redwood.controller.Scripts", {
 
     compileEventAttached: false,
 
+    onStopTC: function(){
+        Ext.Ajax.request({
+            url:"/stopunittest",
+            method:"POST",
+            jsonData : {},
+            success: function(response) {
+
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+        Ext.getCmp('runUnitTest').setIcon('images/play.png');
+    },
+
     onRunTC: function(){
         var tab = this.tabPanel.getActiveTab();
 

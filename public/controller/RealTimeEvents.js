@@ -19,6 +19,26 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             Ext.Msg.show({title: "Test Cases Imported",msg:"Imported "+totalCount+" test cases.",buttons : Ext.MessageBox.OK});
         });
 
+        Ext.socket.on('UnitTestRun'+Ext.util.Cookies.get('username'),function(output){
+            var outputPanel = Ext.getCmp('scriptOutputPanel').down("#compileOutput").getEl();
+            if (output.message){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.message});
+            }
+            else if(output.error){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:'<span style="color: red; ">Error: '+Ext.util.Format.htmlEncode(output.error)+'</span>'});
+            }
+            else{
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.status});
+            }
+        });
+
+        Ext.socket.on('UnitTestStop'+Ext.util.Cookies.get('username'),function(output){
+            Ext.getCmp('runUnitTest').setIcon('images/play.png');
+            if(output.error){
+                Ext.Msg.show({title: "Error",msg:output.error,buttons : Ext.MessageBox.OK});
+            }
+        });
+
         Ext.socket.on('GetAllTestCases'+Ext.util.Cookies.get('username'),function(data){
             Ext.MessageBox.hide();
             var win = null;
