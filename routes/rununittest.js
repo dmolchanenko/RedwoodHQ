@@ -46,7 +46,6 @@ exports.stopUnitTest = function(req,res){
 };
 
 exports.unitTestResult = function(req,res){
-    console.log(req.body);
     res.contentType('json');
     res.json({success:true});
     var username = req.body.username;
@@ -65,7 +64,6 @@ exports.unitTestResult = function(req,res){
 };
 
 exports.unitTestLog = function(req,res){
-    console.log(req.body);
     res.contentType('json');
     res.json({success:true});
     realtime.emitMessage("UnitTestRun"+req.body.username,{message:req.body.message});
