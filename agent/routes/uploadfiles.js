@@ -44,16 +44,11 @@ exports.uploadFiles = function(req, res){
                     return;
                 }
                 var stats = fs.lstatSync(rootPath);
+                var names = rootPath.split("/");
+                var name = names[names.length - 1];
 
                 if (!stats.isDirectory()) {
-                    var path = root.replace(rootPath,"");
-                    var dest = "";
-                    if (path == ""){
-                        dest = destDir +"/"+ name+"/"+fileStats.name;
-                    }
-                    else{
-                        dest = destDir + "/"+name+"/"+ path+"/"+fileStats.name
-                    }
+                    var dest = destDir + "/"+name;
                     common.sendFileToServer(rootPath,dest,"/uploadfromagent",common.Config.AppServerIPHost,common.Config.AppServerPort,"username="+req.body.username+";project="+req.body.project,function(){
                     });
                     doneWith++;
@@ -65,8 +60,6 @@ exports.uploadFiles = function(req, res){
                 var walker = walk.walkSync(rootPath);
                 var fileCount = 0;
                 var files = [];
-                var names = rootPath.split("/");
-                var name = names[names.length - 1];
 
                 var sendFiles = function(){
                     fileCount++;
