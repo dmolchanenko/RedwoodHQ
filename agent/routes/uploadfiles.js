@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
-var spawn = require('child_process').spawn;
+var spawn = require('child_process').exec;
+//var spawn = require('child_process').spawn;
 var baseDir = path.resolve(__dirname,"../lib");
 var common = require('../common');
 var walk = require('walk');
@@ -14,8 +15,8 @@ exports.uploadFiles = function(req, res){
 
     var javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
 
-    var proc = spawn(javaPath,["-cp",".","FileChooser"],{env:{PATH:baseDir+"\\lib"},cwd:baseDir});
-    //var proc = spawn(javaPath,["-Djava.library.path="+baseDir+"\\lib","-cp",".","com.primatest.filechooser.FileChooser"],{env:{PATH:baseDir+"\\lib"},cwd:baseDir});
+    //var proc = spawn(javaPath,["-cp",".","FileChooser"],{env:{PATH:baseDir+"\\lib"},cwd:baseDir});
+    var proc = spawn('"'+javaPath+"\" -cp . FileChooser",{env:{PATH:baseDir+"\\lib"},cwd:baseDir});
 
     var cache = "";
     proc.stdout.on('data', function (data) {
@@ -23,7 +24,7 @@ exports.uploadFiles = function(req, res){
     });
 
     proc.stderr.on('data', function (data) {
-        common.logger.error("error uploading: "+data)
+        common.logger.error("error uploading: "+data.toString())
     });
     proc.on('close', function (code) {
         var destDir = req.body.path;
