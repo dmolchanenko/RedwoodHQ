@@ -21,6 +21,11 @@ Ext.define('Redwood.view.ResultsView', {
                 me.down("#error").show();
                 me.down("#trace").show();
             }
+        },
+        beforeclose:function(panel){
+            panel.resultsStore = null;
+            panel.logStore = null;
+            panel.dataRecord = null;
         }
     },
 
