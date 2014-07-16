@@ -23,8 +23,8 @@ Ext.define('Redwood.view.ResultsView', {
             }
         },
         beforeclose:function(panel){
-            panel.resultsStore = null;
-            panel.logStore = null;
+            panel.resultsStore.destroy();
+            panel.logStore.destroy();
             panel.dataRecord = null;
         }
     },
