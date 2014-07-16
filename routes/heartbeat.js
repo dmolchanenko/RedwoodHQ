@@ -16,7 +16,7 @@ exports.heartbeatPost = function(req, res){
         }
         else{
             if (machine.macAddress){
-                if((machine.host != data.hostname) && (machine.host != ip)){
+                if((machine.host != data.hostname) && (machine.host != ip) && ip != "127.0.0.1"){
                     updateMachine(app.getDB(),machine._id,{$set:{host:ip,vncport:data.vncport,port:data.port,macAddress:data.macAddress}})
                 }
                 else if((machine.vncport != data.vncport) || (machine.port != data.port)){

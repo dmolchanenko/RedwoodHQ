@@ -50,7 +50,9 @@ var express = require('express')
 
 //var app = express.createServer();
 var app = express();
-
+process.env.TMPDIR = __dirname + '/logs';
+process.env.TMP = __dirname + '/logs';
+process.env.TEMP = __dirname + '/logs';
 // Configuration
 
 //app.configure(function(){

@@ -16,6 +16,9 @@ Ext.define('Redwood.model.Machines', {
         name: 'host',
         type: 'string'
     }, {
+        name: 'macAddress',
+        type: 'string'
+    }, {
         name: 'port',
         type: 'string'
     }, {

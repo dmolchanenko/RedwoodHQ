@@ -210,7 +210,7 @@ function insertTC(fullName,project,tcType,callback){
     tags.forEach(function(tag,index){
         db.collection('testcaseTags', function(err, tagcollection) {
             tagcollection.findOne({project:project,value:tag},{},function(err,foundTag){
-                if (!foundTag){
+                if (foundTag == null){
                     tagcollection.insert({project:project,value:tag}, {safe:true},function(err,returnData){
                         realtime.emitMessage("AddTestCaseTags",returnData);
                         tagCount++;

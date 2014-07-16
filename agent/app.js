@@ -7,8 +7,12 @@ var uploadfiles = require('./routes/uploadfiles');
 var heartbeat = require('./routes/heartbeat');
 var update = require('./routes/update');
 var common = require('./common');
+var path = require('path');
 
 var app = express();
+process.env.TMPDIR = path.resolve(__dirname,"../logs");
+process.env.TMP = path.resolve(__dirname,"../logs");
+process.env.TEMP = path.resolve(__dirname,"../logs");
 
 app.configure(function(){
     //app.use(express.logger());
