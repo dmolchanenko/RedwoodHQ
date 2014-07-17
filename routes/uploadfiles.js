@@ -97,8 +97,7 @@ exports.uploadFiles = function(req, res){
             success: false,
             error: "Please download agent to upload directories and files."
         });
-        if (callback) callback("Please download agent to upload directories and files.");
-        //if (callback) callback("Unable to connect to machine: "+ip + " error: " + e.message);
+        //if (callback) callback("Please download agent to upload directories and files.");
     });
 
     // write data to request body
