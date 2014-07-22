@@ -3,7 +3,7 @@ exports.resultsGet = function(req, res){
     var id = db.bson_serializer.ObjectID(req.params.id);
     GetTestCases(db,{_id:id},function(testcase){
         GetLogs(db,{resultID:req.params.id},function(logs){
-            if(testcase.script){
+            if(testcase!= null && testcase.script){
                 GetScreenShot(db,{resultID:req.params.id},function(screenshot){
                     res.contentType('json');
                     res.json({
