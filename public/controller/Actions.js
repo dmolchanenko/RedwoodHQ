@@ -85,6 +85,9 @@ Ext.define("Redwood.controller.Actions", {
     onEditAction: function(record,collapse){
         var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
         if (foundIndex == -1){
+            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
+        }
+        if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.ActionView',{
                 title:record.get("name"),
                 closable:true,

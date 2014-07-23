@@ -98,6 +98,10 @@ Ext.define("Redwood.controller.TestCases", {
     },
     onEditTestCase: function(record,collapse){
         var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+        //try again with the star
+        if (foundIndex == -1){
+            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
+        }
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.TestCaseView',{
                 title:record.get("name"),
