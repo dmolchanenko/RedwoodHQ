@@ -929,7 +929,7 @@ Ext.define("Redwood.controller.Scripts", {
                     success: function(response, action) {
                         var obj = Ext.decode(response.responseText);
                         tab.setValue(obj.text);
-                        if (typeof(lineNumber) == "number"){
+                        if (lineNumber && typeof(lineNumber) == "number"){
                             tab.setCursor({line:lineNumber,ch:0});
                         }
                         tab.clearHistory();
