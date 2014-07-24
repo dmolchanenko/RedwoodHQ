@@ -340,6 +340,13 @@ Ext.define('Redwood.view.ResultsView', {
                     flex:1,
                     //width: 800,
                     renderer: function(value,meta,record){
+                        while(value.indexOf("&quot;NaN&quot;)'>&quot;") != -1){
+                            var junk = value.indexOf("&quot;NaN&quot;)'>&quot;");
+                            var endOfJunk = value.indexOf("&",junk+23);
+                            var properValue = value.substring(junk+24,endOfJunk);
+                            value = value.replace("&quot;NaN&quot;)'>&quot;"+properValue+"&quot;)'>","&quot;"+properValue+"&quot;)'>");
+                            value = value.replace("</a></a>","</a>");
+                        }
                         meta.tdCls = 'x-redwood-results-cell';
                         return "<p>"+value+"</p>"
                     }
