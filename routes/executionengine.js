@@ -647,7 +647,7 @@ function startTCExecution(id,variables,executionID,callback){
 
             //var startTC = function(){
 
-            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
+            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id,variables:executions[executionID].variables};
 
             var foundMachine = null;
 
@@ -931,7 +931,7 @@ exports.actionresultPost = function(req, res){
         updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
         testcase.result.status = "Running";
 
-        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.testcase.dbTestCase._id};
+        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.testcase.dbTestCase._id,variables:execution.variables};
 
         execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
 
@@ -1093,12 +1093,14 @@ function formatTrace(trace,sourceCache,callback){
         if ((fileName.indexOf(".groovy") != -1) ||(fileName.indexOf(".java") != -1)){
             sourceCache.forEach(function(file){
                 if (found == true) return;
-                if (file.indexOf("/"+fileName) != -1){//&&(file.indexOf(location.replace(/\./g,"/")) != -1)){
-                //if ((file.indexOf("/"+fileName) != -1)&&(location.indexOf(file.replace()) == 0)){
-                    found = true;
-                    lineNumber = (parseInt(lineNumber,10)-1).toString();
-                    newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;"+ file +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
-                    //newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;/src"+ file.dir+"/"+file.name +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
+                console.log("FILE:"+file);
+                console.log("TRACE:"+location.replace(/\./g, '/'));
+                if (file.indexOf("/"+fileName) != -1){
+                    if(location.replace(/\./g, '/').indexOf(file.substring(0,file.lastIndexOf("/")).replace("src/", '')) != -1){
+                        found = true;
+                        var parsedLineNumber = (parseInt(lineNumber,10)-1).toString();
+                        newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;"+ file +"&quot;,&quot;"+ parsedLineNumber +"&quot;)'>" + line +"</a>";
+                    }
                 }
                 count++;
                 if (count == sourceCache.length){

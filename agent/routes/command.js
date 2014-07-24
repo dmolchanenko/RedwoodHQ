@@ -467,7 +467,7 @@ function getExecutionStatus(host,port,executionID,callback){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            common.logger.info('getExecutionStatus result: ' + chunk);
+            common.logger.info('getExecutionStatus result: ' + chunk.toString());
             callback(JSON.parse(chunk));
         });
     });

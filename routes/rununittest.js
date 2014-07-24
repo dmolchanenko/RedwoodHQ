@@ -12,27 +12,30 @@ exports.runUnitTest = function(req,res){
     var port = 5009;
 
     execEngine.compileBuild(project,username,function(result){
+        console.log(result);
         if (result != null){
+            console.log("WTF???");
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});
-            return;
         }
-        res.contentType('json');
-        res.json({success:true});
+        else{
+            res.contentType('json');
+            res.json({success:true});
 
-        git.copyFiles(path.join(__dirname, '../public/automationscripts/'+project+"/"+username+"/build"),"jar","jar_unittest",function(){
-            execEngine.cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+project+"/"+username),function(sourceCache){
-                execEngine.agentBaseState(project+"/"+username,"unittest",ip,port,99,function(message){
-                    if(message && message.error){
-                        realtime.emitMessage("UnitTestStop"+username,{error:"Please download agent to run unit tests locally."});
-                        return;
-                    }
-                    runningTests[username] = {sourceCache:sourceCache};
-                    var command = {username:username,command:"run action",ignoreScreenshots:true,allScreenshots:false,parameters:[],runType:"unittest",executionID:"unittest",script:testCaseInfo.name,type:testCaseInfo.type.toLowerCase(), threadID:99};
-                    execEngine.sendAgentCommand(ip,port,command,3);
+            git.copyFiles(path.join(__dirname, '../public/automationscripts/'+project+"/"+username+"/build"),"jar","jar_unittest",function(){
+                execEngine.cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+project+"/"+username),function(sourceCache){
+                    execEngine.agentBaseState(project+"/"+username,"unittest",ip,port,99,function(message){
+                        if(message && message.error){
+                            realtime.emitMessage("UnitTestStop"+username,{error:"Please download agent to run unit tests locally."});
+                            return;
+                        }
+                        runningTests[username] = {sourceCache:sourceCache};
+                        var command = {username:username,command:"run action",ignoreScreenshots:true,allScreenshots:false,parameters:[],runType:"unittest",executionID:"unittest",script:testCaseInfo.name,type:testCaseInfo.type.toLowerCase(), threadID:99};
+                        execEngine.sendAgentCommand(ip,port,command,3);
+                    })
                 })
-            })
-        });
+            });
+        }
     })
 
 };
@@ -53,7 +56,9 @@ exports.unitTestResult = function(req,res){
     if(req.body.trace){
         realtime.emitMessage("UnitTestRun"+username,{status:'<span style="color: red; ">Test Failed:</span>'});
         realtime.emitMessage("UnitTestRun"+username,{error:req.body.error});
-        execEngine.formatTrace(req.body.trace,runningTests[username].sourceCache,function(trace){
+        //execEngine.formatTrace(req.body.trace,runningTests[username].sourceCache,function(trace){
+        mytrace
+        execEngine.formatTrace(mytrace,runningTests[username].sourceCache,function(trace){
             realtime.emitMessage("UnitTestRun"+username,{message:trace});
         });
     }

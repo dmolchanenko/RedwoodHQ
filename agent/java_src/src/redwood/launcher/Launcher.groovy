@@ -27,6 +27,8 @@ class Launcher {
 
     public static def globals = [:]
 
+    public static Map<String,String> variables = [:]
+
     public static log(String message){
         def toServer = [:]
         toServer.command = "Log Message"
@@ -87,6 +89,12 @@ class Launcher {
         try{
             if (action.testcaseName){
                 globals.testcaseName = action.testcaseName
+            }
+
+            if (action.variables){
+                action.variables.each{
+                    variables."${it.key}" = it.value
+                }
             }
 
             if (action.script == ""){

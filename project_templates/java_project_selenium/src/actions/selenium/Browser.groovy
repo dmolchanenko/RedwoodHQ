@@ -39,7 +39,7 @@ class Browser{
     }
     
     if (params.URL){
-      if (params.URL.startsWith("http://")){
+      if (params.URL.startsWith("http://") || params.URL.startsWith("https://")){
         Driver.get(params.URL)
       }
       else{

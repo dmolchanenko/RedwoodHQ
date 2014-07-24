@@ -49,7 +49,9 @@ Ext.define('Redwood.store.Actions', {
                 actionsStore.on("beforesync", function(options,eOpts){
                     if (options.create){
                         options.create.forEach(function(r){
-                            actionsCombo.add(r);
+                            if(actionsCombo.query("name", r.get("name")).length == 0){
+                                actionsCombo.add(r);
+                            }
                         });
                     }
                     if (options.destroy){
