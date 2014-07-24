@@ -14,8 +14,10 @@ Ext.define('Redwood.view.UnitTests', {
         var me = this;
 
         var selectionMode = "MULTI";
+        var showHeaderCheckbox = true;
         if(me.importFlag == false){
-            selectionMode = "SINGLE"
+            selectionMode = "SINGLE";
+            showHeaderCheckbox = false;
         }
 
         var unitTestsStore =  new Ext.data.Store({
@@ -45,7 +47,7 @@ Ext.define('Redwood.view.UnitTests', {
                 mode:selectionMode,
                 //checkOnly: true,
                 stateful: true,
-                showHeaderCheckbox: true
+                showHeaderCheckbox: showHeaderCheckbox
             }),
             columns:[
             {
