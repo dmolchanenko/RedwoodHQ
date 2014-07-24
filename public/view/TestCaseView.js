@@ -315,7 +315,7 @@ Ext.define('Redwood.view.TestCaseView', {
         }
 
         if (this.down("#status").getValue() == "Automated"){
-            if (this.down("#type").getValue().type == "script"){
+            if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng"){
 
                 if (this.down("scriptPicker").getValue() == ""){
                     this.down("scriptPicker").focus();
