@@ -232,7 +232,7 @@ Ext.define("Redwood.controller.Executions", {
         executionView.up("executionsEditor").down("#runExecution").setDisabled(true);
         executionView.up("executionsEditor").down("#stopExecution").setDisabled(false);
         executionView.down("#executionTestcases").getSelectionModel().deselectAll();
-        executionView.down("#executionMachines").getSelectionModel().deselectAll();
+        //executionView.down("#executionMachines").getSelectionModel().deselectAll();
 
         this.saveExecution(function(execution){
             Ext.Ajax.request({
