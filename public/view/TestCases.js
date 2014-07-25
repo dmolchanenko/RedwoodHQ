@@ -251,10 +251,33 @@ Ext.define('Redwood.view.TestCases', {
                 vertical:true,
                 items: [
                     {
-                        width: 200,
-                        xtype: 'searchfield',
-                        paramNames: ["tag","name"],
-                        store: Ext.data.StoreManager.lookup('TestCases')
+                        xtype:"panel",
+                        layout: {
+                            type: 'hbox',
+                            align: 'stretch'
+                        },
+                        items:[
+                            {
+                                width: 180,
+                                xtype: 'searchfield',
+                                paramNames: ["tag","name"],
+                                store: Ext.data.StoreManager.lookup('TestCases')
+                            },
+                            {
+                                width: 10,
+                                xtype: "displayfield",
+                                padding: 4,
+                                listeners:{
+                                    afterrender: function(field){
+                                        var store = Ext.data.StoreManager.lookup('TestCases');
+                                        store.on("filterchange",function(){
+                                            field.setValue(store.getCount());
+                                        });
+                                        field.setValue((store.getCount()));
+                                    }
+                                }
+                            }
+                        ]
                     },
                     {
                         xtype:"filtercombo",
