@@ -1,5 +1,5 @@
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
+    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
     .demand(['name','testset','machines','project','user'])
     .argv;
 var common = require('../common');
@@ -21,6 +21,7 @@ common.parseConfig(function(){
     execution.ignoreStatus = false;
     execution.lastRunDate = null;
     execution.testsetname = argv.testset;
+    execution.pullLatest = argv.pullLatest;
     if(argv.tags){
         execution.tag = argv.tags.split(",");
     }
@@ -45,28 +46,29 @@ common.parseConfig(function(){
 
     common.initDB(common.Config.DBPort,function(){
         db = app.getDB();
-        formatMachines(argv.machines.split(","),function(machines){
-            execution.machines = machines;
-            formatTestSet(argv.testset,argv.project,function(testsetID){
-                execution.testset = testsetID.toString();
-                saveExecutionTestCases(testsetID,execution._id,function(testcases){
-                    if(argv.variables){
-                        formatVariables(argv.variables.split(","),argv.project,function(variables){
-                            execution.variables = variables;
+        PullLatest(execution,function(){
+            formatMachines(argv.machines.split(","),function(machines){
+                execution.machines = machines;
+                formatTestSet(argv.testset,argv.project,function(testsetID){
+                    execution.testset = testsetID.toString();
+                    saveExecutionTestCases(testsetID,execution._id,function(testcases){
+                        if(argv.variables){
+                            formatVariables(argv.variables.split(","),argv.project,function(variables){
+                                execution.variables = variables;
+                                SaveAndRunExecution(execution,testcases,function(){
+
+                                })
+                            })
+                        }
+                        else{
                             SaveAndRunExecution(execution,testcases,function(){
 
                             })
-                        })
-                    }
-                    else{
-                        SaveAndRunExecution(execution,testcases,function(){
-
-                        })
-                    }
+                        }
+                    });
                 });
             });
         });
-
     });
 });
 
@@ -92,6 +94,40 @@ function saveExecutionTestCases(testsetID,executionID,callback){
             });
         });
     });
+}
+
+function PullLatest(execution,callback){
+    if(execution.pullLatest !== "true"){
+        callback();
+        return
+    }
+    var options = {
+        hostname: "localhost",
+        port: common.Config.AppServerPort,
+        path: '/scripts/pull',
+        method: 'POST',
+        agent:false,
+        headers: {
+            'Content-Type': 'application/json',
+            'Cookie': 'username='+execution.user+";project="+execution.project
+        }
+    };
+
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('BODY: ' + chunk);
+            callback();
+        });
+    });
+
+    req.on('error', function(e) {
+        console.log('problem with request: ' + e.message);
+    });
+
+    // write data to request body
+    req.write(JSON.stringify({}));
+    req.end();
 }
 
 function StartExecution(execution,testcases,callback){
