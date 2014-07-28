@@ -551,6 +551,7 @@ function startTCExecution(id,variables,executionID,callback){
                 return;
             }
         }
+        result.status = "Running";
         createResult(result,function(writtenResult){
             result._id = writtenResult[0]._id;
             result.executionID = executionID;
@@ -1093,8 +1094,6 @@ function formatTrace(trace,sourceCache,callback){
         if ((fileName.indexOf(".groovy") != -1) ||(fileName.indexOf(".java") != -1)){
             sourceCache.forEach(function(file){
                 if (found == true) return;
-                console.log("FILE:"+file);
-                console.log("TRACE:"+location.replace(/\./g, '/'));
                 if (file.indexOf("/"+fileName) != -1){
                     if(location.replace(/\./g, '/').indexOf(file.substring(0,file.lastIndexOf("/")).replace("src/", '')) != -1){
                         found = true;

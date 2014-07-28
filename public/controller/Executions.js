@@ -136,7 +136,7 @@ Ext.define("Redwood.controller.Executions", {
                 if(obj.error != null){
                     Ext.Msg.alert('Error', obj.error);
                 }
-                else{
+                else if(obj.testcase){
                     var foundTab = me.tabPanel.down("#"+id);
                     if (foundTab != null){
                         me.tabPanel.setActiveTab(foundTab);
