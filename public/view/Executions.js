@@ -21,6 +21,53 @@ Ext.define('Redwood.view.ExecutionsGrid', {
     initComponent: function () {
         var executionsEditor = this;
 
+        this.tbar ={
+            xtype: 'toolbar',
+            dock: 'top',
+            items: [
+                {
+                    iconCls: 'icon-add',
+                    tooltip:"Add Action",
+                    itemId: "addAction",
+                    handler: function(){
+                        var actionPicker = this.up("toolbar").down("#actionpicker");
+                        if (actionPicker.getValue() == null || actionPicker.getValue() == "") return;
+                        me.waitMsg("Adding Action");
+                        this.setDisabled(true);
+                        //if store is empty
+                        if(me.store.getRootNode().childNodes.length == 1){
+                            me.store.getRootNode().removeAll();
+                        }
+                        var action = me.createAction(actionPicker.getValue(),actionPicker.store);
+                        if (action === null) {
+                            Ext.MessageBox.hide();
+                            this.setDisabled(false);
+                            return;
+                        }
+                        if (me.parentActionID == action.actionid){
+                            Ext.Msg.alert('Error', "You can not add action to itself.");
+                            this.setDisabled(false);
+                            return;
+                        }
+                        var actionsGrid = this.up("actioncollection");
+                        action.order = parseInt(((actionsGrid.store.getRootNode().childNodes.length + 1)/2)+1,10);
+                        if (action.order == 1){
+                            action.rowOrder = action.order;
+                        }else{
+                            action.rowOrder = action.order + (action.order - 1);
+                        }
+                        var newRecord = actionsGrid.store.getRootNode().appendChild(action);
+                        var node = actionsGrid.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
+                        this.setDisabled(false);
+                        me.plugins[0].scrollTo(newRecord.get("rowOrder")+5000,true);
+                        if (newRecord.childNodes.length > 0){
+                            me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
+                        }
+                        Ext.MessageBox.hide();
+                    }
+                }
+            ]
+        };
         this.columns = [
             {
                 header: 'Name',
@@ -42,8 +89,11 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 dataIndex: 'status',
                 width: 100,
                 renderer: function(value,meta,record){
-                    if (value == "Ready To Run"){
+                    if (value == "Ready To Run" && record.get("locked") == false){
                         return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
+                    }
+                    else if(record.get("locked") == true){
+                        return "<p style='font-weight:bold;color:#6727ff'>"+"Locked"+"</p>";
                     }
                     else{
                         return "<p style='font-weight:bold;color:green'>"+value+"</p>";
