@@ -562,28 +562,32 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
     updateStore: function(store,item){
         if(item){
-            var record = store.findRecord("_id", item._id);
-            if(!record) return;
+            //var record = store.findRecord("_id", item._id);
+            var record = store.query("_id",item._id);
+            if(record.length == 0) return;
             for(var propt in item){
                 if (propt != "_id"){
-                    record.set(propt,item[propt]);
+                    record.getAt(0).set(propt,item[propt]);
                 }
             }
-            store.fireEvent("beforesync",{update:[record]});
-            record.dirty = false;
+            store.fireEvent("beforesync",{update:[record.getAt(0)]});
+            record.getAt(0).dirty = false;
         }
     },
 
     removeFromStore: function(store,item){
-        var record = store.findRecord("_id",item.id);
-        if (record == null) return;
-        store.remove(record);
-        store.fireEvent("beforesync",{destroy:[record]});
+        //var record = store.findRecord("_id",item.id);
+        //if (record == null) return;
+        var record = store.query("_id",item._id);
+        if(record.length == 0) return;
+        store.remove(record.getAt(0));
+        store.fireEvent("beforesync",{destroy:[record.getAt(0)]});
         store.removed = [];
     },
 
     addToStore: function(store,item){
-        if (store.find("_id",item._id) == -1){
+        //if (store.find("_id",item._id) == -1){
+        if (store.query("_id",item._id).length == 0){
             var items = store.add(item);
             store.fireEvent("beforesync",{create:items});
             items[0].phantom = false;
