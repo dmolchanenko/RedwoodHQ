@@ -5,10 +5,8 @@ Ext.define('Redwood.store.Executions', {
     autoLoad: true,
     autoSync: false,
     sorters: [{
-
         property : 'name',
         direction: 'ASC'
-
     }],
 
     proxy: {

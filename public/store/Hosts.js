@@ -10,6 +10,9 @@ Ext.define('Redwood.store.Hosts', {
         update : 'PUT',
         destroy: 'DELETE'
     },
+    sorters: [{
+        property : 'host'
+    }],
 
     proxy: {
         type: 'rest',

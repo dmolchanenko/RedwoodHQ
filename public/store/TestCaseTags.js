@@ -6,7 +6,9 @@ Ext.define('Redwood.store.TestCaseTags', {
     autoLoad: {
         callback: function(){Ext.data.StoreManager.lookup('TestCaseTree').initialLoad();}
     },
-
+    sorters: [{
+        property : 'value'
+    }],
     proxy: {
         type: 'rest',
         url: '/testcasetags',

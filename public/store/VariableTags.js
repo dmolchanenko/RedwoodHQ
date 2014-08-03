@@ -10,6 +10,9 @@ Ext.define('Redwood.store.VariableTags', {
         update : 'PUT',
         destroy: 'DELETE'
     },
+    sorters: [{
+        property : 'value'
+    }],
 
     proxy: {
         type: 'rest',

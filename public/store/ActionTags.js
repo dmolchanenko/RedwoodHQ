@@ -6,6 +6,10 @@ Ext.define('Redwood.store.ActionTags', {
         callback: function(){Ext.data.StoreManager.lookup('ActionsTree').initialLoad();}
     },
     autoSync: false,
+    sorters: [{
+        property : 'value'
+
+    }],
 
     proxy: {
         type: 'rest',

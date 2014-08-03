@@ -11,6 +11,10 @@ Ext.define('Redwood.store.UserTags', {
         destroy: 'DELETE'
     },
 
+    sorters: [{
+        property : 'value'
+    }],
+
     proxy: {
         type: 'rest',
         url: '/usertags',

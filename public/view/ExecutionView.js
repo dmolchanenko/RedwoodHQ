@@ -65,6 +65,9 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
         var linkedVarStore =  new Ext.data.Store({
+            sorters: [{
+                property : 'name'
+            }],
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'value',     type: 'string'},
@@ -121,6 +124,7 @@ Ext.define('Redwood.view.ExecutionView', {
         variablesStore.on("beforesync",me.variablesListener);
 
         var variablesGrid = new Ext.grid.Panel({
+
             listeners:{
                 afterrender: function(me){
                     me.down("#varValue").setEditor(Ext.create('Ext.ux.ComboGridBox', {
@@ -215,6 +219,9 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
         var linkedMachineStore =  new Ext.data.Store({
+            sorters: [{
+                property : 'host'
+            }],
             fields: [
                 {name: 'host',     type: 'string'},
                 {name: 'vncport',     type: 'string'},
@@ -523,6 +530,9 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
         var linkedTemplateStore =  new Ext.data.Store({
+            sorters: [{
+                property : 'name'
+            }],
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'instances',     type: 'int'},
@@ -708,10 +718,7 @@ Ext.define('Redwood.view.ExecutionView', {
             storeId: "ExecutionTCs"+this.itemId,
             //groupField: 'status',
             sorters: [{
-
-                property : 'name',
-                direction: 'ASC'
-
+                property : 'name'
             }],
             fields: [
                 {name: 'name',     type: 'string'},
@@ -879,6 +886,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     header: 'Name',
                     dataIndex: 'name',
                     flex: 1,
+                    minWidth:200,
                     renderer: function (value, meta, record) {
                         //if (record.get("status") == "Finished"){
                         //if (record.get("resultID")){
@@ -904,12 +912,12 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Tags',
                     dataIndex: 'tag',
-                    width: 200
+                    width: 120
                 },
                 {
                     header: 'Start Action',
                     dataIndex: 'startAction',
-                    width: 100,
+                    width: 80,
                     editor: {
                         xtype: 'textfield',
                         maskRe: /^\d+$/,
@@ -924,7 +932,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'End Action',
                     dataIndex: 'endAction',
-                    width: 100,
+                    width: 80,
                     editor: {
                         xtype: 'textfield',
                         maskRe: /^\d+$/,
