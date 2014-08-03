@@ -622,16 +622,15 @@ Ext.define('Redwood.view.ActionCollection', {
                             });
                             record.remove();
                             actionDivider.remove();
-                            me.setVisible(true);
                             //make sure there is always one empty row
                             if (me.store.getRootNode().childNodes.length == 0){
                                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
                             }
-                            me.removing = false;
                             me.getView().refresh();
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             //Ext.MessageBox.hide();
-                            console.log(lastScrollPos)
+                            me.setVisible(true);
+                            me.removing = false;
 
                         }
                     }
