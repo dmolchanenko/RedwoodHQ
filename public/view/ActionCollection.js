@@ -520,9 +520,9 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.sort("rowOrder","ASC");
                             me.movingUp = false;
                             this.setDisabled(false);
-                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             me.getSelectionModel().select(record);
                             me.setVisible(true);
+                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                         }
                     },
                     {
@@ -564,9 +564,9 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.movingDown = false;
                             this.setDisabled(false);
                             //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
-                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             me.getSelectionModel().select(record);
                             me.setVisible(true);
+                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             //Ext.MessageBox.hide();
                         }
                     },
@@ -627,10 +627,10 @@ Ext.define('Redwood.view.ActionCollection', {
                                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
                             }
                             me.getView().refresh();
-                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             //Ext.MessageBox.hide();
                             me.setVisible(true);
                             me.removing = false;
+                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
 
                         }
                     }
