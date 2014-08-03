@@ -100,7 +100,7 @@ Ext.define('Redwood.view.ActionCollection', {
     loadingData: false,
     //maxHeight: 900,
     //minHeight: 25,
-    height: 700,
+    height: 1000,
     //manageHeight: true,
 
     parentActionID: null,
@@ -495,7 +495,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.movingUp === true) {
                                 return;
                             }
-                            me.waitMsg("Moving Action Up");
+                            me.setVisible(false);
                             me.movingUp = true;
                             this.setDisabled(true);
                             var html = me.getView().getNode(rowIndex);
@@ -503,6 +503,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (record.get("order") == "1"){
                                 Ext.MessageBox.hide();
                                 me.movingUp = false;
+                                me.setVisible(true);
                                 return;
                             }
                             var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
@@ -521,7 +522,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             this.setDisabled(false);
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             me.getSelectionModel().select(record);
-                            Ext.MessageBox.hide();
+                            me.setVisible(true);
                         }
                     },
                     {
@@ -537,7 +538,8 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.movingDown == true){
                                 return;
                             }
-                            me.waitMsg("Moving Action Down");
+                            //me.waitMsg("Moving Action Down");
+                            me.setVisible(false);
                             me.movingDown = true;
                             this.setDisabled(true);
                             var html = me.getView().getNode(rowIndex);
@@ -547,6 +549,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (recordDown == null){
                                 Ext.MessageBox.hide();
                                 me.movingDown = false;
+                                me.setVisible(true);
                                 return;
                             }
                             var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
@@ -563,7 +566,8 @@ Ext.define('Redwood.view.ActionCollection', {
                             //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             me.getSelectionModel().select(record);
-                            Ext.MessageBox.hide();
+                            me.setVisible(true);
+                            //Ext.MessageBox.hide();
                         }
                     },
                     {
@@ -579,18 +583,22 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.removing == true){
                                 return;
                             }
-                            me.waitMsg("Removing Action");
+                            //me.waitMsg("Removing Action");
                             me.removing = true;
-                            this.setDisabled(true);
+                            //this.setDisabled(true);
                             var topRowcount = 1;
                             var actionCount = 0;
                             var removed = false;
                             var html = me.getView().getNode(rowIndex);
                             var record = me.getView().getRecord(html);
+                            var removedOrder = parseInt(record.get("order"));
                             var actionDivider = null;
                             var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
-                            me.store.getRootNode().cascadeBy(function(node) {
+                            me.setVisible(false);
+                            me.store.getRootNode().eachChild(function(node) {
                                 if (node.isRoot() == true){
+                                    me.setVisible(true);
+                                    me.removing = false;
                                     return;
                                 }
                                 if ((removed == true) &&(actionDivider == null) && (node.getDepth()==1 )){
@@ -600,20 +608,21 @@ Ext.define('Redwood.view.ActionCollection', {
                                     actionCount++;
                                     node.set("order",actionCount.toString());
                                 }
-                                if ((removed == false) && (record.get("order") == actionCount.toString())){
+                                if ((removed == false) && (removedOrder == actionCount)){
                                     actionCount--;
                                     removed = true;
                                 }
                                 if (node.parentNode.isRoot() == true){
                                     node.set("rowOrder",topRowcount-2);
-                                }
-                                if (node.parentNode.isRoot() == true){
                                     topRowcount++;
                                 }
-                            });
 
+                            /*
+                            */
+                            });
                             record.remove();
                             actionDivider.remove();
+                            me.setVisible(true);
                             //make sure there is always one empty row
                             if (me.store.getRootNode().childNodes.length == 0){
                                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
@@ -621,8 +630,9 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.removing = false;
                             me.getView().refresh();
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
-                            Ext.MessageBox.hide();
+                            //Ext.MessageBox.hide();
                             console.log(lastScrollPos)
+
                         }
                     }
                 ]
