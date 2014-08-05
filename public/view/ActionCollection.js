@@ -622,7 +622,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             */
                             });
                             record.remove();
-                            actionDivider.remove();
+                            if(actionDivider) actionDivider.remove();
                             //make sure there is always one empty row
                             if (me.store.getRootNode().childNodes.length == 0){
                                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
@@ -989,6 +989,10 @@ Ext.define('Redwood.view.ActionCollection', {
 
             collection.sort(function(a,b){return parseInt(a.order,10)-parseInt(b.order,10)});
             collection.forEach(function(action,index){
+                if(!action.actionid) {
+                    orderAdjustment = orderAdjustment - 1;
+                    return;
+                }
                 var foundAction = actionStore.query("_id",action.actionid).getAt(0);
 
 
