@@ -1038,6 +1038,7 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
             retry = true;
             execution.testcases[testcase.executionTestCaseID].retryCount--;
             execution.testcases[testcase.executionTestCaseID].executing = false;
+            execution.returnVars[testcase.executionTestCaseID] = {};
         }
         if (execution.cachedTCs){
             execution.baseStateFailed = true;
