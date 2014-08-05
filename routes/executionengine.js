@@ -94,7 +94,7 @@ exports.startexecutionPost = function(req, res){
         template = req.body.templates[0]
     }
 
-    executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
+    executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{}};
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
         if (err != null){
@@ -868,7 +868,12 @@ exports.actionresultPost = function(req, res){
 
 
     if ((req.body.returnValue)&&(testcase.currentAction.dbAction.returnvalue != "")){
-        execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
+        if(!execution.returnVars[req.body.testcaseID]){
+            execution.returnVars[req.body.testcaseID] = {};
+        }
+        execution.returnVars[req.body.testcaseID][testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
+        //.[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
+        //execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
     }
 
     var actionFlow = testcase.currentAction.dbAction.executionflow;
@@ -911,6 +916,9 @@ exports.actionresultPost = function(req, res){
 
     var variables = execution.variables;
     for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
+    if(execution.returnVars[testcase.executionTestCaseID]){
+        for (var attrname in execution.returnVars[testcase.executionTestCaseID]) { variables[attrname] = execution.returnVars[testcase.executionTestCaseID][attrname]; }
+    }
     findNextAction(testcase.testcase.actions,variables,function(action){
         if(action == null){
             testcase.result.status = "Finished";
@@ -1918,6 +1926,10 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
     var getActionDetails = function(nextAction,lastPoint,lastResultPoint,cb){
         db.collection('actions', function(err, collection) {
+            if(!nextAction.actionid) {
+                cb();
+                return;
+            }
             collection.findOne({_id:db.bson_serializer.ObjectID(nextAction.actionid)}, {}, function(err, action) {
                 if(action == null){
                     cb();
