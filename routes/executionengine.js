@@ -914,12 +914,14 @@ exports.actionresultPost = function(req, res){
         updateResult(testcase.result);
     });
 
-    var variables = execution.variables;
-    for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
+    var actionVariables = {};
+    for (var attrname in execution.variables) { actionVariables[attrname] = execution.variables[attrname]; }
+    for (var attrname in testcase.machineVars) { actionVariables[attrname] = testcase.machineVars[attrname]; }
     if(execution.returnVars[testcase.executionTestCaseID]){
-        for (var attrname in execution.returnVars[testcase.executionTestCaseID]) { variables[attrname] = execution.returnVars[testcase.executionTestCaseID][attrname]; }
+        for (var attrname in execution.returnVars[testcase.executionTestCaseID]) { actionVariables[attrname] = execution.returnVars[testcase.executionTestCaseID][attrname]; }
     }
-    findNextAction(testcase.testcase.actions,variables,function(action){
+
+    findNextAction(testcase.testcase.actions,actionVariables,function(action){
         if(action == null){
             testcase.result.status = "Finished";
             if(testcase.result.result != "Failed") testcase.result.result = "Passed";
