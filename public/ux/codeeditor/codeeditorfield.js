@@ -63,6 +63,8 @@ Ext.define('Redwood.ux.CodeEditorField', {
             lineNumbers: true,
             matchBrackets: true,
             autoCloseBrackets: true,
+            indentUnit: 4,
+            tabSize: 4,
             anchor:     '100% -20',
             extraKeys:
                 {"Ctrl-S": function(){
