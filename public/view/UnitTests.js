@@ -4,6 +4,8 @@ Ext.define('Redwood.view.UnitTests', {
     title: 'Unit Tests',
     draggable: true,
     resizable: true,
+    autoScroll: true,
+    overflowY: 'auto',
     width: 400,
     height: 300,
     layout: 'fit',
@@ -35,7 +37,10 @@ Ext.define('Redwood.view.UnitTests', {
         });
 
         var unitTestsGrid = new Ext.grid.Panel({
+            autoScroll: true,
             minHeight: 150,
+            maxHeight:50,
+            overflowY: 'auto',
             manageHeight: true,
             viewConfig:{
                 markDirty: false

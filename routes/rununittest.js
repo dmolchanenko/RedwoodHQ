@@ -14,7 +14,6 @@ exports.runUnitTest = function(req,res){
     execEngine.compileBuild(project,username,function(result){
         console.log(result);
         if (result != null){
-            console.log("WTF???");
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});
         }
@@ -56,9 +55,7 @@ exports.unitTestResult = function(req,res){
     if(req.body.trace){
         realtime.emitMessage("UnitTestRun"+username,{status:'<span style="color: red; ">Test Failed:</span>'});
         realtime.emitMessage("UnitTestRun"+username,{error:req.body.error});
-        //execEngine.formatTrace(req.body.trace,runningTests[username].sourceCache,function(trace){
-        mytrace
-        execEngine.formatTrace(mytrace,runningTests[username].sourceCache,function(trace){
+        execEngine.formatTrace(req.body.trace,runningTests[username].sourceCache,function(trace){
             realtime.emitMessage("UnitTestRun"+username,{message:trace});
         });
     }

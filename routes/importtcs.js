@@ -212,7 +212,7 @@ function insertTC(fullName,project,tcType,callback){
             tagcollection.findOne({project:project,value:tag},{},function(err,foundTag){
                 if (foundTag == null){
                     tagcollection.insert({project:project,value:tag}, {safe:true},function(err,returnData){
-                        realtime.emitMessage("AddTestCaseTags",returnData);
+                        realtime.emitMessage("AddTestCaseTags",returnData[0]);
                         tagCount++;
                         if (tagCount == tags.length){
                             insertTC();
