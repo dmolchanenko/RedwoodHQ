@@ -578,7 +578,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
     removeFromStore: function(store,item){
         //var record = store.findRecord("_id",item.id);
         //if (record == null) return;
-        var record = store.query("_id",item._id);
+        var record = store.query("_id",item.id);
         if(record.length == 0) return;
         store.remove(record.getAt(0));
         store.fireEvent("beforesync",{destroy:[record.getAt(0)]});

@@ -174,11 +174,22 @@ function importTCsFromFile(path,project,callback){
 
 exports.importSelectedTCs = function(req,res){
     var count = 0;
+    var tags = [];
     req.body.testcases.forEach(function(testcase){
-        insertTC(testcase.name,req.cookies.project,testcase.type.toLowerCase(),function(){
+        var packages = testcase.name.split(".");
+        var tcTags = [];
+        for(var i=0;i<packages.length;i++){
+            if(i<packages.length-2){
+                if(tags.indexOf(packages[i]) == -1) tags.push(packages[i]);
+                tcTags.push(packages[i]);
+            }
+        }
+        insertTC(testcase.name,req.cookies.project,testcase.type.toLowerCase(),tcTags,function(){
             count++;
             if(count == req.body.testcases.length){
-                realtime.emitMessage("TCImportDone"+req.cookies.username,count);
+                insertTags(tags,req.cookies.project,function(){
+                    realtime.emitMessage("TCImportDone"+req.cookies.username,count);
+                });
             }
         })
     });
@@ -186,26 +197,21 @@ exports.importSelectedTCs = function(req,res){
     res.json({success: true});
 };
 
-function insertTC(fullName,project,tcType,callback){
-    var tags = [];
+function insertTC(fullName,project,tcType,tags,callback){
     var db = require('../common').getDB();
-    var packages = fullName.split(".");
-    for(var i=0;i<packages.length;i++){
-        if(i<packages.length-2){
-            tags.push(packages[i]);
-        }
-    }
-    var insertTC = function(){
-        var newTC = {name:fullName,type:tcType,script:fullName,status:"Automated",tag:tags,project:project,actioncollection:[]};
-        db.collection('testcases', function(err, collection) {
-            collection.insert(newTC, {safe:true},function(err,tcReturnData){
-                if(err == null){
-                    realtime.emitMessage("AddTestCases",tcReturnData[0]);
-                }
-                callback()
-            });
+    var newTC = {name:fullName,type:tcType,script:fullName,status:"Automated",tag:tags,project:project,actioncollection:[]};
+    db.collection('testcases', function(err, collection) {
+        collection.insert(newTC, {safe:true},function(err,tcReturnData){
+            if(err == null){
+                realtime.emitMessage("AddTestCases",tcReturnData[0]);
+            }
+            callback()
         });
-    };
+    });
+}
+
+function insertTags(tags,project,callback){
+    var db = require('../common').getDB();
     var tagCount = 0;
     tags.forEach(function(tag,index){
         db.collection('testcaseTags', function(err, tagcollection) {
@@ -215,14 +221,14 @@ function insertTC(fullName,project,tcType,callback){
                         realtime.emitMessage("AddTestCaseTags",returnData[0]);
                         tagCount++;
                         if (tagCount == tags.length){
-                            insertTC();
+                            callback();
                         }
                     });
                 }
                 else{
                     tagCount++;
                     if (tagCount == tags.length){
-                        insertTC();
+                        callback();
                     }
                 }
 

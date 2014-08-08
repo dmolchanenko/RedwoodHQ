@@ -39,7 +39,7 @@ Ext.define('Redwood.view.UnitTests', {
         var unitTestsGrid = new Ext.grid.Panel({
             autoScroll: true,
             minHeight: 150,
-            maxHeight:50,
+            maxHeight:200,
             overflowY: 'auto',
             manageHeight: true,
             viewConfig:{
