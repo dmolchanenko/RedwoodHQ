@@ -124,6 +124,10 @@ class Launcher {
             def returnValue = null
 
             if(action.type && action.type != "script"){
+                //verify that class and method actually exists
+                def testClass = Class.forName(className)
+                testClass.getMethod(methodName)
+
                 if(action.type == "junit"){
                     org.junit.runner.Request request = org.junit.runner.Request.method(Class.forName(className),methodName)
                     org.junit.runner.Result result = new org.junit.runner.JUnitCore().run(request)
@@ -138,7 +142,12 @@ class Launcher {
                     testng.m_commandLineMethods = Arrays.asList(action.script)
                     testng.run()
                     if(testng.hasFailure()){
-                        throw tla.getFailedTests().get(0).getThrowable()
+                        if(tla.getConfigurationFailures().size() > 0){
+                            throw tla.getConfigurationFailures().get(0).getThrowable()
+                        }
+                        else{
+                            throw tla.getFailedTests().get(0).getThrowable()
+                        }
                     }
                 }
             }
