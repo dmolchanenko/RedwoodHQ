@@ -475,8 +475,8 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").show();
                 tab.up("executionsEditor").down("#stopExecution").show();
                 tab.up("executionsEditor").down("#saveExecution").show();
-                tab.up("executionsEditor").down("#searchExecution").hide();
-                tab.up("executionsEditor").down("#aggregationReport").hide();
+                //tab.up("executionsEditor").down("#searchExecution").hide();
+                //tab.up("executionsEditor").down("#aggregationReport").hide();
                 if (tab.getStatus() === "Running"){
                     tab.up("executionsEditor").down("#runExecution").setDisabled(true);
                     tab.up("executionsEditor").down("#stopExecution").setDisabled(false);
@@ -490,25 +490,23 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
-                tab.up("executionsEditor").down("#searchExecution").hide();
-                tab.up("executionsEditor").down("#aggregationReport").hide();
+                //tab.up("executionsEditor").down("#searchExecution").hide();
+                //tab.up("executionsEditor").down("#aggregationReport").hide();
                 tab.refreshHeight();
             }
             else if(tab.title.indexOf("Aggregate Report]") != -1){
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
-                tab.up("executionsEditor").down("#searchExecution").hide();
-                tab.up("executionsEditor").down("#aggregationReport").hide();
+                //tab.up("executionsEditor").down("#searchExecution").hide();
+                //tab.up("executionsEditor").down("#aggregationReport").hide();
             }
             else{
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
-                tab.up("executionsEditor").down("#searchExecution").show();
-                tab.up("executionsEditor").down("#aggregationReport").show();
-                //tab.up("executionsEditor").down("#runExecution").setDisabled(true);
-                //tab.up("executionsEditor").down("#stopExecution").setDisabled(true);
+                //tab.up("executionsEditor").down("#searchExecution").show();
+                //tab.up("executionsEditor").down("#aggregationReport").show();
             }
         })
     }

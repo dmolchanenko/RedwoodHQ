@@ -20,50 +20,55 @@ Ext.define('Redwood.view.ExecutionsGrid', {
     }),
     initComponent: function () {
         var executionsEditor = this;
+        var me = this;
+        this.lockedFilter = new Ext.util.Filter({
+            property: 'locked',
+            root: "data",
+            value   : false
+        });
 
         this.tbar ={
             xtype: 'toolbar',
             dock: 'top',
             items: [
                 {
-                    iconCls: 'icon-add',
-                    tooltip:"Add Action",
-                    itemId: "addAction",
-                    handler: function(){
-                        var actionPicker = this.up("toolbar").down("#actionpicker");
-                        if (actionPicker.getValue() == null || actionPicker.getValue() == "") return;
-                        me.waitMsg("Adding Action");
-                        this.setDisabled(true);
-                        //if store is empty
-                        if(me.store.getRootNode().childNodes.length == 1){
-                            me.store.getRootNode().removeAll();
+                    width: 400,
+                    fieldLabel: 'Search',
+                    labelWidth: 50,
+                    xtype: 'searchfield',
+                    itemId:"searchExecution",
+                    paramNames: ["tag","name"],
+                    store: Ext.data.StoreManager.lookup('Executions')
+                },
+                {
+                    xtype:"checkbox",
+                    fieldLabel: "Show Locked",
+                    labelWidth: 70,
+                    checked: false,
+                    handler: function(widget){
+                        var store = Ext.data.StoreManager.lookup('Executions');
+                        if(widget.getValue() == true){
+                            store.removeFilter(me.lockedFilter)
                         }
-                        var action = me.createAction(actionPicker.getValue(),actionPicker.store);
-                        if (action === null) {
-                            Ext.MessageBox.hide();
-                            this.setDisabled(false);
-                            return;
+                        else{
+                            //var filter = store.filter("locked",false);
+                            store.filter(me.lockedFilter);
                         }
-                        if (me.parentActionID == action.actionid){
-                            Ext.Msg.alert('Error', "You can not add action to itself.");
-                            this.setDisabled(false);
-                            return;
+                    },
+                    listeners:{
+                        afterrender: function(){
+                            Ext.data.StoreManager.lookup('Executions').filter(me.lockedFilter);
                         }
-                        var actionsGrid = this.up("actioncollection");
-                        action.order = parseInt(((actionsGrid.store.getRootNode().childNodes.length + 1)/2)+1,10);
-                        if (action.order == 1){
-                            action.rowOrder = action.order;
-                        }else{
-                            action.rowOrder = action.order + (action.order - 1);
-                        }
-                        var newRecord = actionsGrid.store.getRootNode().appendChild(action);
-                        var node = actionsGrid.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
-                        this.setDisabled(false);
-                        me.plugins[0].scrollTo(newRecord.get("rowOrder")+5000,true);
-                        if (newRecord.childNodes.length > 0){
-                            me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
-                        }
-                        Ext.MessageBox.hide();
+                    }
+                },
+                "-",
+                {
+                    icon: "images/symbol_sum.png",
+                    tooltip: "Select Executions to Aggregate",
+                    itemId: "aggregationReport",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('aggregate');
                     }
                 }
             ]
@@ -103,7 +108,7 @@ Ext.define('Redwood.view.ExecutionsGrid', {
             {
                 header: 'Tags',
                 dataIndex: 'tag',
-                width: 400
+                width: 200
             },
             {
                 xtype:"datecolumn",
@@ -285,25 +290,6 @@ Ext.define('Redwood.view.Executions', {
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
                         editor.fireEvent('run');
-                    }
-                },
-                {
-                    width: 400,
-                    fieldLabel: 'Search',
-                    labelWidth: 50,
-                    xtype: 'searchfield',
-                    itemId:"searchExecution",
-                    paramNames: ["tag","name"],
-                    store: Ext.data.StoreManager.lookup('Executions')
-                },
-                "-",
-                {
-                    icon: "images/symbol_sum.png",
-                    tooltip: "Select Executions to Aggregate",
-                    itemId: "aggregationReport",
-                    handler: function(widget, event) {
-                        var editor = this.up('executionsEditor');
-                        editor.fireEvent('aggregate');
                     }
                 }
             ]
