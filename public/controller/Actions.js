@@ -113,6 +113,7 @@ Ext.define("Redwood.controller.Actions", {
         if (actionView.validate(this.getStore('Actions')) === false){
             return;
         }
+        var lastScrollPos = actionView.getEl().dom.children[0].scrollTop;
         var action = actionView.getActionData();
         if (actionView.dataRecord === null){
             actionView.dataRecord = this.getStore('Actions').add(action)[0];
@@ -138,6 +139,7 @@ Ext.define("Redwood.controller.Actions", {
         this.getStore('ActionTags').sync();
         actionView.setTitle(action.name);
         actionView.dirty = false;
+        actionView.getEl().dom.children[0].scrollTop = lastScrollPos;
     },
 
     onNewAction: function(){
