@@ -744,6 +744,7 @@ function startTCExecution(id,variables,executionID,callback){
                 executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
                 agentInstructions.name = action.name;
+                agentInstructions.executionflow = action.dbAction.executionflow;
                 agentInstructions.executionID = executionID;
                 agentInstructions.ignoreScreenshots = executions[executionID].ignoreScreenshots;
                 agentInstructions.allScreenshots = executions[executionID].allScreenshots;
@@ -947,6 +948,7 @@ exports.actionresultPost = function(req, res){
         execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
 
         agentInstructions.name = action.name;
+        agentInstructions.executionflow = action.dbAction.executionflow;
         agentInstructions.executionID = req.body.executionID;
         agentInstructions.ignoreScreenshots = executions[req.body.executionID].ignoreScreenshots;
         agentInstructions.allScreenshots = executions[req.body.executionID].allScreenshots;

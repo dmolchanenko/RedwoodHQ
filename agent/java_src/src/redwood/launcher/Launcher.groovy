@@ -209,7 +209,7 @@ class Launcher {
     }
 
     private static takeScreenshot(def action){
-        if(action["ignoreScreenshots"] == false){
+        if(action["ignoreScreenshots"] == false && action["executionflow"] != "Ignore Error Continue Test Case"){
             String id = UUID.randomUUID().toString() + action.resultID
 
             try{
