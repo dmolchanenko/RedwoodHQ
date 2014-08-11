@@ -25,6 +25,32 @@ function openExecution(id){
     }
 }
 
+function openDetailedTrace(id){
+    var controller = Redwood.app.getController("Executions");
+    var trace = controller.tabPanel.getActiveTab().resultsStore.getNodeById(id).get("trace");
+    Ext.create('Ext.window.Window', {
+        title: 'Full Trace',
+        modal: true,
+        height: 400,
+        width: 700,
+        overflowY:'auto',
+        layout: 'fit',
+        items: {
+            xtype:"panel",
+            overflowY:'auto',
+            layout: 'fit',
+            items:{
+                xtype: 'text',
+                html: trace,
+                overflowY:'auto'
+            }
+        }
+    }).show();
+    if(Ext.isChrome){
+        return false;
+    }
+}
+
 
 Ext.define("Redwood.controller.Executions", {
     extend: 'Ext.app.Controller',

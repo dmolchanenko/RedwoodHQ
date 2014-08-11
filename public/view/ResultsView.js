@@ -348,6 +348,8 @@ Ext.define('Redwood.view.ResultsView', {
                     flex:1,
                     //width: 800,
                     renderer: function(value,meta,record){
+                        if(value == "") return;
+                        var displayValue = "";
                         while(value.indexOf("&quot;NaN&quot;)'>&quot;") != -1){
                             var junk = value.indexOf("&quot;NaN&quot;)'>&quot;");
                             var endOfJunk = value.indexOf("&",junk+23);
@@ -355,8 +357,14 @@ Ext.define('Redwood.view.ResultsView', {
                             value = value.replace("&quot;NaN&quot;)'>&quot;"+properValue+"&quot;)'>","&quot;"+properValue+"&quot;)'>");
                             value = value.replace("</a></a>","</a>");
                         }
+                        value.split("),").forEach(function(line){
+                            if(line.indexOf("</a>")!= -1){
+                                displayValue += "<p>"+line.split("</a>")[0] + ",</p>";
+                            }
+                        });
+                        displayValue += '<p><a style="color: blue;" href="javascript:openDetailedTrace(\''+record.internalId+'\')">Full Trace...</a></p>';
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p>"+value+"</p>"
+                        return "<p>"+displayValue+"</p>"
                     }
                 }
             ]
