@@ -486,6 +486,12 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
     layout: 'fit',
     listeners:{
+        show: function(panel){
+            var tab = panel.down("#scriptstab").getActiveTab();
+            if(tab) {
+                setTimeout(function(){tab.focus();},100);
+            }
+        },
         afterrender:function(){
             this.setHeight(this.findParentByType('viewport').getHeight()-27);
         }
@@ -628,7 +634,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     listeners: {
                         tabchange: function(tabPanel,newCard,oldCard,eOpts){
                             if(newCard.path){
-                                newCard.focus();
+                                setTimeout(function(){newCard.focus();},100);
                                 if(newCard.refreshNeeded == true) {
                                     newCard.focusArea();
                                     newCard.refreshNeeded = false;
