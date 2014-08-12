@@ -9,6 +9,22 @@ Ext.define('Redwood.store.Executions', {
         direction: 'ASC'
     }],
 
+    listeners:{
+        datachanged: function(store){
+            var filters = store.filters.items;
+            if(filters.length > 0) {
+                if(store.resettingFilters != true){
+                    store.resettingFilters = true;
+                    store.clearFilter(true);
+                    store.filter(filters);
+                }
+                else{
+                    store.resettingFilters = false;
+                }
+            }
+        }
+    },
+
     proxy: {
         type: 'rest',
         url: '/executions',
