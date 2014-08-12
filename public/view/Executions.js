@@ -43,7 +43,7 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 {
                     xtype:"checkbox",
                     fieldLabel: "Show Locked",
-                    labelWidth: 70,
+                    labelWidth: 80,
                     checked: false,
                     handler: function(widget){
                         var store = Ext.data.StoreManager.lookup('Executions');
