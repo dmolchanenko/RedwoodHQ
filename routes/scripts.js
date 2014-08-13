@@ -38,7 +38,7 @@ exports.scriptsPull = function(req,res){
                         res.json({success:true,conflicts:files});
                         //try and delete jar file to trigger compile from execution
                         try{
-                            fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar")
+                            fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
                         }
                         catch(err){}
                     })
