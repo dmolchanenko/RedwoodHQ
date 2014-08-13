@@ -201,9 +201,9 @@ function compileBuild(project,username,callback){
         })
     };
 
-    fs.exists(workDir+"/build", function (exists) {
+    fs.exists(workDir+"/build/jar/"+project+".jar", function (exists) {
         if(exists == true){
-            fs.stat(workDir+"/build",function(err,stats){
+            fs.stat(workDir+"/build/jar/"+project+".jar",function(err,stats){
                 if(err) {
                     compileScripts();
                 }
