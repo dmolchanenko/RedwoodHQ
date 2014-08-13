@@ -359,7 +359,17 @@ Ext.define('Redwood.view.ResultsView', {
                         }
                         value.split("),").forEach(function(line){
                             if(line.indexOf("</a>")!= -1){
-                                displayValue += "<p>"+line.split("</a>")[0] + ",</p>";
+                                var lineArray = line.split("</a>");
+                                if(lineArray.length > 2){
+                                    lineArray.forEach(function(innerLine){
+                                        if(innerLine.indexOf("<a") != -1){
+                                            displayValue += "<p>"+innerLine.split("</a>")[0] + ",</p>";
+                                        }
+                                    })
+                                }
+                                else{
+                                    displayValue += "<p>"+lineArray[0] + ",</p>";
+                                }
                             }
                         });
                         displayValue += '<p><a style="color: blue;" href="javascript:openDetailedTrace(\''+record.internalId+'\')">Full Trace...</a></p>';
