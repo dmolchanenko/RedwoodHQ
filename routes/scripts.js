@@ -36,6 +36,11 @@ exports.scriptsPull = function(req,res){
                         }
                         res.contentType('json');
                         res.json({success:true,conflicts:files});
+                        //try and delete jar file to trigger compile from execution
+                        try{
+                            fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar")
+                        }
+                        catch(err){}
                     })
                 });
             });
