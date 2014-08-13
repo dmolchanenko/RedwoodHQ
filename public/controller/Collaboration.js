@@ -30,7 +30,7 @@ Ext.define("Redwood.controller.Collaboration", {
         this.collabWindow.show();
     },
     onSendShareRequest:  function(record,window,tab){
-        Ext.socket.emit('CollaborateScript',{toUserName:record.get('username'),operation:"requestPermission",username:Ext.util.Cookies.get('username'),name:Ext.data.StoreManager.lookup('Users').findRecord("username",Ext.util.Cookies.get('username')).get("name")});
+        Ext.socket.emit('CollaborateScript',{toUserName:record.get('username'),operation:"requestPermission",username:Ext.util.Cookies.get('username'),name:Ext.data.StoreManager.lookup('Users').query("username",Ext.util.Cookies.get('username')).getAt(0).get("name")});
     },
 
     requestCollab:  function(username,name){

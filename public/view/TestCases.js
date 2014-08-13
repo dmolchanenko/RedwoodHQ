@@ -80,13 +80,13 @@ Ext.define('Redwood.view.TestCases', {
             if (options.destroy){
                 options.destroy.forEach(function(r){
                     if (r != null){
-                        actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                        actionsPanelStore.remove(actionsPanelStore.query("_id", r.get("_id")).getAt(0));
                     }
                 });
             }
             if (options.update){
                 options.update.forEach(function(r){
-                    actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                    actionsPanelStore.remove(actionsPanelStore.query("_id", r.get("_id")).getAt(0));
                     actionsPanelStore.add(r);
                 });
             }
