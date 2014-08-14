@@ -21,6 +21,7 @@ exports.stopexecutionPost = function(req, res){
     if(!execution) return;
     cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
+    unlockCloudMachines(execution.machines);
     for(var testcase in execution.currentTestCases){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
@@ -380,6 +381,7 @@ function executeTestCases(testcases,executionID){
     var finishExecution = function(callback){
         if (executions[executionID].cachedTCs){
             if(executions[executionID].baseStateFailed === true){
+                unlockCloudMachines(executions[executionID].machines);
                 unlockMachines(machines,function(){
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
 
@@ -409,6 +411,7 @@ function executeTestCases(testcases,executionID){
         }
         else{
             if(executions[executionID]){
+                unlockCloudMachines(executions[executionID].machines);
                 unlockMachines(executions[executionID].machines,function(){
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
 
@@ -1766,7 +1769,7 @@ function unlockMachines(allmachines,callback){
     var machineCount = 0;
     var machines = allmachines.slice(0);
     common.logger.info(machines);
-    unlockCloudMachines(allmachines);
+    //unlockCloudMachines(allmachines);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
