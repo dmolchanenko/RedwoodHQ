@@ -249,7 +249,7 @@ app.get('/scripts/root',auth.auth, scripts.scriptsGet);
 app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
 app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 app.post('/scripts/push',auth.auth, scripts.scriptsPush);
-app.post('/scripts/pull',auth.auth, scripts.scriptsPull);
+app.post('/scripts/pull',scripts.scriptsPull);
 
 //script
 app.post('/script/get',auth.auth, script.scriptGet);
