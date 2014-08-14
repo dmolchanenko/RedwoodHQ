@@ -97,7 +97,7 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                     if (value == "Ready To Run" && record.get("locked") == false){
                         return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
                     }
-                    else if(record.get("locked") == true){
+                    else if(record.get("locked") == true && value == "Ready To Run"){
                         return "<p style='font-weight:bold;color:#6727ff'>"+"Locked"+"</p>";
                     }
                     else{
