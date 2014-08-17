@@ -137,12 +137,12 @@ exports.startexecutionPost = function(req, res){
                             res.json({success:true});
                             lockMachines(machines,executionID,function(){
                                 if(executions[executionID].template){
-                                    updateExecution({_id:executionID},{$set:{cloudStatus:"Provisioning Virtual Machines..."}},false);
+                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
                                 }
                                 else{
-                                    updateExecution({_id:executionID},{$set:{cloudStatus:""}},false);
+                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
                                 }
-                                StartCloudMachines(template,function(cloudMachines){
+                                StartCloudMachines(template,executionID,function(cloudMachines){
                                     if(cloudMachines.err){
                                         unlockMachines(machines);
                                         updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
@@ -1586,6 +1586,22 @@ function verifyMachineState(machines,callback){
     });
 }
 
+function GetRunningExecution(callback){
+    db.collection('executions', function(err, collection) {
+        var executions = [];
+        collection.find({status:"Running"}, {}, function (err, cursor) {
+            cursor.each(function (err, execution) {
+                if (execution == null) {
+                    callback(executions)
+                }
+                else{
+                    executions.push(execution._id)
+                }
+            });
+        });
+    });
+}
+
 function VerifyCloudCapacity(template,callback){
     if(template == null) {
         callback({capacityAvailable:true});
@@ -1600,27 +1616,25 @@ function VerifyCloudCapacity(template,callback){
                         callback({err:"Error: No hosts are found."});
                         return
                     }
+                    GetRunningExecution(function(runningExecutions){
+                        var appDir = path.resolve(__dirname,"../")+"/";
+                        var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:template.instances,templateName:template.name,runningExecutions:runningExecutions})]);
 
-                    var appDir = path.resolve(__dirname,"../")+"/";
-                    //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
-                    //console.log(JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:template.instances,templateName:template.name}));
-                    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:template.instances,templateName:template.name})]);
+                        var cache = "";
+                        proc.stdout.on('data', function (data) {
+                            cache = cache + data.toString();
+                            //console.log(data.toString());
+                        });
 
-                    var cache = "";
-                    proc.stdout.on('data', function (data) {
-                        cache = cache + data.toString();
-                        //console.log(data.toString());
-                    });
+                        proc.stderr.on('data', function (data) {
+                            common.logger.error('Cloud stderr: ' + data.toString());
+                        });
 
-                    proc.stderr.on('data', function (data) {
-                        common.logger.error('Cloud stderr: ' + data.toString());
-                    });
-
-                    proc.on('close', function (code) {
-                        var response = JSON.parse(cache);
-                        callback(response);
-                    });
-                    return;
+                        proc.on('close', function (code) {
+                            var response = JSON.parse(cache);
+                            callback(response);
+                        });
+                    })
                 }
                 hosts.push(host);
             });
@@ -1628,7 +1642,7 @@ function VerifyCloudCapacity(template,callback){
     });
 }
 
-function StartCloudMachines(template,callback){
+function StartCloudMachines(template,executionID,callback){
     if(template == null) {
         callback([]);
         return;
@@ -1646,7 +1660,7 @@ function StartCloudMachines(template,callback){
                     var appDir = path.resolve(__dirname,"../")+"/";
                     //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
                     //console.log({operation:"startCloudMachines",hosts:hosts,template:template});
-                    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"startCloudMachines",hosts:hosts,template:template})]);
+                    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"startCloudMachines",hosts:hosts,template:template,executionID:executionID})]);
 
                     var cache = "";
                     proc.stdout.on('data', function (data) {
@@ -1697,7 +1711,9 @@ function StartCloudMachines(template,callback){
                     });
                     return;
                 }
-                hosts.push(host);
+                else{
+                    hosts.push(host);
+                }
             });
         })
     });
@@ -1743,10 +1759,16 @@ function unlockCloudMachines(machines){
     var cloudMachines = [];
     machines.forEach(function(machine) {
         if(machine.cloud == true){
-            delete machine.runningTC;
-            cloudMachines.push(machine)
+            if(machine.threads > 1){
+                machine.threads --
+            }
+            else{
+                delete machine.runningTC;
+                cloudMachines.push(machine)
+            }
         }
     });
+    if(cloudMachines.length == 0) return;
     var appDir = path.resolve(__dirname,"../")+"/";
     //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
     //console.log(JSON.stringify({operation:"unlockVMs",machines:cloudMachines}))
@@ -1769,7 +1791,7 @@ function unlockMachines(allmachines,callback){
     var machineCount = 0;
     var machines = allmachines.slice(0);
     common.logger.info(machines);
-    //unlockCloudMachines(allmachines);
+    unlockCloudMachines(allmachines);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {

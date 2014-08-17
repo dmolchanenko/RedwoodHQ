@@ -1,6 +1,6 @@
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
-    .demand(['name','testset','machines','project','user'])
+    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --cloudTemplate [templateName:instances:threads] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
+    .demand(['name','testset','project','user'])
     .argv;
 var common = require('../common');
 var app = require('../common');
@@ -47,8 +47,12 @@ common.parseConfig(function(){
     common.initDB(common.Config.DBPort,function(){
         db = app.getDB();
         PullLatest(execution,function(){
-            formatMachines(argv.machines.split(","),function(machines){
+            formatMachines(function(machines){
                 execution.machines = machines;
+                execution.templates = [];
+                if(argv.cloudTemplate){
+                    execution.templates.push({name:argv.cloudTemplate.split(":")[0],result:"",description:"",instances:parseInt(argv.cloudTemplate.split(":")[1]),threads:parseInt(argv.cloudTemplate.split(":")[2])})
+                }
                 formatTestSet(argv.testset,argv.project,function(testsetID){
                     execution.testset = testsetID.toString();
                     saveExecutionTestCases(testsetID,execution._id,function(testcases){
@@ -156,7 +160,7 @@ function StartExecution(execution,testcases,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
     req.end();
 }
 
@@ -318,8 +322,8 @@ function GenerateReport(cliexecution,callback){
                         }
                         //console.log(testcase);
                         xw.startElement('testcase');
-                        xw.writeAttribute('name',testcase.name);
                         xw.writeAttribute('classname',testcase.name);
+                        xw.writeAttribute('name',testcase.name);
                         xw.writeAttribute('time',(testcase.runtime / 1000).toString());
                         if (testcase.result == "Passed"){
                             xw.endElement();
@@ -328,7 +332,15 @@ function GenerateReport(cliexecution,callback){
                             xw.startElement('failure');
                             xw.writeAttribute('type',"Test Case Error");
                             xw.writeAttribute('message',testcase.error);
-                            xw.writeCData(testcase.trace);
+
+                             if(argv.resultURL){
+                                 //xw.writeAttribute('name',"<a href='"+argv.resultURL+"/index.html?result="+testcase.resultID+"&project="+argv.project+"'>"+testcase.name+"</a>");
+                                 xw.writeCData(argv.resultURL+"/index.html?result="+testcase.resultID+"&project="+argv.project+"   "+testcase.trace);
+                             }
+                             else{
+                                xw.writeCData(testcase.trace);
+                             }
+
                             xw.endElement();
                             xw.endElement();
                         }
@@ -381,8 +393,9 @@ function formatVariables(clivariables,project,callback){
     });
 }
 
-function formatMachines(climachines,callback){
-    var machines = [];
+function formatMachines(callback){
+    if(!argv.machines) callback([]);
+    var machines = argv.machines.split(",");
     var count = 0;
     db.collection('machines', function(err, collection) {
         climachines.forEach(function(machine){

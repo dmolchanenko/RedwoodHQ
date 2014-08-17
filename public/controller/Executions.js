@@ -476,10 +476,12 @@ Ext.define("Redwood.controller.Executions", {
 
     onEditorRender: function () {
         var me = this;
+
         this.executionsEditor = Ext.ComponentQuery.query('executionsEditor')[0];
         this.grid = this.executionsEditor;
         this.tabPanel = Ext.ComponentQuery.query('#executionsTab',this.executionsEditor)[0];
         //this.getTetSetNames();
+
         Ext.data.StoreManager.lookup('Executions').on("load",function(){
             me.getTetSetNames();
         });
