@@ -468,7 +468,10 @@ function getExecutionStatus(host,port,executionID,callback){
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
             common.logger.info('getExecutionStatus result: ' + chunk.toString());
-            callback(JSON.parse(chunk));
+            try{
+                callback(JSON.parse(chunk));
+            }
+            catch(error){callback({execution:null})}
         });
     });
 
