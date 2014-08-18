@@ -305,11 +305,11 @@ function suiteBaseState(executionID,machines,callback){
             foundSuiteState = true;
             machine.roles.push(machine.host);
             db.collection('testcases', function(err, collection) {
-                collection.insert({baseState:true,name:machine.host+"_state",status:"Automated",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
+                collection.insert({baseState:true,name:machine.host+"_state",status:"Automated",type:"collection",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
                     db.collection('executiontestcases', function(err, collection) {
                         //collection.save({_id:machine.resultID},{},{$set:{executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.resultID}}, {safe:true,new:true},function(err,returnData){
                         collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.baseStateTCID},function(err,returnData){
-                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.__id,retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state"});
+                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.__id,retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",type:"collection"});
                             count++;
                             lastMachine();
                         });
