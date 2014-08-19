@@ -659,7 +659,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
 
                     if (err){
-                        result.error = err;
+                        result.error = err.error;
                         result.status = "Finished";
                         result.result = "Failed";
                         updateResult(result);
@@ -968,7 +968,7 @@ exports.actionresultPost = function(req, res){
             agentBaseState(execution.project+"/"+execution.username,req.body.executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
 
                 if (err){
-                    testcase.result.error = err;
+                    testcase.result.error = err.error;
                     testcase.result.status = "Finished";
                     testcase.result.result = "Failed";
                     updateResult(testcase.result);
