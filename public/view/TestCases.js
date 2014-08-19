@@ -258,13 +258,13 @@ Ext.define('Redwood.view.TestCases', {
                         },
                         items:[
                             {
-                                width: 180,
+                                width: 200,
                                 xtype: 'searchfield',
                                 paramNames: ["tag","name"],
                                 store: Ext.data.StoreManager.lookup('TestCases')
                             },
                             {
-                                width: 10,
+                                width: 27,
                                 xtype: "displayfield",
                                 padding: 4,
                                 listeners:{
@@ -328,7 +328,7 @@ Ext.define('Redwood.view.TestCases', {
                 layout: "accordion",
                 region: 'west',
                 split:true,
-                width: 206,
+                width: 240,
                 collapseDirection: "left",
                 collapsible: true,
                 items:[testCaseListFlat,testCaseListTree,actionListFlat,actionListTree]
