@@ -237,6 +237,12 @@ function applyMultiThreading(executionID,callback){
                 if(dbMachine){
                     startThread = dbMachine.takenThreads - machine.threads;
                 }
+                if(startThread != 0){
+                    startThread = dbMachine.lastStartThread + 1
+                }
+
+                collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
+                });
                 common.logger.info("staring at:"+startThread);
                 machine.threadID = startThread;
                 //if more than one thread run base state if not let it go
