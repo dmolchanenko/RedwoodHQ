@@ -25,6 +25,32 @@ function openExecution(id){
     }
 }
 
+function openDetailedTrace(id){
+    var controller = Redwood.app.getController("Executions");
+    var trace = controller.tabPanel.getActiveTab().resultsStore.getNodeById(id).get("trace");
+    Ext.create('Ext.window.Window', {
+        title: 'Full Trace',
+        modal: true,
+        height: 400,
+        width: 700,
+        overflowY:'auto',
+        layout: 'fit',
+        items: {
+            xtype:"panel",
+            overflowY:'auto',
+            layout: 'fit',
+            items:{
+                xtype: 'text',
+                html: trace,
+                overflowY:'auto'
+            }
+        }
+    }).show();
+    if(Ext.isChrome){
+        return false;
+    }
+}
+
 
 Ext.define("Redwood.controller.Executions", {
     extend: 'Ext.app.Controller',
@@ -136,7 +162,7 @@ Ext.define("Redwood.controller.Executions", {
                 if(obj.error != null){
                     Ext.Msg.alert('Error', obj.error);
                 }
-                else{
+                else if(obj.testcase){
                     var foundTab = me.tabPanel.down("#"+id);
                     if (foundTab != null){
                         me.tabPanel.setActiveTab(foundTab);
@@ -168,6 +194,7 @@ Ext.define("Redwood.controller.Executions", {
         }
 
         var machines = executionView.getSelectedMachines();
+        var templates = executionView.getSelectedTemplates();
         var testcases = executionView.getSelectedTestCases();
         var ignoreStatus = executionView.down("#ignoreStatus").getValue();
         var ignoreAfterState = executionView.down("#ignoreAfterState").getValue();
@@ -189,8 +216,8 @@ Ext.define("Redwood.controller.Executions", {
             return;
         }
 
-        if (machines.length == 0){
-            Ext.Msg.alert('Error', "Please select machines to run the execution on.");
+        if (machines.length == 0 && templates.length == 0){
+            Ext.Msg.alert('Error', "Please select phisical or cloud machines to run the execution on.");
             return;
         }
         if (testcases.length == 0){
@@ -231,13 +258,13 @@ Ext.define("Redwood.controller.Executions", {
         executionView.up("executionsEditor").down("#runExecution").setDisabled(true);
         executionView.up("executionsEditor").down("#stopExecution").setDisabled(false);
         executionView.down("#executionTestcases").getSelectionModel().deselectAll();
-        executionView.down("#executionMachines").getSelectionModel().deselectAll();
+        //executionView.down("#executionMachines").getSelectionModel().deselectAll();
 
         this.saveExecution(function(execution){
             Ext.Ajax.request({
                 url:"/executionengine/startexecution",
                 method:"POST",
-                jsonData : {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines},
+                jsonData : {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines,templates:templates},
                 success: function(response) {
                     if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                     var obj = Ext.decode(response.responseText);
@@ -449,10 +476,12 @@ Ext.define("Redwood.controller.Executions", {
 
     onEditorRender: function () {
         var me = this;
+
         this.executionsEditor = Ext.ComponentQuery.query('executionsEditor')[0];
         this.grid = this.executionsEditor;
         this.tabPanel = Ext.ComponentQuery.query('#executionsTab',this.executionsEditor)[0];
         //this.getTetSetNames();
+
         Ext.data.StoreManager.lookup('Executions').on("load",function(){
             me.getTetSetNames();
         });
@@ -474,8 +503,8 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").show();
                 tab.up("executionsEditor").down("#stopExecution").show();
                 tab.up("executionsEditor").down("#saveExecution").show();
-                tab.up("executionsEditor").down("#searchExecution").hide();
-                tab.up("executionsEditor").down("#aggregationReport").hide();
+                //tab.up("executionsEditor").down("#searchExecution").hide();
+                //tab.up("executionsEditor").down("#aggregationReport").hide();
                 if (tab.getStatus() === "Running"){
                     tab.up("executionsEditor").down("#runExecution").setDisabled(true);
                     tab.up("executionsEditor").down("#stopExecution").setDisabled(false);
@@ -489,25 +518,23 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
-                tab.up("executionsEditor").down("#searchExecution").hide();
-                tab.up("executionsEditor").down("#aggregationReport").hide();
+                //tab.up("executionsEditor").down("#searchExecution").hide();
+                //tab.up("executionsEditor").down("#aggregationReport").hide();
                 tab.refreshHeight();
             }
             else if(tab.title.indexOf("Aggregate Report]") != -1){
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
-                tab.up("executionsEditor").down("#searchExecution").hide();
-                tab.up("executionsEditor").down("#aggregationReport").hide();
+                //tab.up("executionsEditor").down("#searchExecution").hide();
+                //tab.up("executionsEditor").down("#aggregationReport").hide();
             }
             else{
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
-                tab.up("executionsEditor").down("#searchExecution").show();
-                tab.up("executionsEditor").down("#aggregationReport").show();
-                //tab.up("executionsEditor").down("#runExecution").setDisabled(true);
-                //tab.up("executionsEditor").down("#stopExecution").setDisabled(true);
+                //tab.up("executionsEditor").down("#searchExecution").show();
+                //tab.up("executionsEditor").down("#aggregationReport").show();
             }
         })
     }

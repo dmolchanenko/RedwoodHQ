@@ -7,7 +7,6 @@ import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.NoSuchWindowException
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebDriverException
-import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriverService
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.ie.InternetExplorerDriver
@@ -15,7 +14,6 @@ import org.openqa.selenium.ie.InternetExplorerDriverService
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.safari.SafariDriver
-import org.testng.annotations.Test
 
 import java.util.concurrent.TimeUnit
 
@@ -40,6 +38,7 @@ class LookingGlass implements Runnable{
 
     def static initScript =
 '''
+document.lookingGlassRecordingStop = false;
 //if already run just return
 if(document.lookingGlassGetXpath) return;
 
@@ -154,6 +153,8 @@ document.lookingGlassGetXpath = function (element) {
 document.lookingGlassMouseOver = function(e){
 
     if(e.target == document.documentElement) return
+    document.lookingGlassRecording =  e.target;
+    e.target.lookingGlassOn = true;
     e.target.addEventListener('click', document.lookingGlassPreventClick,false);
     e.target.addEventListener('mousedown', document.lookingGlassPreventClick,false);
     e.target.addEventListener('mouseup', document.lookingGlassPreventClick,false);
@@ -163,11 +164,20 @@ document.lookingGlassMouseOver = function(e){
     document.lookingGlassLastElemHighlight = e.target.style.backgroundColor;
     e.target.style.outline = "medium solid green";
     e.target.style.backgroundColor = "#FDFF47";
-    document.lookingGlassRecording =  document.lookingGlassGenerateID(e.target);
+    var verifyAgain = function(){
+        if (e.target.lookingGlassOn === true){
+            document.lookingGlassRecording =  e.target;
+        }
+    }
+    setTimeout(verifyAgain,100);
+    setTimeout(verifyAgain,400);
+    setTimeout(verifyAgain,800);
+    //document.lookingGlassRecording =  document.lookingGlassGenerateID(e.target);
 };
 
 document.onmouseout = function(ev){
     if(document.lookingGlassLastElem){
+        ev.target.lookingGlassOn = false;
         ev.target.style.outline = document.lookingGlassLastElemColor;
         ev.target.style.backgroundColor = document.lookingGlassLastElemHighlight;
     }
@@ -180,7 +190,8 @@ document.onmouseout = function(ev){
 document.lookingGlassLastCursor = document.body.style.cursor;
 
 document.lookingGlassPreventClick = function(e){
-    document.lookingGlassRecording = "END OF RECORDING";
+    //document.lookingGlassRecording =  e.target;
+    document.lookingGlassRecordingStop = true;
     document.removeEventListener('mouseover', document.lookingGlassMouseOver);
     document.removeEventListener('click', document.lookingGlassPreventClick,false);
     document.removeEventListener('mousedown', document.lookingGlassPreventClick,false);
@@ -245,8 +256,12 @@ if(document.lookingGlassLastElem){
     document.lookingGlassLastElem.style.outline = document.lookingGlassLastElemColor
     document.lookingGlassLastElem.style.backgroundColor = document.lookingGlassLastElemHighlight
 }
-//document.removeEventListener('click', document.lookingGlassPreventClick, false);
+document.removeEventListener('click', document.lookingGlassPreventClick,false);
+document.removeEventListener('mousedown', document.lookingGlassPreventClick,false);
+document.removeEventListener('mouseup', document.lookingGlassPreventClick,false);
+document.removeEventListener('submit', document.lookingGlassPreventClick,false);
 document.removeEventListener('mouseover', document.lookingGlassMouseOver, false);
+delete document.lookingGlassGetXpath
 '''
     def static isFocusedScript =
 '''
@@ -264,12 +279,19 @@ callback(document.activeElement);
    }
    var waitForActions = function(){
        if(document.lookingGlassRecording){
-        var response = document.lookingGlassRecording
+        callback(document.lookingGlassGenerateID(document.lookingGlassRecording));
+        //callback(document.lookingGlassRecording);
         document.lookingGlassRecording = null;
-        callback(response);
        }
        else{
-        setTimeout(waitForActions, 50);
+           if(document.lookingGlassRecordingStop == true){
+             callback("END OF RECORDING")
+             document.lookingGlassRecording = null;
+             document.lookingGlassRecordingStop = false;
+           }
+           else{
+            setTimeout(waitForActions, 50);
+           }
        }
    }
    waitForActions();
@@ -298,6 +320,7 @@ else{
 
     public def performElementAction(String id,def reloadHTML,String idType,String actionType,exceptionClosure){
         //RecDriver.findElement(By.xpath(id))
+        RecDriver.manage().timeouts().implicitlyWait(1, java.util.concurrent.TimeUnit.SECONDS)
         def elements
         def response = [:]
         try{
@@ -395,6 +418,7 @@ else{
 
         try{
             RecDriver.findElement(By.xpath("//*[1]"))
+            println "getting html"
             def html = js.executeAsyncScript(getRawHtmlScript)
             return html
         }
@@ -443,10 +467,7 @@ else{
         catch (Exception ex){
             if(ex.message.contains("unload") || ex.message.contains("reload")){
                 RecDriver.findElement(By.xpath("//*[1]"))
-                println "reloading"
                 reloadHTML()
-                println "reloading2"
-                println "unloaded"
                 return recording()
             }
             else{
@@ -459,17 +480,20 @@ else{
 
     void run() {
         try{
-            System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir"));
+            def libDir = ""
+            if(new File("lib/chromedriver.exe").exists()){
+                libDir = new File("lib").absolutePath+"/"
+            }
             if(BrowserType == "Chrome"){
                 def service
                 if(System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0){
-                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver")).build()
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File(libDir+"chromedriver")).build()
                 }
                 else if (System.getProperty("os.name").toLowerCase().indexOf("linux") >= 0){
-                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver_linux")).build()
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File(libDir+"chromedriver_linux")).build()
                 }
                 else{
-                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File("chromedriver.exe")).build()
+                    service = new ChromeDriverService.Builder().usingPort(9515).usingDriverExecutable(new File(libDir+"chromedriver.exe")).build()
                 }
 
                 service.start()
@@ -483,7 +507,7 @@ else{
                 RecDriver = new SafariDriver()
             }
             else{
-                def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9517).usingDriverExecutable(new File("IEDriverServer.exe")).build()
+                def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9517).usingDriverExecutable(new File(libDir+"IEDriverServer.exe")).build()
                 serviceIE.start()
                 DesiredCapabilities d = DesiredCapabilities.internetExplorer()
                 d.setCapability("nativeEvents", false)

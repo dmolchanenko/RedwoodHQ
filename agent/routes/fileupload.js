@@ -30,6 +30,7 @@ exports.Post = function(req, res){
         });
     }
     catch(exception){
+        res.send('{error:"'+exception+'"}');
         common.logger.error("EXCEPTION while renaming file:"+target_path+"   "+exception);
     }
 

@@ -14,10 +14,18 @@ Ext.define('Redwood.view.ResultsView', {
     listeners:{
         afterrender: function(me){
             if (me.dataRecord.testcase.script){
+                if(me.dataRecord.screenshot){
+                    me.down("#screenShots").addNewScreenShot(me.dataRecord.screenshot._id);
+                }
                 me.down("#results").hide();
                 me.down("#error").show();
                 me.down("#trace").show();
             }
+        },
+        beforeclose:function(panel){
+            panel.resultsStore.destroy();
+            panel.logStore.destroy();
+            panel.dataRecord = null;
         }
     },
 
@@ -38,7 +46,7 @@ Ext.define('Redwood.view.ResultsView', {
                     }
                 })
             };
-            cascadeResult(me.latestResult.children);
+            if(me.latestResult.children) cascadeResult(me.latestResult.children);
             delete me.latestResult;
             var index = 0;
             me.resultsStore.getRootNode().cascadeBy(function(node){
@@ -73,6 +81,14 @@ Ext.define('Redwood.view.ResultsView', {
 
             if(me.down("#result").getValue() != result.result){
                 me.down("#result").setValue(result.result);
+            }
+
+            if(me.down("#trace").getValue() != result.trace){
+                me.down("#trace").setValue(result.trace);
+            }
+
+            if(me.down("#error").getValue() != result.error){
+                me.down("#error").setValue(result.error);
             }
 
         },500);
@@ -309,7 +325,7 @@ Ext.define('Redwood.view.ResultsView', {
                     width:240,
                     renderer: function(value,meta,record){
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p style='color:red;font-weight: bold;'>"+value+"</p>";
+                        return "<p style='color:red;font-weight: bold;'>"+Ext.util.Format.htmlEncode(value)+"</p>";
                     }
                 },
                 {
@@ -332,8 +348,33 @@ Ext.define('Redwood.view.ResultsView', {
                     flex:1,
                     //width: 800,
                     renderer: function(value,meta,record){
+                        if(value == "") return;
+                        var displayValue = "";
+                        while(value.indexOf("&quot;NaN&quot;)'>&quot;") != -1){
+                            var junk = value.indexOf("&quot;NaN&quot;)'>&quot;");
+                            var endOfJunk = value.indexOf("&",junk+23);
+                            var properValue = value.substring(junk+24,endOfJunk);
+                            value = value.replace("&quot;NaN&quot;)'>&quot;"+properValue+"&quot;)'>","&quot;"+properValue+"&quot;)'>");
+                            value = value.replace("</a></a>","</a>");
+                        }
+                        value.split("),").forEach(function(line){
+                            if(line.indexOf("</a>")!= -1){
+                                var lineArray = line.split("</a>");
+                                if(lineArray.length > 2){
+                                    lineArray.forEach(function(innerLine){
+                                        if(innerLine.indexOf("<a") != -1){
+                                            displayValue += "<p>"+innerLine.split("</a>")[0] + ",</p>";
+                                        }
+                                    })
+                                }
+                                else{
+                                    displayValue += "<p>"+lineArray[0] + ",</p>";
+                                }
+                            }
+                        });
+                        displayValue += '<p><a style="color: blue;" href="javascript:openDetailedTrace(\''+record.internalId+'\')">Full Trace...</a></p>';
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p>"+value+"</p>"
+                        return "<p>"+displayValue+"</p>"
                     }
                 }
             ]
@@ -409,14 +450,24 @@ Ext.define('Redwood.view.ResultsView', {
                 border: false
             },
             addNewScreenShot: function(node){
-                var path = node.getPath("name");
-                path = path.substring(2,path.length);
-                var html = "<h1>"+path+"</h1>";
-                html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>';
-                screenShots.add({
-                    node: node,
-                    html: html
-                })
+                var html;
+                if(node.getPath){
+                    var path = node.getPath("name");
+                    path = path.substring(2,path.length);
+                    html = "<h1>"+path+"</h1>";
+                    html = html + '<p><a href="javascript:openScreenShot(&quot;'+ node.get("screenshot") +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node.get("screenshot") +'" height="360"></a></p>';
+                    screenShots.add({
+                        node: node,
+                        html: html
+                    })
+                }
+                else{
+                    html = '<p><a href="javascript:openScreenShot(&quot;'+ node +'&quot;)"><img src="'+location.protocol + "//" + location.host +"/screenshots/"+node +'" height="360"></a></p>';
+                    screenShots.add({
+                        node: null,
+                        html: html
+                    })
+                }
             },
             tbar: [
                 {
@@ -529,7 +580,7 @@ Ext.define('Redwood.view.ResultsView', {
                         value:me.dataRecord.testcase.error,
                         anchor:'90%',
                         renderer: function(value,field){
-                            return "<p style='font-weight:bold;color:red'>"+value+"</p>"
+                            return "<p style='font-weight:bold;color:red'>"+Ext.util.Format.htmlEncode(value)+"</p>"
                         }
                     },
                     {

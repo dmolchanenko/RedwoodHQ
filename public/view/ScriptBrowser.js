@@ -16,6 +16,20 @@ var recordImageAction = Ext.create('Ext.Action', {
     }
 });
 
+var uploadFiles = Ext.create('Ext.Action', {
+    icon: 'images/uploadFolders.png',
+    tooltip: "Upload multiple directories and files.",
+    //margin: "0 3 0 3",
+    text:"Upload Directories",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('uploadFiles');
+    }
+});
+
 var recordStepsAction = Ext.create('Ext.Action', {
     icon: 'images/media_record.png',
     tooltip: "Start Looking Glass Utility",
@@ -89,6 +103,31 @@ var uploadAction = Ext.create('Ext.Action', {
     handler: function(widget, event) {
         //uploadActionHidden.handler.call(uploadActionHidden.scope, uploadActionHidden, Ext.EventObject)
         uploadActionHidden.fileInputEl.dom.click();
+    }
+});
+
+var importAllTCsAction = Ext.create('Ext.Action', {
+    tooltip: "Import TestNG/Junit Test Cases.",
+    text:"Import Test Cases",
+    icon: 'images/import.png',
+    handler: function(widget, event) {
+        Redwood.app.getController("Scripts").onImportAllTCs();
+    }
+});
+
+var runTCAction = Ext.create('Ext.Action', {
+    tooltip: "Run TestNG/Junit Test Case in opened script.",
+    icon: 'images/play.png',
+    id:"runUnitTest",
+    //hidden:true,
+    handler: function(widget, event) {
+        if(widget.icon == 'images/play.png'){
+            Redwood.app.getController("Scripts").onRunTC();
+        }
+        else{
+            Redwood.app.getController("Scripts").onStopTC();
+            widget.setIcon('images/play.png');
+        }
     }
 });
 
@@ -223,7 +262,33 @@ var newScriptAction = Ext.create('Ext.Action', {
         if (editor == undefined){
             editor = this.up('#treeContext').scriptEditor;
         }
-        editor.fireEvent('newScript');
+        editor.fireEvent('newScript',"script");
+    }
+});
+
+var newGroovyScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/fileTypeGroovy.png',
+    text: 'Groovy Action',
+    tooltip: "New Groovy Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"groovyAction");
+    }
+});
+
+var newJavaScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/fileTypeJava.png',
+    text: 'Java Action',
+    tooltip: "New Java Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"javaAction");
     }
 });
 
@@ -315,9 +380,12 @@ var newMenuItem = Ext.create('Ext.Action', {
     iconCls: 'icon-add',
     menu: new Ext.menu.Menu({
         items: [
+            newJavaScriptAction,
+            newGroovyScriptAction,
             newScriptAction,
             newFolderAction,
-            uploadAction
+            uploadAction,
+            uploadFiles
         ]
     })
 });
@@ -331,9 +399,26 @@ var newItemButton = Ext.create('Ext.button.Split',{
     },
     menu: new Ext.menu.Menu({
         items: [
+            newJavaScriptAction,
+            newGroovyScriptAction,
             newScriptAction,
             newFolderAction,
-            uploadAction
+            uploadAction,
+            uploadFiles
+        ]
+    })
+});
+
+var importTCButton = Ext.create('Ext.button.Split',{
+    text: "Import Test Cases",
+    itemId:"importTCMenu",
+    icon: 'images/import.png',
+    handler: function(){
+        this.showMenu();
+    },
+    menu: new Ext.menu.Menu({
+        items: [
+            importAllTCsAction
         ]
     })
 });
@@ -401,6 +486,12 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
     layout: 'fit',
     listeners:{
+        show: function(panel){
+            var tab = panel.down("#scriptstab").getActiveTab();
+            if(tab) {
+                setTimeout(function(){tab.focus();},100);
+            }
+        },
         afterrender:function(){
             this.setHeight(this.findParentByType('viewport').getHeight()-27);
         }
@@ -417,6 +508,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     region: "south",
                     split: true,
                     itemId: "outputPanel",
+                    id: "scriptOutputPanel",
                     xtype: "panel",
                     height: 200,
                     collapseDirection:"down",
@@ -462,6 +554,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                         listeners: {
                             itemcontextmenu: function(view, rec, node, index, e) {
                                 e.stopEvent();
+                                view.getSelectionModel().select(rec);
                                 contextMenu.treePanel = view;
                                 contextMenu.scriptEditor = scriptEditor;
                                 contextMenu.showAt(e.getXY());
@@ -486,6 +579,9 @@ Ext.define('Redwood.view.ScriptBrowser', {
                         load: function(){
                             this.getSelectionModel().select(this.getRootNode().getChildAt(0));
                         },
+                        itemclick: function(me,record,item,index,evt,eOpts){
+                            //console.log(evt)
+                        },
                         selectionchange: function(model,selected,eOpts){
                             if ((selected.length === 0)||(selected.length > 1)){
                                 newItemButton.setDisabled(true);
@@ -500,6 +596,8 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                     deleteScriptAction.setDisabled(true);
                                     if (node.get("fileType") === "libs"){
                                         newScriptAction.setDisabled(true);
+                                        newGroovyScriptAction.setDisabled(true);
+                                        newJavaScriptAction.setDisabled(true);
                                         newFolderAction.setDisabled(true);
                                     }
                                     foundRootItem = true;
@@ -508,6 +606,8 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             });
                             if (foundRootItem === false){
                                 newScriptAction.setDisabled(false);
+                                newGroovyScriptAction.setDisabled(false);
+                                newJavaScriptAction.setDisabled(false);
                                 newFolderAction.setDisabled(false);
                                 deleteScriptAction.setDisabled(false);
                                 copyAction.setDisabled(false);
@@ -534,7 +634,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     listeners: {
                         tabchange: function(tabPanel,newCard,oldCard,eOpts){
                             if(newCard.path){
-                                newCard.focus();
+                                setTimeout(function(){newCard.focus();},100);
                                 if(newCard.refreshNeeded == true) {
                                     newCard.focusArea();
                                     newCard.refreshNeeded = false;
@@ -581,7 +681,12 @@ Ext.define('Redwood.view.ScriptBrowser', {
                 pushAction,
                 pullAction,
                 recordStepsAction,
+                "-",
+                runTCAction,
+                //importTCButton,
                 "->",
+                importAllTCsAction,
+                "-",
                 findText,
                 findPrev,
                 findNext,

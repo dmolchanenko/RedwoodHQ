@@ -1,6 +1,6 @@
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads,hostname2:threads] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
-    .demand(['name','testset','machines','project','user'])
+    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --cloudTemplate [templateName:instances:threads] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
+    .demand(['name','testset','project','user'])
     .argv;
 var common = require('../common');
 var app = require('../common');
@@ -21,6 +21,7 @@ common.parseConfig(function(){
     execution.ignoreStatus = false;
     execution.lastRunDate = null;
     execution.testsetname = argv.testset;
+    execution.pullLatest = argv.pullLatest;
     if(argv.tags){
         execution.tag = argv.tags.split(",");
     }
@@ -45,46 +46,49 @@ common.parseConfig(function(){
 
     common.initDB(common.Config.DBPort,function(){
         db = app.getDB();
-        formatMachines(argv.machines.split(","),function(machines){
-            execution.machines = machines;
-            formatTestSet(argv.testset,argv.project,function(testsetID){
-                execution.testset = testsetID.toString();
-                saveExecutionTestCases(testsetID,execution._id,function(testcases){
-                    if(argv.variables){
-                        formatVariables(argv.variables.split(","),argv.project,function(variables){
-                            execution.variables = variables;
+        PullLatest(execution,function(){
+            formatMachines(function(machines){
+                execution.machines = machines;
+                execution.templates = [];
+                if(argv.cloudTemplate){
+                    execution.templates.push({name:argv.cloudTemplate.split(":")[0],result:"",description:"",instances:parseInt(argv.cloudTemplate.split(":")[1]),threads:parseInt(argv.cloudTemplate.split(":")[2])})
+                }
+                formatTestSet(argv.testset,argv.project,function(testsetID){
+                    execution.testset = testsetID.toString();
+                    saveExecutionTestCases(testsetID,execution._id,function(testcases){
+                        if(argv.variables){
+                            formatVariables(argv.variables.split(","),argv.project,function(variables){
+                                execution.variables = variables;
+                                SaveAndRunExecution(execution,testcases,function(){
+
+                                })
+                            })
+                        }
+                        else{
                             SaveAndRunExecution(execution,testcases,function(){
 
                             })
-                        })
-                    }
-                    else{
-                        SaveAndRunExecution(execution,testcases,function(){
-
-                        })
-                    }
+                        }
+                    });
                 });
             });
         });
-
     });
 });
 
 function saveExecutionTestCases(testsetID,executionID,callback){
     var testcases = [];
-    var count = 0;
     db.collection('testsets', function(err, testSetCollection) {
         db.collection('executiontestcases', function(err, ExeTCCollection) {
             //console.log(testsetID);
             testSetCollection.findOne({_id:db.bson_serializer.ObjectID(testsetID.toString())}, {testcases:1}, function(err, dbtestcases) {
-                dbtestcases.testcases.forEach(function(testcase){
+                dbtestcases.testcases.forEach(function(testcase,index){
                     db.collection('testcases', function(err, tcCollection) {
                         tcCollection.findOne({_id:db.bson_serializer.ObjectID(testcase._id.toString())},{name:1},function(err,dbtestcase){
                             var insertTC = {executionID:executionID,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
                             testcases.push(insertTC);
                             ExeTCCollection.insert(insertTC, {safe:true},function(err,returnData){
-                                count++;
-                                if(count == dbtestcases.testcases.length){
+                                if(index+1 == dbtestcases.testcases.length){
                                     callback(testcases);
                                 }
                             });
@@ -94,6 +98,40 @@ function saveExecutionTestCases(testsetID,executionID,callback){
             });
         });
     });
+}
+
+function PullLatest(execution,callback){
+    if(execution.pullLatest !== "true"){
+        callback();
+        return
+    }
+    var options = {
+        hostname: "localhost",
+        port: common.Config.AppServerPort,
+        path: '/scripts/pull',
+        method: 'POST',
+        agent:false,
+        headers: {
+            'Content-Type': 'application/json',
+            'Cookie': 'username='+execution.user+";project="+execution.project
+        }
+    };
+
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            console.log('BODY: ' + chunk);
+            callback();
+        });
+    });
+
+    req.on('error', function(e) {
+        console.log('problem with request: ' + e.message);
+    });
+
+    // write data to request body
+    req.write(JSON.stringify({}));
+    req.end();
 }
 
 function StartExecution(execution,testcases,callback){
@@ -122,7 +160,7 @@ function StartExecution(execution,testcases,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
     req.end();
 }
 
@@ -284,8 +322,8 @@ function GenerateReport(cliexecution,callback){
                         }
                         //console.log(testcase);
                         xw.startElement('testcase');
-                        xw.writeAttribute('name',testcase.name);
                         xw.writeAttribute('classname',testcase.name);
+                        xw.writeAttribute('name',testcase.name);
                         xw.writeAttribute('time',(testcase.runtime / 1000).toString());
                         if (testcase.result == "Passed"){
                             xw.endElement();
@@ -294,7 +332,15 @@ function GenerateReport(cliexecution,callback){
                             xw.startElement('failure');
                             xw.writeAttribute('type',"Test Case Error");
                             xw.writeAttribute('message',testcase.error);
-                            xw.writeCData(testcase.trace);
+
+                             if(argv.resultURL){
+                                 //xw.writeAttribute('name',"<a href='"+argv.resultURL+"/index.html?result="+testcase.resultID+"&project="+argv.project+"'>"+testcase.name+"</a>");
+                                 xw.writeCData(argv.resultURL+"/index.html?result="+testcase.resultID+"&project="+argv.project+"   "+testcase.trace);
+                             }
+                             else{
+                                xw.writeCData(testcase.trace);
+                             }
+
                             xw.endElement();
                             xw.endElement();
                         }
@@ -347,17 +393,41 @@ function formatVariables(clivariables,project,callback){
     });
 }
 
-function formatMachines(climachines,callback){
-    var machines = [];
+function formatMachines(callback){
+    if(!argv.machines) callback([]);
+    var machines = argv.machines.split(",");
     var count = 0;
     db.collection('machines', function(err, collection) {
         climachines.forEach(function(machine){
             collection.findOne({host:machine.split(":")[0]}, {}, function(err, dbmachine) {
+                if(!dbmachine){
+                    console.log("Machine: " +machine.split(":")[0]+" not found.");
+                    process.exit(1)
+                }
                 dbmachine.threads = machine.split(":")[1];
-                machines.push(dbmachine);
                 count++;
-                if(count == climachines.length){
-                    callback(machines);
+                if(machine.split(":").length == 3){
+                    db.collection('actions', function(err, actionCollection) {
+                        actionCollection.findOne({name:machine.split(":")[2]}, {}, function(err, action) {
+                            if(action){
+                                dbmachine.baseState = action._id;
+                                machines.push(dbmachine);
+                                if(count == climachines.length){
+                                    callback(machines);
+                                }
+                            }
+                            else{
+                                console.log("Suite Base state: " +machine.split(":")[2]+" not found.");
+                                process.exit(1)
+                            }
+                        });
+                    });
+                }
+                else{
+                    machines.push(dbmachine);
+                    if(count == climachines.length){
+                        callback(machines);
+                    }
                 }
             });
         });

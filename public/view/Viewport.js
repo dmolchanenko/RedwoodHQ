@@ -18,6 +18,7 @@ var executionStore = Ext.create('Ext.data.TreeStore', {
             { text: "Test Sets", leaf: true,icon:"images/project.png" },
             { text: "Variables", leaf: true },
             { text: "Machines", leaf: true,icon:"images/pc.png" }
+            //{ text: "Cloud", leaf: true,icon:"images/cloud.png" }
         ]
     }
 });
@@ -50,6 +51,14 @@ Ext.define('Redwood.view.Viewport', {
                         },
                         "->",
                         {
+                            xtype:"button",
+                            icon: 'images/help.png',
+                            tooltip: "Go to help page.",
+                            handler: function(){
+                                window.open ("http://www.manula.com/manuals/primatest/redwoodhq/2.0/en/topic/documentation");
+                            }
+
+                        },{
                             xtype:"button",
                             icon: 'images/earth2.png',
                             tooltip: "Notifications",
@@ -305,6 +314,10 @@ Ext.define('Redwood.view.Viewport', {
                             {
                                 xtype: "machinesEditor",
                                 itemId: "Machines"
+                            },
+                            {
+                                xtype: "cloudView",
+                                itemId: "Cloud"
                             }
                         ]
                     }

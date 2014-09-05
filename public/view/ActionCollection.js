@@ -100,7 +100,7 @@ Ext.define('Redwood.view.ActionCollection', {
     loadingData: false,
     //maxHeight: 900,
     //minHeight: 25,
-    height: 700,
+    height: 1000,
     //manageHeight: true,
 
     parentActionID: null,
@@ -140,7 +140,7 @@ Ext.define('Redwood.view.ActionCollection', {
             //autoScroll: true,
             markDirty: false,
             //forceFit: true,
-            //preserveScrollOnRefresh:true,
+            preserveScrollOnRefresh:true,
             loadMask : false,
 
             animate: false,
@@ -495,16 +495,18 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.movingUp === true) {
                                 return;
                             }
-                            me.waitMsg("Moving Action Up");
+                            var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
+                            me.setVisible(false);
                             me.movingUp = true;
                             this.setDisabled(true);
                             var html = me.getView().getNode(rowIndex);
                             var record = me.getView().getRecord(html);
                             if (record.get("order") == "1"){
+                                Ext.MessageBox.hide();
                                 me.movingUp = false;
+                                me.setVisible(true);
                                 return;
                             }
-                            var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
 
                             var recordUpOrder = (parseInt(record.get("order"))) - 1;
                             var recordUp = me.store.getRootNode().findChild("order",recordUpOrder.toString());
@@ -518,9 +520,9 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.sort("rowOrder","ASC");
                             me.movingUp = false;
                             this.setDisabled(false);
-                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                             me.getSelectionModel().select(record);
-                            Ext.MessageBox.hide();
+                            me.setVisible(true);
+                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
                         }
                     },
                     {
@@ -536,7 +538,9 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.movingDown == true){
                                 return;
                             }
-                            me.waitMsg("Moving Action Down");
+                            //me.waitMsg("Moving Action Down");
+                            var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
+                            me.setVisible(false);
                             me.movingDown = true;
                             this.setDisabled(true);
                             var html = me.getView().getNode(rowIndex);
@@ -544,10 +548,11 @@ Ext.define('Redwood.view.ActionCollection', {
                             var recordDownOrder = (parseInt(record.get("order"))) + 1;
                             var recordDown = me.store.getRootNode().findChild("order",recordDownOrder.toString());
                             if (recordDown == null){
+                                Ext.MessageBox.hide();
                                 me.movingDown = false;
+                                me.setVisible(true);
                                 return;
                             }
-                            var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
                             var newOrder = recordDown.get("order");
                             var newRowOrder = recordDown.get("rowOrder");
                             recordDown.set("order",record.get("order"));
@@ -558,10 +563,11 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.store.sort("rowOrder","ASC");
                             me.movingDown = false;
                             this.setDisabled(false);
-                            //me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
-                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
+                            me.getView().getNode(record).scrollIntoView(me.parentPanel.getEl());
                             me.getSelectionModel().select(record);
-                            Ext.MessageBox.hide();
+                            me.setVisible(true);
+                            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
+                            //Ext.MessageBox.hide();
                         }
                     },
                     {
@@ -577,18 +583,23 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (me.removing == true){
                                 return;
                             }
-                            me.waitMsg("Removing Action");
+                            me.getView().setVisible(false);
+                            console.log(me.removing);
+                            //me.waitMsg("Removing Action");
                             me.removing = true;
-                            this.setDisabled(true);
+                            //this.setDisabled(true);
                             var topRowcount = 1;
                             var actionCount = 0;
                             var removed = false;
                             var html = me.getView().getNode(rowIndex);
                             var record = me.getView().getRecord(html);
+                            var removedOrder = parseInt(record.get("order"));
                             var actionDivider = null;
                             var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
-                            me.store.getRootNode().cascadeBy(function(node) {
+                            me.store.getRootNode().eachChild(function(node) {
                                 if (node.isRoot() == true){
+                                    me.setVisible(true);
+                                    me.removing = false;
                                     return;
                                 }
                                 if ((removed == true) &&(actionDivider == null) && (node.getDepth()==1 )){
@@ -598,29 +609,32 @@ Ext.define('Redwood.view.ActionCollection', {
                                     actionCount++;
                                     node.set("order",actionCount.toString());
                                 }
-                                if ((removed == false) && (record.get("order") == actionCount.toString())){
+                                if ((removed == false) && (removedOrder == actionCount)){
                                     actionCount--;
                                     removed = true;
                                 }
                                 if (node.parentNode.isRoot() == true){
                                     node.set("rowOrder",topRowcount-2);
-                                }
-                                if (node.parentNode.isRoot() == true){
                                     topRowcount++;
                                 }
-                            });
 
+                            /*
+                            */
+                            });
                             record.remove();
-                            actionDivider.remove();
+                            if(actionDivider) actionDivider.remove();
                             //make sure there is always one empty row
                             if (me.store.getRootNode().childNodes.length == 0){
                                 me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:0});
                             }
-                            me.removing = false;
-                            me.getView().refresh();
+                            //Ext.MessageBox.hide();
+                            me.getView().setVisible(true);
+                            //me.getView().refresh();
+                            window.setTimeout(function(){me.removing=false}, 300);
+                            //me.removing = false;
                             me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
-                            Ext.MessageBox.hide();
-                            console.log(lastScrollPos)
+                            //console.log(lastScrollPos)
+
                         }
                     }
                 ]
@@ -893,10 +907,12 @@ Ext.define('Redwood.view.ActionCollection', {
             }
 
         });
-        this.plugins= ["bufferedrenderer",this.cellEditing];
+        this.plugins= [this.cellEditing];
+        //this.plugins= ["bufferedrenderer",this.cellEditing];
 
         this.createAction = function(name,store){
-            var foundAction = store.findRecord("name",name);
+            //var foundAction = store.findRecord("name",name);
+            var foundAction = store.query("name",name).getAt(0);
             if(foundAction === null){
                 //Ext.Msg.alert("Error","Action '" + actionPicker.getValue() + "' is not found");
                 return null;
@@ -973,6 +989,10 @@ Ext.define('Redwood.view.ActionCollection', {
 
             collection.sort(function(a,b){return parseInt(a.order,10)-parseInt(b.order,10)});
             collection.forEach(function(action,index){
+                if(!action.actionid) {
+                    orderAdjustment = orderAdjustment - 1;
+                    return;
+                }
                 var foundAction = actionStore.query("_id",action.actionid).getAt(0);
 
 
@@ -1088,7 +1108,7 @@ Ext.define('Redwood.view.ActionCollection', {
             var count = 0;
             me.store.getRootNode().cascadeBy(function(node,arg2){
                 if(node === newRecord) {
-                    me.plugins[0].scrollTo(count-1,true);
+                    //me.plugins[0].scrollTo(count-1,true);
                     return false;
                 }
                 count++;
@@ -1107,15 +1127,17 @@ Ext.define('Redwood.view.ActionCollection', {
                     tooltip:"Add Action",
                     itemId: "addAction",
                     handler: function(){
+                        var actionPicker = this.up("toolbar").down("#actionpicker");
+                        if (actionPicker.getValue() == null || actionPicker.getValue() == "") return;
                         me.waitMsg("Adding Action");
                         this.setDisabled(true);
                         //if store is empty
                         if(me.store.getRootNode().childNodes.length == 1){
                             me.store.getRootNode().removeAll();
                         }
-                        var actionPicker = this.up("toolbar").down("#actionpicker");
                         var action = me.createAction(actionPicker.getValue(),actionPicker.store);
                         if (action === null) {
+                            Ext.MessageBox.hide();
                             this.setDisabled(false);
                             return;
                         }
@@ -1134,7 +1156,7 @@ Ext.define('Redwood.view.ActionCollection', {
                         var newRecord = actionsGrid.store.getRootNode().appendChild(action);
                         var node = actionsGrid.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:action.rowOrder+1});
                         this.setDisabled(false);
-                        me.plugins[0].scrollTo(newRecord.get("rowOrder")+5000,true);
+                        //me.plugins[0].scrollTo(newRecord.get("rowOrder")+5000,true);
                         if (newRecord.childNodes.length > 0){
                             me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
                         }
@@ -1345,7 +1367,7 @@ Ext.define('Redwood.view.ActionCollection', {
                                 var count = 0;
                                 me.store.getRootNode().cascadeBy(function(node,arg2){
                                     if(node === newRecord) {
-                                        me.plugins[0].scrollTo(count-1,true);
+                                        //me.plugins[0].scrollTo(count-1,true);
                                         return false;
                                     }
                                     count++;
@@ -1425,7 +1447,7 @@ Ext.define('Redwood.view.ActionCollection', {
                                 var count = 0;
                                 me.store.getRootNode().cascadeBy(function(node,arg2){
                                     if(node === newRecord) {
-                                        me.plugins[0].scrollTo(count-1,true);
+                                        //me.plugins[0].scrollTo(count-1,true);
                                         return false;
                                     }
                                     count++;

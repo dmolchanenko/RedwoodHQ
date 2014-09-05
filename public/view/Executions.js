@@ -20,7 +20,59 @@ Ext.define('Redwood.view.ExecutionsGrid', {
     }),
     initComponent: function () {
         var executionsEditor = this;
+        var me = this;
+        this.lockedFilter = new Ext.util.Filter({
+            property: 'locked',
+            root: "data",
+            value   : false
+        });
 
+        this.tbar ={
+            xtype: 'toolbar',
+            dock: 'top',
+            items: [
+                {
+                    width: 400,
+                    fieldLabel: 'Search',
+                    labelWidth: 50,
+                    xtype: 'searchfield',
+                    itemId:"searchExecution",
+                    paramNames: ["tag","name"],
+                    store: Ext.data.StoreManager.lookup('Executions')
+                },
+                {
+                    xtype:"checkbox",
+                    fieldLabel: "Show Locked",
+                    labelWidth: 80,
+                    checked: false,
+                    handler: function(widget){
+                        var store = Ext.data.StoreManager.lookup('Executions');
+                        if(widget.getValue() == true){
+                            store.removeFilter(me.lockedFilter)
+                        }
+                        else{
+                            //var filter = store.filter("locked",false);
+                            store.filter(me.lockedFilter);
+                        }
+                    },
+                    listeners:{
+                        afterrender: function(){
+                            Ext.data.StoreManager.lookup('Executions').filter(me.lockedFilter);
+                        }
+                    }
+                },
+                "-",
+                {
+                    icon: "images/symbol_sum.png",
+                    tooltip: "Select Executions to Aggregate",
+                    itemId: "aggregationReport",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('aggregate');
+                    }
+                }
+            ]
+        };
         this.columns = [
             {
                 header: 'Name',
@@ -42,8 +94,11 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 dataIndex: 'status',
                 width: 100,
                 renderer: function(value,meta,record){
-                    if (value == "Ready To Run"){
+                    if (value == "Ready To Run" && record.get("locked") == false){
                         return "<p style='font-weight:bold;color:#ffb013'>"+value+"</p>";
+                    }
+                    else if(record.get("locked") == true && value == "Ready To Run"){
+                        return "<p style='font-weight:bold;color:#6727ff'>"+"Locked"+"</p>";
                     }
                     else{
                         return "<p style='font-weight:bold;color:green'>"+value+"</p>";
@@ -53,7 +108,7 @@ Ext.define('Redwood.view.ExecutionsGrid', {
             {
                 header: 'Tags',
                 dataIndex: 'tag',
-                width: 400
+                width: 200
             },
             {
                 xtype:"datecolumn",
@@ -235,25 +290,6 @@ Ext.define('Redwood.view.Executions', {
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
                         editor.fireEvent('run');
-                    }
-                },
-                {
-                    width: 400,
-                    fieldLabel: 'Search',
-                    labelWidth: 50,
-                    xtype: 'searchfield',
-                    itemId:"searchExecution",
-                    paramNames: ["tag","name"],
-                    store: Ext.data.StoreManager.lookup('Executions')
-                },
-                "-",
-                {
-                    icon: "images/symbol_sum.png",
-                    tooltip: "Select Executions to Aggregate",
-                    itemId: "aggregationReport",
-                    handler: function(widget, event) {
-                        var editor = this.up('executionsEditor');
-                        editor.fireEvent('aggregate');
                     }
                 }
             ]

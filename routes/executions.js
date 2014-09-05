@@ -68,6 +68,12 @@ exports.updateExecutionTotals = function(executionID,callback){
     var db = require('../common').getDB();
     db.collection('executiontestcases', function(err, collection) {
         collection.aggregate([{$match:{executionID : executionID,baseState:{$ne: true}}},{$group:{_id:null,total:{$sum:"$runtime"}}}],function(err,result){
+            if(!result[0]) {
+                if (callback){
+                    callback(err);
+                }
+                return;
+            }
             var runtime = result[0].total;
             collection.aggregate([{$match:{executionID : executionID,baseState:{$ne: true}}},{$group:{_id:{result:"$result"},count:{$sum:1}}}],function(err,result){
                 var failed = 0;

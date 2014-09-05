@@ -2,7 +2,6 @@ Ext.define('Redwood.view.MachineVars', {
     extend: 'Ext.window.Window',
     alias: 'widget.machinevars',
     title: 'Machine Variables',
-    id: "EditUser",
     draggable: true,
     resizable: true,
     width: 400,

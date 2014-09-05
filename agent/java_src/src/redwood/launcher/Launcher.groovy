@@ -27,6 +27,8 @@ class Launcher {
 
     public static def globals = [:]
 
+    public static Map<String,String> variables = [:]
+
     public static log(String message){
         def toServer = [:]
         toServer.command = "Log Message"
@@ -89,6 +91,12 @@ class Launcher {
                 globals.testcaseName = action.testcaseName
             }
 
+            if (action.variables){
+                action.variables.each{
+                    variables."${it.key}" = it.value
+                }
+            }
+
             if (action.script == ""){
                 assert false, "Script was not assigned to the action."
             }
@@ -113,7 +121,39 @@ class Launcher {
                 }
             }
 
-            def returnValue = Class.forName(className).newInstance()."$methodName"(params)
+            def returnValue = null
+
+            if(action.type && action.type != "script"){
+                //verify that class and method actually exists
+                def testClass = Class.forName(className)
+                testClass.getMethod(methodName)
+
+                if(action.type == "junit"){
+                    org.junit.runner.Request request = org.junit.runner.Request.method(Class.forName(className),methodName)
+                    org.junit.runner.Result result = new org.junit.runner.JUnitCore().run(request)
+                    if(result.wasSuccessful() == false){
+                        throw result.getFailures().get(0).getException()
+                    }
+                }
+                else if(action.type == "testng"){
+                    org.testng.TestListenerAdapter tla = new org.testng.TestListenerAdapter()
+                    org.testng.TestNG testng = new org.testng.TestNG(false)
+                    testng.addListener(tla)
+                    testng.m_commandLineMethods = Arrays.asList(action.script)
+                    testng.run()
+                    if(testng.hasFailure()){
+                        if(tla.getConfigurationFailures().size() > 0){
+                            throw tla.getConfigurationFailures().get(0).getThrowable()
+                        }
+                        else{
+                            throw tla.getFailedTests().get(0).getThrowable()
+                        }
+                    }
+                }
+            }
+            else{
+                returnValue = Class.forName(className).newInstance()."$methodName"(params)
+            }
             if (returnValue){
                 if(action.returnValueName){
                     returnValues."$action.returnValueName" = returnValue
@@ -169,7 +209,7 @@ class Launcher {
     }
 
     private static takeScreenshot(def action){
-        if(action["ignoreScreenshots"] == false){
+        if(action["ignoreScreenshots"] == false && action["executionflow"] != "Ignore Error Continue Test Case"){
             String id = UUID.randomUUID().toString() + action.resultID
 
             try{

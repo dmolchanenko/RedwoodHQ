@@ -16,7 +16,7 @@ exports.recordImage = function(req, res){
         javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
     }
     else{
-        javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe"
+        javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java"
     }
 
     //console.log(javaPath+" -Xmx512m -Djava.library.path="+baseDir+"\\lib -jar ImageAutomation.jar temp.png");

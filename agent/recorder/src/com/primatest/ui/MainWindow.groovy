@@ -1,12 +1,13 @@
 package com.primatest.ui
 
+import com.primatest.execution.ExecutionAPI
 import com.primatest.objectfinder.LookingGlass
+import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import net.miginfocom.swing.MigLayout
 import org.cyberneko.html.parsers.DOMParser
 import org.gpl.JSplitButton.JSplitButton
 import org.gpl.JSplitButton.action.SplitButtonActionListener
-import org.testng.annotations.Test
 import org.xml.sax.InputSource
 
 
@@ -14,6 +15,7 @@ import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JCheckBoxMenuItem
 import javax.swing.JComboBox
+import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JMenu
@@ -61,7 +63,9 @@ import java.awt.event.WindowListener
 //class MainWindow extends JFrame implements NativeKeyListener, WindowListener {
 class MainWindow extends JFrame implements WindowListener {
 
-    public LookingGlass glass
+    //public LookingGlass glass
+    public LGSettings = [:]
+    public def jarPath = new File(this.class.getProtectionDomain().getCodeSource().getLocation().getPath()).parentFile.absolutePath
     public CodeTab codeTab
     DOMParser  parser = new DOMParser ()
     public def xpath =  XPathFactory.newInstance().newXPath()
@@ -82,21 +86,101 @@ class MainWindow extends JFrame implements WindowListener {
     JCheckBoxMenuItem alwaysOnTop
     JMenuBar menubar
     JMenu fileMenu
+    JButton startBtn
+    IDEView ideView
+    ExecutionAPI execAPI
 
     public MainWindow(){
+
+        if(!new File(jarPath+"/images").exists()){
+            jarPath = System.getProperty("user.dir")
+        }
+
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
         setTitle("Looking Glass")
         setSize(800, 500)
         setLocationRelativeTo(null)
         setDefaultCloseOperation(EXIT_ON_CLOSE)
         addWindowListener(this)
+        this.setLayout(new MigLayout())
 
         menubar = new JMenuBar();
 
+        JMenu browserMenu = new JMenu("Browsers")
+        JMenuItem fireFoxMenuItem = new JMenuItem("Start Firefox")
+        fireFoxMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Firefox"
+                startBrowser()
+            }
+        });
+        JMenuItem chromeMenuItem = new JMenuItem("Start Chrome")
+        chromeMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Chrome"
+                startBrowser()
+            }
+        });
+        JMenuItem ieMenuItem = new JMenuItem("Internet Explorer")
+        ieMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Internet Explorer"
+                startBrowser()
+            }
+        });
+        JMenuItem safariMenuItem = new JMenuItem("Start Safari")
+        safariMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                SelectedBrowser = "Safari"
+                startBrowser()
+            }
+        });
+
+
         fileMenu = new JMenu("File")
         fileMenu.setMnemonic(KeyEvent.VK_F)
+        browserMenu.setMnemonic(KeyEvent.VK_B)
+        browserMenu.add(fireFoxMenuItem)
+        browserMenu.add(chromeMenuItem)
+        browserMenu.add(ieMenuItem)
+        browserMenu.add(safariMenuItem)
 
         JMenuItem eMenuItem = new JMenuItem("Exit")
+        JMenuItem newProjectItem = new JMenuItem("New Project...")
+        newProjectItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                NewProject projectDlg = new NewProject(mainWindow)
+                projectDlg.pack()
+                projectDlg.setLocationRelativeTo(mainWindow)
+                projectDlg.setVisible(true)
+                if (projectDlg.dialogResult == 0){
+                    ideView.newProject(projectDlg.nameField.text ,projectDlg.locationField.text)
+                    LGSettings.lastProjectPath = projectDlg.locationField.text
+                }
+            }
+        });
+
+        JMenuItem openProjectItem = new JMenuItem("Open Project")
+        openProjectItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                ProjectFileChooser fc = new ProjectFileChooser()
+                fc.setFileView(new ProjectFileView())
+                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY)
+                fc.updateUI()
+                int returnVal = fc.showOpenDialog(mainWindow)
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    ideView.openProject(fc.getSelectedFile())
+                    LGSettings.lastProjectPath = fc.getSelectedFile().absolutePath
+                }
+            }
+        });
+
         alwaysOnTop = new JCheckBoxMenuItem("Always On Top")
         alwaysOnTop.setSelected(true)
         eMenuItem.setMnemonic(KeyEvent.VK_E)
@@ -120,27 +204,47 @@ class MainWindow extends JFrame implements WindowListener {
             }
         });
 
+        fileMenu.add(newProjectItem)
+        fileMenu.add(openProjectItem)
         fileMenu.add(alwaysOnTop)
         fileMenu.add(eMenuItem)
 
         menubar.add(fileMenu)
+        menubar.add(browserMenu)
 
         JPanel mainPanel = new JPanel()
+        JPanel commonPanel = new JPanel()
         JPanel midPanel = new JPanel()
         JPanel topPanel = new JPanel()
         JPanel botPanel = new JPanel()
+        commonPanel.setLayout(new MigLayout())
         midPanel.setLayout(new MigLayout())
         mainPanel.setLayout(new MigLayout())
         topPanel.setLayout(new MigLayout())
         botPanel.setLayout(new MigLayout())
 
         JTabbedPane tabbedPane = new JTabbedPane()
+        codeTab = new CodeTab(this)
+        ideView = new IDEView(this,null,null)
+        tabbedPane.addTab("Project",ideView);
         tabbedPane.addTab("Inspector",mainPanel);
-        codeTab = new CodeTab()
-        codeTab.mainWindow = this
-        tabbedPane.addTab("Code",codeTab);
+        tabbedPane.addTab("Code Snippet",codeTab);
+        /*
+        ImageIcon firefoxIcon = createImageIcon("images/firefox.png")
+        JButton firefoxBtn = new JButton(firefoxIcon)
+        firefoxBtn.addActionListener(new ActionListener() {
+            void actionPerformed(ActionEvent actionEvent) {
+                SelectedBrowser = "Firefox"
+                startBrowser()
+            }
+        })
+        commonPanel.setBounds(20,20,20,20)
+        commonPanel.add(firefoxBtn)
+        add(commonPanel,"wrap,height 20::")
+        */
         add(tabbedPane)
-        //add(mainPanel)
+
+
 
 
         String[] idStrings = ["XPath", "ID", "Name","CSS Selector","Class Name","Tag Name","Link Text","Partial Link Text"]
@@ -204,7 +308,7 @@ class MainWindow extends JFrame implements WindowListener {
 
         idField = new JTextField(500)
         infoLabel = new JLabel("<html><font color=blue>Select Browser Type and click Open button.</font></html>")
-        JButton startButn = new startBtn("Open")
+        startBtn = new startBtn("Open")
         ImageIcon pointerBtnIcon = createImageIcon("images/find.png")
         ImageIcon copyBtnIcon = createImageIcon("images/copy.png")
         pointerBtn = new pointerBtn("",pointerBtnIcon)
@@ -222,7 +326,7 @@ class MainWindow extends JFrame implements WindowListener {
                 if (node == null) return
                 def domnode = uiToXMLHash.find{it.value == node}
                 if (domnode == null) return
-                ShownElement = glass.getElementID(generateXPathFromDOM(domnode.key))
+                ShownElement = execAPI.getElementID(generateXPathFromDOM(domnode.key))
                 setIDValue()
                 //Object nodeInfo = node.getUserObject()
                 //println nodeInfo
@@ -237,7 +341,7 @@ class MainWindow extends JFrame implements WindowListener {
         JScrollPane treeView = new JScrollPane(DOMtree);
 
         topPanel.add(browserList)
-        topPanel.add(startButn)
+        topPanel.add(startBtn)
         topPanel.add(pointerBtn)
 
         midPanel.add(idTypeList,"growx")
@@ -257,10 +361,11 @@ class MainWindow extends JFrame implements WindowListener {
         setAlwaysOnTop(true)
     }
 
-    protected static ImageIcon createImageIcon(String path) {
+    protected ImageIcon createImageIcon(String path) {
         //println System.getProperty("user.dir")+path
         //return new ImageIcon(imgURL);
-        return new ImageIcon(System.getProperty("user.dir")+"/"+path);
+        //return new ImageIcon(System.getProperty("user.dir")+"/"+path);
+        return new ImageIcon(jarPath+"/"+path);
     }
 
 
@@ -285,13 +390,27 @@ class MainWindow extends JFrame implements WindowListener {
     }
 
     public void windowOpened(WindowEvent e) {
-        if(new File("lastCode.tmp").exists()){
-            codeTab.textArea.setText(new File("lastCode.tmp").text)
+        if(new File("config/lastCode.tmp").exists()){
+            codeTab.textArea.setText(new File("config/lastCode.tmp").text)
+            codeTab.textArea.setCaretPosition(0)
+        }
+        if(new File("config/lastImports.tmp").exists()){
+            codeTab.codeTab.selectedImports = new File("config/lastImports.tmp").text
+        }
+        if(new File("config/lgSettings.json").exists()){
+            LGSettings = new JsonSlurper().parseText(new File("config/lgSettings.json").text)
+            if(LGSettings.lastProjectPath) ideView.openProject(new File(LGSettings.lastProjectPath))
         }
     }
 
     void windowClosing(WindowEvent windowEvent) {
-        new File("lastCode.tmp").setText(codeTab.textArea.getText())
+        if(!new File("config").exists()){
+            new File("config").mkdir()
+        }
+        ideView.saveAll()
+        new File("config/lastCode.tmp").setText(codeTab.textArea.getText())
+        new File("config/lastImports.tmp").setText(codeTab.selectedImports)
+        new File("config/lgSettings.json").setText(new JsonBuilder( LGSettings ).toPrettyString())
     }
 
     public void windowClosed(WindowEvent e) {
@@ -387,6 +506,29 @@ class MainWindow extends JFrame implements WindowListener {
         }
     }
 
+    public startBrowser(){
+        startBtn.setEnabled(false)
+        startBtn.setText("Opening...")
+        def exceptionClosure = {ex ->
+            JOptionPane.showMessageDialog(mainWindow,
+                    "Error starting browser: "+ex.message,
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            startBtn.setEnabled(true)
+            startBtn.setText("Open")
+        }
+        glass = new LookingGlass({pointerBtn.setEnabled(true);startBtn.setEnabled(true);startBtn.setText("Open")},exceptionClosure)
+        codeTab.glass = glass
+        infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
+        glass.BrowserType = SelectedBrowser
+        //glass.start()
+        Thread t = new Thread(glass)
+        t.start()
+        execAPI = new ExecutionAPI()
+        Thread t2 = new Thread(execAPI)
+        t2.start()
+    }
+
     class startBtn extends JButton implements ActionListener {
 
         public startBtn(String text) {
@@ -395,24 +537,8 @@ class MainWindow extends JFrame implements WindowListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            this.setEnabled(false)
-            this.setText("Opening...")
-            def exceptionClosure = {ex ->
-                JOptionPane.showMessageDialog(mainWindow,
-                        "Error starting browser: "+ex.message,
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-                this.setEnabled(true)
-                this.setText("Open")
-            }
-            glass = new LookingGlass({pointerBtn.setEnabled(true);this.setEnabled(true);this.setText("Open")},exceptionClosure)
-            codeTab.glass = glass
-            infoLabel.setText("<html><font color=blue>Click on the looking glass and move mouse pointer to html element.</font></html>")
-            glass.BrowserType = SelectedBrowser
-            //glass.start()
-            Thread t = new Thread(glass);
-            t.start();
-
+            startBrowser()
+            return
         }
     }
 
@@ -442,7 +568,7 @@ class MainWindow extends JFrame implements WindowListener {
             infoLabel.setText("<html>$response.text</html>")
         }
         autoSelect = true
-        selectUINodeByXpath(response.xpath)
+        if(response.xpath) selectUINodeByXpath(response.xpath)
         autoSelect = false
         performActionBtn.setEnabled(true)
     }
@@ -630,13 +756,27 @@ class MainWindow extends JFrame implements WindowListener {
     }
 
     public void parseHTML(String html){
+        /*
+        URL url = new URL("http://www.example.com");
+        StringWebResponse response = new StringWebResponse(html, url);
+        WebClient client = new WebClient()
+        client.getOptions().setJavaScriptEnabled(false)
+        HtmlPage page = HTMLParser.parseHtml(response, client.getCurrentWindow());
+        println page.getByXPath("//*[@id='studio-image']")
+        //println page.getByXPath("//*[@id='studio-image']/DIV[1]")
+
+        System.out.println(page);
+        */
+
         uiToXMLHash = [:]
         alreadyIncludedHash = [:]
         parser.reset()
-        int index = html.indexOf("<head>")
+        int index = html.indexOf("<head")
         if(index != 0 && index != -1){
             html = html.substring(index,html.size())
         }
+        //html = html.replaceAll("<source src=\"http://radiotime-cms-dev.s3.amazonaws.com/developers/home.mp4\" type=\"video/mp4\">","")
+        //html = html.replaceAll("<source src=\"http://radiotime-cms-dev.s3.amazonaws.com/developers/home.ogv\" type=\"video/ogg\">","")
         parser.parse(new InputSource(new StringReader(html)))
 
         /*

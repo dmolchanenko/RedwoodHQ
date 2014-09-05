@@ -48,12 +48,24 @@ Ext.define("Redwood.controller.Users", {
     onUserDelete: function(evtData){
         var store = this.getStore('Users');
         var record = store.getAt(evtData.rowIndex);
+
         if(record) {
             if (record.get("username") == "admin"){
                 return;
             }
-            store.remove(record);
-            store.sync({success:function(batch,options){} });
+            Ext.Msg.show({
+                title:'Delete Confirmation',
+                msg: "Are you sure you want to delete '"+ record.get("username") + "' user?" ,
+                buttons: Ext.Msg.YESNO,
+                icon: Ext.Msg.QUESTION,
+                fn: function(id){
+                    if (id === "yes"){
+                        store.remove(record);
+                        store.sync({success:function(batch,options){} });
+                    }
+                }
+            });
+
         }
 
     },

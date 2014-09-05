@@ -259,6 +259,10 @@ Ext.define('Redwood.view.AggregateReport', {
                         //didNotFail = true;
                         //didNotPass = true;
                     }
+                    else if(result == "Test Case Needs Maintenance" || (result == "Test Case is not Automated") || (result == "One ore more actions inside the test case are not in automated state.") ){
+                        didNotFail = true;
+                        didNotPass = true;
+                    }
                     else if(result == "Not Run") {
                         didNotFail = true;
                         didNotPass = true;

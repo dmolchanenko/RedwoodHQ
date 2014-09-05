@@ -5,6 +5,7 @@ var fs = require('fs');
 var winston = require('winston');
 var Config = {};
 exports.Config = Config;
+var spawn = require('child_process').spawn;
 
 exports.parseConfig = function(callback){
     var conf = fs.readFileSync(__dirname+"/properties.conf");
@@ -111,6 +112,24 @@ function dirWalker(dir, done,fileCallback) {
 }
 
 exports.cleanUpExecutions = function(){
+    db.collection('hosts', function(err, collection) {
+        var hosts = [];
+        collection.find({}, {}, function(err, cursor) {
+            cursor.each(function(err, host) {
+                if(host == null) {
+                    var appDir = __dirname+"/";
+                    //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
+                    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"unlockALLVMs",hosts:hosts})]);
+                    proc.stderr.on('data', function (data) {
+                        common.logger.error('Cloud stderr: ' + data.toString());
+                    });
+                }
+                hosts.push(host);
+            });
+        })
+    });
+
+
     db.collection('machines', function(err, collection) {
         collection.update({},{$set:{state:"",takenThreads:0}},{multi:true});
     });

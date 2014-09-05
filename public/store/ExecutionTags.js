@@ -4,6 +4,10 @@ Ext.define('Redwood.store.ExecutionTags', {
 
     autoLoad: true,
     autoSync: false,
+    sorters: [{
+        property : 'value'
+
+    }],
 
     proxy: {
         type: 'rest',

@@ -16,7 +16,7 @@ exports.heartbeatPost = function(req, res){
         }
         else{
             if (machine.macAddress){
-                if((machine.host != data.hostname) && (machine.host != ip)){
+                if((machine.host != data.hostname) && (machine.host != ip) && ip != "127.0.0.1"){
                     updateMachine(app.getDB(),machine._id,{$set:{host:ip,vncport:data.vncport,port:data.port,macAddress:data.macAddress}})
                 }
                 else if((machine.vncport != data.vncport) || (machine.port != data.port)){
@@ -31,7 +31,7 @@ exports.heartbeatPost = function(req, res){
                 var localVersion = parseInt(app.Config.AgentVersion.replace(/\./g,''));
                 var agentVersion = parseInt(data.agentVersion.replace(/\./g,''));
                 if((agentVersion < localVersion) && (data.OS == "Windows")){
-                    if(!updatingAgents[ip]){
+                    if(machine.state !== "Updating" && !updatingAgents[ip] && Object.keys(updatingAgents).length < 6){
                         updateMachine(app.getDB(),machine._id,{$set:{macAddress:data.macAddress,vncport:data.vncport,port:data.port,state:"Updating"}});
                         updatingAgents[ip] = ip;
                         sendFileToAgent(path.resolve(__dirname,"../public/agentsetup/")+"/Agent_RedwoodHQ_Setup.exe","Agent_RedwoodHQ_Setup.exe",ip,data.port,4,function(){

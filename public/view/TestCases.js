@@ -80,13 +80,13 @@ Ext.define('Redwood.view.TestCases', {
             if (options.destroy){
                 options.destroy.forEach(function(r){
                     if (r != null){
-                        actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                        actionsPanelStore.remove(actionsPanelStore.query("_id", r.get("_id")).getAt(0));
                     }
                 });
             }
             if (options.update){
                 options.update.forEach(function(r){
-                    actionsPanelStore.remove(actionsPanelStore.findRecord("_id", r.get("_id")));
+                    actionsPanelStore.remove(actionsPanelStore.query("_id", r.get("_id")).getAt(0));
                     actionsPanelStore.add(r);
                 });
             }
@@ -251,10 +251,33 @@ Ext.define('Redwood.view.TestCases', {
                 vertical:true,
                 items: [
                     {
-                        width: 200,
-                        xtype: 'searchfield',
-                        paramNames: ["tag","name"],
-                        store: Ext.data.StoreManager.lookup('TestCases')
+                        xtype:"panel",
+                        layout: {
+                            type: 'hbox',
+                            align: 'stretch'
+                        },
+                        items:[
+                            {
+                                width: 200,
+                                xtype: 'searchfield',
+                                paramNames: ["tag","name"],
+                                store: Ext.data.StoreManager.lookup('TestCases')
+                            },
+                            {
+                                width: 27,
+                                xtype: "displayfield",
+                                padding: 4,
+                                listeners:{
+                                    afterrender: function(field){
+                                        var store = Ext.data.StoreManager.lookup('TestCases');
+                                        store.on("filterchange",function(){
+                                            field.setValue(store.getCount());
+                                        });
+                                        field.setValue((store.getCount()));
+                                    }
+                                }
+                            }
+                        ]
                     },
                     {
                         xtype:"filtercombo",
@@ -305,7 +328,7 @@ Ext.define('Redwood.view.TestCases', {
                 layout: "accordion",
                 region: 'west',
                 split:true,
-                width: 206,
+                width: 240,
                 collapseDirection: "left",
                 collapsible: true,
                 items:[testCaseListFlat,testCaseListTree,actionListFlat,actionListTree]

@@ -6,7 +6,7 @@ Ext.application({
     autoCreateViewport: true,
 
     controllers: [
-        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions','License','EmailSettings'],
+        'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions','License','EmailSettings','Hosts','Templates'],
     launch: function(){
         Redwood.app = this;
         Ext.clipboard = {};
@@ -85,8 +85,8 @@ Ext.application({
         else if(uri.execution){
             mainTab.setActiveTab(mainTab.down("#executionsBrowser"));
             event = Ext.data.StoreManager.lookup('Executions').on("load",function(store){
-                var record = store.findRecord("_id",uri.execution);
-                if(record != null){
+                var record = store.query("_id",uri.execution);
+                if(record.length > 0){
                     Redwood.app.getController("Executions").onExecutionEdit(uri.execution);
                     store.un(event);
                 }

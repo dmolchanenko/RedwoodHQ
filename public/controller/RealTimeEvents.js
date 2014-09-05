@@ -14,6 +14,66 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             controller.onImageRecorded(image._id);
         });
 
+        Ext.socket.on('TCImportDone'+Ext.util.Cookies.get('username'),function(totalCount){
+            Ext.MessageBox.hide();
+            Ext.Msg.show({title: "Test Cases Imported",msg:"Imported "+totalCount+" test cases.",buttons : Ext.MessageBox.OK});
+        });
+
+        Ext.socket.on('UnitTestRun'+Ext.util.Cookies.get('username'),function(output){
+            var outputPanel = Ext.getCmp('scriptOutputPanel').down("#compileOutput").getEl();
+            if (output.message){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.message});
+            }
+            else if(output.error){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:'<span style="color: red; ">Error: '+Ext.util.Format.htmlEncode(output.error)+'</span>'});
+            }
+            else{
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.status});
+            }
+        });
+
+        Ext.socket.on('UnitTestStop'+Ext.util.Cookies.get('username'),function(output){
+            Ext.getCmp('runUnitTest').setIcon('images/play.png');
+            if(output.error){
+                Ext.Msg.show({title: "Error",msg:output.error,buttons : Ext.MessageBox.OK});
+            }
+        });
+
+        Ext.socket.on('GetAllTestCases'+Ext.util.Cookies.get('username'),function(data){
+            Ext.MessageBox.hide();
+            var win = null;
+            if(data.testcases.length === 0 && data.import === true){
+                Ext.Msg.show({title: "No Tests Found",msg:"No unit tests are found or all have been imported already.",buttons : Ext.MessageBox.OK});
+            }
+            else if(data.import === true){
+                win = Ext.create('Redwood.view.UnitTests',{
+                    title:"Select Test Cases to Import",
+                    importFlag:data.import,
+                    dataRecord: data.testcases
+                });
+                win.show();
+            }
+            else{
+                win = Ext.create('Redwood.view.UnitTests',{
+                    title:"Select Test Case to Run",
+                    importFlag:data.import,
+                    dataRecord: data.testcases
+                });
+                win.show();
+            }
+        });
+
+        Ext.socket.on('FilesUploaded'+Ext.util.Cookies.get('username'),function(){
+            var controller = Redwood.app.getController("Scripts");
+            var expandedNodes = controller.getExpandedNodes(controller.treePanel.getRootNode());
+            controller.getStore('Scripts').reload({callback:function(){
+                    controller.expandNodes(expandedNodes);
+            }});
+            Ext.MessageBox.hide();
+
+            Ext.Msg.alert('Success', "Files have been uploaded.");
+        });
+
         Ext.socket.on('CollaborateScript'+Ext.util.Cookies.get('username'),function(msg){
             //console.log(msg);
             var controller = Redwood.app.getController("Collaboration");
@@ -280,6 +340,36 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,action);
         });
 
+        Ext.socket.on('UpdateTemplates',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Templates");
+            me.updateStore(store,testCase);
+        });
+
+        Ext.socket.on('AddTemplates',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Templates");
+            me.addToStore(store,testCase);
+        });
+
+        Ext.socket.on('DeleteTemplates',function(action){
+            var store = Ext.data.StoreManager.lookup("Templates");
+            me.removeFromStore(store,action);
+        });
+
+        Ext.socket.on('UpdateHosts',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Hosts");
+            me.updateStore(store,testCase);
+        });
+
+        Ext.socket.on('AddHosts',function(testCase){
+            var store = Ext.data.StoreManager.lookup("Hosts");
+            me.addToStore(store,testCase);
+        });
+
+        Ext.socket.on('DeleteHosts',function(action){
+            var store = Ext.data.StoreManager.lookup("Hosts");
+            me.removeFromStore(store,action);
+        });
+
         Ext.socket.on('UpdateTestSets',function(set){
             var store = Ext.data.StoreManager.lookup("TestSets");
             me.updateStore(store,set);
@@ -335,6 +425,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
                 if (foundTab){
                     foundTab.updateTotals(execution);
+                    foundTab.updateCloudStatus(execution);
                 }
             };
 
@@ -471,28 +562,32 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
     updateStore: function(store,item){
         if(item){
-            var record = store.findRecord("_id", item._id);
-            if(!record) return;
+            //var record = store.findRecord("_id", item._id);
+            var record = store.query("_id",item._id);
+            if(record.length == 0) return;
             for(var propt in item){
                 if (propt != "_id"){
-                    record.set(propt,item[propt]);
+                    record.getAt(0).set(propt,item[propt]);
                 }
             }
-            store.fireEvent("beforesync",{update:[record]});
-            record.dirty = false;
+            store.fireEvent("beforesync",{update:[record.getAt(0)]});
+            record.getAt(0).dirty = false;
         }
     },
 
     removeFromStore: function(store,item){
-        var record = store.findRecord("_id",item.id);
-        if (record == null) return;
-        store.remove(record);
-        store.fireEvent("beforesync",{destroy:[record]});
+        //var record = store.findRecord("_id",item.id);
+        //if (record == null) return;
+        var record = store.query("_id",item.id);
+        if(record.length == 0) return;
+        store.remove(record.getAt(0));
+        store.fireEvent("beforesync",{destroy:[record.getAt(0)]});
         store.removed = [];
     },
 
     addToStore: function(store,item){
-        if (store.find("_id",item._id) == -1){
+        //if (store.find("_id",item._id) == -1){
+        if (store.query("_id",item._id).length == 0){
             var items = store.add(item);
             store.fireEvent("beforesync",{create:items});
             items[0].phantom = false;

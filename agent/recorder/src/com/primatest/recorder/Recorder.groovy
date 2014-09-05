@@ -3,29 +3,16 @@ package com.primatest.recorder
 import org.openqa.selenium.By
 import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.WebDriver
-import org.openqa.selenium.chrome.ChromeDriver
-import org.openqa.selenium.chrome.ChromeDriverService
-import org.openqa.selenium.firefox.FirefoxDriver
-import org.openqa.selenium.ie.InternetExplorerDriver
-import org.openqa.selenium.ie.InternetExplorerDriverService
-import org.openqa.selenium.remote.DesiredCapabilities
-import org.openqa.selenium.remote.RemoteWebDriver
 
 import java.util.concurrent.TimeUnit
 
-/**
- * Created with IntelliJ IDEA.
- * User: Dmitri
- * Date: 11/4/13
- * Time: 11:25 AM
- * To change this template use File | Settings | File Templates.
- */
 class Recorder {
 
     WebDriver RecDriver = null
     def static initScript =
         '''
 
+if(document.redwoodRecording) return;
 function getPathTo(element) {
     //if(element.tagName == "A"){
     //    return "//a[text()='"+element.textContent+"']";
@@ -48,8 +35,15 @@ function getPathTo(element) {
 
 document.redwoodRecording = [];
 
+//document.lookingGlassXhr = new XMLHttpRequest();
+//document.lookingGlassXhr.open('POST', 'http://localhost:9933', true);
+//document.lookingGlassXhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+//document.lookingGlassXhr.send("BLANK");
 
-
+document.lookingGlassSendRecording = function(data){
+    document.lookingGlassXhr.open('POST', 'http://localhost:9933', true);
+    document.lookingGlassXhr.send(data);
+}
 
 document.lookingGlassRecordKeyDown = function(ev){
     var jsonParser
@@ -62,7 +56,7 @@ document.lookingGlassRecordKeyDown = function(ev){
     if(ev.keyCode == 13){
         var path = getPathTo(ev.target);
         document.redwoodRecording.push(jsonParser({operation:"sendEnter",idType:"xpath",id:getPathTo(ev.target)}));
-        //document.redwoodRecording.push('Browser.Driver.findElement(By.xpath("'+ path +'")).sendKeys("'+ ev.target.value +'");Browser.Driver.findElement(By.xpath("'+ path +'")).sendKeys(org.openqa.selenium.Keys.ENTER)');
+        //document.lookingGlassSendRecording(jsonParser({operation:"sendEnter",idType:"xpath",id:getPathTo(ev.target)}));
     }
 }
 
@@ -76,17 +70,21 @@ document.lookingGlassRecordChange = function(ev){
     }
     if(ev.target.tagName === "INPUT"){
         if((ev.target.type === "checkbox") ||(ev.target.type === "radio")){
+            //document.lookingGlassSendRecording(jsonParser({operation:"click",idType:"xpath",id:getPathTo(ev.target)}));
             document.redwoodRecording.push(jsonParser({operation:"click",idType:"xpath",id:getPathTo(ev.target)}));
         }
         else if(ev.target.value === ""){
+            //document.lookingGlassSendRecording(jsonParser({operation:"clear",idType:"xpath",id:getPathTo(ev.target)}));
             document.redwoodRecording.push(jsonParser({operation:"clear",idType:"xpath",id:getPathTo(ev.target)}));
         }
         else{
+            //document.lookingGlassSendRecording(jsonParser({operation:"sendKeys",idType:"xpath",id:getPathTo(ev.target),data:ev.target.value}));
             document.redwoodRecording.push(jsonParser({operation:"sendKeys",idType:"xpath",id:getPathTo(ev.target),data:ev.target.value}));
         }
     }
     else if(ev.target.tagName == "SELECT"){
         var selectedText = ev.target.options[ev.target.selectedIndex].text;
+        //document.lookingGlassSendRecording(jsonParser({operation:"select",idType:"xpath",id:getPathTo(ev.target),data:selectedText}));
         document.redwoodRecording.push(jsonParser({operation:"select",idType:"xpath",id:getPathTo(ev.target),data:selectedText}));
     }
 };
@@ -99,94 +97,188 @@ document.lookingGlassRecordMouseUp = function(ev){
     else{
         jsonParser = JSON.stringify;
     }
-    if(ev.target.tagName === "OPTION"){
+    console.log(ev.target.tagName);
+    console.log(ev.target.type);
+    //var xhr = new XMLHttpRequest();
+
+
+    if(ev.target.tagName === "SELECT"){
         return;
     }
-    if(ev.target.tagName === "INPUT"){
+    else if(ev.target.tagName === "INPUT"){
+        if(ev.target.type === "submit"){
+            //document.lookingGlassSendRecording(jsonParser({operation:"click",idType:"xpath",id:getPathTo(ev.target)}));
+            document.redwoodRecording.push(jsonParser({operation:"click",idType:"xpath",id:getPathTo(ev.target)}));
+        }
         return;
     }
-    if((ev.target.tagName != "INPUT") && (ev.target.tagName != "SELECT")){
+    else if((ev.target.tagName != "INPUT") && (ev.target.tagName != "SELECT")){
         var path = getPathTo(ev.target);
+        //document.lookingGlassSendRecording(jsonParser({operation:"click",idType:"xpath",id:getPathTo(ev.target)}));
         document.redwoodRecording.push(jsonParser({operation:"click",idType:"xpath",id:getPathTo(ev.target)}));
-        //document.redwoodRecording.push('Browser.Driver.findElement(By.xpath("'+ path +'")).click()');
     }
 };
 
+   window.onbeforeunload  = function(){
+        var delay = function (ms) {
+            var start = +new Date;
+            var array = document.redwoodRecording;
+            while ((+new Date - start) < 500);
+            document.lookingGlassLastCallback(document.redwoodRecording);
+            while ((+new Date - start) < 500);
+            document.lookingGlassLastCallback(document.redwoodRecording);
+            while ((+new Date - start) < 500);
+            //while ((+new Date - start) < ms);
+        }
+        delay(500);
+    }
+
 if(!document.lookingGlassLoaded){
-    document.addEventListener('mouseup', document.lookingGlassRecordMouseUp);
+   if (document.addEventListener){  // W3C DOM
+    document.addEventListener('mousedown', document.lookingGlassRecordMouseUp);
     document.addEventListener('change', document.lookingGlassRecordChange);
     document.addEventListener('keydown', document.lookingGlassRecordKeyDown);
+   }
+   else if (document.attachEvent) { // IE DOM
+    document.attachEvent('onmousedown', document.lookingGlassRecordMouseUp);
+    document.attachEvent('onchange', document.lookingGlassRecordChange);
+    document.attachEvent('onkeydown', document.lookingGlassRecordKeyDown);
+   }
 }
-document.lookingGlassLoaded = true;
 '''
 
     def static collectScript =
         '''
    var callback = arguments[arguments.length - 1];
-   window.onbeforeunload   = function(){
-        var delay = function (ms) {
-            var start = +new Date;
-            while ((+new Date - start) < ms);
-            //document.redwoodRecording.push("unloaded");
-            callback(document.redwoodRecording);
-        }
-        delay(500);
-    };
-   var waitForActions = function(){
+   document.lookingGlassLastCallback = callback;
 
+   var count = 0;
+   var waitForActions = function(){
        if((document.redwoodRecording) && (document.redwoodRecording.length > 0)){
         callback(document.redwoodRecording);
         document.redwoodRecording = [];
        }
+       else if(count == 10){
+        callback([]);
+       }
        else{
         setTimeout(waitForActions, 100);
        }
+       count++
    }
    waitForActions();
+   //setTimeout(waitForActions, 100);
+   //callback(document.redwoodRecording);
+   //document.redwoodRecording = [];
 '''
 
     def stopScript =
-'''
-    document.removeEventListener('mouseup', document.lookingGlassRecordMouseUp);
+        '''
+if (document.removeEventListener) {
+    document.removeEventListener('mousedown', document.lookingGlassRecordMouseUp);
     document.removeEventListener('change', document.lookingGlassRecordChange);
-    document.removeEventListener('keydown', document.document.lookingGlassRecordKeyDown);
+    document.removeEventListener('keydown', document.lookingGlassRecordKeyDown);
+}
+else if(document.detachEvent){
+    document.detachEvent('onmousedown', document.lookingGlassRecordMouseUp);
+    document.detachEvent('onchange', document.lookingGlassRecordChange);
+    document.detachEvent('onkeydown', document.lookingGlassRecordKeyDown);
+}
+delete document.redwoodRecording;
+document.lookingGlassLastCallback([]);
 '''
+
+    def returnClosure = {}
+    def stopRecording = false
+
+    /*
+    public Recorder(){
+        server = new ServerSocket(9933)
+        serverThread = new Thread(new Runnable() {
+            public void run() {
+                while(true) {
+                    server.accept() { socket ->
+                        JavascriptExecutor js = (JavascriptExecutor) RecDriver
+                        println "new one"
+                        try{
+                            println "init0"
+                            js.executeScript(initScript)
+                        }
+                        catch (Exception ex){
+                            sleep(500)
+                            println "init-0"
+                            js.executeScript(initScript)
+                        }
+                        socket.tcpNoDelay = true
+                        socket.withStreams { input, output ->
+                            if(!socket.isClosed()) output << "HTTP/1.1 200 OK\nContent-Type: text/html\n\nAccess-Control-Allow-Origin: *\n\nhi\n"
+                            input.eachLine() { line ->
+                                println line
+                                if(line.startsWith("{")) {
+                                    returnClosure(line)
+                                }
+                            }
+                            try{
+                                println "init"
+                                js.executeScript(initScript)
+                            }
+                            catch (Exception ex){
+                                sleep(500)
+                                println "init2"
+                                js.executeScript(initScript)
+                            }
+                            //socket.close()
+                        }
+                    }
+                }
+            }
+        }).start();
+
+    }
+    */
 
     public def stop(){
-
-        JavascriptExecutor js = (JavascriptExecutor) RecDriver
+        returnClosure = {}
+        stopRecording = true
+        //JavascriptExecutor js = (JavascriptExecutor) RecDriver
 
         try{
-            js.executeAsyncScript(stopScript)
+            js.executeScript(stopScript)
         }
         catch (Exception ex){
+            println ex.message
 
         }
     }
 
-    public def record()
-    {
-        if(RecDriver == null) return
+    JavascriptExecutor js = null
 
-        JavascriptExecutor js = (JavascriptExecutor) RecDriver
+    public def record(def returnClosure)
+    {
+        sleep(10)
+        this.returnClosure = returnClosure
+        if(RecDriver == null) return ""
+
+        js = (JavascriptExecutor) RecDriver
         js.executeScript(initScript)
 
         def recording = []
         try{
-            return js.executeAsyncScript(collectScript)
+            def data = js.executeAsyncScript(collectScript)
+            returnClosure(data)
+            return ""
         }
         catch (Exception ex){
-            //Unexpected modal dialog
             if(ex.message.contains("unload") || ex.message.contains("reload")){
-                println "unloading"
-                js.executeScript(initScript)
-                return js.executeAsyncScript(collectScript)
+                //sleep(50)
             }
             else{
+                println "ERROR:"+ex.message
                 if((recording.size() == 0)&&(!ex.message.contains("disconnected"))){
                     println "ERROR:"+ex.message
                 }
             }
+            return ""
         }
 
     }

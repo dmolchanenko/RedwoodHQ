@@ -3,6 +3,6 @@ import actions.selenium.Browser
 
 class CloseBrowser{
   public void run(def params){
-    Browser.Driver.quit()
+    if(Browser.Driver) Browser.Driver.quit()
   }
 }

@@ -98,6 +98,10 @@ Ext.define("Redwood.controller.TestCases", {
     },
     onEditTestCase: function(record,collapse){
         var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+        //try again with the star
+        if (foundIndex == -1){
+            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
+        }
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.TestCaseView',{
                 title:record.get("name"),
@@ -126,6 +130,7 @@ Ext.define("Redwood.controller.TestCases", {
         if (testcaseView.validate(this.getStore('TestCases')) === false){
             return;
         }
+        var lastScrollPos = testcaseView.getEl().dom.children[0].scrollTop;
         var testcase = testcaseView.getTestCaseData();
         if (testcaseView.dataRecord === null){
             testcaseView.dataRecord = this.getStore('TestCases').add(testcase)[0];
@@ -151,6 +156,7 @@ Ext.define("Redwood.controller.TestCases", {
         this.getStore('TestCaseTags').sync();
         testcaseView.setTitle(testcase.name);
         testcaseView.dirty = false;
+        testcaseView.getEl().dom.children[0].scrollTop = lastScrollPos;
     },
 
     onNewTestCase: function(){

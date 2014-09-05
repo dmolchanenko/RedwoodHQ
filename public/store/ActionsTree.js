@@ -111,7 +111,7 @@ Ext.define('Redwood.store.ActionsTree', {
                 actionDescription = action.description;
             }
             //actionsCombo.add(r);
-            if(actionTags.length > 0){
+            if(actionTags && actionTags.length > 0){
                 actionTags.forEach(function(tagInAction){
                     var foundTag = me.getRootNode().findChild("tagValue",tagInAction);
                     if (foundTag == null){

@@ -119,7 +119,7 @@ function startLauncher(executionID,threadID,callback){
             classPath = libPath+'*:'+launcherPath+'*';
         }
         else{
-            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java.exe";
+            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
             classPath = libPath+'*;'+launcherPath+'*';
         }
         if (fs.existsSync(baseExecutionDir+"/"+executionID+"/bin") == false){
@@ -185,6 +185,7 @@ function startLauncher(executionID,threadID,callback){
                                 }
                             }
                             if (msg.command == "Log Message"){
+                                //if()
                                 msg.date=new Date();
                                 sendLog(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                             }
@@ -221,7 +222,7 @@ function startLauncher(executionID,threadID,callback){
                         if (message != ""){
                             common.logger.info("sending:"+message);
                             if(actionCache[portNumber]){
-                                sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                                sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,runType:actionCache[portNumber].runType,resultID:actionCache[portNumber].resultID,username:actionCache[portNumber].username},common.Config.AppServerIPHost,common.Config.AppServerPort);
                             }
                         }
                     });
@@ -382,10 +383,14 @@ function sendLauncherCommand(command,callback){
 
 
 function sendActionResult(result,host,port){
+    var path = "/executionengine/actionresult";
+    if(result.runType == "unittest"){
+        path = "/rununittest/result"
+    }
     var options = {
         hostname: host,
         port: port,
-        path: '/executionengine/actionresult',
+        path: path,
         method: 'POST',
         agent:false,
         headers: {
@@ -415,10 +420,14 @@ function sendActionResult(result,host,port){
 }
 
 function sendLog(result,host,port){
+    var path = '/executionengine/logmessage';
+    if(result.runType == "unittest"){
+        path = "/rununittest/log"
+    }
     var options = {
         hostname: host,
         port: port,
-        path: '/executionengine/logmessage',
+        path: path,
         method: 'POST',
         agent:false,
         headers: {
@@ -458,8 +467,11 @@ function getExecutionStatus(host,port,executionID,callback){
     var req = http.request(options, function(res) {
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            common.logger.info('getExecutionStatus result: ' + chunk);
-            callback(JSON.parse(chunk));
+            common.logger.info('getExecutionStatus result: ' + chunk.toString());
+            try{
+                callback(JSON.parse(chunk));
+            }
+            catch(error){callback({execution:null})}
         });
     });
 

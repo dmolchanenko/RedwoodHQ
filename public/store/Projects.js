@@ -10,6 +10,9 @@ Ext.define('Redwood.store.Projects', {
         update : 'PUT',
         destroy: 'DELETE'
     },
+    sorters: [{
+        property : 'name'
+    }],
 
     proxy: {
         type: 'rest',

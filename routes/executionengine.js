@@ -13,6 +13,7 @@ var realtime = require("../routes/realtime");
 var git = require('../gitinterface/gitcommands');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var nodemailer = require("nodemailer");
+var spawn = require('child_process').spawn;
 var db;
 
 exports.stopexecutionPost = function(req, res){
@@ -20,6 +21,7 @@ exports.stopexecutionPost = function(req, res){
     if(!execution) return;
     cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
+    unlockCloudMachines(execution.machines);
     for(var testcase in execution.currentTestCases){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
@@ -53,6 +55,7 @@ exports.startexecutionPost = function(req, res){
     var machines = req.body.machines;
     var variables = {};
     var testcases = req.body.testcases;
+    var template = null;
 
     req.body.variables.forEach(function(variable){
         variables[variable.name] = variable.value;
@@ -88,8 +91,11 @@ exports.startexecutionPost = function(req, res){
         return;
     }
 
-    executions[executionID] = {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username};
+    if(req.body.templates){
+        template = req.body.templates[0]
+    }
 
+    executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{}};
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
         if (err != null){
@@ -102,7 +108,6 @@ exports.startexecutionPost = function(req, res){
             git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar","jar_"+executionID,function(){
                 cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
                     executions[executionID].sourceCache = sourceCache;
-                    //updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}});
                     verifyMachineState(machines,function(err){
                         if(err){
                             updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
@@ -112,22 +117,57 @@ exports.startexecutionPost = function(req, res){
                             delete executions[executionID];
                             return;
                         }
-                        res.contentType('json');
-                        res.json({success:true});
-                        lockMachines(machines,executionID,function(){
-
-                            getGlobalVars(executionID,function(){
-                                testcases.forEach(function(testcase){
-                                    executions[executionID].testcases[testcase.testcaseID] = testcase;
-                                });
-                                //see if there is a base state
-                                suiteBaseState(executionID,machines,function(){
-                                    //magic happens here
-                                    applyMultiThreading(executionID,function(){
-                                        updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
-                                            executeTestCases(executions[executionID].testcases,executionID);
+                        VerifyCloudCapacity(executions[executionID].template,function(response){
+                            if(response.err || response.capacityAvailable == false){
+                                var message = "";
+                                if(response.err){
+                                    message = response.err
+                                }
+                                else{
+                                    message = "Cloud does not have the capacity to run this execution."
+                                }
+                                updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
+                                res.contentType('json');
+                                res.json({error:"Cloud Error: "+message});
+                                git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                                delete executions[executionID];
+                                return;
+                            }
+                            res.contentType('json');
+                            res.json({success:true});
+                            lockMachines(machines,executionID,function(){
+                                if(executions[executionID].template){
+                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
+                                }
+                                else{
+                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
+                                }
+                                StartCloudMachines(template,executionID,function(cloudMachines){
+                                    if(cloudMachines.err){
+                                        unlockMachines(machines);
+                                        updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
+                                        git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                                        delete executions[executionID];
+                                        return;
+                                    }
+                                    if(executions[executionID].template){
+                                        updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                    }
+                                    executions[executionID].machines = machines.concat(cloudMachines);
+                                    getGlobalVars(executionID,function(){
+                                        testcases.forEach(function(testcase){
+                                            executions[executionID].testcases[testcase.testcaseID] = testcase;
                                         });
-                                    })
+                                        //see if there is a base state
+                                        suiteBaseState(executionID,executions[executionID].machines,function(){
+                                            //magic happens here
+                                            applyMultiThreading(executionID,function(){
+                                                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
+                                                    executeTestCases(executions[executionID].testcases,executionID);
+                                                });
+                                            })
+                                        });
+                                    });
                                 });
                             });
                         });
@@ -137,6 +177,8 @@ exports.startexecutionPost = function(req, res){
         }
     });
 };
+
+exports.compileBuild = function(project,username,callback){compileBuild(project,username,callback)};
 
 function compileBuild(project,username,callback){
     var workDir = rootDir+project+"/"+username;
@@ -160,9 +202,9 @@ function compileBuild(project,username,callback){
         })
     };
 
-    fs.exists(workDir+"/build", function (exists) {
+    fs.exists(workDir+"/build/jar/"+project+".jar", function (exists) {
         if(exists == true){
-            fs.stat(workDir+"/build",function(err,stats){
+            fs.stat(workDir+"/build/jar/"+project+".jar",function(err,stats){
                 if(err) {
                     compileScripts();
                 }
@@ -191,7 +233,16 @@ function applyMultiThreading(executionID,callback){
     executions[executionID].machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
-                var startThread = dbMachine.takenThreads - machine.threads;
+                var startThread = 0;
+                if(dbMachine){
+                    startThread = dbMachine.takenThreads - machine.threads;
+                }
+                if(startThread != 0){
+                    startThread = dbMachine.lastStartThread + 1
+                }
+
+                collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
+                });
                 common.logger.info("staring at:"+startThread);
                 machine.threadID = startThread;
                 //if more than one thread run base state if not let it go
@@ -260,11 +311,11 @@ function suiteBaseState(executionID,machines,callback){
             foundSuiteState = true;
             machine.roles.push(machine.host);
             db.collection('testcases', function(err, collection) {
-                collection.insert({baseState:true,name:machine.host+"_state",status:"Automated",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
+                collection.insert({baseState:true,name:machine.host+"_state",status:"Automated",type:"collection",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
                     db.collection('executiontestcases', function(err, collection) {
                         //collection.save({_id:machine.resultID},{},{$set:{executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.resultID}}, {safe:true,new:true},function(err,returnData){
                         collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.baseStateTCID},function(err,returnData){
-                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.__id,retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state"});
+                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.__id,retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",type:"collection"});
                             count++;
                             lastMachine();
                         });
@@ -279,6 +330,7 @@ function suiteBaseState(executionID,machines,callback){
     });
 }
 
+exports.cacheSourceCode = function(rootPath,callback){cacheSourceCode(rootPath,callback)};
 
 function cacheSourceCode(rootPath,callback){
     git.lsFiles(rootPath,["*.groovy","*.java"],function(data){
@@ -335,6 +387,7 @@ function executeTestCases(testcases,executionID){
     var finishExecution = function(callback){
         if (executions[executionID].cachedTCs){
             if(executions[executionID].baseStateFailed === true){
+                unlockCloudMachines(executions[executionID].machines);
                 unlockMachines(machines,function(){
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
 
@@ -364,6 +417,7 @@ function executeTestCases(testcases,executionID){
         }
         else{
             if(executions[executionID]){
+                unlockCloudMachines(executions[executionID].machines);
                 unlockMachines(executions[executionID].machines,function(){
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
 
@@ -506,6 +560,7 @@ function startTCExecution(id,variables,executionID,callback){
                 return;
             }
         }
+        result.status = "Running";
         createResult(result,function(writtenResult){
             result._id = writtenResult[0]._id;
             result.executionID = executionID;
@@ -602,7 +657,7 @@ function startTCExecution(id,variables,executionID,callback){
 
             //var startTC = function(){
 
-            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id};
+            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id,variables:executions[executionID].variables};
 
             var foundMachine = null;
 
@@ -610,7 +665,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentBaseState(executions[executionID].project+"/"+executions[executionID].username,executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
 
                     if (err){
-                        result.error = err;
+                        result.error = err.error;
                         result.status = "Finished";
                         result.result = "Failed";
                         updateResult(result);
@@ -627,7 +682,7 @@ function startTCExecution(id,variables,executionID,callback){
             };
 
             //if test case is a script and NOT an action collection
-            if (testcase.dbTestCase.type === "script"){
+            if (testcase.dbTestCase.type !== "collection"){
                 if ((testcase.script == "") || (!testcase.script)){
                     result.error = "Test Case does not have a script assigned";
                     result.status = "Finished";
@@ -645,6 +700,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.script = testcase.script;
                 agentInstructions.resultID = result._id.__id;
                 agentInstructions.parameters = [];
+                agentInstructions.type = testcase.dbTestCase.type;
 
                 var actionHost = "Default";
                 //if(action.dbAction.host != "") actionHost = action.dbAction.host;
@@ -697,6 +753,7 @@ function startTCExecution(id,variables,executionID,callback){
                 executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
 
                 agentInstructions.name = action.name;
+                agentInstructions.executionflow = action.dbAction.executionflow;
                 agentInstructions.executionID = executionID;
                 agentInstructions.ignoreScreenshots = executions[executionID].ignoreScreenshots;
                 agentInstructions.allScreenshots = executions[executionID].allScreenshots;
@@ -821,7 +878,12 @@ exports.actionresultPost = function(req, res){
 
 
     if ((req.body.returnValue)&&(testcase.currentAction.dbAction.returnvalue != "")){
-        execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
+        if(!execution.returnVars[req.body.testcaseID]){
+            execution.returnVars[req.body.testcaseID] = {};
+        }
+        execution.returnVars[req.body.testcaseID][testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
+        //.[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
+        //execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
     }
 
     var actionFlow = testcase.currentAction.dbAction.executionflow;
@@ -862,9 +924,14 @@ exports.actionresultPost = function(req, res){
         updateResult(testcase.result);
     });
 
-    var variables = execution.variables;
-    for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
-    findNextAction(testcase.testcase.actions,variables,function(action){
+    var actionVariables = {};
+    for (var attrname in execution.variables) { actionVariables[attrname] = execution.variables[attrname]; }
+    for (var attrname in testcase.machineVars) { actionVariables[attrname] = testcase.machineVars[attrname]; }
+    if(execution.returnVars[testcase.executionTestCaseID]){
+        for (var attrname in execution.returnVars[testcase.executionTestCaseID]) { actionVariables[attrname] = execution.returnVars[testcase.executionTestCaseID][attrname]; }
+    }
+
+    findNextAction(testcase.testcase.actions,actionVariables,function(action){
         if(action == null){
             testcase.result.status = "Finished";
             if(testcase.result.result != "Failed") testcase.result.result = "Passed";
@@ -885,11 +952,12 @@ exports.actionresultPost = function(req, res){
         updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
         testcase.result.status = "Running";
 
-        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.testcase.dbTestCase._id};
+        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.testcase.dbTestCase._id,variables:execution.variables};
 
         execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
 
         agentInstructions.name = action.name;
+        agentInstructions.executionflow = action.dbAction.executionflow;
         agentInstructions.executionID = req.body.executionID;
         agentInstructions.ignoreScreenshots = executions[req.body.executionID].ignoreScreenshots;
         agentInstructions.allScreenshots = executions[req.body.executionID].allScreenshots;
@@ -902,12 +970,11 @@ exports.actionresultPost = function(req, res){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
         });
 
-
         var runBaseState = function(){
             agentBaseState(execution.project+"/"+execution.username,req.body.executionID,foundMachine.host,foundMachine.port,foundMachine.threadID,function(err){
 
                 if (err){
-                    testcase.result.error = err;
+                    testcase.result.error = err.error;
                     testcase.result.status = "Finished";
                     testcase.result.result = "Failed";
                     updateResult(testcase.result);
@@ -984,6 +1051,7 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
             retry = true;
             execution.testcases[testcase.executionTestCaseID].retryCount--;
             execution.testcases[testcase.executionTestCaseID].executing = false;
+            execution.returnVars[testcase.executionTestCaseID] = {};
         }
         if (execution.cachedTCs){
             execution.baseStateFailed = true;
@@ -1016,6 +1084,8 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
     });
 }
 
+exports.formatTrace = function(trace,sourceCache,callback){formatTrace(trace,sourceCache,callback)};
+
 function formatTrace(trace,sourceCache,callback){
     var newTrace = "";
     var traceCount = 0;
@@ -1046,12 +1116,12 @@ function formatTrace(trace,sourceCache,callback){
         if ((fileName.indexOf(".groovy") != -1) ||(fileName.indexOf(".java") != -1)){
             sourceCache.forEach(function(file){
                 if (found == true) return;
-                if (file.indexOf("/"+fileName) != -1){//&&(file.indexOf(location.replace(/\./g,"/")) != -1)){
-                //if ((file.indexOf("/"+fileName) != -1)&&(location.indexOf(file.replace()) == 0)){
-                    found = true;
-                    lineNumber = (parseInt(lineNumber,10)-1).toString();
-                    newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;"+ file +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
-                    //newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;/src"+ file.dir+"/"+file.name +"&quot;,&quot;"+ lineNumber +"&quot;)'>" + line +"</a>";
+                if (file.indexOf("/"+fileName) != -1){
+                    if(location.replace(/\./g, '/').indexOf(file.substring(0,file.lastIndexOf("/")).replace("src/", '')) != -1){
+                        found = true;
+                        var parsedLineNumber = (parseInt(lineNumber,10)-1).toString();
+                        newTrace += ",\r\n<a style= 'color: blue;' href='javascript:openScript(&quot;"+ file +"&quot;,&quot;"+ parsedLineNumber +"&quot;)'>" + line +"</a>";
+                    }
                 }
                 count++;
                 if (count == sourceCache.length){
@@ -1144,13 +1214,16 @@ function markFinishedResults(results,sourceCache,callback){
 }
 
 
+exports.agentBaseState = function(project,executionID,agentHost,port,threadID,callback){agentBaseState(project,executionID,agentHost,port,threadID,callback)};
+
 function agentBaseState(project,executionID,agentHost,port,threadID,callback){
     sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},3,function(message){
         if (message.error){
             callback(message.error);
             return;
         }
-        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(){
+        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(error){
+            if(error) {callback(error);return}
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
                     syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
@@ -1201,15 +1274,21 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
     var walker = walk.walkSync(rootPath);
     var fileCount = 0;
     var files = [];
+    var foundError = false;
 
     var sendFiles = function(){
+        if(foundError) return;
         fileCount++;
         if (!files[fileCount-1]){
             callback();
             return;
         }
-        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,function(){
-
+        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,function(error){
+            if(error){
+                foundError = true;
+                callback(error);
+                return;
+            }
             if(fileCount === files.length){
                 callback();
             }
@@ -1280,12 +1359,12 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
 
     req.on('error', function(e) {
         if(retryCount <= 0){
-            if (callback) callback();
+            if (callback) callback({error:'sendFileToAgent problem with request: ' + e.message+ ' file:'+file});
             common.logger.error('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
         }
         else{
             retryCount--;
-            sendFileToAgent(file,dest,agentHost,port,retryCount,callback);
+            setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,callback),1000)
         }
     });
 
@@ -1295,6 +1374,8 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
         req.end('\r\n------' + boundary + '--\r\n');
     });
 }
+
+exports.sendAgentCommand = function(agentHost,port,command,retryCount,callback){sendAgentCommand(agentHost,port,command,retryCount,callback)};
 
 function sendAgentCommand(agentHost,port,command,retryCount,callback){
     common.logger.info(command);
@@ -1337,7 +1418,7 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
         }
         else{
             retryCount--;
-            sendAgentCommand(agentHost,port,command,retryCount,callback)
+            setTimeout(sendAgentCommand(agentHost,port,command,retryCount,callback),1000)
         }
     });
 
@@ -1439,7 +1520,6 @@ function updateExecution(query,update,finished,callback){
             if(finished === true){
                 realtime.emitMessage("FinishExecution",data);
             }
-            realtime.emitMessage("UpdateExecutions",data);
             if (callback){
                 callback(err);
             }
@@ -1488,8 +1568,11 @@ function updateMachine(query,update,callback){
     });
 }
 
+exports.verifyMachineState = function(machines,callback){verifyMachineState(machines,callback)};
+
 function verifyMachineState(machines,callback){
     var machineCount = 0;
+    if(machines.length == 0 && callback) callback();
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
@@ -1509,9 +1592,143 @@ function verifyMachineState(machines,callback){
     });
 }
 
+function GetRunningExecution(callback){
+    db.collection('executions', function(err, collection) {
+        var executions = [];
+        collection.find({status:"Running"}, {}, function (err, cursor) {
+            cursor.each(function (err, execution) {
+                if (execution == null) {
+                    callback(executions)
+                }
+                else{
+                    executions.push(execution._id)
+                }
+            });
+        });
+    });
+}
+
+function VerifyCloudCapacity(template,callback){
+    if(template == null) {
+        callback({capacityAvailable:true});
+        return;
+    }
+    db.collection('hosts', function(err, collection) {
+        var hosts = [];
+        collection.find({}, {}, function(err, cursor) {
+            cursor.each(function(err, host) {
+                if(host == null) {
+                    if(hosts.length == 0){
+                        callback({err:"Error: No hosts are found."});
+                        return
+                    }
+                    GetRunningExecution(function(runningExecutions){
+                        var appDir = path.resolve(__dirname,"../")+"/";
+                        var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:template.instances,templateName:template.name,runningExecutions:runningExecutions})]);
+
+                        var cache = "";
+                        proc.stdout.on('data', function (data) {
+                            cache = cache + data.toString();
+                            //console.log(data.toString());
+                        });
+
+                        proc.stderr.on('data', function (data) {
+                            common.logger.error('Cloud stderr: ' + data.toString());
+                        });
+
+                        proc.on('close', function (code) {
+                            var response = JSON.parse(cache);
+                            callback(response);
+                        });
+                    })
+                }
+                hosts.push(host);
+            });
+        })
+    });
+}
+
+function StartCloudMachines(template,executionID,callback){
+    if(template == null) {
+        callback([]);
+        return;
+    }
+    db.collection('hosts', function(err, collection) {
+        var hosts = [];
+        collection.find({}, {}, function(err, cursor) {
+            cursor.each(function(err, host) {
+                if(host == null) {
+                    if(hosts.length == 0){
+                        callback({err:"Error: No hosts are found."});
+                        return
+                    }
+
+                    var appDir = path.resolve(__dirname,"../")+"/";
+                    //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
+                    //console.log({operation:"startCloudMachines",hosts:hosts,template:template});
+                    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"startCloudMachines",hosts:hosts,template:template,executionID:executionID})]);
+
+                    var cache = "";
+                    proc.stdout.on('data', function (data) {
+                        //console.log(data.toString());
+                        cache = cache + data.toString();
+                    });
+
+                    proc.stderr.on('data', function (data) {
+                        common.logger.error('Cloud stderr: ' + data.toString());
+                        //callback({err:data.toString()})
+                    });
+
+                    /*
+                    proc.on('exit', function (code) {
+                        var response = JSON.parse(cache);
+                        if(response.err){
+                            callback(response);
+                        }
+                    });
+                    */
+
+                    proc.on('close', function (code) {
+                        var response = JSON.parse(cache);
+                        if(response.err){
+                            callback(response);
+                            return;
+                        }
+                        var cloudMachines = [];
+                        response.forEach(function(machine,index){
+                            cloudMachines.push({
+                                host:machine.IP,
+                                machineVars:[],
+                                maxThreads:1000,
+                                port:5009,
+                                result:"",
+                                roles:["Default"],
+                                threads:template.threads,
+                                vncport: 3006,
+                                cloud:true,
+                                vmName:machine.vmName,
+                                vmHost:machine.host,
+                                template:template.name
+                            });
+                            if(index == response.length-1){
+                                callback(cloudMachines)
+                            }
+                        });
+                    });
+                    return;
+                }
+                else{
+                    hosts.push(host);
+                }
+            });
+        })
+    });
+}
+
 
 function lockMachines(machines,executionID,callback){
     var machineCount = 0;
+    if(machines.length == 0 && callback) callback();
     machines.forEach(function(machine){
         updateExecutionMachine(executionID,machine._id,"","");
         db.collection('machines', function(err, collection) {
@@ -1544,10 +1761,43 @@ function lockMachines(machines,executionID,callback){
     });
 }
 
+function unlockCloudMachines(machines){
+    var cloudMachines = [];
+    machines.forEach(function(machine) {
+        if(machine.cloud == true){
+            if(machine.threads > 1){
+                machine.threads --
+            }
+            else{
+                delete machine.runningTC;
+                cloudMachines.push(machine)
+            }
+        }
+    });
+    if(cloudMachines.length == 0) return;
+    var appDir = path.resolve(__dirname,"../")+"/";
+    //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
+    //console.log(JSON.stringify({operation:"unlockVMs",machines:cloudMachines}))
+    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"unlockVMs",machines:cloudMachines})]);
+
+    var cache = "";
+    proc.stdout.on('data', function (data) {
+        cache = cache + data.toString();
+    });
+
+    proc.stderr.on('data', function (data) {
+        common.logger.error('Cloud stderr: ' + data.toString());
+    });
+
+    proc.on('close', function (code) {
+    });
+}
+
 function unlockMachines(allmachines,callback){
     var machineCount = 0;
     var machines = allmachines.slice(0);
     common.logger.info(machines);
+    unlockCloudMachines(allmachines);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
@@ -1576,7 +1826,14 @@ function unlockMachines(allmachines,callback){
                     })
                 }
                 else{
-                    if(callback) callback();
+                    //if(callback) callback();
+                    machineCount++;
+                    if (machineCount == machines.length){
+                        if(callback) callback();
+                    }
+                    else{
+                        nextMachine();
+                    }
                 }
             })
         });
@@ -1705,6 +1962,10 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
     var getActionDetails = function(nextAction,lastPoint,lastResultPoint,cb){
         db.collection('actions', function(err, collection) {
+            if(!nextAction.actionid) {
+                cb();
+                return;
+            }
             collection.findOne({_id:db.bson_serializer.ObjectID(nextAction.actionid)}, {}, function(err, action) {
                 if(action == null){
                     cb();
@@ -1760,8 +2021,9 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
         db.collection('testcases', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
                 if(testcase == null) callback(null);
-                if (testcase.type == "script"){
-                    testcaseDetails = {dbTestCase:testcase,script:testcase.script,afterState:false,name:testcase.name};
+                //if (testcase.type == "script"){
+                if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"){
+                    testcaseDetails = {type:testcase.type,dbTestCase:testcase,script:testcase.script,afterState:false,name:testcase.name};
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
                     callback(testcaseDetails,testcaseResults,["Default"]);
                 }

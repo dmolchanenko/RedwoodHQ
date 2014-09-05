@@ -159,13 +159,15 @@ Ext.define('Redwood.view.TestCaseView', {
                         allowBlank:false,
                         width:200,
                         items:[
+                            { boxLabel: 'Junit', name:"type",inputValue: 'junit',width:70,checked: false,formId:formId},
+                            { boxLabel: 'TestNG', name:"type",inputValue: 'testng',width:70,checked: false,formId:formId},
                             { boxLabel: 'Script', name:"type",inputValue: 'script',width:70,checked: false,formId:formId},
                             { boxLabel: 'Action Collection',name:"type", inputValue: 'collection',checked:true,width:200,formId:formId}
                         ]
                         ,
                         listeners: {
                             change: function(me,newVal,oldVal){
-                                if(newVal.type == "script"){
+                                if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng" ){
                                     me.up("testcaseview").down("#actionCollectionFiledSet").hide();
                                     me.up("testcaseview").down("#afterState").hide();
                                     me.up("testcaseview").down("scriptPicker").show();
@@ -313,7 +315,7 @@ Ext.define('Redwood.view.TestCaseView', {
         }
 
         if (this.down("#status").getValue() == "Automated"){
-            if (this.down("#type").getValue().type == "script"){
+            if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng"){
 
                 if (this.down("scriptPicker").getValue() == ""){
                     this.down("scriptPicker").focus();

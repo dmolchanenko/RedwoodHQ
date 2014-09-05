@@ -36,6 +36,11 @@ exports.scriptsPull = function(req,res){
                         }
                         res.contentType('json');
                         res.json({success:true,conflicts:files});
+                        //try and delete jar file to trigger compile from execution
+                        try{
+                            fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
+                        }
+                        catch(err){}
                     })
                 });
             });
@@ -185,7 +190,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                     }
                                 });
                                 console.log('--eval var projectName="'+projectName+'" '+path.resolve(__dirname,"../project_templates/"+template+".js"));
-                                var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
+                                var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
                                 //var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','localhost:27017/automationframework','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
                                 mongoScript.stdout.on('data', function (data) {
                                     common.logger.info(data.toString());

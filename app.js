@@ -25,6 +25,11 @@ var express = require('express')
   , terminal = require('./routes/terminal')
   , realtime = require('./routes/realtime')
   , testsets = require('./routes/testsets')
+  , hosts = require('./routes/hosts')
+  , templates = require('./routes/templates')
+  , uploadFiles = require('./routes/uploadFiles')
+  , importtcs = require('./routes/importtcs')
+  , rununittest = require('./routes/rununittest')
   , testcases = require('./routes/testcases')
   , testcaseTags = require('./routes/testcaseTags')
   , executions = require('./routes/executions')
@@ -45,7 +50,9 @@ var express = require('express')
 
 //var app = express.createServer();
 var app = express();
-
+process.env.TMPDIR = __dirname + '/logs';
+process.env.TMP = __dirname + '/logs';
+process.env.TEMP = __dirname + '/logs';
 // Configuration
 
 //app.configure(function(){
@@ -89,6 +96,22 @@ app.post('/aggregate',auth.auth,aggregate.aggregatePost);
 app.post('/recordimage',auth.auth,imageautomation.recordImage);
 app.get('/image/:id',auth.auth,imageautomation.getImage);
 app.post('/recordedimage',imageautomation.recordedImage);
+
+//uploadFiles
+app.post('/uploadfiles',auth.auth,uploadFiles.uploadFiles);
+app.post('/uploadfromagent',uploadFiles.uploadFromAgent);
+app.post('/uploadfilesdone',uploadFiles.uploadDone);
+
+//importAllTCs
+app.post('/importalltcs',importtcs.importAllTCs);
+app.post('/getallunittcs',importtcs.getAllUnitTests);
+app.post('/importselectedtcs',importtcs.importSelectedTCs);
+
+//rununittest
+app.post('/rununittest',rununittest.runUnitTest);
+app.post('/rununittest/result',rununittest.unitTestResult);
+app.post('/rununittest/log',rununittest.unitTestLog);
+app.post('/stopunittest',rununittest.stopUnitTest);
 
 //recorder
 app.post('/record',auth.auth,recorder.record);
@@ -191,6 +214,18 @@ app.put('/testsets/:id',auth.auth, testsets.testsetsPut);
 app.post('/testsets',auth.auth, testsets.testsetsPost);
 app.del('/testsets/:id',auth.auth, testsets.testsetsDelete);
 
+//hosts
+app.get('/hosts', auth.auth, hosts.hostsGet);
+app.put('/hosts/:id',auth.auth, hosts.hostsPut);
+app.post('/hosts',auth.auth, hosts.hostsPost);
+app.del('/hosts/:id',auth.auth, hosts.hostsDelete);
+
+//templates
+app.get('/templates', auth.auth, templates.templatesGet);
+app.put('/templates/:id',auth.auth, templates.templatesPut);
+app.post('/templates',auth.auth, templates.templatesPost);
+app.del('/templates/:id',auth.auth, templates.templatesDelete);
+
 //userStates
 /*
 app.get('/userStates', auth.auth, users.userStatesGet);
@@ -214,7 +249,7 @@ app.get('/scripts/root',auth.auth, scripts.scriptsGet);
 app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
 app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 app.post('/scripts/push',auth.auth, scripts.scriptsPush);
-app.post('/scripts/pull',auth.auth, scripts.scriptsPull);
+app.post('/scripts/pull',scripts.scriptsPull);
 
 //script
 app.post('/script/get',auth.auth, script.scriptGet);

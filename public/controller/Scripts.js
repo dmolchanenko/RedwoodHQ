@@ -44,7 +44,8 @@ Ext.define("Redwood.controller.Scripts", {
                 pullChanges: this.onPullChanges,
                 recordImage: this.onRecordImage,
                 recordSteps: this.onRecordSteps,
-                imageEdit:this.onImageEdit
+                imageEdit:this.onImageEdit,
+                uploadFiles:this.onUploadFiles
 
             },
             'scriptBrowser button': {
@@ -55,6 +56,66 @@ Ext.define("Redwood.controller.Scripts", {
 
     compileEventAttached: false,
 
+    onStopTC: function(){
+        Ext.Ajax.request({
+            url:"/stopunittest",
+            method:"POST",
+            jsonData : {},
+            success: function(response) {
+
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+        Ext.getCmp('runUnitTest').setIcon('images/play.png');
+    },
+
+    onRunTC: function(){
+        var tab = this.tabPanel.getActiveTab();
+
+        if(!tab){
+            Ext.Msg.show({title: "Error",msg:"Please open script containing JUnit/TestNG you want to run.",buttons : Ext.MessageBox.OK});
+            return
+        }
+        Ext.MessageBox.show({
+            msg: 'Scanning opened file for test cases, please wait...',
+            progressText: 'Scanning...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
+        });
+        Ext.Ajax.request({
+            url:"/getallunittcs",
+            method:"POST",
+            jsonData : {import:false,path:tab.path},
+            success: function(response) {
+
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+    },
+
+    onImportAllTCs: function(){
+        Ext.MessageBox.show({
+            msg: 'Scanning files for test cases, please wait...',
+            progressText: 'Scanning...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
+        });
+        Ext.Ajax.request({
+            url:"/getallunittcs",
+            method:"POST",
+            jsonData : {import:true},
+            success: function(response) {
+
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+    },
+
     onRecordImage: function(){
         Ext.Ajax.request({
             url:"/recordimage",
@@ -64,6 +125,35 @@ Ext.define("Redwood.controller.Scripts", {
                 //Ext.MessageBox.hide();
                 //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
             }
+        });
+    },
+
+    onUploadFiles: function(){
+        var path = "";
+        var selection = this.treePanel.getSelectionModel().getSelection()[0];
+        if ((selection.get("fileType") != "folder")&&(selection.get("fileType") != "libs")){
+            selection = selection.parentNode;
+            path = selection.get("fullpath");
+        }
+        else{
+            path = selection.get("fullpath");
+        }
+
+        Ext.Ajax.request({
+            url:"/uploadfiles",
+            method:"POST",
+            jsonData : {path:path},
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error) Ext.Msg.alert('Error', obj.error);
+            }
+        });
+        Ext.MessageBox.show({
+            msg: 'Uploading files, please wait...',
+            progressText: 'Uploading...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
         });
     },
 
@@ -194,7 +284,6 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onPullChanges: function(){
-        var me = this;
         Ext.MessageBox.show({
             msg: 'Pulling changes from master branch, please wait...',
             progressText: 'Pulling...',
@@ -695,7 +784,7 @@ Ext.define("Redwood.controller.Scripts", {
         return path;
     },
 
-    onNewScript: function(){
+    onNewScript: function(type){
         if(this.treePanel.getSelectionModel().getSelection().length > 0){
             var me = this;
             var selection = this.treePanel.getSelectionModel().getSelection()[0];
@@ -706,6 +795,7 @@ Ext.define("Redwood.controller.Scripts", {
 
             var win = Ext.create('Redwood.view.FileName',{
                 path:path,
+                objectType:type,
                 fn: function(fileName){
                     var newNode = selection.appendChild({qtip:'This file is not yet pushed.',name:fileName,text:'<span style="color:blue">' + fileName + '</span>',fileType:"file",leaf:true,icon:me.getIconType(fileName),fullpath:path+"/"+fileName});
                     me.onScriptEdit(newNode);
@@ -839,7 +929,7 @@ Ext.define("Redwood.controller.Scripts", {
                     success: function(response, action) {
                         var obj = Ext.decode(response.responseText);
                         tab.setValue(obj.text);
-                        if (typeof(lineNumber) == "number"){
+                        if (lineNumber && typeof(lineNumber) == "number"){
                             tab.setCursor({line:lineNumber,ch:0});
                         }
                         tab.clearHistory();
