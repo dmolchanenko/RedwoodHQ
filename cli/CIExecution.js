@@ -151,6 +151,11 @@ function StartExecution(execution,testcases,callback){
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
             console.log('BODY: ' + chunk);
+            var msg = JSON.parse(chunk);
+            if(msg.error){
+                console.log("Unable to continue with execution: "+msg.error);
+                process.exit(1);
+            }
             callback();
         });
     });
