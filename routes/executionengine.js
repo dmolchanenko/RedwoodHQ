@@ -14,6 +14,7 @@ var git = require('../gitinterface/gitcommands');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var nodemailer = require("nodemailer");
 var spawn = require('child_process').spawn;
+var os = require('os');
 var db;
 
 exports.stopexecutionPost = function(req, res){
@@ -25,7 +26,7 @@ exports.stopexecutionPost = function(req, res){
     for(var testcase in execution.currentTestCases){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
-    git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+    git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"jar_"+req.body.executionID);
     common.logger.log("Stop button was pushed");
     cleanExecutionMachines(req.body.executionID,function(){
         updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
@@ -105,7 +106,7 @@ exports.startexecutionPost = function(req, res){
         }
         else{
             //copy files for each execution to prevent conflicts
-            git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar","jar_"+executionID,function(){
+            git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar",os.tmpdir()+"/jar_"+executionID,function(){
                 cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
                     executions[executionID].sourceCache = sourceCache;
                     verifyMachineState(machines,function(err){
@@ -113,7 +114,7 @@ exports.startexecutionPost = function(req, res){
                             updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
                             res.contentType('json');
                             res.json({error:err});
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
                             delete executions[executionID];
                             return;
                         }
@@ -129,7 +130,7 @@ exports.startexecutionPost = function(req, res){
                                 updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
                                 res.contentType('json');
                                 res.json({error:"Cloud Error: "+message});
-                                git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                                git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
                                 delete executions[executionID];
                                 return;
                             }
@@ -146,7 +147,7 @@ exports.startexecutionPost = function(req, res){
                                     if(cloudMachines.err){
                                         unlockMachines(machines);
                                         updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
-                                        git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                                        git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
                                         delete executions[executionID];
                                         return;
                                     }
@@ -395,7 +396,7 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),"jar_"+executionID);
+                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -425,7 +426,7 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),"jar_"+executionID);
+                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -1226,7 +1227,8 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
             if(error) {callback(error);return}
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
-                    syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
+                    //syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
+                    syncFilesWithAgent(agentHost,port,os.tmpdir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",function(){
                         sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
                                 callback(message.error);
