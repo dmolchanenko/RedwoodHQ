@@ -26,7 +26,8 @@ exports.stopexecutionPost = function(req, res){
     for(var testcase in execution.currentTestCases){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
-    git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"jar_"+req.body.executionID);
+    //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"jar_"+req.body.executionID);
+    deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
     common.logger.log("Stop button was pushed");
     cleanExecutionMachines(req.body.executionID,function(){
         updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
@@ -114,7 +115,8 @@ exports.startexecutionPost = function(req, res){
                             updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
                             res.contentType('json');
                             res.json({error:err});
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
+                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
+                            deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
                             delete executions[executionID];
                             return;
                         }
@@ -130,7 +132,8 @@ exports.startexecutionPost = function(req, res){
                                 updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
                                 res.contentType('json');
                                 res.json({error:"Cloud Error: "+message});
-                                git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
+                                //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
+                                deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
                                 delete executions[executionID];
                                 return;
                             }
@@ -147,7 +150,8 @@ exports.startexecutionPost = function(req, res){
                                     if(cloudMachines.err){
                                         unlockMachines(machines);
                                         updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
-                                        git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
+                                        //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
+                                        deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
                                         delete executions[executionID];
                                         return;
                                     }
@@ -396,7 +400,8 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
+                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
+                            deleteDir(os.tmpdir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -426,7 +431,8 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
+                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
+                            deleteDir(os.tmpdir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -2169,5 +2175,25 @@ function sendNotification(executionID){
             });
         })
     });
+}
+
+exports.deleteDir = function(path,callback){deleteDir(path,callback)};
+function deleteDir(path,callback){
+    fs.exists(path,function(exists){
+        if(exists == true){
+            fs.readdir(path,function(err,files){
+                files.forEach(function(file){
+                    file = path + '/' + file;
+                    fs.unlinkSync(file);
+                });
+                fs.rmdir(path,function(){
+                    callback();
+                });
+            })
+        }
+        else{
+            callback()
+        }
+    })
 }
 
