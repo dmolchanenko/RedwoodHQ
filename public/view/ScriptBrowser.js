@@ -546,6 +546,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     viewConfig: {
                         markDirty: false,
                         stripeRows: true,
+                        preserveScrollOnRefresh:true,
                         onRowDeselect: function(rowIdx){
                             this.removeRowCls(rowIdx,"x-redwood-tree-unfocused");
                             this.removeRowCls(rowIdx, this.selectedItemCls);

@@ -2187,12 +2187,12 @@ function deleteDir(path,callback){
                     fs.unlinkSync(file);
                 });
                 fs.rmdir(path,function(){
-                    callback();
+                    if (callback) callback();
                 });
             })
         }
         else{
-            callback()
+            if (callback) callback();
         }
     })
 }
