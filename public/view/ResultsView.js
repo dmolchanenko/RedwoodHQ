@@ -6,6 +6,7 @@ Ext.define('Redwood.view.ResultsView', {
     bodyPadding: 5,
     dataRecord: null,
     viewType: "Results",
+    UpdateResultCache: null,
 
     refreshHeight: function(){
         var grid = this.down("#resultsGrid");
@@ -13,6 +14,20 @@ Ext.define('Redwood.view.ResultsView', {
     },
     listeners:{
         afterrender: function(me){
+            Ext.socket.on('UpdateResult'+me.itemId,function(result){
+                if(!me.UpdateResultCache){
+                    me.UpdateResultCache = result;
+                    setTimeout(function(){
+                        me.refreshResult(me.UpdateResultCache);
+                        me.UpdateResultCache = null;
+                    },3000)
+                }
+                else{
+                    me.UpdateResultCache = result;
+                }
+
+            });
+
             if (me.dataRecord.testcase.script){
                 if(me.dataRecord.screenshot){
                     me.down("#screenShots").addNewScreenShot(me.dataRecord.screenshot._id);
@@ -23,6 +38,7 @@ Ext.define('Redwood.view.ResultsView', {
             }
         },
         beforeclose:function(panel){
+            Ext.socket.removeAllListeners('UpdateResult'+panel.itemId);
             panel.resultsStore.destroy();
             panel.logStore.destroy();
             panel.dataRecord = null;
@@ -75,6 +91,7 @@ Ext.define('Redwood.view.ResultsView', {
         };
         setTimeout(function(){
             refresh();
+            if(me.down("#status") == null) return;
             if(me.down("#status").getValue() != result.status){
                 me.down("#status").setValue(result.status);
             }

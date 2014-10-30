@@ -1494,7 +1494,8 @@ function updateResult(result,callback){
             if (callback){
                 callback(err);
             }
-            realtime.emitMessage("UpdateResult",result);
+            //realtime.emitMessage("UpdateResult",result);
+            realtime.emitMessage("UpdateResult"+result._id.__id,result);
         });
     });
 }

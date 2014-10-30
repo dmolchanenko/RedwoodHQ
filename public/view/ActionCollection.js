@@ -584,7 +584,7 @@ Ext.define('Redwood.view.ActionCollection', {
                                 return;
                             }
                             me.getView().setVisible(false);
-                            console.log(me.removing);
+                            //console.log(me.removing);
                             //me.waitMsg("Removing Action");
                             me.removing = true;
                             //this.setDisabled(true);
@@ -757,6 +757,10 @@ Ext.define('Redwood.view.ActionCollection', {
                     queryMode: 'local',
                     removeOnDblClick:true,
                     listeners:{
+                        removed: function(field){
+                            //console.log("hidden");
+                            //field.focus();
+                        },
                         validitychange: function(field,isValid){
                             if(field.editor) field.editor.onFieldChange();
                         },
@@ -767,7 +771,6 @@ Ext.define('Redwood.view.ActionCollection', {
                         }
                     }
                 });
-
                 return;
             }
             else{
@@ -1085,6 +1088,8 @@ Ext.define('Redwood.view.ActionCollection', {
                 }
                 return;
             }
+            var lastScrollPos = me.parentPanel.getEl().dom.children[0].scrollTop;
+            me.setVisible(false);
             var lastRowOrder = null;
             me.store.getRootNode().eachChild(function(node){
                 var order = parseInt(node.get("order"),10);
@@ -1108,12 +1113,15 @@ Ext.define('Redwood.view.ActionCollection', {
             var count = 0;
             me.store.getRootNode().cascadeBy(function(node,arg2){
                 if(node === newRecord) {
+                    Ext.MessageBox.hide();
+                    me.setVisible(true);
                     //me.plugins[0].scrollTo(count-1,true);
                     return false;
                 }
                 count++;
             });
-
+            me.setVisible(true);
+            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
             Ext.MessageBox.hide();
             if (newRecord.childNodes.length > 0){
                 me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));

@@ -141,7 +141,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
         });
 
         var UpdateResultCache = {};
-        Ext.socket.on('UpdateResult',function(result){
+        Ext.socket.on('UpdateResultDONE',function(result){
             var updateResult = function(result){
                 var controller = Redwood.app.getController("Executions");
                 var foundTab = controller.tabPanel.down("#"+result._id);
