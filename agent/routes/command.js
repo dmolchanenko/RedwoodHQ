@@ -118,6 +118,10 @@ function startLauncher(executionID,threadID,callback){
             javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
             classPath = libPath+'*:'+launcherPath+'*';
         }
+        if(require('os').platform() == "darwin"){
+            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+            classPath = libPath+'*:'+launcherPath+'*';
+        }
         else{
             javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
             classPath = libPath+'*;'+launcherPath+'*';
@@ -126,7 +130,7 @@ function startLauncher(executionID,threadID,callback){
             fs.mkdirSync(baseExecutionDir+"/"+executionID+"/bin");
         }
         //launcherProc[executionID+portNumber.toString()] = require('child_process').execFile(javaPath+ " -cp " + classPath + " -Xmx512m "+"redwood.launcher.Launcher "+portNumber.toString(),{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
-        launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+        launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
             if(data.toString().indexOf("WARNING") != -1) return;
@@ -142,18 +146,20 @@ function startLauncher(executionID,threadID,callback){
             callback(data.toString());
         });
         common.logger.info("starting port:"+portNumber);
+        //var launcherRetry = 1;
         launcherProc[executionID+portNumber.toString()].on('close', function (data) {
-            delete launcherProc[executionID+portNumber.toString()];
-            var checkForCrush = function(portNumber){
-                if (actionCache[portNumber]){
-                    actionCache[portNumber].error = "Launcher crashed";
-                    actionCache[portNumber].result = "Failed";
-                    sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
-                    delete actionCache[portNumber];
-                }
-            };
-
-            setTimeout(checkForCrush(portNumber),5000);
+            if(launcherProc[executionID+portNumber.toString()]){
+                delete launcherProc[executionID+portNumber.toString()];
+                var checkForCrush = function(portNumber){
+                    if (actionCache[portNumber]){
+                        actionCache[portNumber].error = "Launcher crashed";
+                        actionCache[portNumber].result = "Failed";
+                        sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+                        delete actionCache[portNumber];
+                    }
+                };
+                setTimeout(checkForCrush(portNumber),1000);
+            }
             callback(data.toString());
         });
         var cmdCache = "";
@@ -285,7 +291,7 @@ function stopLauncher(executionID,threadID,callback){
         catch(err){}
     }
     delete launcherConn[executionID+basePort+threadID];
-    setTimeout(function() { callback();}, 2000);
+    setTimeout(function() { callback();}, 4000);
 
 }
 
