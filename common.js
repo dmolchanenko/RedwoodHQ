@@ -121,7 +121,7 @@ exports.cleanUpExecutions = function(){
                     //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
                     var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"unlockALLVMs",hosts:hosts})]);
                     proc.stderr.on('data', function (data) {
-                        common.logger.error('Cloud stderr: ' + data.toString());
+                        logger.error('Cloud stderr: ' + data.toString());
                     });
                 }
                 hosts.push(host);
