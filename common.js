@@ -10,8 +10,10 @@ var spawn = require('child_process').spawn;
 exports.parseConfig = function(callback){
     var conf = fs.readFileSync(__dirname+"/properties.conf");
     var i = 0;
-    var parsed = conf.toString().split("\r\n");
+    var parsed = conf.toString().split("\n");
+    //var parsed = conf.toString().split("\r\n");
     parsed.forEach(function(line){
+        line = line.replace("\r","");
         i++;
         if ((line.indexOf("#") != 0)&&(line.indexOf("=") != -1)){
             Config[line.split("=")[0]] = line.split("=")[1];
@@ -121,7 +123,7 @@ exports.cleanUpExecutions = function(){
                     //console.log(appDir+"vendor/Java/bin/java "+"-cp "+appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/* '+"com.primatest.cloud.Main \""+JSON.stringify({operation:"capacityValidation",hosts:hosts,totalInstances:totalInstances}).replace(/"/g,'\\"')+'"');
                     var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"com.primatest.cloud.Main",JSON.stringify({operation:"unlockALLVMs",hosts:hosts})]);
                     proc.stderr.on('data', function (data) {
-                        logger.error('Cloud stderr: ' + data.toString());
+                        //logger.error('Cloud stderr: ' + data.toString());
                     });
                 }
                 hosts.push(host);
