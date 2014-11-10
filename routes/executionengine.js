@@ -15,6 +15,7 @@ var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var nodemailer = require("nodemailer");
 var spawn = require('child_process').spawn;
 var os = require('os');
+var archiver = require('archiver');
 var db;
 
 exports.stopexecutionPost = function(req, res){
@@ -26,8 +27,8 @@ exports.stopexecutionPost = function(req, res){
     for(var testcase in execution.currentTestCases){
         updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
     }
-    //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"jar_"+req.body.executionID);
-    deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
+    //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"jar_"+req.body.executionID);
+    deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
     common.logger.log("Stop button was pushed");
     cleanExecutionMachines(req.body.executionID,function(){
         updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
@@ -107,70 +108,73 @@ exports.startexecutionPost = function(req, res){
         }
         else{
             //copy files for each execution to prevent conflicts
-            git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar",os.tmpdir()+"/jar_"+executionID,function(){
-                cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
-                    executions[executionID].sourceCache = sourceCache;
-                    verifyMachineState(machines,function(err){
-                        if(err){
-                            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
-                            res.contentType('json');
-                            res.json({error:err});
-                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
-                            deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
-                            delete executions[executionID];
-                            return;
-                        }
-                        VerifyCloudCapacity(executions[executionID].template,function(response){
-                            if(response.err || response.capacityAvailable == false){
-                                var message = "";
-                                if(response.err){
-                                    message = response.err
-                                }
-                                else{
-                                    message = "Cloud does not have the capacity to run this execution."
-                                }
-                                updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
+            //git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar",os.tmpDir()+"/jar_"+executionID,function(){
+            copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build/jar"),os.tmpDir()+"/jar_"+executionID,function(){
+                zipPythonFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),os.tmpDir()+"/jar_"+executionID,function(){
+                    cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
+                        executions[executionID].sourceCache = sourceCache;
+                        verifyMachineState(machines,function(err){
+                            if(err){
+                                updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
                                 res.contentType('json');
-                                res.json({error:"Cloud Error: "+message});
-                                //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
-                                deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
+                                res.json({error:err});
+                                //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
                                 delete executions[executionID];
                                 return;
                             }
-                            res.contentType('json');
-                            res.json({success:true});
-                            lockMachines(machines,executionID,function(){
-                                if(executions[executionID].template){
-                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
-                                }
-                                else{
-                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
-                                }
-                                StartCloudMachines(template,executionID,function(cloudMachines){
-                                    if(cloudMachines.err){
-                                        unlockMachines(machines);
-                                        updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
-                                        //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpdir()+"/jar_"+req.body.executionID);
-                                        deleteDir(os.tmpdir()+"/jar_"+req.body.executionID);
-                                        delete executions[executionID];
-                                        return;
+                            VerifyCloudCapacity(executions[executionID].template,function(response){
+                                if(response.err || response.capacityAvailable == false){
+                                    var message = "";
+                                    if(response.err){
+                                        message = response.err
                                     }
+                                    else{
+                                        message = "Cloud does not have the capacity to run this execution."
+                                    }
+                                    updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
+                                    res.contentType('json');
+                                    res.json({error:"Cloud Error: "+message});
+                                    //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                    deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
+                                    delete executions[executionID];
+                                    return;
+                                }
+                                res.contentType('json');
+                                res.json({success:true});
+                                lockMachines(machines,executionID,function(){
                                     if(executions[executionID].template){
-                                        updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                        updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
                                     }
-                                    executions[executionID].machines = machines.concat(cloudMachines);
-                                    getGlobalVars(executionID,function(){
-                                        testcases.forEach(function(testcase){
-                                            executions[executionID].testcases[testcase.testcaseID] = testcase;
-                                        });
-                                        //see if there is a base state
-                                        suiteBaseState(executionID,executions[executionID].machines,function(){
-                                            //magic happens here
-                                            applyMultiThreading(executionID,function(){
-                                                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
-                                                    executeTestCases(executions[executionID].testcases,executionID);
-                                                });
-                                            })
+                                    else{
+                                        updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
+                                    }
+                                    StartCloudMachines(template,executionID,function(cloudMachines){
+                                        if(cloudMachines.err){
+                                            unlockMachines(machines);
+                                            updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
+                                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                            deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
+                                            delete executions[executionID];
+                                            return;
+                                        }
+                                        if(executions[executionID].template){
+                                            updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                        }
+                                        executions[executionID].machines = machines.concat(cloudMachines);
+                                        getGlobalVars(executionID,function(){
+                                            testcases.forEach(function(testcase){
+                                                executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                            });
+                                            //see if there is a base state
+                                            suiteBaseState(executionID,executions[executionID].machines,function(){
+                                                //magic happens here
+                                                applyMultiThreading(executionID,function(){
+                                                    updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
+                                                        executeTestCases(executions[executionID].testcases,executionID);
+                                                    });
+                                                })
+                                            });
                                         });
                                     });
                                 });
@@ -182,6 +186,59 @@ exports.startexecutionPost = function(req, res){
         }
     });
 };
+
+function zipPythonFiles(projectDir,destDir,callback){
+    fs.exists(projectDir + "/PythonWorkDir",function(exists){
+        if(exists == true){
+            zipDir(projectDir + "/PythonWorkDir/Lib",destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
+                zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py'],function(){
+                    callback();
+                });
+            })
+        }
+        else{
+            callback()
+        }
+    });
+}
+
+function zipDir(sourceDir,targetFile,pattern,callback){
+    fs.exists(sourceDir,function(exists){
+        if(exists == true){
+            var output = fs.createWriteStream(targetFile);
+            /*
+            var archive = archiver('tar', {
+                gzip: true,
+                gzipOptions: {
+                    level: 1
+                }
+            });
+            */
+            var archive = archiver('zip');
+
+            output.on('close', function () {
+                output.end();
+                callback();
+                console.log(archive.pointer() + ' total bytes');
+                console.log('archiver has been finalized and the output file descriptor has closed.');
+            });
+
+            archive.on('error', function(err){
+                console.log(err);
+                //throw err;
+            });
+
+            archive.pipe(output);
+            archive.bulk([
+                { expand: true, cwd: sourceDir, src: pattern}
+            ]);
+            archive.finalize();
+        }
+        else{
+            callback()
+        }
+    })
+}
 
 exports.compileBuild = function(project,username,callback){compileBuild(project,username,callback)};
 
@@ -197,7 +254,7 @@ function compileBuild(project,username,callback){
         }
 
         compile.operation({project:project,username:username},id,function(data){compileOut = compileOut + data},function(){
-            if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
+            if (compileOut.indexOf("BUILD FAILED") != -1){
                 callback("unable to compile")
             }
             else{
@@ -400,8 +457,8 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
-                            deleteDir(os.tmpdir()+"/jar_"+executionID);
+                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
+                            deleteDir(os.tmpDir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -431,8 +488,8 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpdir()+"/jar_"+executionID);
-                            deleteDir(os.tmpdir()+"/jar_"+executionID);
+                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
+                            deleteDir(os.tmpDir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -1234,7 +1291,7 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
                 syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
                     //syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
-                    syncFilesWithAgent(agentHost,port,os.tmpdir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",function(){
+                    syncFilesWithAgent(agentHost,port,os.tmpDir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",function(){
                         sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
                                 callback(message.error);
@@ -2178,6 +2235,54 @@ function sendNotification(executionID){
     });
 }
 
+
+function copyFiles(sourceDir,destDir,callback){
+    fs.exists(destDir,function(exists){
+        fs.mkdir(destDir,function(){
+            fs.readdir(sourceDir,function(err,files){
+                var copied = 1;
+                files.forEach(function(file,index){
+                    try{
+                        copyFile(sourceDir + '/' + file,destDir + '/' + file,function(){
+                            if(copied == files.length) callback();
+                            copied++;
+                        });
+                        //fs.createReadStream(sourceDir + '/' + file).pipe(fs.createWriteStream(destDir + '/' + file));
+                    }
+                    catch(err){
+                        callback(err)
+                    }
+                });
+            });
+        })
+    });
+}
+
+function copyFile(source, target, cb) {
+    var cbCalled = false;
+
+    var rd = fs.createReadStream(source);
+    rd.on("error", function(err) {
+        done(err);
+    });
+    var wr = fs.createWriteStream(target);
+    wr.on("error", function(err) {
+        wr.destroy();
+        done(err);
+    });
+    wr.on("close", function(ex) {
+        done();
+    });
+    rd.pipe(wr);
+
+    function done(err) {
+        if (!cbCalled) {
+            cb(err);
+            cbCalled = true;
+        }
+    }
+}
+
 exports.deleteDir = function(path,callback){deleteDir(path,callback)};
 function deleteDir(path,callback){
     fs.exists(path,function(exists){
@@ -2185,7 +2290,12 @@ function deleteDir(path,callback){
             fs.readdir(path,function(err,files){
                 files.forEach(function(file){
                     file = path + '/' + file;
-                    fs.unlinkSync(file);
+                    try{
+                        fs.unlinkSync(file);
+                    }
+                    catch(err){
+
+                    }
                 });
                 fs.rmdir(path,function(){
                     if (callback) callback();
