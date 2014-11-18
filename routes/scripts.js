@@ -235,7 +235,13 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 exports.setupPython = function(userFolder,callback){SetupPython(userFolder,callback)};
 
 function SetupPython(userFolder,callback){
-    var python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+    var python;
+    if(process.platform == "win32"){
+        python  = spawn(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+    }
+    else{
+        python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Scripts/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+    }
     var cliData = "";
 
     python.stdout.on('data', function (data) {

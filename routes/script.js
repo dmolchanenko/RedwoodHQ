@@ -136,7 +136,12 @@ function runPip(reqFilePath,uninstallAll,username,callback){
             if(activated == false){
                 activated = true;
                 if(uninstallAll == true){
-                    pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
+                    if(process.platform == "win32"){
+                        pip.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
+                    }
+                    else{
+                        pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
+                    }
                 }
                 else{
                     pip.stdin.write("pip install -r "+reqFilePath+'\r\n');
