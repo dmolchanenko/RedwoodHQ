@@ -10,5 +10,6 @@
     , "optimist" : "0.3.5"
     , "forever-monitor" : "1.1.0"
     , "winston" : ">=0.7.2"
+    , "adm-zip" : "0.4.4"
   }
 }

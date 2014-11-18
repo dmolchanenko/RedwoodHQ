@@ -190,11 +190,18 @@ exports.startexecutionPost = function(req, res){
 function zipPythonFiles(projectDir,destDir,callback){
     fs.exists(projectDir + "/PythonWorkDir",function(exists){
         if(exists == true){
-            zipDir(projectDir + "/PythonWorkDir/Lib",destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
-                zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py'],function(){
+            git.lsFiles(projectDir + "/src/",["*.py"],function(data){
+                if ((data != "")&&(data.indexOf("\n") != -1)){
+                    zipDir(projectDir + "/PythonWorkDir/Lib",destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
+                        zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py'],function(){
+                            callback();
+                        });
+                    })
+                }
+                else{
                     callback();
-                });
-            })
+                }
+            });
         }
         else{
             callback()
@@ -762,6 +769,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.executionID = executionID;
                 agentInstructions.testcaseName = testcase.name;
                 agentInstructions.script = testcase.script;
+                agentInstructions.scriptLang = testcase.scriptLang;
                 agentInstructions.resultID = result._id.__id;
                 agentInstructions.parameters = [];
                 agentInstructions.type = testcase.dbTestCase.type;
@@ -824,6 +832,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.returnValueName = action.dbAction.returnvalue;
                 agentInstructions.testcaseName = testcase.dbTestCase.name;
                 agentInstructions.script = action.script;
+                agentInstructions.scriptLang = action.scriptLang;
                 agentInstructions.resultID = result._id.__id;
                 agentInstructions.parameters = [];
                 action.dbAction.parameters.forEach(function(parameter){
@@ -1028,6 +1037,7 @@ exports.actionresultPost = function(req, res){
         agentInstructions.returnValueName = action.dbAction.returnvalue;
         agentInstructions.testcaseName = testcase.testcase.dbTestCase.name;
         agentInstructions.script = action.script;
+        agentInstructions.scriptLang = action.scriptLang;
         agentInstructions.resultID = testcase.result._id.__id;
         agentInstructions.parameters = [];
         action.dbAction.parameters.forEach(function(parameter){
@@ -2049,9 +2059,15 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 lastResultPoint.expanded = false;
                 if (action.type == "script")
                 {
+                    var lang = "Java/Groovy";
+                    if(action.scriptLang){
+                        lang = action.scriptLang;
+                    }
                     lastPoint.script = action.script;
+                    lastPoint.scriptLang = lang;
                     lastPoint.type = action.type;
                     lastResultPoint.script = action.script;
+                    lastResultPoint.scriptLang = lang;
                     lastResultPoint.leaf = true;
                     cb();
                 }
@@ -2089,7 +2105,11 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 if(testcase == null) callback(null);
                 //if (testcase.type == "script"){
                 if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"){
-                    testcaseDetails = {type:testcase.type,dbTestCase:testcase,script:testcase.script,afterState:false,name:testcase.name};
+                    var lang = "Java/Groovy";
+                    if(testcase.scriptLang){
+                        lang = testcase.scriptLang;
+                    }
+                    testcaseDetails = {type:testcase.type,dbTestCase:testcase,scriptLang:lang,script:testcase.script,afterState:false,name:testcase.name};
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
                     callback(testcaseDetails,testcaseResults,["Default"]);
                 }
@@ -2236,6 +2256,7 @@ function sendNotification(executionID){
 }
 
 
+exports.copyFiles = function(sourceDir,destDir,callback){copyFiles(sourceDir,destDir,callback)};
 function copyFiles(sourceDir,destDir,callback){
     fs.exists(destDir,function(exists){
         fs.mkdir(destDir,function(){

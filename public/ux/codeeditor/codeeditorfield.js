@@ -86,6 +86,17 @@ Ext.define('Redwood.ux.CodeEditorField', {
                 showing.CodeMirror.getWrapperElement().style.height = me.winHeight() + "px";
             }
         });
+        if(me.editorType == "text/x-python"){
+            this.editor.setOption("extraKeys", {
+                Tab: function(cm) {
+                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces,"end");
+                },
+                "Ctrl-S": function(){
+                    me.up("scriptBrowser").fireEvent('saveAll',null);
+                }
+            });
+        }
         this.editor.on("change",function(cm,changeOpt){
             if(me.up("codeeditorpanel").inCollab === true){
                 //console.log(changeOpt);

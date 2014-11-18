@@ -6,6 +6,8 @@ var path = require('path');
 var common = require("../common");
 var spawn = require('child_process').spawn;
 var realtime = require("./realtime");
+var scripts = require("./scripts");
+var script = require("./script");
 
 exports.usersPut = function(req, res){
     var db = app.getDB();
@@ -122,7 +124,10 @@ function CreateUsers(db,data,callback){
                             if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"bin") == false){
                                 fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"bin");
                             }
-                            git.setGitUser(projectPath + "/" + returnData[0].username,returnData[0].username,returnData[0].email)
+                            git.setGitUser(projectPath + "/" + returnData[0].username,returnData[0].username,returnData[0].email);
+                            scripts.setupPython(projectPath + "/" + returnData[0].username,function(){
+                                script.runPip(projectPath + "/" + returnData[0].username +"/PipRequirements",false,returnData[0].username,function(){})
+                            })
                         });
                     });
                 });

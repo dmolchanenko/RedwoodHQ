@@ -389,6 +389,30 @@ Ext.define('Redwood.view.ResultsView', {
                                 }
                             }
                         });
+                        //if python
+                        if(value.indexOf("Traceback") == 0){
+                            value.split("File ").forEach(function(line,index){
+                                if(index > 0){
+                                    var filePath = "";
+                                    if(line.indexOf("/src/") != -1){
+                                        filePath = line.substring(line.indexOf("/src/"),line.indexOf(",")-1);
+                                    }
+                                    else if (line.indexOf("\\src\\") != -1){
+                                        filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(",")-1);
+                                    }
+                                    else{
+                                        return
+                                    }
+
+                                    var pathLink = filePath.replace(/\\/g,"/");
+                                    var lineNumber = line.split(",")[1].split(" ")[2];
+                                    pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+'</a></p>';
+
+                                    displayValue += line.replace(filePath,pathLink);
+                                }
+                            });
+                            //displayValue += "adfdsa";
+                        }
                         displayValue += '<p><a style="color: blue;" href="javascript:openDetailedTrace(\''+record.internalId+'\')">Full Trace...</a></p>';
                         meta.tdCls = 'x-redwood-results-cell';
                         return "<p>"+displayValue+"</p>"

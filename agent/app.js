@@ -8,6 +8,8 @@ var heartbeat = require('./routes/heartbeat');
 var update = require('./routes/update');
 var common = require('./common');
 var path = require('path');
+//var idesync = require('./routes/idesync');
+
 
 var app = express();
 process.env.TMPDIR = path.resolve(__dirname,"../logs");

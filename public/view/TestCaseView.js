@@ -170,11 +170,11 @@ Ext.define('Redwood.view.TestCaseView', {
                                 if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng" ){
                                     me.up("testcaseview").down("#actionCollectionFiledSet").hide();
                                     me.up("testcaseview").down("#afterState").hide();
-                                    me.up("testcaseview").down("scriptPicker").show();
+                                    me.up("testcaseview").down("scriptPickerView").show();
                                 }else{
                                     me.up("testcaseview").down("#actionCollectionFiledSet").show();
                                     me.up("testcaseview").down("#afterState").show();
-                                    me.up("testcaseview").down("scriptPicker").hide();
+                                    me.up("testcaseview").down("scriptPickerView").hide();
                                 }
                                 if (me.up("testcaseview").loadingData === false){
                                     me.up("testcaseview").markDirty();
@@ -241,9 +241,9 @@ Ext.define('Redwood.view.TestCaseView', {
                 ]
             },
             {
-                xtype: "scriptPicker",
+                xtype: "scriptPickerView",
                 hidden: true,
-                width: 700,
+                width: 955,
                 listeners: {
                     change: function(){
                         if (me.loadingData == false){
@@ -265,7 +265,13 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.down("#status").setValue(me.dataRecord.get("status"));
                 me.down("#description").setValue(me.dataRecord.get("description"));
                 me.down("#type").setValue({type:me.dataRecord.get("type")});
-                me.down("scriptPicker").setValue(me.dataRecord.get("script"));
+                me.down("#scriptPath").setValue(me.dataRecord.get("script"));
+                if(me.dataRecord.get("scriptLang")){
+                    me.down("#scriptLang").setValue(me.dataRecord.get("scriptLang"));
+                }
+                else{
+                    me.down("#scriptLang").setValue("Java/Groovy");
+                }
                 me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
                 me.down("#afterState").setValue(me.dataRecord.get("afterState"));
                 me.down("#testcaseDetails").collapse();
@@ -317,8 +323,8 @@ Ext.define('Redwood.view.TestCaseView', {
         if (this.down("#status").getValue() == "Automated"){
             if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng"){
 
-                if (this.down("scriptPicker").getValue() == ""){
-                    this.down("scriptPicker").focus();
+                if (this.down("#scriptPath").getValue() == ""){
+                    this.down("#scriptPath").focus();
                     Ext.Msg.alert('Error', "You must select script for this action.");
                     return false;
                 }
@@ -340,7 +346,8 @@ Ext.define('Redwood.view.TestCaseView', {
         testcase.status = this.down("#status").getValue();
         testcase.description = this.down("#description").getValue();
         testcase.type = this.down("#type").getValue().type;
-        testcase.script = this.down("scriptPicker").getValue();
+        testcase.script = this.down("#scriptPath").getValue();
+        testcase.scriptLang = this.down("#scriptLang").getValue();
         testcase.afterState = this.down("#afterState").getValue();
 
 

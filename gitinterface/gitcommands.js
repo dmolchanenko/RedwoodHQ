@@ -175,7 +175,9 @@ exports.pull = function(workdir,callback){
     common.logger.info("pull");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','origin','master'],{cwd: workdir,timeout:300000});
 
+    var cliOut = "";
     git.stdout.on('data', function (data) {
+        cliOut = cliOut + data.toString();
         common.logger.info('stdout: ' + data);
     });
 
@@ -184,7 +186,7 @@ exports.pull = function(workdir,callback){
     });
 
     git.on('close', function (code) {
-        callback();
+        callback(cliOut);
     });
 };
 

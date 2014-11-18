@@ -8,6 +8,7 @@ var spawn = require('child_process').spawn;
 var launcherConn = {};
 var common = require('../common');
 var basePort = 4445;
+var basePythonPort = 6445;
 var baseExecutionDir = path.resolve(__dirname,"../executionfiles");
 var actionCache = {};
 
@@ -18,9 +19,30 @@ exports.Post = function(req, res){
         common.logger.info("running action");
         //console.log(command);
         actionCache[basePort+command.threadID] = command;
-        sendLauncherCommand(command,function(err){
-            res.send(JSON.stringify({"error":err,"success":true}));
-        });
+        actionCache[basePythonPort+command.threadID] = command;
+        var portNumber;
+        var type;
+        if(command.scriptLang == "Java/Groovy"){
+            portNumber = basePort+command.threadID;
+            type = "java"
+        }
+        else if(command.scriptLang == "Python"){
+            portNumber = basePythonPort+command.threadID;
+            type = "python"
+        }
+
+        if(!launcherConn[command.executionID+portNumber.toString()]){
+            startLauncher(command.executionID,command.threadID,type,function(){
+                sendLauncherCommand(command,null,function(err){
+                    res.send(JSON.stringify({"error":err,"success":true}));
+                });
+            })
+        }
+        else{
+            sendLauncherCommand(command,null,function(err){
+                res.send(JSON.stringify({"error":err,"success":true}));
+            });
+        }
     }
     else if(command.command == "cleanup"){
         common.logger.info("cleaning up");
@@ -40,7 +62,9 @@ exports.Post = function(req, res){
                 count++;
                 if(propt.toString().indexOf(command.executionID) != -1){
                     toDelete.push(propt);
-                    stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)) - basePort,function(){});
+                    stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)),function(){
+                        cleanUpDirs()
+                    });
                 }
                 if(count == Object.keys(launcherConn).length){
                     toDelete.forEach(function(conn){
@@ -57,9 +81,17 @@ exports.Post = function(req, res){
         }
     }
     else if (command.command == "start launcher"){
+        res.send(JSON.stringify({"error":null}));
+        return;
         common.logger.info("starting launcher: ThreadID: "+command.threadID);
-        startLauncher(command.executionID,command.threadID,function(err){
-            res.send(JSON.stringify({"error":err}));
+        startLauncher(command.executionID,command.threadID,"java",function(err){
+            if(err){
+                res.send(JSON.stringify({"error":err}));
+                return
+            }
+            startLauncher(command.executionID,command.threadID,"python",function(err){
+                res.send(JSON.stringify({"error":err}));
+            });
         });
     }
     else if (command.command == "files loaded"){
@@ -98,11 +130,17 @@ function checkForDupLauncher(){
 }
 
 
-function startLauncher(executionID,threadID,callback){
+function startLauncher(executionID,threadID,type,callback){
     var libPath = baseExecutionDir+"/"+executionID+"/lib/";
     var launcherPath  = baseExecutionDir+"/"+executionID+"/launcher/";
-    var portNumber = basePort + threadID;
     var javaPath = "";
+    var portNumber;
+    if(type == "java"){
+        portNumber = basePort + threadID;
+    }
+    else if(type == "python"){
+        portNumber = basePythonPort + threadID;
+    }
     var classPath = "";
 
     //check if there is a process with same port already running
@@ -114,24 +152,31 @@ function startLauncher(executionID,threadID,callback){
     }
 
     var startProcess = function(){
-        if(require('os').platform() == "linux"){
-            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
-            classPath = libPath+'*:'+launcherPath+'*';
-        }
-        if(require('os').platform() == "darwin"){
-            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
-            classPath = libPath+'*:'+launcherPath+'*';
-        }
-        else{
-            javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
-            classPath = libPath+'*;'+launcherPath+'*';
-        }
         if (fs.existsSync(baseExecutionDir+"/"+executionID+"/bin") == false){
             fs.mkdirSync(baseExecutionDir+"/"+executionID+"/bin");
         }
+        if(type == "java"){
+            if(require('os').platform() == "linux"){
+                javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+                classPath = libPath+'*:'+launcherPath+'*';
+            }
+            if(require('os').platform() == "darwin"){
+                javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+                classPath = libPath+'*:'+launcherPath+'*';
+            }
+            else{
+                javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+                classPath = libPath+'*;'+launcherPath+'*';
+            }
+            launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+        }
+        else if(type == "python"){
+            var pythonPath = baseExecutionDir+"/"+executionID+"/python";
+            var pythonLauncherPath = path.resolve(__dirname,"../lib")+"/pythonLauncher.py";
+            launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PYTHONPATH:baseExecutionDir+"/"+executionID+"/src/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+        }
         //launcherProc[executionID+portNumber.toString()] = require('child_process').execFile(javaPath+ " -cp " + classPath + " -Xmx512m "+"redwood.launcher.Launcher "+portNumber.toString(),{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
-        launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
-        fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
+        fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+type+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
             if(data.toString().indexOf("WARNING") != -1) return;
             common.logger.error("launcher error:"+data.toString());
@@ -238,8 +283,10 @@ function startLauncher(executionID,threadID,callback){
     };
 
     if (foundConn != null){
-        stopLauncher(executionID,threadID,function(){
-            startProcess();
+        stopLauncher(executionID,basePort + threadID,function(){
+            stopLauncher(executionID,basePythonPort + threadID,function(){
+                startProcess();
+            });
         });
     }
     else{
@@ -260,22 +307,22 @@ function startLauncher(executionID,threadID,callback){
     }
 }
 
-function stopLauncher(executionID,threadID,callback){
-    if (launcherProc[executionID+threadID.toString()] != null){
-        sendLauncherCommand({command:"exit",executionID:executionID,threadID:threadID},function(){
+function stopLauncher(executionID,port,callback){
+    if (launcherProc[executionID+port.toString()] != null){
+        sendLauncherCommand({command:"exit",executionID:executionID},port,function(){
             try{
-                process.kill(launcherProc[executionID+threadID.toString()].pid);
+                process.kill(launcherProc[executionID+port.toString()].pid);
             }
             catch(exception){
                 common.logger.error(exception);
             }
-            delete launcherProc[executionID+threadID.toString()];
+            delete launcherProc[executionID+port.toString()];
         });
     }
     //if there is runaway launcher try to kill it
     else{
         var conn;
-        conn = net.connect(basePort+threadID, function(){
+        conn = net.connect(port, function(){
             conn.write(JSON.stringify({command:"exit"})+"\r\n");
         }).on('error', function(err) {
                 //deleteDir(baseExecutionDir+"/"+executionID+"/launcher/",callback)
@@ -283,14 +330,21 @@ function stopLauncher(executionID,threadID,callback){
     }
 
 
-    if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid") == true){
-        var pid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+"_launcher.pid").toString();
+    if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"java_launcher.pid") == true){
+        var jpid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+port.toString+"java_launcher.pid").toString();
         try{
-            process.kill(pid,"SIGTERM");
+            process.kill(jpid,"SIGTERM");
         }
         catch(err){}
     }
-    delete launcherConn[executionID+basePort+threadID];
+    if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"python_launcher.pid") == true){
+        var ppid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"python_launcher.pid").toString();
+        try{
+            process.kill(ppid,"SIGTERM");
+        }
+        catch(err){}
+    }
+    delete launcherConn[port];
     setTimeout(function() { callback();}, 4000);
 
 }
@@ -374,8 +428,15 @@ function deleteDir(dir,callback){
 
 }
 
-function sendLauncherCommand(command,callback){
-    var portNumber = basePort+command.threadID;
+function sendLauncherCommand(command,port,callback){
+    var portNumber;
+    if(command.scriptLang == "Java/Groovy"){
+        portNumber = basePort+command.threadID;
+    }
+    else if(command.scriptLang == "Python"){
+        portNumber = basePythonPort+command.threadID;
+    }
+    if(port != null) portNumber = port;
 
     //console.log("sending to:"+portNumber);
     if (launcherConn[command.executionID+portNumber.toString()] == null){

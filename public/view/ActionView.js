@@ -368,10 +368,10 @@ Ext.define('Redwood.view.ActionView', {
                             change: function(me,newVal,oldVal){
                                 if(newVal.type == "script"){
                                     me.up("actionview").down("#actionCollectionFiledSet").hide();
-                                    me.up("actionview").down("scriptPicker").show();
+                                    me.up("actionview").down("scriptPickerView").show();
                                 }else{
                                     me.up("actionview").down("#actionCollectionFiledSet").show();
-                                    me.up("actionview").down("scriptPicker").hide();
+                                    me.up("actionview").down("scriptPickerView").hide();
                                 }
                                 if (me.up("actionview").loadingData === false){
                                     me.up("actionview").markDirty();
@@ -489,9 +489,9 @@ Ext.define('Redwood.view.ActionView', {
                 ]
             },
             {
-                xtype: "scriptPicker",
+                xtype: "scriptPickerView",
                 hidden: false,
-                width: 700,
+                width: 955,
                 listeners: {
                     change: function(){
                         if (me.loadingData == false){
@@ -513,7 +513,13 @@ Ext.define('Redwood.view.ActionView', {
                 me.down("#status").setValue(me.dataRecord.get("status"));
                 me.down("#description").setValue(me.dataRecord.get("description"));
                 me.down("#type").setValue({type:me.dataRecord.get("type")});
-                me.down("scriptPicker").setValue(me.dataRecord.get("script"));
+                me.down("#scriptPath").setValue(me.dataRecord.get("script"));
+                if(me.dataRecord.get("scriptLang")){
+                    me.down("#scriptLang").setValue(me.dataRecord.get("scriptLang"));
+                }
+                else{
+                    me.down("#scriptLang").setValue("Java/Groovy");
+                }
                 me.dataRecord.get("params").forEach(function(item){
                     me.down("#params").store.add(item);
                 });
@@ -556,8 +562,8 @@ Ext.define('Redwood.view.ActionView', {
         if (this.down("#status").getValue() == "Automated"){
             if (this.down("#type").getValue().type == "script"){
 
-                if (this.down("scriptPicker").getValue() == ""){
-                    this.down("scriptPicker").focus();
+                if (this.down("#scriptPath").getValue() == ""){
+                    this.down("#scriptPath").focus();
                     Ext.Msg.alert('Error', "You must select script for this action.");
                     return false;
                 }
@@ -579,7 +585,8 @@ Ext.define('Redwood.view.ActionView', {
         action.status = this.down("#status").getValue();
         action.type = this.down("#type").getValue().type;
         action.description = this.down("#description").getValue();
-        action.script = this.down("scriptPicker").getValue();
+        action.script = this.down("#scriptPath").getValue();
+        action.scriptLang = this.down("#scriptLang").getValue();
 
         var paramStore = this.down("#params").store;
         action.params = [];

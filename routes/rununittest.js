@@ -21,8 +21,9 @@ exports.runUnitTest = function(req,res){
         else{
             res.contentType('json');
             res.json({success:true});
-            execEngine.deleteDir(os.tmpdir()+"/jar_"+username+"unittest",function(){
-                git.copyFiles(path.join(__dirname, '../public/automationscripts/'+project+"/"+username+"/build"),"jar",os.tmpdir()+"/jar_"+username+"unittest",function(){
+            execEngine.deleteDir(os.tmpDir()+"/jar_"+username+"unittest",function(){
+                //git.copyFiles(path.join(__dirname, '../public/automationscripts/'+project+"/"+username+"/build"),"jar",os.tmpdir()+"/jar_"+username+"unittest",function(){
+                execEngine.copyFiles(path.join(__dirname, '../public/automationscripts/'+project+"/"+username+"/build/jar"),os.tmpDir()+"/jar_"+username+"unittest",function(){
                     execEngine.cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+project+"/"+username),function(sourceCache){
                         execEngine.agentBaseState(project+"/"+username,username+"unittest",ip,port,99,function(message){
                             if(message && message.error){

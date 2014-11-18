@@ -82,6 +82,46 @@ Ext.define('Redwood.view.ScriptViewer', {
 
 });
 
+Ext.define('Redwood.view.ScriptPickerView', {
+    extend: 'Ext.panel.Panel',
+    alias: 'widget.scriptPickerView',
+    layout: {
+        type:'hbox'
+    },
+
+    items:[
+        {
+            xtype:"scriptPicker",
+            itemId:"scriptPath",
+            width:700,
+            listeners: {
+                change: function(picker){
+                    picker.up("panel").fireEvent('change');
+                }
+            }
+        },
+        {
+            xtype:'combo',
+            fieldLabel: 'Language',
+            labelPad:0,
+            padding: '0 0 0 5',
+            //width:255,
+            store: ["Java/Groovy","Python"],
+            forceSelection: true,
+            editable: false,
+            allowBlank: false,
+            itemId:"scriptLang",
+            value:"Java/Groovy",
+            listeners: {
+                change: function(field, e){
+                    field.up("panel").fireEvent('change');
+                }
+            }
+        }
+    ]
+
+
+});
 
 Ext.define('Redwood.view.ScriptPicker', {
     extend: 'Ext.form.field.Trigger',
@@ -101,6 +141,15 @@ Ext.define('Redwood.view.ScriptPicker', {
             //method = method.split("src/")[1];
             method = method.substring(0,method.length - 7);
             me.setValue(method);
+            if(record.get("fullpath").indexOf(".groovy/") != -1){
+                me.up("panel").down("#scriptLang").setValue("Java/Groovy")
+            }
+            else if(record.get("fullpath").indexOf(".java/") != -1){
+                me.up("panel").down("#scriptLang").setValue("Java/Groovy")
+            }
+            else if(record.get("fullpath").indexOf(".py/") != -1){
+                me.up("panel").down("#scriptLang").setValue("Python")
+            }
         });
         scripts.show();
     },
@@ -115,6 +164,7 @@ Ext.define('Redwood.view.ScriptPicker', {
         mainTab.setActiveTab(mainTab.down("#ScriptBrowser"));
         Redwood.app.getController("Scripts").onScriptEdit(fullPath+".groovy");
         Redwood.app.getController("Scripts").onScriptEdit(fullPath+".java");
+        Redwood.app.getController("Scripts").onScriptEdit(fullPath+".py");
     },
 
     listeners:{

@@ -1,6 +1,7 @@
 function openScript(path,lineNumber){
     var tab = Ext.ComponentQuery.query("#mainTabPanel")[0];
     tab.setActiveTab(tab.down("#ScriptBrowser"));
+    if(path.charAt(0) != "/") path = "/"+path;
     Ext.getCmp("ScriptBrowser").fireEvent('scriptEdit',path,parseInt(lineNumber,10));
     //scriptController.onScriptEdit(path,lineNumber);
     if(Ext.isChrome){
@@ -45,7 +46,8 @@ Ext.define("Redwood.controller.Scripts", {
                 recordImage: this.onRecordImage,
                 recordSteps: this.onRecordSteps,
                 imageEdit:this.onImageEdit,
-                uploadFiles:this.onUploadFiles
+                uploadFiles:this.onUploadFiles,
+                runPip:this.onRunPip
 
             },
             'scriptBrowser button': {
@@ -55,6 +57,27 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     compileEventAttached: false,
+
+    onRunPip: function(){
+        var panel = this.scriptBrowser.down("#outputPanel");
+        panel.expand();
+        var output = this.scriptBrowser.down("#compileOutput");
+        var elem = output.getEl();
+        while (elem.dom.hasChildNodes()) {
+            elem.dom.removeChild(elem.dom.lastChild);
+        }
+        Ext.Ajax.request({
+            url:"/runpip",
+            method:"GET",
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error){
+                    Ext.Msg.alert('Error', obj.error);
+                    if (callback) callback();
+                }
+            }
+        });
+    },
 
     onStopTC: function(){
         Ext.Ajax.request({
@@ -403,8 +426,8 @@ Ext.define("Redwood.controller.Scripts", {
             Ext.socket.on('compile',function(msg){
                 var output = me.scriptBrowser.down("#compileOutput");
                 var elem = output.getEl();
-
-                msg.split("\n").forEach(function(line){
+                var lines = msg.split("\n");
+                lines.forEach(function(line,index){
                     //see if we get our file to show up
                     var srcIndex = line.lastIndexOf("\\src\\");
                     if(srcIndex != -1){
@@ -428,6 +451,30 @@ Ext.define("Redwood.controller.Scripts", {
                         //var newMsg = line.replace(path,"<a href='javascript:function(){return false;}'>"+ path +"</a>");
                         Ext.DomHelper.append(elem, {tag: 'div',html:newMsg});
                     }
+                    //see if it's python
+                    else if(line.indexOf("  File ") == 0 && line.indexOf(".py\"") != -1){
+                        var pythonPath = line.split('"')[1];
+                        var pythonLineNumber = line.split('line ')[1];
+                        pythonLineNumber = parseInt(pythonLineNumber,10) -1;
+                        var pythonLinkHmtl = "<a href='javascript:openScript(&quot;/"+ pythonPath.replace(/\\/g,"/") +"&quot;,"+pythonLineNumber+")'>"+ pythonPath +"</a>";
+
+                        var pythonNewMsg = line.replace(pythonPath,pythonLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
+                    }else if(line.indexOf("Sorry: ") == 0 && line.indexOf(".py,") != -1){
+                        var pythonPath = lines[index-1].split('Compiling ')[1];
+                        pythonPath = pythonPath.split(' ...')[0];
+
+                        var pythonFileName = line.split('(')[1];
+                        var pythonFileName = pythonFileName.split(',')[0];
+
+                        var pythonLineNumber = line.split('line ')[1];
+                        pythonLineNumber = pythonLineNumber.split(')')[0];
+                        pythonLineNumber = parseInt(pythonLineNumber,10) -1;
+                        var pythonLinkHmtl = "<a href='javascript:openScript(&quot;/"+ pythonPath.replace(/\\/g,"/") +"&quot;,"+pythonLineNumber+")'>"+ pythonPath +"</a>";
+
+                        var pythonNewMsg = line.replace(pythonFileName,pythonLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
+                    }
                     else{
                         Ext.DomHelper.append(elem, {tag: 'div',html:line});
                     }
@@ -445,6 +492,8 @@ Ext.define("Redwood.controller.Scripts", {
             icon = "images/fileTypeJava.png";
         }else if (fileName.slice(-2) == "js"){
             icon = "images/fileTypeJavascript.png";
+        }else if (fileName.slice(-2) == "py"){
+            icon = "images/python.png";
         }
         return icon;
     },
@@ -821,20 +870,70 @@ Ext.define("Redwood.controller.Scripts", {
         Ext.each(allScripts, function(script, index) {
             if (script.dirty == true){
                 if (script.inConflict == false){
-                    Ext.Ajax.request({
-                        url:"/script",
-                        method:"PUT",
-                        jsonData : {path:script.path,text:script.getValue()},
-                        success: function(response, action) {
-                            script.clearDirty();
-                            script.node.set("text",'<span style="color:blue">' + script.node.get("name") + '</span>');
-                            script.node.set("qtip",'This file is not yet pushed.');
-                            total++;
-                            if (total == allScripts.length){
-                                if (callback) callback();
+                    var sendSaveRequest = function(){
+                        //if we are saving pip requirements
+                        Ext.Ajax.request({
+                            url:"/script",
+                            method:"PUT",
+                            jsonData : {path:script.path,text:script.getValue()},
+                            success: function(response, action) {
+                                var obj = Ext.decode(response.responseText);
+                                if(obj.error){
+                                    Ext.Msg.alert('Error', obj.error);
+                                    if (callback) callback();
+                                    return;
+                                }
+                                if(script.path.indexOf(pipReqFilePath) == script.path.length -pipReqFilePath.length){
+                                    var panel = me.scriptBrowser.down("#outputPanel");
+                                    panel.expand();
+                                    var output = me.scriptBrowser.down("#compileOutput");
+                                    var elem = output.getEl();
+                                    while (elem.dom.hasChildNodes()) {
+                                        elem.dom.removeChild(elem.dom.lastChild);
+                                    }
+                                }
+                                script.clearDirty();
+                                script.node.set("text",'<span style="color:blue">' + script.node.get("name") + '</span>');
+                                script.node.set("qtip",'This file is not yet pushed.');
+                                total++;
+                                if (total == allScripts.length){
+                                    if (callback) callback();
+                                }
+                            },
+                            failure: function (response) {
+                                var obj = Ext.decode(response.responseText);
+                                if(obj.error){
+                                    Ext.Msg.alert('Error', obj.error);
+                                }
+                                else{
+                                    Ext.Msg.alert('Error', "Unable to save file.");
+                                }
                             }
+                        });
+                    };
+
+                    var pipReqFilePath = "/"+Ext.util.Cookies.get("username")+"/PipRequirements";
+                    if(script.path.indexOf(pipReqFilePath) == script.path.length -pipReqFilePath.length){
+                        if(!script.getValue().match(/[^\W_]/)){
+                            Ext.Msg.show({
+                                title:'Save Confirmation',
+                                msg: "It appears you have an empty pip requirement file.  This would cause all libraries to be uninstalled.  Do you want to proceed?",
+                                buttons: Ext.Msg.YESNO,
+                                icon: Ext.Msg.QUESTION,
+                                fn: function(id){
+                                    if (id == "yes"){
+                                        sendSaveRequest()
+                                    }
+                                }
+                            });
                         }
-                    });
+                        else{
+                            sendSaveRequest()
+                        }
+                    }
+                    else{
+                        sendSaveRequest()
+                    }
                 }
                 else{
                     Ext.Ajax.request({
@@ -868,7 +967,8 @@ Ext.define("Redwood.controller.Scripts", {
         //if string search for
         if (typeof(record) == "string"){
             this.treePanel.getRootNode().cascadeBy(function(node) {
-                if ((node.get("fullpath") && (node.get("fullpath").indexOf(record) != -1))){
+                //if ((node.get("fullpath") && (node.get("fullpath").indexOf(record) != -1))){
+                if ((node.get("fullpath") && ("/src/"+node.get("fullpath").split("/src/")[1] == record))){
                     node.parentNode.expand();
                     me.treePanel.getSelectionModel().select(node);
                     record = node;
@@ -898,6 +998,10 @@ Ext.define("Redwood.controller.Scripts", {
                 editorType = "application/xml";
             }else if (record.get("fullpath").slice(-2) == "js"){
                 editorType = "text/javascript";
+            }else if (record.get("fullpath").slice(-2) == "py"){
+                editorType = "text/x-python";
+            }else if (record.get("fullpath").slice(-2) == "cs"){
+                editorType = "text/x-csharp";
             }
 
             var tab;

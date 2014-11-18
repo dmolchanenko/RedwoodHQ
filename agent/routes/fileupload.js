@@ -2,6 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var walk = require('walk');
 var common = require('../common');
+var spawn = require('child_process').spawn;
+var AdmZip = require('adm-zip');
 
 exports.Post = function(req, res){
     var tmp_path = req.files.file.path;
@@ -26,7 +28,35 @@ exports.Post = function(req, res){
                 fs.unlink(tmp_path);
                 return;
             }
-            res.send("{error:null,success:true}");
+            if(req.files.file.name.indexOf("pythonLibs.zip") != -1){
+                var extractTo = path.resolve(__dirname,"../")+"/"+req.files.file.name.substring(0,req.files.file.name.lastIndexOf("/"));
+                var zip = new AdmZip(target_path);
+                zip.extractAllTo(extractTo, true);
+                res.send("{error:null,success:true}");
+                //var unzip  = spawn(path.resolve(__dirname,'../../vendor/Java/bin/jar'),['xf','pythonLibs.zip'],{cwd: extractTo,timeout:300000});
+            }
+            else if(req.files.file.name.indexOf("pythonSources.zip") != -1){
+                var extractTo = path.resolve(__dirname,"../")+"/"+req.files.file.name.substring(0,req.files.file.name.lastIndexOf("/"));
+                var pythonFileName;
+                if(require('os').platform() == "win32"){
+                    pythonFileName = "python.exe"
+                }
+                else{
+                    pythonFileName = "python"
+                }
+                copyFile(path.resolve(__dirname,'../../vendor/Python')+"/"+pythonFileName,path.resolve(extractTo,"../")+"/"+pythonFileName,function(){
+                    extractTo = path.resolve(extractTo,"../")+"/src/";
+                    var zip = new AdmZip(target_path);
+                    zip.extractAllTo(extractTo, true);
+                    res.send("{error:null,success:true}");
+
+                    //fs.mkdir(extractTo,function(){
+                    //    var unzip  = spawn(path.resolve(__dirname,'../../vendor/Java/bin/jar'),['xf',target_path],{cwd: extractTo,timeout:300000});
+                });
+            }
+            else{
+               res.send("{error:null,success:true}");
+            }
         });
     }
     catch(exception){
@@ -37,3 +67,28 @@ exports.Post = function(req, res){
     //console.log(tmp_path);
     //console.log(target_path);
 };
+
+function copyFile(source, target, cb) {
+    var cbCalled = false;
+
+    var rd = fs.createReadStream(source);
+    rd.on("error", function(err) {
+        done(err);
+    });
+    var wr = fs.createWriteStream(target);
+    wr.on("error", function(err) {
+        wr.destroy();
+        done(err);
+    });
+    wr.on("close", function(ex) {
+        done();
+    });
+    rd.pipe(wr);
+
+    function done(err) {
+        if (!cbCalled) {
+            cb(err);
+            cbCalled = true;
+        }
+    }
+}

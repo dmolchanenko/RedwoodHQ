@@ -30,6 +30,22 @@ var uploadFiles = Ext.create('Ext.Action', {
     }
 });
 
+var runPip = Ext.create('Ext.Action', {
+    icon: 'images/python.png',
+    tooltip: "Run pip install against current requirement file.",
+    text:"Run Pip Install",
+    itemId: "runPip",
+    visible: false,
+
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('runPip');
+    }
+});
+
 var recordStepsAction = Ext.create('Ext.Action', {
     icon: 'images/media_record.png',
     tooltip: "Start Looking Glass Utility",
@@ -279,6 +295,19 @@ var newGroovyScriptAction = Ext.create('Ext.Action', {
     }
 });
 
+var newPythonScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/python.png',
+    text: 'Python Action',
+    tooltip: "New Python Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"pythonAction");
+    }
+});
+
 var newJavaScriptAction = Ext.create('Ext.Action', {
     icon: 'images/fileTypeJava.png',
     text: 'Java Action',
@@ -382,6 +411,7 @@ var newMenuItem = Ext.create('Ext.Action', {
         items: [
             newJavaScriptAction,
             newGroovyScriptAction,
+            newPythonScriptAction,
             newScriptAction,
             newFolderAction,
             uploadAction,
@@ -401,6 +431,7 @@ var newItemButton = Ext.create('Ext.button.Split',{
         items: [
             newJavaScriptAction,
             newGroovyScriptAction,
+            newPythonScriptAction,
             newScriptAction,
             newFolderAction,
             uploadAction,
@@ -435,6 +466,7 @@ var renameMenuAction = Ext.create('Ext.Action', {
 var contextMenu = Ext.create('Ext.menu.Menu', {
     itemId:"treeContext",
     items: [
+        //runPip,
         newMenuItem,
         {xtype: 'menuseparator'},
         deleteMenuAction,
@@ -462,6 +494,13 @@ var contextMenu = Ext.create('Ext.menu.Menu', {
                         me.down("#newFolder").setDisabled(true);
                         me.down("#newScript").setDisabled(true);
                     }
+                    var pipReqFilePath = "/"+Ext.util.Cookies.get("username")+"/PipRequirements";
+                    if(node.get("fullpath").indexOf(pipReqFilePath) == node.get("fullpath").length -pipReqFilePath.length){
+                        //me.down("#runPip").setVisible(true);
+                    }
+                    else{
+                        //me.down("#runPip").setVisible(false);
+                    }
                     foundRootItem = true;
                 }
             });
@@ -473,6 +512,8 @@ var contextMenu = Ext.create('Ext.menu.Menu', {
                 me.down("#deleteMenu").setDisabled(false);
                 me.down("#copyMenu").setDisabled(false);
             }
+            //
+
         }
     }
 });
@@ -521,7 +562,12 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     items:{
                         xtype: "box",
                         itemId: "compileOutput",
-                        anchor: '100%'
+                        anchor: '100%',
+                        listeners:{
+                            added: function(){
+                                //console.log("tes")
+                            }
+                        }
                         //readOnly: true,
                         //grow: true,
                         //bodyPadding: 0,
@@ -599,6 +645,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                         newScriptAction.setDisabled(true);
                                         newGroovyScriptAction.setDisabled(true);
                                         newJavaScriptAction.setDisabled(true);
+                                        newPythonScriptAction.setDisabled(true);
                                         newFolderAction.setDisabled(true);
                                     }
                                     foundRootItem = true;
@@ -609,6 +656,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                 newScriptAction.setDisabled(false);
                                 newGroovyScriptAction.setDisabled(false);
                                 newJavaScriptAction.setDisabled(false);
+                                newPythonScriptAction.setDisabled(false);
                                 newFolderAction.setDisabled(false);
                                 deleteScriptAction.setDisabled(false);
                                 copyAction.setDisabled(false);

@@ -7,6 +7,7 @@ var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var spawn = require('child_process').spawn;
 var walk = require('walk');
 var images = require("./imageautomation");
+var script = require("./script");
 
 exports.scriptsPush = function(req,res){
     git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
@@ -27,15 +28,30 @@ exports.scriptsPush = function(req,res){
 exports.scriptsPull = function(req,res){
     git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
         git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-            git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+            git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(cliOut){
                 git.gitFetch(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
                     git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
                         var files = [];
                         if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
                             files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
                         }
-                        res.contentType('json');
-                        res.json({success:true,conflicts:files});
+                        if(cliOut.indexOf("PipRequirements ") != -1){
+                            var uninstallAll = false;
+                            fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
+                                if(!data.match(/[^\W_]/)){
+                                    uninstallAll = true;
+                                }
+                                script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(){
+                                    res.contentType('json');
+                                    res.json({success:true,conflicts:files});
+                                })
+                            });
+
+                        }
+                        else{
+                            res.contentType('json');
+                            res.json({success:true,conflicts:files});
+                        }
                         //try and delete jar file to trigger compile from execution
                         try{
                             fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
@@ -135,7 +151,8 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
         git.initBare(masterBranch,function(){
             git.clone(adminBranch,masterBranch,function(){
-                fs.writeFile(newProjectPath + "/admin/.gitignore","build",function(){});
+                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir",function(){});
+                SetupPython(adminBranch);
                 files.forEach(function(file,index,array){
                     var destName = file.replace(templatePath,"");
                     destName = adminBranch+destName;
@@ -164,6 +181,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                 users.forEach(function(user){
                                     if (user.username !== "admin"){
                                         fs.mkdirSync(newProjectPath + "/" + user.username);
+                                        SetupPython(newProjectPath + "/" + user.username);
                                         git.clone(newProjectPath + "/" + user.username,masterBranch,function(){
                                             if(fs.existsSync(newProjectPath + "/" + user.username + "src") == false){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "src");
@@ -185,7 +203,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
                                             */
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/JVM/.gitignore","build");
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/JVM/.gitignore","build\r\nPythonWorkDir");
                                         });
                                     }
                                 });
@@ -213,6 +231,29 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
     },function(file){files.push(file)})
 };
+
+exports.setupPython = function(userFolder,callback){SetupPython(userFolder,callback)};
+
+function SetupPython(userFolder,callback){
+    var python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+    var cliData = "";
+
+    python.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.info('stdout: ' + data);
+    });
+
+    python.stderr.on('data', function (data) {
+        common.logger.error('Setup Python Scripts stderr: ' + data);
+    });
+
+    python.on('close', function (code) {
+        //fs.writeFile(userFolder + "/" + ".gitignore","Scripts");
+        //callback(cliData);
+        if(callback)callback();
+    });
+
+}
 
 function CopyScripts(scripts,destDir,projectDir,callback){
     var errFound = false;
@@ -446,11 +487,17 @@ var walkDir = function(dir,filesInConflict,filesNotPushed, done) {
                         result.fileType = "folder";
                         result.cls = "folder";
                     }
-                    results.push(result);
-                    walkDir(file, filesInConflict,filesNotPushed,function(err, res) {
-                        result.children = res;
+
+                    if(result.text != "PythonWorkDir"){
+                        results.push(result);
+                        walkDir(file, filesInConflict,filesNotPushed,function(err, res) {
+                            result.children = res;
+                            if (!--pending) done(null, results);
+                        });
+                    }
+                    else{
                         if (!--pending) done(null, results);
-                    });
+                    }
                 } else {
                     //if (filesInConflict.indexOf(result.text))
                     var match = common.ArrayIndexOf(filesInConflict,function(a){
@@ -487,8 +534,20 @@ var walkDir = function(dir,filesInConflict,filesNotPushed, done) {
                         result.icon = "images/fileTypeJava.png";
                     }else if (file.slice(-2) == "js"){
                         result.icon = "images/fileTypeJavascript.png";
+                    }else if (file.slice(-2) == "py"){
+                        result.icon = "images/python.png";
+                    }else if (file.slice(-2) == "cs"){
+                        result.icon = "images/csharp.png";
                     }
                     result.leaf= true;
+                    if (file.slice(-3) == "pyc"){
+                        if (!--pending) done(null, results);
+                        return;
+                    }
+                    if (file.slice(-11) == "__init__.py"){
+                        if (!--pending) done(null, results);
+                        return;
+                    }
                     results.push(result);
                     if (!--pending) done(null, results);
                 }

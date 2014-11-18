@@ -19,6 +19,30 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             Ext.Msg.show({title: "Test Cases Imported",msg:"Imported "+totalCount+" test cases.",buttons : Ext.MessageBox.OK});
         });
 
+        Ext.socket.on('PythonRequirementRun'+Ext.util.Cookies.get('username'),function(output){
+            var outputPanel = Ext.getCmp('scriptOutputPanel').down("#compileOutput").getEl();
+            if (output.message){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.message});
+            }
+            else if(output.error){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:'<span style="color: red; ">Error: '+Ext.util.Format.htmlEncode(output.error)+'</span>'});
+            }
+            else if(output.freezeData){
+                var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
+                Ext.each(allScripts, function(script, index) {
+                    var pipReqFilePath = "/"+Ext.util.Cookies.get("username")+"/PipRequirements";
+                    if(script.path.indexOf(pipReqFilePath) == script.path.length -pipReqFilePath.length){
+                        script.setValue(output.freezeData);
+                        script.clearDirty();
+                        script.refreshNeeded = true;
+                    }
+                });
+            }
+            else{
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.status});
+            }
+        });
+
         Ext.socket.on('UnitTestRun'+Ext.util.Cookies.get('username'),function(output){
             var outputPanel = Ext.getCmp('scriptOutputPanel').down("#compileOutput").getEl();
             if (output.message){

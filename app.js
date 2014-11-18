@@ -27,7 +27,7 @@ var express = require('express')
   , testsets = require('./routes/testsets')
   , hosts = require('./routes/hosts')
   , templates = require('./routes/templates')
-  , uploadFiles = require('./routes/uploadFiles')
+  , uploadFiles = require('./routes/uploadfiles')
   , importtcs = require('./routes/importtcs')
   , rununittest = require('./routes/rununittest')
   , testcases = require('./routes/testcases')
@@ -41,7 +41,7 @@ var express = require('express')
   , results = require('./routes/results')
   , methodFinder = require('./routes/methodFinder')
   , aggregate = require('./routes/aggregate')
-  , executionstatus = require('./routes/executionstatus')
+  , executionstatus = require('./routes/executionStatus')
   , emailsettings = require('./routes/emailsettings')
   , imageautomation = require('./routes/imageautomation')
   , recorder = require('./routes/recorder')
@@ -60,8 +60,10 @@ process.env.TEMP = __dirname + '/logs';
     //app.use(express.multipart());
     //app.use(express.bodyParser({ keepExtensions: true, uploadDir: 'c:/temp' }));
     app.use(express.static(__dirname + '/public'));
-    app.use(express.json());
-    app.use(express.urlencoded());
+    //app.use(express.json());
+    //app.use(express.urlencoded());
+    app.use(express.json({limit: '50mb'}));
+    app.use(express.urlencoded({limit: '50mb'}));
     app.use(express.cookieParser());
     app.use(express.methodOverride());
     app.use(app.router);
@@ -251,7 +253,9 @@ app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 app.post('/scripts/push',auth.auth, scripts.scriptsPush);
 app.post('/scripts/pull',scripts.scriptsPull);
 
+
 //script
+app.get('/runpip',auth.auth, script.runPipGet);
 app.post('/script/get',auth.auth, script.scriptGet);
 app.post('/script/resolveconflict',auth.auth, script.resolveConflict);
 app.post('/script',auth.auth, script.scriptPost);
