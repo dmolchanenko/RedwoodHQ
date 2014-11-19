@@ -194,7 +194,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                 me.updateStore(store,machine);
             };
 
-            if(!UpdateExecutionsCache[machine._id]){
+            if(!UpdateMachinesCache[machine._id]){
                 UpdateMachinesCache[machine._id] = machine;
                 setTimeout(function(){
                     updateMachine(UpdateMachinesCache[machine._id]);
