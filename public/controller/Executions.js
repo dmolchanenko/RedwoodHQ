@@ -77,6 +77,7 @@ Ext.define("Redwood.controller.Executions", {
         });
     },
     openingExecutions: {},
+    openingExecutionDetails: {},
 
     aggregateReport: function(executionsToAggregate){
         var executions = [];
@@ -154,6 +155,8 @@ Ext.define("Redwood.controller.Executions", {
 
     openExecutionDetails: function(id){
         var me = this;
+        if(me.openingExecutionDetails[id] == true) return;
+        me.openingExecutionDetails[id] = true;
         Ext.Ajax.request({
             url:"/results/"+id,
             method:"GET",
@@ -162,11 +165,13 @@ Ext.define("Redwood.controller.Executions", {
                 var obj = Ext.decode(response.responseText);
                 if(obj.error != null){
                     Ext.Msg.alert('Error', obj.error);
+                    delete me.openingExecutionDetails[id];
                 }
                 else if(obj.testcase){
                     var foundTab = me.tabPanel.down("#"+id);
                     if (foundTab != null){
                         me.tabPanel.setActiveTab(foundTab);
+                        delete me.openingExecutionDetails[id];
                         return;
                     }
                     var tab = Ext.create('Redwood.view.ResultsView',{
@@ -178,7 +183,12 @@ Ext.define("Redwood.controller.Executions", {
 
                     me.tabPanel.add(tab);
                     me.tabPanel.setActiveTab(tab);
+                    delete me.openingExecutionDetails[id];
                 }
+            },
+            failure: function(){
+                Ext.Msg.alert('Error', "Unable to get result details.  Communication failed.");
+                delete me.openingExecutionDetails[id];
             }
         });
     },
@@ -407,6 +417,10 @@ Ext.define("Redwood.controller.Executions", {
                         //foundIndex = me.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
                         foundTab = me.tabPanel.down("#"+record.get("_id"));
                         me.tabPanel.setActiveTab(foundTab);
+                        delete me.openingExecutions[id];
+                    },
+                    failure: function(){
+                        Ext.Msg.alert('Error', "Unable to get execution.  Communication failed.");
                         delete me.openingExecutions[id];
                     }
                 });
