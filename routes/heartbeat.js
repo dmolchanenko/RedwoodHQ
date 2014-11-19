@@ -106,7 +106,7 @@ function createMachine(db,data,callback){
     db.collection('machines', function(err, collection) {
         data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
-            if (returnData != null) realtime.emitMessage("AddMachines",returnData);
+            realtime.emitMessage("AddMachines",data);
             if (callback) callback(returnData);
         });
     });
