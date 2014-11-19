@@ -76,6 +76,7 @@ Ext.define("Redwood.controller.Executions", {
 
         });
     },
+    openingExecutions: {},
 
     aggregateReport: function(executionsToAggregate){
         var executions = [];
@@ -374,6 +375,8 @@ Ext.define("Redwood.controller.Executions", {
     },
     onExecutionEdit: function(id){
         var me = this;
+        if(me.openingExecutions[id] == true) return;
+        me.openingExecutions[id] = true;
         var record = Ext.data.StoreManager.lookup('Executions').query("_id",id).getAt(0);
         if((id) &&(record)) {
             //var foundIndex = this.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
@@ -404,13 +407,18 @@ Ext.define("Redwood.controller.Executions", {
                         //foundIndex = me.tabPanel.items.findIndex("title","[Execution] "+record.get("name"),0,false,true);
                         foundTab = me.tabPanel.down("#"+record.get("_id"));
                         me.tabPanel.setActiveTab(foundTab);
+                        delete me.openingExecutions[id];
                     }
                 });
 
             }
             else{
                 me.tabPanel.setActiveTab(foundTab);
+                delete me.openingExecutions[id];
             }
+        }
+        else{
+            delete me.openingExecutions[id];
         }
     },
 

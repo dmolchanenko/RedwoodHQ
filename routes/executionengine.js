@@ -20,7 +20,10 @@ var db;
 
 exports.stopexecutionPost = function(req, res){
     var execution = executions[req.body.executionID];
-    if(!execution) return;
+    if(!execution) {
+        res.contentType('json');
+        res.json({success:true});
+    }
     cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
     unlockCloudMachines(execution.machines);
@@ -1282,7 +1285,7 @@ function markFinishedResults(results,sourceCache,callback){
             }
             if(action.trace){
                 formatTrace(action.trace,sourceCache,function(trace){
-                    action.trace = trace;
+                    if(trace != "") action.trace = trace;
                     returnValue();
                 })
             }
