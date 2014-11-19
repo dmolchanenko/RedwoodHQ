@@ -632,7 +632,34 @@ Ext.define('Redwood.view.ResultsView', {
                         //maxWidth: 500,
                         minWidth:300,
                         value:me.dataRecord.testcase.trace,
-                        anchor:'90%'
+                        anchor:'90%',
+                        renderer: function(value){
+                            var displayValue = "";
+                            if(value.indexOf("Traceback") == 0){
+                                value.split("File ").forEach(function(line,index){
+                                    if(index > 0){
+                                        var filePath = "";
+                                        if(line.indexOf("/src/") != -1){
+                                            filePath = line.substring(line.indexOf("/src/"),line.indexOf(",")-1);
+                                        }
+                                        else if (line.indexOf("\\src\\") != -1){
+                                            filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(",")-1);
+                                        }
+                                        else{
+                                            displayValue += line;
+                                        }
+
+                                        var pathLink = filePath.replace(/\\/g,"/");
+                                        var lineNumber = line.split(",")[1].split(" ")[2];
+                                        pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+'</a></p>';
+
+                                        displayValue += line.replace(filePath,pathLink);
+                                    }
+                                });
+                                return displayValue;
+                                //displayValue += "adfdsa";
+                            }
+                        }
                     }
 
                 ]

@@ -917,6 +917,7 @@ exports.actionresultPost = function(req, res){
         if (req.body.trace){
             formatTrace(req.body.trace,execution.sourceCache,function(trace){
                 testcase.result.trace = trace;
+                if(trace == "") testcase.result.trace = req.body.trace;
                 updateResult(testcase.result);
             });
         }
@@ -1212,6 +1213,11 @@ function formatTrace(trace,sourceCache,callback){
                     }
                 }
             });
+        }
+        else{
+            if (traceCount == traces.length){
+                callback(newTrace);
+            }
         }
     });
 }

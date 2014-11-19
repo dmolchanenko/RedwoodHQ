@@ -22,9 +22,9 @@ Ext.apply(Ext.form.field.VTypes, {
             return false;
         }
         return true;
-    }
+    },
 
-    //passwordTestMask: /[a-z_0-9]/
+    userIDTestMask: /[a-z_0-9]/
 });
 
 Ext.define('Redwood.view.UserEdit', {
@@ -121,6 +121,8 @@ Ext.define('Redwood.view.UserEdit', {
                     name: 'username',
                     vtype:'userIDTest',
                     allowBlank: false,
+                    maskRe: /[a-z_0-9_A-Z]/,
+                    //maskRe: /^[a-z](\w*)[a-z0-9]$/i,
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
