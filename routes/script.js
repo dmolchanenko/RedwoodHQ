@@ -142,7 +142,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
                     if(process.platform == "win32"){
                         pip.stdin.write('cd "'+path.resolve(__dirname,'../vendor/Python') +'"\r\n');
                         pip.stdin.write("for %I in (.) do cd %~sI\r\n");
-                        pip.stdin.write('python Lib/site-packages/virtualenv.py --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
+                        pip.stdin.write('python Lib/site-packages/virtualenv.py --clear "'+baseDir+'/PythonWorkDir"\r\n');
                     }
                     else{
                         pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
