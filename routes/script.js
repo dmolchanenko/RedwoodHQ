@@ -124,6 +124,9 @@ function runPip(reqFilePath,uninstallAll,username,callback){
     //var python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
     var baseDir = reqFilePath.replace("/PipRequirements","");
     pip.stdin.write("cd "+baseDir+'\r\n');
+    if(process.platform == "win32"){
+        pip.stdin.write("for %I in (.) do cd %~sI\r\n");
+    }
     pip.stdin.write(baseDir+'/PythonWorkDir/Scripts/activate\r\n');
     var cliData = "";
     var activated = false;
@@ -137,7 +140,9 @@ function runPip(reqFilePath,uninstallAll,username,callback){
                 activated = true;
                 if(uninstallAll == true){
                     if(process.platform == "win32"){
-                        pip.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
+                        pip.stdin.write('cd "'+path.resolve(__dirname,'../vendor/Python') +'"\r\n');
+                        pip.stdin.write("for %I in (.) do cd %~sI\r\n");
+                        pip.stdin.write('python Lib/site-packages/virtualenv.py --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
                     }
                     else{
                         pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');

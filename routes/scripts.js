@@ -237,15 +237,26 @@ exports.setupPython = function(userFolder,callback){SetupPython(userFolder,callb
 function SetupPython(userFolder,callback){
     var python;
     if(process.platform == "win32"){
-        python  = spawn(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        python = spawn("cmd.exe",["/K"]);
+
+        python.stdin.write("cd \""+path.resolve(__dirname,'../vendor/Python')+"\"\r\n");
+        python.stdin.write("for %I in (.) do cd %~sI\r\n");
+        python.stdin.write('python Lib/site-packages/virtualenv.py "'+userFolder+ '/PythonWorkDir"\r\n');
+        //python.stdin.end();
+        //python.disconnect();
+        //python  = python.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     else{
-        python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Scripts/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     var cliData = "";
 
     python.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
+        if(cliData.indexOf("done.") != -1){
+            python.stdin.end();
+            python.disconnect();
+        }
         common.logger.info('stdout: ' + data);
     });
 
