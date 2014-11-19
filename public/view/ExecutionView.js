@@ -740,6 +740,7 @@ Ext.define('Redwood.view.ExecutionView', {
             ],
             data: []
         });
+        me.executionTCStore = executionTCStore;
 
 
         me.updateTotals = function(execution){
@@ -1713,6 +1714,7 @@ Ext.define('Redwood.view.ExecutionView', {
             Ext.data.StoreManager.lookup("Executions").removeListener("beforesync",me.statusListener);
             Ext.data.StoreManager.lookup("Machines").removeListener("beforesync",me.machinesListener);
             Ext.data.StoreManager.lookup("Variables").removeListener("beforesync",me.variablesListener);
+            Ext.data.StoreManager.remove(me.executionTCStore);
         }
     },
 
