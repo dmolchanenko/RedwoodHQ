@@ -123,11 +123,12 @@ function runPip(reqFilePath,uninstallAll,username,callback){
     }
     //var python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
     var baseDir = reqFilePath.replace("/PipRequirements","");
-    pip.stdin.write("cd "+baseDir+'\r\n');
+    pip.stdin.write("cd "+baseDir+'/PythonWorkDir/Scripts/\r\n');
     if(process.platform == "win32"){
         pip.stdin.write("for %I in (.) do cd %~sI\r\n");
     }
-    pip.stdin.write(baseDir+'/PythonWorkDir/Scripts/activate\r\n');
+    pip.stdin.write('activate\r\n');
+    //pip.stdin.write('cd ../../\r\n');
     var cliData = "";
     var activated = false;
     var freezeFileBegin = false;
@@ -135,21 +136,24 @@ function runPip(reqFilePath,uninstallAll,username,callback){
     pip.stdout.on('data', function (data) {
         realtime.emitMessage("PythonRequirementRun"+username,{message:data.toString()});
         console.log(data.toString());
-        if(data.toString().indexOf("(PythonWorkDir)") != -1){
+        if(data.toString().indexOf("(PythonWorkDir)") != -1 || data.toString().indexOf("(PYTHON~1)") != -1){
             if(activated == false){
-                activated = true;
                 if(uninstallAll == true){
                     if(process.platform == "win32"){
                         pip.stdin.write('cd "'+path.resolve(__dirname,'../vendor/Python') +'"\r\n');
                         pip.stdin.write("for %I in (.) do cd %~sI\r\n");
                         pip.stdin.write('python Lib/site-packages/virtualenv.py --clear "'+baseDir+'/PythonWorkDir"\r\n');
+                        activated = true;
                     }
                     else{
                         pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
+                        activated = true;
                     }
                 }
                 else{
-                    pip.stdin.write("pip install -r "+reqFilePath+'\r\n');
+                    pip.stdin.write("pip install -r ../../PipRequirements\r\n");
+                    activated = true;
+                    //pip.stdin.write("pip install -r "+reqFilePath+'\r\n');
                 }
             }
             else{
@@ -178,6 +182,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
     pip.on('close', function (code) {
         //fs.writeFile(userFolder + "/" + ".gitignore","Scripts");
         //console.log(cliData);
+        if(uninstallAll == true) cliData = "";
         if(callback) callback(cliData);
     });
 

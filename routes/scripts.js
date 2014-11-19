@@ -257,7 +257,7 @@ function SetupPython(userFolder,callback){
             python.stdin.end();
             python.disconnect();
         }
-        common.logger.info('stdout: ' + data);
+        //common.logger.info('stdout: ' + data);
     });
 
     python.stderr.on('data', function (data) {
