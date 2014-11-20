@@ -4,21 +4,21 @@ import sys
 import importlib
 import traceback
 import time
+import pythonLauncher
 
 returnValues = {}
 globalValues = {}
 variables = {}
 currentAction = {}
 
-
 def runAction(action):
     action["result"] = "Passed"
     try:
         if "testcaseName" in action:
-            globalValues["testcaseName"] = action["testcaseName"]
+            pythonLauncher.globalValues["testcaseName"] = action["testcaseName"]
         if "variables" in action:
             for key, value in action["variables"].iteritems():
-                variables[key] = value
+                pythonLauncher.variables[key] = value
         if "script" in action:
             if action["script"] == "" or action["script"] is None:
                 raise Exception("Script was not assigned to the action.")
@@ -37,8 +37,8 @@ def runAction(action):
             if paramValue != "<NULL>":
                 if (paramValue.__class__.__name__ == "str" or paramValue.__class__.__name__ == "unicode") and paramValue.startswith("${") and paramValue.endswith("}"):
                     var = paramValue[2:-1]
-                    if var in returnValues:
-                        params[paramKey] = returnValues[var]
+                    if var in pythonLauncher.returnValues:
+                        params[paramKey] = pythonLauncher.returnValues[var]
                     else:
                         params[paramKey] = paramValue
                 else:
@@ -49,7 +49,7 @@ def runAction(action):
         sys.stdout.flush()
         if returnValue is not None:
             if "returnValueName" in action:
-                returnValues[action["returnValueName"]] = returnValue
+                pythonLauncher.returnValues[action["returnValueName"]] = returnValue
             if isinstance(returnValue, list):
                 allStrings = True
                 for value in returnValue:

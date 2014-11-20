@@ -92,6 +92,7 @@ Ext.define('Redwood.view.ProjectEdit', {
                     forceSelection: true,
                     editable: false,
                     allowBlank: false,
+                    hidden: true,
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
@@ -104,7 +105,7 @@ Ext.define('Redwood.view.ProjectEdit', {
                 {
                     xtype:'combo',
                     fieldLabel: 'Project Template',
-                    store: ["Default","Selenium"],
+                    store: ["Default","Java Based Selenium"],
                     name: 'template',
                     value:"Default",
                     forceSelection: true,

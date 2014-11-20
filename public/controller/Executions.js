@@ -400,6 +400,8 @@ Ext.define("Redwood.controller.Executions", {
                         var obj = Ext.decode(response.responseText);
                         if(obj.error != null){
                             Ext.Msg.alert('Error', obj.error);
+                            delete me.openingExecutions[id];
+                            return;
                         }
                         record.set("testcases",obj.executiontestcases);
                         var status = "";

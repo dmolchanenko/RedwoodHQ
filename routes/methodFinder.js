@@ -84,7 +84,7 @@ function FindClasses(path,projectPath,callback){
     var err = false;
     var proc;
     if (path.slice(-2) == "py"){
-        proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,"class"],{env:{PYTHONPATH:projectPath+"/src/"}});
+        proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,"class"],{env:{PYTHONPATH:projectPath+"/src"}});
     }
     else if (path.slice(-2) == "cs"){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,"class"]);
@@ -134,7 +134,7 @@ function FindMethods(path,classname,projectPath,callback){
     //var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",'"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"',"MethodList",path,classname]);
     var proc;
     if (path.slice(-2) == "py"){
-        proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,classname],{env:{PYTHONPATH:projectPath+"/src/"}});
+        proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,classname],{env:{PYTHONPATH:projectPath+"/src"}});
     }
     else if (path.slice(-2) == "cs"){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,classname]);

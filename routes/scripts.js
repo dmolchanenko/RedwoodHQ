@@ -130,7 +130,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
     var templatePath = "";
     if(language == "Java/Groovy"){
 
-        if (template == "Selenium") {
+        if (template == "Java Based Selenium") {
             template = "java_project_selenium";
         }
         else{
