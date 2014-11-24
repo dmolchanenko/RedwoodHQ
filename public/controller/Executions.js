@@ -161,6 +161,7 @@ Ext.define("Redwood.controller.Executions", {
             url:"/results/"+id,
             method:"GET",
             disableCaching:true,
+            timeout: 60000,
             success: function(response) {
                 var obj = Ext.decode(response.responseText);
                 if(obj.error != null){
@@ -393,6 +394,7 @@ Ext.define("Redwood.controller.Executions", {
             var foundTab = me.tabPanel.down("#"+record.get("_id"));
             if (foundTab === null){
                 Ext.Ajax.request({
+                    timeout: 60000,
                     url:"/executiontestcases/"+record.get("_id"),
                     method:"GET",
                     //jsonData : {executionID:record.get("_id")},
