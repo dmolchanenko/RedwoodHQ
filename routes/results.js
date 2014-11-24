@@ -2,15 +2,15 @@ exports.resultsGet = function(req, res){
     var db = require('../common').getDB();
     var id = db.bson_serializer.ObjectID(req.params.id);
     GetTestCases(db,{_id:id},function(testcase){
-        GetLogs(db,{resultID:req.params.id},function(logs){
+        //GetLogs(db,{resultID:req.params.id},function(logs){
             if(testcase!= null && testcase.script){
                 GetScreenShot(db,{resultID:req.params.id},function(screenshot){
                     res.contentType('json');
                     res.json({
                         success: true,
                         testcase: testcase,
-                        screenshot:screenshot,
-                        logs:logs
+                        screenshot:screenshot
+                        //logs:logs
                     });
                 })
             }
@@ -18,10 +18,21 @@ exports.resultsGet = function(req, res){
                 res.contentType('json');
                 res.json({
                     success: true,
-                    testcase: testcase,
-                    logs:logs
+                    testcase: testcase
+                    //logs:logs
                 });
             }
+        //});
+    });
+};
+
+exports.logsGet = function(req, res){
+    var db = require('../common').getDB();
+    GetLogs(db,{resultID:req.params.id},function(logs){
+        res.contentType('json');
+        res.json({
+            success: true,
+            logs:logs
         });
     });
 };

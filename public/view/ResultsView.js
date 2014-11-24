@@ -40,7 +40,7 @@ Ext.define('Redwood.view.ResultsView', {
         beforeclose:function(panel){
             Ext.socket.removeAllListeners('UpdateResult'+panel.itemId);
             panel.resultsStore.destroy();
-            panel.logStore.destroy();
+            //panel.logStore.destroy();
             panel.dataRecord = null;
         }
     },
@@ -422,8 +422,18 @@ Ext.define('Redwood.view.ResultsView', {
         });
 
         this.logStore =  Ext.create('Ext.data.Store', {
+            autoLoad: true,
             storeId: "ResultLogs"+this.itemId,
             idProperty: '_id',
+            proxy: {
+                type: 'rest',
+                url: '/resultslogs/'+me.itemId,
+                reader: {
+                    type: 'json',
+                    root: 'logs',
+                    successProperty: 'success'
+                }
+            },
             fields: [
                 {name: 'actionName',     type: 'string'},
                 {name: 'message',     type: 'string'},
@@ -432,15 +442,18 @@ Ext.define('Redwood.view.ResultsView', {
             sorters: [{
                 property : 'date',
                 direction: 'ASC'
-            }],
-            data:[]
+            }]
+            //data:[]
         });
 
+        //this.logStore.
+        /*
         me.dataRecord.logs.forEach(function(log){
             //var timestamp = log._id.substring(0,8);
             me.logStore.add({message:log.message,actionName:log.actionName,date:log.date});
             //logStore.add({message:log.message,actionName:log.actionName,date:new Date( parseInt( timestamp, 16 ) * 1000 )})
         });
+        */
 
         var logGrid = Ext.create('Ext.grid.Panel', {
             store: me.logStore,

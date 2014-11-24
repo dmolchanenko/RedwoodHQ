@@ -49,6 +49,7 @@ var express = require('express')
 
 
 //var app = express.createServer();
+process.setMaxListeners(300);
 var app = express();
 process.env.TMPDIR = __dirname + '/logs';
 process.env.TMP = __dirname + '/logs';
@@ -148,6 +149,7 @@ app.post('/heartbeat',heartbeat.heartbeatPost);
 
 //results
 app.get('/results/:id',results.resultsGet);
+app.get('/resultslogs/:id',results.logsGet);
 
 //execution status
 app.get('/executionstatus/:id',executionstatus.executionStatusGet);
