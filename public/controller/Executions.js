@@ -274,6 +274,7 @@ Ext.define("Redwood.controller.Executions", {
 
         this.saveExecution(function(execution){
             Ext.Ajax.request({
+                timeout: 120000,
                 url:"/executionengine/startexecution",
                 method:"POST",
                 jsonData : {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines,templates:templates},

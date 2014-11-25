@@ -149,7 +149,7 @@ app.post('/heartbeat',heartbeat.heartbeatPost);
 
 //results
 app.get('/results/:id',results.resultsGet);
-app.get('/resultslogs/:id',results.logsGet);
+app.get('/resultslogs/:id/:executionid',results.logsGet);
 
 //execution status
 app.get('/executionstatus/:id',executionstatus.executionStatusGet);

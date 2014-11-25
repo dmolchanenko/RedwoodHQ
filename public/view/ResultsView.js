@@ -455,7 +455,7 @@ Ext.define('Redwood.view.ResultsView', {
             idProperty: '_id',
             proxy: {
                 type: 'rest',
-                url: '/resultslogs/'+me.itemId,
+                url: '/resultslogs/'+me.itemId+"/"+me.dataRecord.testcase.executionID,
                 reader: {
                     type: 'json',
                     root: 'logs',

@@ -28,7 +28,7 @@ exports.resultsGet = function(req, res){
 
 exports.logsGet = function(req, res){
     var db = require('../common').getDB();
-    GetLogs(db,{resultID:req.params.id},function(logs){
+    GetLogs(db,{resultID:req.params.id},req.params.executionid,function(logs){
         res.contentType('json');
         res.json({
             success: true,
@@ -53,18 +53,23 @@ function GetScreenShot(db,query,callback){
     })
 }
 
-function GetLogs(db,query,callback){
+function GetLogs(db,query,executionID,callback){
     var logs = [];
-
-    db.collection('executionlogs', function(err, collection) {
-        collection.find(query, {}, function(err, cursor) {
-            cursor.each(function(err, log) {
-                if(log == null) {
-                    callback(logs);
-                    return;
-                }
-                logs.push(log);
-            });
+    db.collection('system.namespaces').find({ name: 'automationframework.executionlogs'+executionID.replace(/-/g, '') }).toArray(function(err, items) {
+        var collectionName = "executionlogs";
+        if(items.length > 0){
+            collectionName = collectionName + executionID.replace(/-/g, '');
+        }
+        db.collection(collectionName, function(err, collection) {
+            collection.find(query, {}, function(err, cursor) {
+                cursor.each(function(err, log) {
+                    if(log == null) {
+                        callback(logs);
+                        return;
+                    }
+                    logs.push(log);
+                });
+            })
         })
-    })
+    });
 }

@@ -297,7 +297,7 @@ function startLauncher(executionID,threadID,type,callback){
                         if (message != ""){
                             common.logger.info("sending:"+message);
                             if(actionCache[portNumber]){
-                                sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,runType:actionCache[portNumber].runType,resultID:actionCache[portNumber].resultID,username:actionCache[portNumber].username},common.Config.AppServerIPHost,common.Config.AppServerPort);
+                                sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,executionID:executionID,runType:actionCache[portNumber].runType,resultID:actionCache[portNumber].resultID,username:actionCache[portNumber].username},common.Config.AppServerIPHost,common.Config.AppServerPort);
                             }
                         }
                     });

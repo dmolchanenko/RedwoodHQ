@@ -887,9 +887,11 @@ function startTCExecution(id,variables,executionID,callback){
 
 exports.logPost = function(req,res){
     var record = req.body;
+    var executionID = record.executionID.replace(/-/g, '');
     delete record.command;
+    delete record.executionID;
 
-    db.collection('executionlogs', function(err, collection) {
+    db.collection('executionlogs'+executionID, function(err, collection) {
         collection.insert(record, {safe:true},function(err,returnData){
             res.contentType('json');
             res.json({success:true});
