@@ -55,6 +55,9 @@ Ext.define('Redwood.view.FileName', {
                             }else if(me.objectType === "pythonAction"){
                                 field.setValue("PythonAction.py");
                                 field.selectText(0,12);
+                            }else if(me.objectType === "csharpAction"){
+                                field.setValue("CsharpAction.cs");
+                                field.selectText(0,12);
                             }
                             else{
                                 field.selectText();
@@ -84,7 +87,7 @@ Ext.define('Redwood.view.FileName', {
                                     var fileName = form.getFieldValues().fileName;
                                     var text = "";
                                     var packageStr = "";
-                                    if ((fileName.indexOf("groovy", fileName.length - 6) !== -1) || (fileName.indexOf("java", fileName.length - 4) !== -1) || (fileName.indexOf("py", fileName.length - 2) !== -1)){
+                                    if ((fileName.indexOf("groovy", fileName.length - 6) !== -1) || (fileName.indexOf("java", fileName.length - 4) !== -1) || (fileName.indexOf("py", fileName.length - 2) !== -1)|| (fileName.indexOf("cs", fileName.length - 2) !== -1)){
                                         if (path.slice(-4) != "/src"){
                                             packageStr = path.substr(path.lastIndexOf("/src/")+5,path.length-1);
                                             packageStr = packageStr.replace(/\//g,".");
@@ -104,10 +107,10 @@ Ext.define('Redwood.view.FileName', {
                                                 namespaceStart = "";
                                                 namespaceEnd = "";
                                             }
-                                            text = text+"using System;\r\nusing System.Collections.Generic;\r\n\r\n"+
+                                            text = "using System;\r\nusing System.Collections.Generic;\r\n\r\n"+
                                             namespaceStart +
                                             "    class "+fileName.split(".")[0]+"{\r\n"+
-                                            "        public void run(Dictionary<string, object> params){\r\n"+
+                                            "        public void run(Dictionary<string, object> Params){\r\n"+
                                             "            \r\n"+
                                             "        }\r\n"+
                                             "    }\r\n"+

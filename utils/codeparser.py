@@ -11,9 +11,9 @@ if(operation == "MethodList"):
         name  = inspect.getmoduleinfo(filePath).name
         loadedModule = imp.load_source(name, filePath)
         fullModulePath  = os.path.dirname(loadedModule.__file__)
-        fullModulePath = fullModulePath.replace(mainPath,"")[:]
+        fullModulePath = fullModulePath.replace(mainPath,"")[1:]
         fullModulePath = fullModulePath.replace("\\",".")
-        fullModulePath = fullModulePath.replace("/","")
+        fullModulePath = fullModulePath.replace("/",".")
         for className, data in inspect.getmembers(loadedModule, inspect.isclass):
             #if(className != "__init__" and hasattr(data, 'module')):
             if(className != "__init__"):

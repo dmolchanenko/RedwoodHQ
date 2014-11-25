@@ -41,9 +41,10 @@ exports.scriptsPull = function(req,res){
                                 if(!data.match(/[^\W_]/)){
                                     uninstallAll = true;
                                 }
-                                script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(){
+                                script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
                                     res.contentType('json');
                                     res.json({success:true,conflicts:files});
+                                    realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
                                 })
                             });
 
@@ -99,6 +100,23 @@ exports.scriptsDelete = function(req, res){
                     }
                 });
                 res.json({error:null});
+                //if python delete any unneeded __init__.py files
+                return;
+                if (script.fullpath.slice(-2) == "py" && script.fullpath.indexOf("__init__.py") == -1){
+                    var parentPath = path.resolve(filePath,"../");
+                    var finalPath = path.resolve(projectPath+"/src","./");
+                    console.log(parentPath);
+                    commit(filePath,function(){
+                        callback(null);
+                        while(finalPath != parentPath){
+                            if(fs.existsSync(parentPath+"/__init__.py") == false){
+                                fs.writeFileSync(parentPath+"/__init__.py","",'utf8');
+                                commit(parentPath+"/__init__.py",function(){});
+                            }
+                            parentPath = path.resolve(parentPath,"../");
+                        }
+                    });
+                }
             })
         })
     });

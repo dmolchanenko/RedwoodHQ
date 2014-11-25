@@ -54,6 +54,12 @@ exports.Post = function(req, res){
                     //    var unzip  = spawn(path.resolve(__dirname,'../../vendor/Java/bin/jar'),['xf',target_path],{cwd: extractTo,timeout:300000});
                 });
             }
+            else if(req.files.file.name.indexOf("RedwoodHQAutomation.dll") != -1 ){
+                var extractTo = path.resolve(__dirname,"../")+"/"+req.files.file.name.substring(0,req.files.file.name.lastIndexOf("/"));
+                copyFile(path.resolve(__dirname,'../lib')+"/CSharpLauncher.exe",path.resolve(extractTo,"../")+"/lib/CSharpLauncher.exe",function(){
+                    res.send("{error:null,success:true}");
+                })
+            }
             else{
                res.send("{error:null,success:true}");
             }

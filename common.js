@@ -6,6 +6,9 @@ var winston = require('winston');
 var Config = {};
 exports.Config = Config;
 var spawn = require('child_process').spawn;
+var MSBuildLocation = null;
+exports.MSBuildLocation = MSBuildLocation;
+var common = require("./common");
 
 exports.parseConfig = function(callback){
     var conf = fs.readFileSync(__dirname+"/properties.conf");
@@ -21,7 +24,22 @@ exports.parseConfig = function(callback){
         if(i == parsed.length){
             callback()
         }
-    })
+    });
+
+    //find .NET location
+    fs.exists("c:/windows/Microsoft.NET/Framework",function(exists){
+        if(exists == true){
+            if(process.env.SYSTEMROOT){
+                fs.readdir(process.env.SYSTEMROOT+"/Microsoft.NET/Framework",function(err,files){
+                    files.forEach(function(file){
+                        if(file.indexOf("v4.0") != -1){
+                            common.MSBuildLocation = process.env.SYSTEMROOT+"/Microsoft.NET/Framework/"+file+"/MSBuild.exe"
+                        }
+                    });
+                })
+            }
+        }
+    });
 };
 
 exports.initLogger = function(fileName){

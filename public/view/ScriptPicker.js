@@ -106,7 +106,7 @@ Ext.define('Redwood.view.ScriptPickerView', {
             labelPad:0,
             padding: '0 0 0 5',
             //width:255,
-            store: ["Java/Groovy","Python"],
+            store: ["Java/Groovy","Python","C#"],
             forceSelection: true,
             editable: false,
             allowBlank: false,
@@ -150,6 +150,9 @@ Ext.define('Redwood.view.ScriptPicker', {
             else if(record.get("fullpath").indexOf(".py/") != -1){
                 me.up("panel").down("#scriptLang").setValue("Python")
             }
+            else if(record.get("fullpath").indexOf(".cs/") != -1){
+                me.up("panel").down("#scriptLang").setValue("C#")
+            }
         });
         scripts.show();
     },
@@ -164,7 +167,7 @@ Ext.define('Redwood.view.ScriptPicker', {
         mainTab.setActiveTab(mainTab.down("#ScriptBrowser"));
         Redwood.app.getController("Scripts").onScriptEdit(fullPath+".groovy");
         Redwood.app.getController("Scripts").onScriptEdit(fullPath+".java");
-        Redwood.app.getController("Scripts").onScriptEdit(fullPath+".py");
+        Redwood.app.getController("Scripts").onScriptEdit(fullPath.substring(0,fullPath.lastIndexOf("/"))+".py");
     },
 
     listeners:{

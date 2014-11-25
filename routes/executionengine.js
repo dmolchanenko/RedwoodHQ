@@ -112,71 +112,73 @@ exports.startexecutionPost = function(req, res){
         else{
             //copy files for each execution to prevent conflicts
             //git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar",os.tmpDir()+"/jar_"+executionID,function(){
-            copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build/jar"),os.tmpDir()+"/jar_"+executionID,function(){
-                zipPythonFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),os.tmpDir()+"/jar_"+executionID,function(){
-                    cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
-                        executions[executionID].sourceCache = sourceCache;
-                        verifyMachineState(machines,function(err){
-                            if(err){
-                                updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
-                                res.contentType('json');
-                                res.json({error:err});
-                                //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
-                                deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
-                                delete executions[executionID];
-                                return;
-                            }
-                            VerifyCloudCapacity(executions[executionID].template,function(response){
-                                if(response.err || response.capacityAvailable == false){
-                                    var message = "";
-                                    if(response.err){
-                                        message = response.err
-                                    }
-                                    else{
-                                        message = "Cloud does not have the capacity to run this execution."
-                                    }
-                                    updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
+            copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+executionID,function(){
+                copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build/jar"),os.tmpDir()+"/jar_"+executionID,function(){
+                    zipPythonFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),os.tmpDir()+"/jar_"+executionID,function(){
+                        cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
+                            executions[executionID].sourceCache = sourceCache;
+                            verifyMachineState(machines,function(err){
+                                if(err){
+                                    updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
                                     res.contentType('json');
-                                    res.json({error:"Cloud Error: "+message});
+                                    res.json({error:err});
                                     //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
                                     deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
                                     delete executions[executionID];
                                     return;
                                 }
-                                res.contentType('json');
-                                res.json({success:true});
-                                lockMachines(machines,executionID,function(){
-                                    if(executions[executionID].template){
-                                        updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
-                                    }
-                                    else{
-                                        updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
-                                    }
-                                    StartCloudMachines(template,executionID,function(cloudMachines){
-                                        if(cloudMachines.err){
-                                            unlockMachines(machines);
-                                            updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
-                                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
-                                            deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
-                                            delete executions[executionID];
-                                            return;
+                                VerifyCloudCapacity(executions[executionID].template,function(response){
+                                    if(response.err || response.capacityAvailable == false){
+                                        var message = "";
+                                        if(response.err){
+                                            message = response.err
                                         }
+                                        else{
+                                            message = "Cloud does not have the capacity to run this execution."
+                                        }
+                                        updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
+                                        res.contentType('json');
+                                        res.json({error:"Cloud Error: "+message});
+                                        //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                        deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
+                                        delete executions[executionID];
+                                        return;
+                                    }
+                                    res.contentType('json');
+                                    res.json({success:true});
+                                    lockMachines(machines,executionID,function(){
                                         if(executions[executionID].template){
-                                            updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                            updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
                                         }
-                                        executions[executionID].machines = machines.concat(cloudMachines);
-                                        getGlobalVars(executionID,function(){
-                                            testcases.forEach(function(testcase){
-                                                executions[executionID].testcases[testcase.testcaseID] = testcase;
-                                            });
-                                            //see if there is a base state
-                                            suiteBaseState(executionID,executions[executionID].machines,function(){
-                                                //magic happens here
-                                                applyMultiThreading(executionID,function(){
-                                                    updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
-                                                        executeTestCases(executions[executionID].testcases,executionID);
-                                                    });
-                                                })
+                                        else{
+                                            updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
+                                        }
+                                        StartCloudMachines(template,executionID,function(cloudMachines){
+                                            if(cloudMachines.err){
+                                                unlockMachines(machines);
+                                                updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
+                                                //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                                deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
+                                                delete executions[executionID];
+                                                return;
+                                            }
+                                            if(executions[executionID].template){
+                                                updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                            }
+                                            executions[executionID].machines = machines.concat(cloudMachines);
+                                            getGlobalVars(executionID,function(){
+                                                testcases.forEach(function(testcase){
+                                                    executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                                });
+                                                //see if there is a base state
+                                                suiteBaseState(executionID,executions[executionID].machines,function(){
+                                                    //magic happens here
+                                                    applyMultiThreading(executionID,function(){
+                                                        updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
+                                                            executeTestCases(executions[executionID].testcases,executionID);
+                                                        });
+                                                    })
+                                                });
                                             });
                                         });
                                     });
@@ -254,6 +256,7 @@ exports.compileBuild = function(project,username,callback){compileBuild(project,
 
 function compileBuild(project,username,callback){
     var workDir = rootDir+project+"/"+username;
+    var msg = {project:project,username:username,java:true,python:true,csharp:true}
 
     var compileScripts = function(){
         var compileOut = "";
@@ -263,7 +266,7 @@ function compileBuild(project,username,callback){
             id += Math.floor(Math.random() * 10).toString(16);
         }
 
-        compile.operation({project:project,username:username},id,function(data){compileOut = compileOut + data},function(){
+        compile.operation(msg,id,function(data){compileOut = compileOut + data},function(){
             if (compileOut.indexOf("BUILD FAILED") != -1){
                 callback("unable to compile")
             }
@@ -283,11 +286,9 @@ function compileBuild(project,username,callback){
                 else{
                     git.commitsSinceDate(workDir,stats.mtime,function(data){
                         if (data == "0\n"){
-                            callback(null)
+                            msg.java = false;
                         }
-                        else{
-                            compileScripts();
-                        }
+                        compileScripts();
                     });
                 }
             });
@@ -2267,24 +2268,37 @@ function sendNotification(executionID){
 
 exports.copyFiles = function(sourceDir,destDir,callback){copyFiles(sourceDir,destDir,callback)};
 function copyFiles(sourceDir,destDir,callback){
-    fs.exists(destDir,function(exists){
-        fs.mkdir(destDir,function(){
-            fs.readdir(sourceDir,function(err,files){
-                var copied = 1;
-                files.forEach(function(file,index){
-                    try{
-                        copyFile(sourceDir + '/' + file,destDir + '/' + file,function(){
-                            if(copied == files.length) callback();
-                            copied++;
-                        });
-                        //fs.createReadStream(sourceDir + '/' + file).pipe(fs.createWriteStream(destDir + '/' + file));
-                    }
-                    catch(err){
-                        callback(err)
-                    }
+    fs.exists(sourceDir,function(exists){
+        if(exists == true){
+            fs.mkdir(destDir,function(){
+                fs.readdir(sourceDir,function(err,files){
+                    var copied = 1;
+                    files.forEach(function(file,index){
+                        try{
+                            fs.stat(sourceDir + '/' + file,function(err,stat){
+                                if(!stat.isDirectory()){
+                                    copyFile(sourceDir + '/' + file,destDir + '/' + file,function(){
+                                        if(copied == files.length) callback();
+                                        copied++;
+                                    });
+                                }
+                                else{
+                                    if(copied == files.length) callback();
+                                    copied++;
+                                }
+                            });
+                            //fs.createReadStream(sourceDir + '/' + file).pipe(fs.createWriteStream(destDir + '/' + file));
+                        }
+                        catch(err){
+                            callback(err)
+                        }
+                    });
                 });
-            });
-        })
+            })
+        }
+        else{
+            callback("Source Dir: "+sourceDir +" does not exist.")
+        }
     });
 }
 

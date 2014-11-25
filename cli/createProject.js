@@ -1,5 +1,5 @@
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --template [Default, Selenium]')
+    .usage('Usage: $0 --name [name] --template [Default, Java Based Selenium]')
     .demand(['name','template'])
     .argv;
 var projects = require('../routes/projects');

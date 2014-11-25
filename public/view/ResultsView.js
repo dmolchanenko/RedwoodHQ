@@ -413,6 +413,34 @@ Ext.define('Redwood.view.ResultsView', {
                             });
                             //displayValue += "adfdsa";
                         }
+                        //if c#
+                        else if(value.indexOf("   at ") == 0){
+                            value.split("at ").forEach(function(line,index){
+                                if(index > 0){
+                                    var filePath = "";
+                                    var divider = "\\";
+                                    if(line.indexOf("/src/") != -1){
+                                        divider = "/";
+                                        filePath = line.substring(line.indexOf("/src/"),line.indexOf(":line"));
+                                    }
+                                    else if (line.indexOf("\\src\\") != -1){
+                                        filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(":line"));
+                                    }
+                                    else{
+                                        displayValue += line;
+                                    }
+
+                                    var pathLink = filePath.replace(/\\/g,"/");
+                                    var lineNumber = line.split(":line ")[1];
+                                    pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+":line "+lineNumber+'</a></p>';
+
+                                    displayValue += line.replace(filePath.replace(/\//g,divider)+":line "+lineNumber,pathLink);
+                                }
+                            });
+                        }
+                        else{
+                            displayValue += value;
+                        }
                         displayValue += '<p><a style="color: blue;" href="javascript:openDetailedTrace(\''+record.internalId+'\')">Full Trace...</a></p>';
                         meta.tdCls = 'x-redwood-results-cell';
                         return "<p>"+displayValue+"</p>"
@@ -670,7 +698,36 @@ Ext.define('Redwood.view.ResultsView', {
                                     }
                                 });
                                 return displayValue;
-                                //displayValue += "adfdsa";
+                            }
+                            //if c#
+                            else if(value.indexOf("   at ") == 0){
+                                value.split("at ").forEach(function(line,index){
+                                    if(index > 0){
+                                        var filePath = "";
+                                        var divider = "\\";
+                                        if(line.indexOf("/src/") != -1){
+                                            divider = "/";
+                                            filePath = line.substring(line.indexOf("/src/"),line.indexOf(":line"));
+                                        }
+                                        else if (line.indexOf("\\src\\") != -1){
+                                            filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(":line"));
+                                        }
+                                        else{
+                                            displayValue += line;
+                                        }
+
+                                        var pathLink = filePath.replace(/\\/g,"/");
+                                        var lineNumber = line.split(":line ")[1];
+                                        pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+":line "+lineNumber+'</a></p>';
+
+                                        displayValue += line.replace(filePath.replace(/\//g,divider)+":line "+lineNumber,pathLink);
+                                    }
+                                });
+                                return displayValue;
+                            }
+                            else{
+                                displayValue += value;
+                                return displayValue;
                             }
                         }
                     }

@@ -331,6 +331,7 @@ Ext.define("Redwood.controller.Scripts", {
             Ext.Ajax.request({
                 url:"/scripts/pull",
                 method:"POST",
+                timeout: 600000,
                 jsonData : {},
                 success: function(response) {
                     var obj = Ext.decode(response.responseText);
@@ -475,6 +476,16 @@ Ext.define("Redwood.controller.Scripts", {
                         var pythonNewMsg = line.replace(pythonFileName,pythonLinkHmtl);
                         Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
                     }
+                    //if c#
+                    else if(line.indexOf(": error ") != -1 && line.indexOf(".cs(") != -1){
+                        var csharpPath = line.split('(')[0];
+                        var csharpLineNumber = line.split('(')[1].split(',')[0];
+                        csharpLineNumber = parseInt(csharpLineNumber,10) -1;
+                        var csharpLinkHmtl = "<a href='javascript:openScript(&quot;/"+ csharpPath.replace(/\\/g,"/").trim() +"&quot;,"+csharpLineNumber+")'>"+ csharpPath +"</a>";
+
+                        var csharpNewMsg = line.replace(csharpPath,csharpLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:csharpNewMsg});
+                    }
                     else{
                         Ext.DomHelper.append(elem, {tag: 'div',html:line});
                     }
@@ -494,6 +505,8 @@ Ext.define("Redwood.controller.Scripts", {
             icon = "images/fileTypeJavascript.png";
         }else if (fileName.slice(-2) == "py"){
             icon = "images/python.png";
+        }else if (fileName.slice(-2) == "cs"){
+            icon = "images/csharp.png";
         }
         return icon;
     },

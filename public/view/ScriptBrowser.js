@@ -308,6 +308,19 @@ var newPythonScriptAction = Ext.create('Ext.Action', {
     }
 });
 
+var newCSharpScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/csharp.png',
+    text: 'C# Action',
+    tooltip: "New C# Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"csharpAction");
+    }
+});
+
 var newJavaScriptAction = Ext.create('Ext.Action', {
     icon: 'images/fileTypeJava.png',
     text: 'Java Action',
@@ -412,6 +425,7 @@ var newMenuItem = Ext.create('Ext.Action', {
             newJavaScriptAction,
             newGroovyScriptAction,
             newPythonScriptAction,
+            newCSharpScriptAction,
             newScriptAction,
             newFolderAction,
             uploadAction,
