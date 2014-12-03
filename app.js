@@ -200,6 +200,7 @@ app.put('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPu
 app.post('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPost);
 app.post('/executiontestcases/udatetestset',auth.auth, executiontestcases.executionsTestSetUpdatePost);
 app.del('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesDelete);
+app.put('/executiontestcasenotes',auth.auth, executiontestcases.executionNotes);
 
 //machineRoles
 app.get('/machineroles',auth.auth, machineroles.machineRolesGet);

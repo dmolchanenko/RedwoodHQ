@@ -811,7 +811,29 @@ Ext.define('Redwood.view.ExecutionView', {
                         store: executionTCStore
                     },"->",
                     {
+                        xtype:"checkbox",
+                        fieldLabel: "Debug",
+                        labelWidth: 40,
+                        checked: false,
+                        handler: function(widget){
+                            if(widget.getValue() == true){
+                                testcasesGrid.down('[dataIndex=startAction]').setVisible(true);
+                                testcasesGrid.down('[dataIndex=endAction]').setVisible(true);
+                            }
+                            else{
+                                testcasesGrid.down('[dataIndex=startAction]').setVisible(false);
+                                testcasesGrid.down('[dataIndex=endAction]').setVisible(false);
+                            }
+                        },
+                        listeners:{
+                            afterrender: function(){
+                                Ext.data.StoreManager.lookup('Executions').filter(me.lockedFilter);
+                            }
+                        }
+                    },
+                    {
                         icon: 'images/note_add.png',
+                        hidden:true,
                         tooltip:"Add Note to Selected Test Cases",
                         handler: function(){
                             if(testcasesGrid.getSelectionModel().getSelection().length == 0){
@@ -862,12 +884,26 @@ Ext.define('Redwood.view.ExecutionView', {
                     clicksToEdit: 1
             })],
             listeners:{
+                validateedit: function(editor,e){
+                    if(e.field == "note"){
+                        Ext.Ajax.request({
+                            url:"/executiontestcasenotes",
+                            method:"PUT",
+                            jsonData : {_id:e.record.get("_id"),note:e.value},
+                            success: function(response) {
+                                //if(obj.error != null){
+                                //    Ext.Msg.alert('Error', obj.error);
+                                //}
+                            }
+                        });
+                    }
+                },
                 edit: function(editor, e ){
                     if ((e.field == "endAction") &&(e.value != "") &&(e.record.get("startAction") == "")){
                         e.record.set("startAction",1);
                     }
                     testcasesGrid.getSelectionModel().select([e.record]);
-                },
+                }/*,
                 cellclick: function(grid, td, cellIndex, record, tr, rowIndex, e ) {
                     if (cellIndex == 11){
                         var win = Ext.create('Redwood.view.TestCaseNote',{
@@ -880,7 +916,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         });
                         win.show();
                     }
-                }
+                }*/
             },
             columns:[
                 {
@@ -919,6 +955,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     header: 'Start Action',
                     dataIndex: 'startAction',
                     width: 80,
+                    hidden:true,
                     editor: {
                         xtype: 'textfield',
                         maskRe: /^\d+$/,
@@ -933,6 +970,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'End Action',
                     dataIndex: 'endAction',
+                    hidden:true,
                     width: 80,
                     editor: {
                         xtype: 'textfield',
@@ -1029,11 +1067,23 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Note',
                     dataIndex: 'note',
-                    width: 50,
+                    width: 300,
+                    editor: {
+                        xtype: 'textfield',
+                        allowBlank: true,
+                        listeners:{
+                            focus: function(){
+                                //this.selectText();
+                            }
+                        }
+                    },
                     renderer: function(value,metadata,record){
                         if (value == ""){
                             return value;
                         }
+                        metadata.tdCls = 'x-redwood-results-cell';
+                        return Autolinker.link( value, {} );
+                        /*
                         else{
                             metadata.style = 'background-image: url(images/note_pinned.png);background-position: center; background-repeat: no-repeat;';
                             //metadata.tdAttr = 'data-qalign="tl-tl?" data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
@@ -1042,6 +1092,8 @@ Ext.define('Redwood.view.ExecutionView', {
                             //return '<div ext:qtip="' + value + '"/>';
                             //return "<img src='images/note_pinned.png'/>";
                         }
+                        */
+
                     }
                 }
             ]

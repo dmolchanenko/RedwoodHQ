@@ -336,6 +336,7 @@ Ext.define("Redwood.controller.Executions", {
             if (newExecution == false){
                 if (typeof (callback) === 'function') callback(executionView.dataRecord);
             }
+            /*
             if ((newExecution == false) &&(executionView.noteChanged == true)){
                 execution.testcases.forEach(function(testcase){
                     testcase.executionID = executionView.dataRecord.get("_id");
@@ -352,7 +353,8 @@ Ext.define("Redwood.controller.Executions", {
                     }
                 });
             }
-            else  if (newExecution == true){
+            else  */
+            if (newExecution == true){
                 execution.testcases.forEach(function(testcase){
                     testcase.executionID = executionView.dataRecord.get("_id");
                 });

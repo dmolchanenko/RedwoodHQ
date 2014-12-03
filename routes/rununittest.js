@@ -31,7 +31,7 @@ exports.runUnitTest = function(req,res){
                                 return;
                             }
                             runningTests[username] = {sourceCache:sourceCache};
-                            var command = {username:username,command:"run action",ignoreScreenshots:true,allScreenshots:false,parameters:[],runType:"unittest",executionID:username+"unittest",script:testCaseInfo.name,type:testCaseInfo.type.toLowerCase(), threadID:99};
+                            var command = {scriptLang:"Java/Groovy",username:username,command:"run action",ignoreScreenshots:true,allScreenshots:false,parameters:[],runType:"unittest",executionID:username+"unittest",script:testCaseInfo.name,type:testCaseInfo.type.toLowerCase(), threadID:99};
                             execEngine.sendAgentCommand(ip,port,command,3);
                         })
                     })

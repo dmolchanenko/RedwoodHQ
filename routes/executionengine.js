@@ -17,6 +17,7 @@ var spawn = require('child_process').spawn;
 var os = require('os');
 var archiver = require('archiver');
 var db;
+var compilations = {};
 
 exports.stopexecutionPost = function(req, res){
     var execution = executions[req.body.executionID];
@@ -256,7 +257,7 @@ exports.compileBuild = function(project,username,callback){compileBuild(project,
 
 function compileBuild(project,username,callback){
     var workDir = rootDir+project+"/"+username;
-    var msg = {project:project,username:username,java:true,python:true,csharp:true}
+    var msg = {project:project,username:username,java:true,python:true,csharp:true};
 
     var compileScripts = function(){
         var compileOut = "";
@@ -276,25 +277,83 @@ function compileBuild(project,username,callback){
 
         })
     };
+    needToCompileJava(workDir,project,function(compileJava){
+        msg.java = compileJava;
+        needToCompilePython(workDir,project,username,function(compilePython){
+            msg.python = compilePython;
+            needToCompileCSharp(workDir,project,function(compileCSharp){
+                msg.csharp = compileCSharp;
+                compileScripts();
+            })
+        })
+    })
 
+
+}
+
+function needToCompilePython(workDir,project,username,callback){
+    var needToCompile = true;
+    if(compilations[project+username+"python"]){
+        git.commitsSinceDate(workDir,compilations[project+username+"python"],function(data){
+            if (data == "0\n"){
+                needToCompile = false;
+            }
+            else{
+                compilations[project+username+"python"] = new Date();
+            }
+            callback(needToCompile)
+        });
+    }
+    else{
+        compilations[project+username+"python"] = new Date();
+        callback(needToCompile);
+    }
+}
+
+function needToCompileJava(workDir,project,callback){
+    var needToCompile = true;
     fs.exists(workDir+"/build/jar/"+project+".jar", function (exists) {
         if(exists == true){
             fs.stat(workDir+"/build/jar/"+project+".jar",function(err,stats){
                 if(err) {
-                    compileScripts();
+                    callback(needToCompile);
                 }
                 else{
                     git.commitsSinceDate(workDir,stats.mtime,function(data){
                         if (data == "0\n"){
-                            msg.java = false;
+                            needToCompile = false;
                         }
-                        compileScripts();
+                        callback(needToCompile)
                     });
                 }
             });
         }
         else{
-            compileScripts()
+            callback(needToCompile);
+        }
+    });
+}
+
+function needToCompileCSharp(workDir,project,callback){
+    var needToCompile = true;
+    fs.exists(workDir+"/build/RedwoodHQAutomation.dll", function (exists) {
+        if(exists == true){
+            fs.stat(workDir+"/build/RedwoodHQAutomation.dll",function(err,stats){
+                if(err) {
+                    callback(needToCompile);
+                }
+                else{
+                    git.commitsSinceDate(workDir,stats.mtime,function(data){
+                        if (data == "0\n"){
+                            needToCompile = false;
+                        }
+                        callback(needToCompile)
+                    });
+                }
+            });
+        }
+        else{
+            callback(needToCompile);
         }
     });
 }
@@ -1497,8 +1556,11 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
             }
         });
     });
-
+    req.setTimeout(50000, function(){
+        //when timeout, this callback will be called
+    });
     req.on('error', function(e) {
+        retryCount = 0;
         if(retryCount <= 0){
             if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
             common.logger.error('sendAgentCommand problem with request: ' + e.message+ ' ');
@@ -2036,6 +2098,10 @@ function deleteOldResult(testcaseID,executionID,callback){
                     SHCollection.remove({_id:result.screenshot});
                 })
             }
+            db.collection('executionlogs'+executionID.replace(/-/g, ''), function(err, LogCollection) {
+                if(err) return;
+                LogCollection.remove({});
+            });
             if(callback) callback();
             collection.remove({_id:result._id},{safe:true},function(err){});
         })

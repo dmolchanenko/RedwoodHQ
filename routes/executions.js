@@ -129,7 +129,16 @@ function DeleteExecutions(db,data,callback){
                 collection.remove({executionID:data._id},{safe:true},function(err) {
                     db.collection('screenshots', function(err, collection) {
                         collection.remove({executionID:data._id},{safe:true},function(err) {
-                            callback(err);
+                            db.collection('testcaseresults', function(err, collection) {
+                                collection.remove({executionID: data._id}, {safe: true}, function (err) {
+                                    db.collection('executionlogs'+data._id.replace(/-/g, ''), function(err, collection) {
+                                        if(err) callback(err);
+                                        collection.remove({}, {safe: true}, function (err) {
+                                            callback(err);
+                                        });
+                                    });
+                                });
+                            });
                         });
                     });
                 });

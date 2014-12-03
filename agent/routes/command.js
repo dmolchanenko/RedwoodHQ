@@ -21,6 +21,8 @@ exports.Post = function(req, res){
         //console.log(command);
         var portNumber;
         var type;
+        command.matchID = common.uniqueId();
+        if(!command.scriptLang) command.scriptLang = "Java/Groovy";
         if(command.scriptLang == "Java/Groovy"){
             actionCache[basePort+command.threadID] = command;
             portNumber = basePort+command.threadID;
@@ -200,18 +202,22 @@ function startLauncher(executionID,threadID,type,callback){
         //launcherProc[executionID+portNumber.toString()] = require('child_process').execFile(javaPath+ " -cp " + classPath + " -Xmx512m "+"redwood.launcher.Launcher "+portNumber.toString(),{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+type+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
+            sendLog({message:"STDOUT ERROR: " + data.toString(),date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
             if(data.toString().indexOf("WARNING") != -1) return;
             if(data.toString().indexOf("JavaScript error") != -1) return;
             common.logger.error("launcher error:"+data.toString());
-            launcherProc[executionID+portNumber.toString()] = null;
             if (actionCache[portNumber]){
-                //actionCache[portNumber].error = data;
-                //actionCache[portNumber].result = "Failed";
-                //sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
-                //delete actionCache[portNumber];
+                launcherProc[executionID+portNumber.toString()] = null;
+                //org.jclouds.logging.jdk.JDKLogger
+                if(data.toString().indexOf("org.jclouds.logging.jdk.JDKLogger") != -1 && data.toString().indexOf("SEVERE") != -1){
+                    //actionCache[portNumber].error = data.toString();
+                    //actionCache[portNumber].result = "Failed";
+                    //sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+                    //delete actionCache[portNumber];
+                }
             }
 
-            callback(data.toString());
+            //callback(data.toString());
         });
         common.logger.info("starting port:"+portNumber);
         //var launcherRetry = 1;
@@ -239,15 +245,19 @@ function startLauncher(executionID,threadID,type,callback){
                 launcherConn[executionID+portNumber.toString()] = net.connect(portNumber, function(){
                     callback(null);
                     var cache = "";
-                    launcherConn[executionID+portNumber.toString()].on('data', function(data) {
-                        cache += data.toString();
+                    launcherConn[executionID+portNumber.toString()].on('data', function(tcpData) {
+                        cache += tcpData.toString();
 
-                        common.logger.info('data:', data.toString());
+                        common.logger.info('data:', tcpData.toString());
                         if (cache.indexOf("--EOM--") != -1){
 
                             //var msg = JSON.parse(cache.substring(0,cache.length - 7));
                             var msg = JSON.parse(cache.substring(0,cache.indexOf("--EOM--")));
                             if (msg.command == "action finished"){
+                                if(msg.matchID != actionCache[portNumber].matchID){
+                                    cache = "";
+                                    return;
+                                }
                                 delete actionCache[portNumber];
                                 if(msg.screenshot){
                                     common.sendFileToServer(baseExecutionDir+"/"+executionID + "/bin/" + msg.screenshot,msg.screenshot,"/screenshots",common.Config.AppServerIPHost,common.Config.AppServerPort,"executionID="+executionID+";resultID="+msg.resultID,function(){
@@ -257,6 +267,7 @@ function startLauncher(executionID,threadID,type,callback){
                                 else{
                                     sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                                 }
+                                cache = "";
                             }
                             if (msg.command == "Log Message"){
                                 //if()
@@ -474,7 +485,7 @@ function sendLauncherCommand(command,port,callback){
     }
     if(port != null) portNumber = port;
 
-    //console.log("sending to:"+portNumber);
+    //common.logger.info("sending command: "+ JSON.stringify(command));
     if (launcherConn[command.executionID+portNumber.toString()] == null){
         common.logger.error("unable to connect to launcher");
         callback("unable to connect to launcher");

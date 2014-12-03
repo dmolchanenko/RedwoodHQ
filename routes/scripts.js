@@ -169,7 +169,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
         git.initBare(masterBranch,function(){
             git.clone(adminBranch,masterBranch,function(){
-                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir",function(){});
+                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc",function(){});
                 SetupPython(adminBranch);
                 files.forEach(function(file,index,array){
                     var destName = file.replace(templatePath,"");
@@ -221,7 +221,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
                                             */
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/JVM/.gitignore","build\r\nPythonWorkDir");
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/JVM/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc");
                                         });
                                     }
                                 });

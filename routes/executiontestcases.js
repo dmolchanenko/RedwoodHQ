@@ -1,6 +1,19 @@
 var realtime = require("./realtime");
 var executions = require("./executions");
 
+exports.executionNotes = function(req,res){
+    var db = require('../common').getDB();
+    var data = req.body;
+    //data._id = db.bson_serializer.ObjectID(data._id);
+    UpdateNote(db,{_id:data._id},{$set:{note:data.note}},function(data){
+        realtime.emitMessage("UpdateExecutionTestCase",data);
+    });
+    res.contentType('json');
+    res.json({
+        success: true
+    });
+};
+
 exports.executiontestcasesPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -73,6 +86,14 @@ exports.executiontestcasesPost = function(req, res){
         });
     });
 };
+
+function UpdateNote(db,query,update,callback){
+    db.collection('executiontestcases', function(err, collection) {
+        collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            callback(data);
+        });
+    });
+}
 
 function CreateExecutionTestCases(db,data,callback){
     db.collection('executiontestcases', function(err, collection) {

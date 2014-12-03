@@ -69,7 +69,7 @@ class Launcher {
                             def command = new JsonSlurper().parseText(line)
                             //output << '{"error":null,"status":"started"}--EOM--'
                             if (command.command == "run action"){
-                                this.currentAction = command
+                                //this.currentAction = command
                                 runAction(command)
                                 output<<groovy.json.JsonOutput.toJson(command)+"--EOM--"
                             }
