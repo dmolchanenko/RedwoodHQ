@@ -25,7 +25,7 @@ common.parseConfig(function(){
                                     users.forEach(function(user,index){
                                         var repoPath = baseDir + argv.name + "/" + user.username;
                                         scripts.setupPython(repoPath,function(){
-                                            fs.appendFile(repoPath + "/.gitignore","\r\nPythonWorkDir",function(){
+                                            fs.appendFile(repoPath + "/.gitignore","\r\nPythonWorkDir\r\n**/*.pyc",function(){
                                                 count++;
                                                 if(count == users.length){
                                                     console.log("Upgraded project: "+argv.name);

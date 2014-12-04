@@ -3,6 +3,7 @@ var compileProcs = {};
 var path = require('path');
 var common = require('../common');
 var git = require('../gitinterface/gitcommands');
+var fs = require('fs');
 
 exports.operation = function(msg, id,callback,onFinish){
     if (compileProcs[id] != undefined){
@@ -70,24 +71,27 @@ function compileJava(buildDir,id,msg,callback,onFinish){
     });
     var antDir = path.resolve(__dirname,"../vendor/ant/bin/")+"/";
     var javaDir = path.resolve(__dirname,"../vendor/Java");
+    fs.exists(buildDir+"/ivy.xml",function(exists){
+        var resolve = "";
+        if(exists == true) resolve = "resolve";
+        compileProcs[id].proc =spawn('"'+antDir+'ant" clean '+resolve+' compile jar',{cwd: buildDir,timeout:1800000,env:{ANT_HOME:path.resolve(__dirname,"../vendor/ant/"),JAVA_HOME:javaDir}});
+        common.logger.info(antDir);
+        common.logger.info(buildDir);
+        compileProcs[id].proc.stdout.on('data', function(data) {
+            //console.log(data.toString());
+            callback(data.toString());
+        });
 
-    compileProcs[id].proc =spawn('"'+antDir+'ant" clean resolve compile jar',{cwd: buildDir,timeout:1800000,env:{ANT_HOME:path.resolve(__dirname,"../vendor/ant/"),JAVA_HOME:javaDir}});
-    common.logger.info(antDir);
-    common.logger.info(buildDir);
-    compileProcs[id].proc.stdout.on('data', function(data) {
-        //console.log(data.toString());
-        callback(data.toString());
+        compileProcs[id].proc.stderr.on('data', function(data) {
+            //console.log(data.toString());
+            callback(data.toString());
+            spawn(path.resolve(__dirname,'../vendor/Git/bin/rm'),['-rf',buildDir+"/build"],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+        });
+        compileProcs[id].proc.on('close', function(data){
+            onFinish();
+        });
+        callback("");
     });
-
-    compileProcs[id].proc.stderr.on('data', function(data) {
-        //console.log(data.toString());
-        callback(data.toString());
-        spawn(path.resolve(__dirname,'../vendor/Git/bin/rm'),['-rf',buildDir+"/build"],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
-    });
-    compileProcs[id].proc.on('close', function(data){
-        onFinish();
-    });
-    callback("");
 }
 
 function compilePython(buildDir,id,msg,callback,onFinish){
