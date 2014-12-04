@@ -71,7 +71,7 @@ function compileJava(buildDir,id,msg,callback,onFinish){
     var antDir = path.resolve(__dirname,"../vendor/ant/bin/")+"/";
     var javaDir = path.resolve(__dirname,"../vendor/Java");
 
-    compileProcs[id].proc =spawn('"'+antDir+'ant" clean compile jar',{cwd: buildDir,timeout:1800000,env:{JAVA_HOME:javaDir}});
+    compileProcs[id].proc =spawn('"'+antDir+'ant" clean resolve compile jar',{cwd: buildDir,timeout:1800000,env:{ANT_HOME:path.resolve(__dirname,"../vendor/ant/"),JAVA_HOME:javaDir}});
     common.logger.info(antDir);
     common.logger.info(buildDir);
     compileProcs[id].proc.stdout.on('data', function(data) {

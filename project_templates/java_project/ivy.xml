@@ -1,0 +1,6 @@
+<ivy-module version="2.0">
+    <info organisation="org.apache" module="redwoodhq-ivy"/>
+    <dependencies>
+
+    </dependencies>
+</ivy-module>
