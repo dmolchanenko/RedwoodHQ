@@ -9,7 +9,11 @@ Ext.define('ActionParams', {
         {type: 'string', name: 'description'},
         {type: 'array', name: 'possiblevalues'},
         {type: 'string', name: 'parametertype'}
-    ]
+    ],
+    proxy: {
+        type: 'memory',
+        reader: 'array'
+    }
 });
 
 Ext.define('ValidValues', {
@@ -72,6 +76,9 @@ Ext.define('Redwood.view.ActionParamGrid',{
             autoCancel: false,
             clicksToEdit: 2
         });
+        this.DnD = Ext.create("Ext.grid.plugin.DragDrop",{
+            dragText: 'Drag and drop to reorganize'
+        });
         this.store= Ext.create('Ext.data.ArrayStore', {
             model: 'ActionParams',
             autoSync: true,
@@ -87,6 +94,10 @@ Ext.define('Redwood.view.ActionParamGrid',{
                 }
             }
         });
+        this.viewConfig ={
+            plugins:[this.DnD]
+        };
+
         this.plugins =[this.rowEditor];
 
         this.rowEditor.on("edit",function(editor,e,eOpt){
