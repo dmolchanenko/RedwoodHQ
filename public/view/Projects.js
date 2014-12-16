@@ -22,6 +22,7 @@ Ext.define('Redwood.view.Projects', {
                 header: 'Language',
                 dataIndex: 'language',
                 //flex: 1,
+                hidden:true,
                 width: 200
             },
             {
