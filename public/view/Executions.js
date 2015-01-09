@@ -10,6 +10,9 @@ Ext.define('Redwood.view.ExecutionsGrid', {
         markDirty: false
     },
     minHeight: 150,
+    height: 500,
+    plugins: [
+        "bufferedrenderer"],
     manageHeight: true,
     selModel: Ext.create('Ext.selection.CheckboxModel', {
         singleSelect: false,
