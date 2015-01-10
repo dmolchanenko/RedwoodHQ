@@ -100,7 +100,15 @@ Ext.define("Redwood.controller.TestCases", {
         var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
         //try again with the star
         if (foundIndex == -1){
-            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
+            //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
+            foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
+                if(key == record.get("name")){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            });
         }
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.TestCaseView',{
@@ -112,7 +120,15 @@ Ext.define("Redwood.controller.TestCases", {
 
             this.tabPanel.add(tab);
 
-            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+            //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+            foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
+                if(key == record.get("name")){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            });
             if(!collapse == false){
                 tab.down("#testcaseDetails").collapse();
             }
