@@ -2100,7 +2100,7 @@ function deleteOldResult(testcaseID,executionID,callback){
             }
             db.collection('executionlogs'+executionID.replace(/-/g, ''), function(err, LogCollection) {
                 if(err) return;
-                LogCollection.remove({});
+                LogCollection.remove({resultID:result._id});
             });
             if(callback) callback();
             collection.remove({_id:result._id},{safe:true},function(err){});
