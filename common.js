@@ -27,20 +27,35 @@ exports.parseConfig = function(callback){
     });
 
     //find .NET location
+    setNETLocation(function(){});
+};
+
+exports.setNETLocation = function(callback){setNETLocation(callback)};
+
+function setNETLocation(callback){
     fs.exists("c:/windows/Microsoft.NET/Framework",function(exists){
         if(exists == true){
             if(process.env.SYSTEMROOT){
                 fs.readdir(process.env.SYSTEMROOT+"/Microsoft.NET/Framework",function(err,files){
-                    files.forEach(function(file){
+                    files.forEach(function(file,index){
                         if(file.indexOf("v4.0") != -1){
-                            common.MSBuildLocation = process.env.SYSTEMROOT+"/Microsoft.NET/Framework/"+file+"/MSBuild.exe"
+                            common.MSBuildLocation = process.env.SYSTEMROOT+"/Microsoft.NET/Framework/"+file+"/MSBuild.exe";
+                        }
+                        if(index == files.length - 1){
+                            callback()
                         }
                     });
                 })
             }
+            else{
+                callback()
+            }
+        }
+        else{
+            callback()
         }
     });
-};
+}
 
 exports.initLogger = function(fileName){
     this.logger = new (winston.Logger)({

@@ -145,30 +145,42 @@ function compileCSharp(buildDir,id,msg,callback,onFinish){
     git.lsFiles(buildDir+"/src",["*.cs"],function(data){
         if(data.indexOf(".cs") != -1){
             callback("------------COMPILE C#------------");
-            compileProcs[id].csharpProc = spawn(common.MSBuildLocation+' CSharp.proj /t:Compile',{cwd: buildDir,timeout:1800000,env:{}});
-            var failed = false;
-            compileProcs[id].csharpProc.stdout.on('data', function(data) {
-                //console.log(data.toString());
-                if(data.toString().indexOf("Build FAILED") != -1) failed = true;
-                callback(data.toString());
-            });
 
-            compileProcs[id].csharpProc.stderr.on('data', function(data) {
-                //console.log(data.toString());
-                if(data.toString().indexOf("Build FAILED") != -1) failed = true;
-                callback(data.toString());
-            });
-            compileProcs[id].csharpProc.on('close', function(data){
-                if(failed == true) {
-                    callback("BUILD FAILED");
-                }
-                else{
-                    callback("BUILD SUCCESSFUL");
-                }
+            var startCompiling = function(){
+                compileProcs[id].csharpProc = spawn(common.MSBuildLocation+' CSharp.proj /t:Compile',{cwd: buildDir,timeout:1800000,env:{}});
+                var failed = false;
+                compileProcs[id].csharpProc.stdout.on('data', function(data) {
+                    //console.log(data.toString());
+                    if(data.toString().indexOf("Build FAILED") != -1) failed = true;
+                    callback(data.toString());
+                });
+
+                compileProcs[id].csharpProc.stderr.on('data', function(data) {
+                    //console.log(data.toString());
+                    if(data.toString().indexOf("Build FAILED") != -1) failed = true;
+                    callback(data.toString());
+                });
+                compileProcs[id].csharpProc.on('close', function(data){
+                    if(failed == true) {
+                        callback("BUILD FAILED");
+                    }
+                    else{
+                        callback("BUILD SUCCESSFUL");
+                    }
+                    if (onFinish){
+                        onFinish();
+                    }
+                });
+            };
+            if(common.MSBuildLocation == null){common.setNETLocation(function(){
+                    startCompiling()
+                })
+            }
+            else{
                 if (onFinish){
                     onFinish();
                 }
-            });
+            }
         }
         else{
             if (onFinish){
