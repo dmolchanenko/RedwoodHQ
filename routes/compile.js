@@ -177,9 +177,7 @@ function compileCSharp(buildDir,id,msg,callback,onFinish){
                 })
             }
             else{
-                if (onFinish){
-                    onFinish();
-                }
+                startCompiling();
             }
         }
         else{
