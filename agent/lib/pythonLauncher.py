@@ -43,6 +43,8 @@ def runAction(action):
                         params[paramKey] = paramValue
                 else:
                     params[paramKey] = paramValue
+            else:
+                params[paramKey] = paramValue
         returnValue = methodValue(params)
         sys.stdout.flush()
         if returnValue is not None:
@@ -57,13 +59,13 @@ def runAction(action):
                     action["returnValue"] = returnValue
             elif returnValue.__class__.__name__ == "str" or returnValue.__class__.__name__ == "unicode":
                 action["returnValue"] = returnValue
-    except Exception as e:
+    except:
         sys.stdout.flush()
         action["result"] = "Failed"
-        if e.message is None:
+        if sys.exc_info()[0] is None:
             action["error"] = "Unknown Error"
         else:
-            action["error"] = e.message
+            action["error"] = sys.exc_info()[1].message
         action["trace"] = traceback.format_exc()
     action["command"] = "action finished"
 
@@ -71,7 +73,7 @@ if __name__ == '__main__':
     host = ''
     port = int(sys.argv[1])
     backlog = 5
-    size = 10024
+    size = 1024
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((host,port))
