@@ -54,19 +54,13 @@ exports.Post = function(req, res){
     }
     else if(command.command == "cleanup"){
         common.logger.info("cleaning up");
-        setTimeout(function(){
+        //setTimeout(function(){
             //cleanUpOldExecutions(command.executionID);
-        },1*60*1000);
+        //},1*60*1000);
         var count = 0;
         var cleanUpDirs = function(){
             deleteDir(baseExecutionDir + "/"+command.executionID,function(){
             });
-            try{
-                res.send('{"error":null,"success":true}');
-            }
-            catch(err) {
-
-            }
         };
 
         if (Object.keys(launcherConn).length != 0){
@@ -76,6 +70,7 @@ exports.Post = function(req, res){
                 if(propt.toString().indexOf(command.executionID) != -1){
                     toDelete.push(propt);
                     stopLauncher(command.executionID,parseInt(propt.substr(propt.length - 4)),function(){
+                        res.send('{"error":null,"success":true}');
                         cleanUpDirs()
                     });
                 }
@@ -85,11 +80,13 @@ exports.Post = function(req, res){
                         delete launcherConn[conn];
 
                     });
+                    res.send('{"error":null,"success":true}');
                     cleanUpDirs()
                 }
             }
         }
         else{
+            res.send('{"error":null,"success":true}');
             cleanUpDirs();
         }
     }
@@ -326,6 +323,7 @@ function startLauncher(executionID,threadID,type,callback){
         });
     };
 
+    var retryStartingCount = 5;
     if (foundConn != null){
         stopLauncher(executionID,basePort + threadID,function(){
             stopLauncher(executionID,basePythonPort + threadID,function(){
@@ -343,12 +341,32 @@ function startLauncher(executionID,threadID,type,callback){
                 });
             });
             foundConn.on("error",function(err){
+                retryStartingCount--;
+                if(retryStartingCount <= 0){
+                    actionCache[portNumber].error = "Launcher crashed";
+                    actionCache[portNumber].result = "Failed";
+                    sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+                    delete actionCache[portNumber];
+                }
+                else{
+                    setTimeout(startProcess(),5000);
+                }
                 //common.logger.error(err);
-                startProcess();
+                //startProcess();
             })
         }
         catch(err){
-            startProcess();
+            retryStartingCount--;
+            if(retryStartingCount <= 0){
+                actionCache[portNumber].error = "Launcher crashed";
+                actionCache[portNumber].result = "Failed";
+                sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+                delete actionCache[portNumber];
+            }
+            else{
+                setTimeout(startProcess(),5000);
+            }
+            //startProcess();
         }
     }
 }
@@ -397,7 +415,7 @@ function stopLauncher(executionID,port,callback){
         }
         catch(err){}
     }
-    delete launcherConn[port];
+    delete launcherConn[executionID+port.toString()];
     setTimeout(function() { callback();}, 4000);
 
 }
