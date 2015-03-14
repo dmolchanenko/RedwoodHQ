@@ -242,6 +242,7 @@ function startLauncher(executionID,threadID,type,callback){
             callback(data.toString());
         });
         var cmdCache = "";
+        var launcherCrashed = false;
         launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
             cmdCache += data.toString();
             common.logger.info('stdout: ' + data.toString());
@@ -288,7 +289,10 @@ function startLauncher(executionID,threadID,type,callback){
                     common.logger.error("Error connecting to launcher on port "+portNumber+": "+err);
                     //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                     //checkForCrush(portNumber);
-                    callback("Error connecting to launcher on port "+portNumber+": "+err);
+                    if(launcherCrashed == false){
+                        callback("Error connecting to launcher on port "+portNumber+": "+err);
+                        launcherCrashed = true;
+                    }
                 });
             }
             else{
