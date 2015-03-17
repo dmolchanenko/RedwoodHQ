@@ -192,7 +192,8 @@ function startLauncher(executionID,threadID,type,callback){
             launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         else if(type == "python"){
-            var pythonPath = baseExecutionDir+"/"+executionID+"/python";
+            var pythonPath = path.resolve(__dirname,"../../vendor/Python")+"/python";
+            //var pythonPath = baseExecutionDir+"/"+executionID+"/python";
             var pythonLauncherPath = path.resolve(__dirname,"../lib")+"/pythonLauncher.py";
             //launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PYTHONPATH:baseExecutionDir+"/"+executionID+"/src/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
             launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
