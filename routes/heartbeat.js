@@ -8,7 +8,7 @@ var updatingAgents = {};
 exports.heartbeatPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
-    var ip = req.connection.remoteAddress;
+    var ip = req.connection.remoteAddress.replace("::ffff:","");
 
     findMachine(app.getDB(),data,ip,function(machine){
         if (machine == null){
