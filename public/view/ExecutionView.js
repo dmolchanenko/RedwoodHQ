@@ -939,7 +939,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                 //record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>");
                             //}
                             //return value;
-                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;,&quot;"+ me.itemId +"&quot;)'>" + value +"</a>";
                         }
                             //record.set("name")
                         return value;

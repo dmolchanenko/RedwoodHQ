@@ -1,6 +1,6 @@
-function openResultDetails(id){
+function openResultDetails(id,executionID){
     var controller = Redwood.app.getController("Executions");
-    controller.openExecutionDetails(id);
+    controller.openExecutionDetails(id,executionID);
 
     if(Ext.isChrome){
         return false;
@@ -153,7 +153,7 @@ Ext.define("Redwood.controller.Executions", {
         });
     },
 
-    openExecutionDetails: function(id){
+    openExecutionDetails: function(id,executionID){
         var me = this;
         if(me.openingExecutionDetails[id] == true) return;
         me.openingExecutionDetails[id] = true;
@@ -179,6 +179,7 @@ Ext.define("Redwood.controller.Executions", {
                         title:"[Test Details] " + obj.testcase.name,
                         closable:true,
                         dataRecord:obj,
+                        executionID:executionID,
                         itemId:id
                     });
 

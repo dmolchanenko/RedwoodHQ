@@ -449,13 +449,21 @@ Ext.define('Redwood.view.ResultsView', {
             ]
         });
 
+        var executionID;
+
+        if(me.dataRecord.testcase.executionID){
+            executionID = me.dataRecord.testcase.executionID;
+        }
+        else{
+            executionID = me.executionID;
+        }
         this.logStore =  Ext.create('Ext.data.Store', {
             autoLoad: true,
             storeId: "ResultLogs"+this.itemId,
             idProperty: '_id',
             proxy: {
                 type: 'rest',
-                url: '/resultslogs/'+me.itemId+"/"+me.dataRecord.testcase.executionID,
+                url: '/resultslogs/'+me.itemId+"/"+executionID,
                 reader: {
                     type: 'json',
                     root: 'logs',
