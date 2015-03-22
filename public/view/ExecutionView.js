@@ -1728,6 +1728,8 @@ Ext.define('Redwood.view.ExecutionView', {
                         }
                     });
                     me.down("#executionTestcases").store.add(allTCs);
+                    me.down("#executionTestcases").store.filter("email", /\.com$/);
+                    me.down("#executionTestcases").store.clearFilter();
                 };
                 if (Ext.data.StoreManager.lookup('TestCases').initialLoad == true){
                     loadTCs();
@@ -1840,8 +1842,9 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
         var testcasesStore = this.down("#executionTestcases").store;
+
         execution.testcases = [];
-        testcasesStore.each(function(item){
+        testcasesStore.query("_id",/.*/).each(function(item){
             execution.testcases.push(item.data);
         });
 
