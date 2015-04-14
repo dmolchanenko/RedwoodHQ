@@ -65,6 +65,7 @@ common.parseConfig(function(){
                             })
                         }
                         else{
+                            execution.variables = [];
                             SaveAndRunExecution(execution,testcases,function(){
 
                             })
@@ -401,9 +402,10 @@ function formatVariables(clivariables,project,callback){
 function formatMachines(callback){
     if(!argv.machines) callback([]);
     var machines = argv.machines.split(",");
+    var result = [];
     var count = 0;
     db.collection('machines', function(err, collection) {
-        climachines.forEach(function(machine){
+        machines.forEach(function(machine){
             collection.findOne({host:machine.split(":")[0]}, {}, function(err, dbmachine) {
                 if(!dbmachine){
                     console.log("Machine: " +machine.split(":")[0]+" not found.");
@@ -416,9 +418,9 @@ function formatMachines(callback){
                         actionCollection.findOne({name:machine.split(":")[2]}, {}, function(err, action) {
                             if(action){
                                 dbmachine.baseState = action._id;
-                                machines.push(dbmachine);
-                                if(count == climachines.length){
-                                    callback(machines);
+                                result.push(dbmachine);
+                                if(count == machines.length){
+                                    callback(result);
                                 }
                             }
                             else{
@@ -429,9 +431,9 @@ function formatMachines(callback){
                     });
                 }
                 else{
-                    machines.push(dbmachine);
-                    if(count == climachines.length){
-                        callback(machines);
+                    result.push(dbmachine);
+                    if(count == machines.length){
+                        callback(result);
                     }
                 }
             });
