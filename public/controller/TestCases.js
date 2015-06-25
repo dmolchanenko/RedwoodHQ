@@ -64,7 +64,9 @@ Ext.define("Redwood.controller.TestCases", {
                 testCase.name = text;
                 var newTestCase = me.getStore('TestCases').add(testCase)[0];
                 me.getStore('TestCases').sync({success:function(batch,options){
-                    Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
+                    var testcaseData = batch.operations[0].records[0].data;
+                    testcaseData.project = Ext.util.Cookies.get('project');
+                    Ext.socket.emit('AddTestCases', testcaseData);
                 }});
                 me.onEditTestCase(newTestCase,false);
             }
@@ -151,7 +153,9 @@ Ext.define("Redwood.controller.TestCases", {
         if (testcaseView.dataRecord === null){
             testcaseView.dataRecord = this.getStore('TestCases').add(testcase)[0];
             this.getStore('TestCases').sync({success:function(batch,options){
-                Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
+                var testcaseData = batch.operations[0].records[0].data;
+                testcaseData.project = Ext.util.Cookies.get('project');
+                Ext.socket.emit('AddTestCases', testcaseData);
                 window.history.replaceState("", "", '/index.html?testcase='+testcaseView.dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
             }});
         }

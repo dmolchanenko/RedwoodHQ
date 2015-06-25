@@ -612,9 +612,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
     addToStore: function(store,item){
         //if (store.find("_id",item._id) == -1){
         if (store.query("_id",item._id).length == 0){
-            var items = store.add(item);
-            store.fireEvent("beforesync",{create:items});
-            items[0].phantom = false;
+            if(item.project && item.project != Ext.util.Cookies.get("project")){
+                return;
+            }
+            else{
+                    var items = store.add(item);
+                    store.fireEvent("beforesync",{create:items});
+                    items[0].phantom = false;
+            }
         }
     }
 

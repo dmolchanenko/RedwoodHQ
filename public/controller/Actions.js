@@ -51,7 +51,9 @@ Ext.define("Redwood.controller.Actions", {
                 action.name = text;
                 var newAction = me.getStore('Actions').add(action)[0];
                 me.getStore('Actions').sync({success:function(batch,options){
-                    Ext.socket.emit('AddActions', batch.operations[0].records[0].data);
+                    var actionData = batch.operations[0].records[0].data;
+                    actionData.project = Ext.util.Cookies.get('project');
+                    Ext.socket.emit('AddActions', actionData);
                 }});
                 me.onEditAction(newAction,false);
             }
@@ -134,7 +136,9 @@ Ext.define("Redwood.controller.Actions", {
         if (actionView.dataRecord === null){
             actionView.dataRecord = this.getStore('Actions').add(action)[0];
             this.getStore('Actions').sync({success:function(batch,options){
-                Ext.socket.emit('AddActions', batch.operations[0].records[0].data);
+                var actionData = batch.operations[0].records[0].data;
+                actionData.project = Ext.util.Cookies.get('project');
+                Ext.socket.emit('AddActions', actionData);
                 actionView.down("actioncollection").parentActionID = batch.operations[0].records[0].data._id;
                 window.history.replaceState("", "", '/index.html?action='+actionView.dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
             }});
