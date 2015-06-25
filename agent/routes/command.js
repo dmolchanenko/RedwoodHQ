@@ -55,7 +55,7 @@ exports.Post = function(req, res){
     else if(command.command == "cleanup"){
         common.logger.info("cleaning up");
         //setTimeout(function(){
-            //cleanUpOldExecutions(command.executionID);
+        //cleanUpOldExecutions(command.executionID);
         //},1*60*1000);
         var count = 0;
         var cleanUpDirs = function(){
@@ -113,26 +113,26 @@ exports.Post = function(req, res){
 
 
 function startLauncher_debug(callback){
-            launcherConn = net.connect(basePort, function(){
-                callback(null);
-                var cache = "";
-                launcherConn.on('data', function(data) {
-                    cache += data.toString();
+    launcherConn = net.connect(basePort, function(){
+        callback(null);
+        var cache = "";
+        launcherConn.on('data', function(data) {
+            cache += data.toString();
 
-                    common.logger.info('data:', data.toString());
-                    if (cache.indexOf("--EOM--") != -1){
-                        var msg = JSON.parse(cache.substring(0,cache.length - 7));
-                        if (msg.command == "action finished"){
-                            sendActionResult(msg);
-                        }
-                        cache = "";
-                    }
-                });
+            common.logger.info('data:', data.toString());
+            if (cache.indexOf("--EOM--") != -1){
+                var msg = JSON.parse(cache.substring(0,cache.length - 7));
+                if (msg.command == "action finished"){
+                    sendActionResult(msg);
+                }
+                cache = "";
+            }
+        });
 
-                launcherConn.on('error', function(err) {
-                    callback(err);
-                });
-            });
+        launcherConn.on('error', function(err) {
+            callback(err);
+        });
+    });
 }
 
 function checkForDupLauncher(){
@@ -176,20 +176,23 @@ function startLauncher(executionID,threadID,type,callback){
             javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
             classPath = libPath+'*'+pathDivider+launcherPath+'*';
             /*
-            if(require('os').platform() == "linux"){
-                javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
-                classPath = libPath+'*:'+launcherPath+'*';
-            }
-            if(require('os').platform() == "darwin"){
-                javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
-                classPath = libPath+'*:'+launcherPath+'*';
-            }
-            else{
-                javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
-                classPath = libPath+'*;'+launcherPath+'*';
-            }
-            */
-            launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+             if(require('os').platform() == "linux"){
+             javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+             classPath = libPath+'*:'+launcherPath+'*';
+             }
+             if(require('os').platform() == "darwin"){
+             javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+             classPath = libPath+'*:'+launcherPath+'*';
+             }
+             else{
+             javaPath = path.resolve(__dirname,"../../vendor/Java/bin")+"/java";
+             classPath = libPath+'*;'+launcherPath+'*';
+             }
+             */
+            var javaEnv = process.env;
+            javaEnv.PATH = baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin";
+            launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:javaEnv,cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+            //launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         else if(type == "python"){
             var pythonPath = path.resolve(__dirname,"../../vendor/Python")+"/python";
@@ -300,7 +303,7 @@ function startLauncher(executionID,threadID,type,callback){
                         return;
                     }
 
-                    cmdCache.split("\r\n").forEach(function(message,index,array){
+                    cmdCache.split(require('os').EOL).forEach(function(message,index,array){
                         if(index == array.length - 1){
                             if (cmdCache.lastIndexOf("\r\n")+2 !== cmdCache.length){
                                 cmdCache = cmdCache.substring(cmdCache.lastIndexOf("\r\n") + 2,cmdCache.length);
@@ -390,7 +393,7 @@ function stopLauncher(executionID,port,callback){
         conn = net.connect(port, function(){
             conn.write(JSON.stringify({command:"exit"})+"\r\n");
         }).on('error', function(err) {
-                //deleteDir(baseExecutionDir+"/"+executionID+"/launcher/",callback)
+            //deleteDir(baseExecutionDir+"/"+executionID+"/launcher/",callback)
         });
     }
 
@@ -548,7 +551,7 @@ function sendActionResult(result,host,port){
     });
 
     //req.setTimeout( 5*60*1000, function( ) {
-        // handle timeout here
+    // handle timeout here
     //});
 
     req.on('error', function(e) {
