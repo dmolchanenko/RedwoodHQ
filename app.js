@@ -45,7 +45,9 @@ var express = require('express')
   , emailsettings = require('./routes/emailsettings')
   , imageautomation = require('./routes/imageautomation')
   , recorder = require('./routes/recorder')
-  , license = require('./routes/license');
+  , license = require('./routes/license')
+  , actionHistory = require('./routes/actionHistory')
+  , testcaseHistory = require('./routes/testcaseHistory');
 
 
 //var app = express.createServer();
@@ -99,6 +101,14 @@ app.post('/aggregate',auth.auth,aggregate.aggregatePost);
 app.post('/recordimage',auth.auth,imageautomation.recordImage);
 app.get('/image/:id',auth.auth,imageautomation.getImage);
 app.post('/recordedimage',imageautomation.recordedImage);
+
+//test case history
+app.get('/testcasehistory/:id',auth.auth,testcaseHistory.historyGet);
+app.post('/testcasehistory',auth.auth,testcaseHistory.historyPost);
+
+//action history
+app.get('/actionhistory/:id',auth.auth,actionHistory.historyGet);
+app.post('/actionhistory',auth.auth,actionHistory.historyPost);
 
 //uploadFiles
 app.post('/uploadfiles',auth.auth,uploadFiles.uploadFiles);

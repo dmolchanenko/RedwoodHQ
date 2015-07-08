@@ -24,6 +24,7 @@ exports.stopexecutionPost = function(req, res){
     if(!execution) {
         res.contentType('json');
         res.json({success:true});
+        return;
     }
     cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
@@ -550,6 +551,12 @@ function executeTestCases(testcases,executionID){
         }
         else{
             if(executions[executionID]){
+                var shouldFinish = true;
+                //if something is running dont finish the execution
+                for(var tc in executions[executionID].testcases) {
+                    if(tc.finished == false) shouldFinish = false;
+                }
+                if(shouldFinish == false) return;
                 unlockCloudMachines(executions[executionID].machines);
                 unlockMachines(executions[executionID].machines,function(){
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
@@ -2054,32 +2061,32 @@ function findNextAction (actions,variables,callback){
             return;
         }
         if ((action.script)||((action.actions.length == 0) && ((!action.script)))){
-            resolveParams(action,function(){
-                if (allDone == false){
-                    callback(action);
-                    allDone = true;
-                }
-            });
+            if (allDone == false){
+                resolveParams(action,function(){
+                        callback(action);
+                        allDone = true;
+                });
+            }
         }
         else{
-            resolveParams(action,function(){
-                findNextAction(action.actions,variables,function(action){
-                    if ((action == null) &&(order == actions.length)){
-                        if (allDone == false){
-                            callback(null);
-                            allDone = true;
-                        }
-                    }
-                    else if (action != null){
-                        resolveParams(action,function(){
-                            if (allDone == false){
-                                callback(action);
+            if (allDone == false){
+                resolveParams(action,function(){
+                    findNextAction(action.actions,variables,function(action){
+                        if ((action == null) &&(order == actions.length)){
+                                callback(null);
                                 allDone = true;
+                        }
+                        else if (action != null){
+                            if (allDone == false){
+                                resolveParams(action,function(){
+                                        callback(action);
+                                        allDone = true;
+                                });
                             }
-                        });
-                    }
-                });
-            })
+                        }
+                    });
+                })
+            }
         }
 
     });

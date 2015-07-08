@@ -68,6 +68,7 @@ function CreateTestCases(db,data,callback){
         data._id = db.bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
+            SaveHistory(db,returnData[0]);
         });
     });
 }
@@ -77,17 +78,23 @@ function UpdateTestCases(db,data,callback){
         collection.save(data,{safe:true},function(err){
             if (err) console.warn(err.message);
             else callback(err);
-            db.collection('testcaseshistory', function(err, collection) {
-                data.testcaseID = data._id;
-                delete data._id;
-                data.date = new Date();
-                collection.save(data,{safe:true},function(err){
-
-                });
-            });
+            SaveHistory(db,data);
         });
     });
 
+}
+
+exports.SaveHistory = function(db,data){SaveHistory(db,data)};
+
+function SaveHistory(db,data){
+    db.collection('testcaseshistory', function(err, collection) {
+        data.testcaseID = data._id;
+        delete data._id;
+        data.date = new Date();
+        collection.insert(data,{safe:true},function(err,returnData){
+            if (err) console.warn(err.message);
+        });
+    });
 }
 
 function DeleteTestCases(db,data,callback){

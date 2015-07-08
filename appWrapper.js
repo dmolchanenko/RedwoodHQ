@@ -57,12 +57,12 @@ common.parseConfig(function(){
     var dbStarted = false;
     var dbOut = "";
 
+    appChild.start();
     dbChild.on('stdout', function (data) {
         if (dbStarted == false){
             dbOut = dbOut + data.toString();
             if (dbOut.indexOf("waiting for connections on port") != -1){
                 dbStarted = true;
-                appChild.start();
                 //setTimeout(function(){
                 //    fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
                 //},10000);

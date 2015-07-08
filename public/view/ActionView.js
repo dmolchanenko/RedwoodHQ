@@ -442,6 +442,23 @@ Ext.define('Redwood.view.ActionView', {
                     }
                 ]
             },
+            {
+                xtype: 'fieldset',
+                title: 'History',
+                defaultType: 'textfield',
+                itemId: "actionHistory",
+                flex: 1,
+                hidden:false,
+                collapsible: true,
+                collapsed:true,
+                //layout: "column",
+                defaults: {
+                    flex: 1
+                },
+                items: [
+
+                ]
+            },
             /*
             {
 
@@ -536,6 +553,93 @@ Ext.define('Redwood.view.ActionView', {
                 });
 
                 me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
+
+                me.historyStore =  Ext.create('Ext.data.Store', {
+                    model: 'Redwood.model.Actions',
+                    autoLoad: true,
+                    storeId: "ActionHistoryStore"+me.dataRecord.get("_id"),
+                    idProperty: '_id',
+                    proxy: {
+                        type: 'rest',
+                        url: '/actionhistory/'+me.dataRecord.get("_id"),
+                        reader: {
+                            type: 'json',
+                            root: 'actions',
+                            successProperty: 'success'
+                        }
+                    },
+                    sorters: [{
+                        property : 'date',
+                        direction: 'DESC'
+                    }]
+                });
+
+                //add history specific fields
+                me.historyStore.model.prototype.fields.add(new Ext.data.Field({ name: 'user', type: 'string'}));
+                me.historyStore.model.prototype.fields.add(new Ext.data.Field({ name: 'date', type: 'date'}));
+                me.historyGrid = Ext.create('Ext.grid.Panel', {
+                    store: me.historyStore,
+                    itemId:"historyGrid",
+                    selType: 'rowmodel',
+                    height:200,
+                    overflowY: 'auto',
+                    viewConfig: {
+                        markDirty: false,
+                        enableTextSelection: true
+                    },
+                    plugins: [
+                        "bufferedrenderer"],
+                    columns:[
+                        {
+                            xtype:"datecolumn",
+                            format:'m/d h:i:s',
+                            header: 'Date',
+                            dataIndex: 'date',
+                            width: 120
+                        },
+                        {
+                            header: 'UserID',
+                            dataIndex: 'user',
+                            width: 180
+                        },
+                        {
+                            header: 'Previous Version',
+                            dataIndex: '_id',
+                            renderer: function(value,meta,record){
+                                //meta.tdCls = 'x-redwood-results-cell';
+                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:openActionHistory(&quot;"+ me.dataRecord.get("_id") +"&quot;,&quot;" + value + "&quot;)'>View Test Case</a>"
+                            }
+                        },
+                        {
+                            xtype: 'actioncolumn',
+                            icon: 'images/undo.png',
+                            width: 40,
+                            tooltip: 'Revert to this version.',
+                            handler: function (grid, rowIndex, colIndex) {
+                                Ext.Msg.show({
+                                    title: 'Revert to version.',
+                                    msg: 'Are you sure you want to revert action to this version?',
+                                    buttons: Ext.Msg.YESNO,
+                                    icon: Ext.Msg.QUESTION,
+                                    fn: function (id) {
+                                        if (id == "yes") {
+                                            var controller = Redwood.app.getController("Actions");
+                                            controller.onRevert(grid.store.getAt(rowIndex).get("_id"));
+                                            me.close();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    ]
+
+                });
+                if(me.dataRecord.get("history") == true){
+                    me.down("#actionHistory").hide();
+                }
+                else{
+                    me.down("#actionHistory").items.add(me.historyGrid);
+                }
 
             }
             else{

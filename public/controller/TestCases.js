@@ -9,6 +9,20 @@ function openTestCase(id){
     }
 }
 
+function openTestCaseHistory(testcaseID,historyID){
+    var store = Ext.data.StoreManager.lookup('TCHistoryStore'+testcaseID);
+    var tab = Ext.ComponentQuery.query("#mainTabPanel")[0];
+    tab.setActiveTab(tab.down("#testcasesBrowser"));
+    var controller = Redwood.app.getController("TestCases");
+    var record = store.query("_id",historyID).get(0);
+    //flag this as a history test case
+    record.set("history",true);
+    controller.onEditTestCase(record);
+    if(Ext.isChrome){
+        return false;
+    }
+}
+
 
 Ext.define("Redwood.controller.TestCases", {
     extend: 'Ext.app.Controller',
@@ -27,6 +41,20 @@ Ext.define("Redwood.controller.TestCases", {
                 editTestCase: this.onEditTestCase,
                 deleteTestCase: this.onDeleteTestCase,
                 cloneTestCase: this.onCloneTestCase
+            }
+        });
+    },
+
+    onRevert: function(historyID){
+        Ext.Ajax.request({
+            url:"/testcasehistory",
+            method:"POST",
+            jsonData : {id:historyID},
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error){
+                    Ext.Msg.alert('Error', obj.error);
+                }
             }
         });
     },
@@ -99,12 +127,16 @@ Ext.define("Redwood.controller.TestCases", {
         });
     },
     onEditTestCase: function(record,collapse){
-        var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+        var name = record.get("name");
+        if(record.get("history") == true){
+            name = "[HISTORY " + Ext.Date.format(record.get("date"),"m/d h:i:s") + "] "+name;
+        }
+        var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+name+"$"),0,false,true);
         //try again with the star
         if (foundIndex == -1){
             //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
             foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
-                if(key == record.get("name")){
+                if(key == name){
                     return true;
                 }
                 else{
@@ -114,17 +146,17 @@ Ext.define("Redwood.controller.TestCases", {
         }
         if (foundIndex == -1){
             var tab = Ext.create('Redwood.view.TestCaseView',{
-                title:record.get("name"),
+                title:name,
                 closable:true,
                 dataRecord:record,
-                itemId:record.get("name")
+                itemId:name
             });
 
             this.tabPanel.add(tab);
 
             //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
             foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
-                if(key == record.get("name")){
+                if(key == name){
                     return true;
                 }
                 else{
@@ -146,6 +178,9 @@ Ext.define("Redwood.controller.TestCases", {
             return;
         }
         if (testcaseView.validate(this.getStore('TestCases')) === false){
+            return;
+        }
+        if (testcaseView.dataRecord !== null && testcaseView.dataRecord.get("history") == true){
             return;
         }
         var lastScrollPos = testcaseView.getEl().dom.children[0].scrollTop;

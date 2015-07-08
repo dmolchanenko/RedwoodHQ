@@ -17,6 +17,9 @@ Ext.define('Redwood.view.TestCaseView', {
         var me = this;
 
         this.markDirty = function(){
+            if(this.dataRecord && this.dataRecord.get("history") == true){
+                return;
+            }
             this.dirty = true;
             if(me.title.charAt(me.title.length-1) != "*"){
                 me.setTitle(me.title+"*")
@@ -218,6 +221,37 @@ Ext.define('Redwood.view.TestCaseView', {
             },
             {
                 xtype: 'fieldset',
+                title: 'History',
+                defaultType: 'textfield',
+                itemId: "testcaseHistory",
+                flex: 1,
+                hidden:false,
+                collapsible: true,
+                collapsed:true,
+                //layout: "column",
+                defaults: {
+                    flex: 1
+                },
+                items: [
+
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Test Case Fields',
+                defaultType: 'textfield',
+                itemId: "testcaseFields",
+                flex: 1,
+                hidden:true,
+                collapsible: true,
+                //layout: "column",
+                defaults: {
+                    flex: 1
+                },
+                items: []
+            },
+            {
+                xtype: 'fieldset',
                 hidden: false,
                 title: 'Action Collection',
                 flex: 1,
@@ -259,6 +293,88 @@ Ext.define('Redwood.view.TestCaseView', {
     listeners:{
         afterrender: function(me){
             me.loadingData = true;
+            /*
+            var project = Ext.data.StoreManager.lookup('Projects').query("name",Ext.util.Cookies.get('project')).getAt(0);
+            if(project.get("tcFields")){
+                var rows = 1;
+                var columns = 2;
+                var currentRow;
+                var fields = [];
+                project.get("tcFields").forEach(function(field,index){
+                    if((index+1) % columns > 0){
+                        currentRow = new Ext.container.Container({
+                            layout:"column"
+                        });
+                        me.down("#testcaseFields").add(currentRow);
+                    }
+                    var blank = true;
+                    if(field.required == true) blank = false;
+                    if(field.fieldtype == "Text Field"){
+                        currentRow.add({
+                            xtype: "textfield",
+                            padding: "5 5 5 5",
+                            columnWidth: 0.5,
+                            fieldLabel: field.name,
+                            allowBlank: blank,
+                            //labelStyle: "font-weight: bold",
+                            anchor:'90%',
+                            listeners:{
+                                change: function(){
+                                    if (me.loadingData === false){
+                                        me.markDirty();
+                                    }
+                                }
+                            }
+                        })
+                    }
+                    else  if(field.fieldtype == "ComboBox"){
+                        currentRow.add({
+                            xtype: "combo",
+                            padding: "5 5 5 5",
+                            columnWidth: 0.5,
+                            //width: 240,
+                            //afterLabelTextTpl: this.requiredText,
+                            fieldLabel: field.name,
+                            store: field.possiblevalues,
+                            //value: "To be Automated",
+                            //name: 'status',
+                            //forceSelection: true,
+                            //editable: false,
+                            allowBlank: blank,
+                            listeners:{
+                                change: function(){
+                                    if (me.loadingData === false){
+                                        me.markDirty();
+                                    }
+                                }
+                            }
+                        })
+                    }
+                    /*
+                    if(field.fieldtype == "Text Field"){
+                        me.down("#testcaseFields").add({
+                            xtype: "textfield",
+                            padding: "5 0 5 5",
+                            //columnWidth: 0.5,
+                            fieldLabel: field.name,
+                            allowBlank: field.required,
+                            labelStyle: "font-weight: bold",
+                            anchor:'90%',
+                            listeners:{
+                                change: function(){
+                                    if (me.loadingData === false){
+                                        me.markDirty();
+                                    }
+                                }
+                            }
+                        })
+                    }
+
+
+                });
+            }
+            */
+            //me.down("#testcaseFields").add([{text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"}, {text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"},{text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"},{text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"}]);
             if (me.dataRecord != null){
                 me.down("#name").setValue(me.dataRecord.get("name"));
                 me.down("#tag").setValue(me.dataRecord.get("tag"));
@@ -275,6 +391,95 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
                 me.down("#afterState").setValue(me.dataRecord.get("afterState"));
                 me.down("#testcaseDetails").collapse();
+
+                me.historyStore =  Ext.create('Ext.data.Store', {
+                    model: 'Redwood.model.TestCases',
+                    autoLoad: true,
+                    storeId: "TCHistoryStore"+me.dataRecord.get("_id"),
+                    idProperty: '_id',
+                    proxy: {
+                        type: 'rest',
+                        url: '/testcasehistory/'+me.dataRecord.get("_id"),
+                        reader: {
+                            type: 'json',
+                            root: 'testcases',
+                            successProperty: 'success'
+                        }
+                    },
+                    sorters: [{
+                        property : 'date',
+                        direction: 'DESC'
+                    }]
+                });
+
+                //add history specific fields
+                me.historyStore.model.prototype.fields.add(new Ext.data.Field({ name: 'user', type: 'string'}));
+                me.historyStore.model.prototype.fields.add(new Ext.data.Field({ name: 'date', type: 'date'}));
+                me.historyGrid = Ext.create('Ext.grid.Panel', {
+                    store: me.historyStore,
+                    itemId:"historyGrid",
+                    selType: 'rowmodel',
+                    height:200,
+                    overflowY: 'auto',
+                    viewConfig: {
+                        markDirty: false,
+                        enableTextSelection: true
+                    },
+                    plugins: [
+                        "bufferedrenderer"],
+                    columns:[
+                        {
+                            xtype:"datecolumn",
+                            format:'m/d h:i:s',
+                            header: 'Date',
+                            dataIndex: 'date',
+                            width: 120
+                        },
+                        {
+                            header: 'UserID',
+                            dataIndex: 'user',
+                            width: 180
+                        },
+                        {
+                            header: 'Previous Version',
+                            dataIndex: '_id',
+                            renderer: function(value,meta,record){
+                                //meta.tdCls = 'x-redwood-results-cell';
+                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCaseHistory(&quot;"+ me.dataRecord.get("_id") +"&quot;,&quot;" + value + "&quot;)'>View Test Case</a>"
+                            }
+                        },
+                        {
+                            xtype: 'actioncolumn',
+                            icon: 'images/undo.png',
+                            width: 40,
+                            tooltip: 'Revert to this version.',
+                            handler: function(grid, rowIndex, colIndex) {
+                                Ext.Msg.show({
+                                    title:'Revert to version.',
+                                    msg: 'Are you sure you want to revert test case to this version?',
+                                    buttons: Ext.Msg.YESNO,
+                                    icon: Ext.Msg.QUESTION,
+                                    fn: function(id){
+                                        if (id == "yes"){
+                                            var controller = Redwood.app.getController("TestCases");
+                                            controller.onRevert(grid.store.getAt(rowIndex).get("_id"));
+                                            me.close();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+
+                    ]
+
+                });
+                if(me.dataRecord.get("history") == true){
+                    me.down("#testcaseHistory").hide();
+                }
+                else{
+                    me.down("#testcaseHistory").items.add(me.historyGrid);
+                }
+
 
             }
             else{

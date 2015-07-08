@@ -1844,6 +1844,7 @@ Ext.define('Redwood.view.ExecutionView', {
         var testcasesStore = this.down("#executionTestcases").store;
 
         execution.testcases = [];
+        //testcasesStore.query("name",/.*/).each(function(item){
         testcasesStore.query("_id",/.*/).each(function(item){
             execution.testcases.push(item.data);
         });

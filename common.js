@@ -27,7 +27,9 @@ exports.parseConfig = function(callback){
     });
 
     //find .NET location
-    setNETLocation(function(){});
+    setNETLocation(function(){
+        console.log("Aga");
+    });
 };
 
 exports.setNETLocation = function(callback){setNETLocation(callback)};
@@ -73,7 +75,7 @@ exports.initDB = function(port,callback){
         Server = mongo.Server,
         Db = mongo.Db;
 
-    var dbRetry = 120;
+    var dbRetry = 420;
     var connect = function(){
         var dbServer = new Server('localhost', parseInt(port), {auto_reconnect: true,safe:true});
         db = new Db('automationframework', dbServer);
