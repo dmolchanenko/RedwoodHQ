@@ -305,8 +305,8 @@ function startLauncher(executionID,threadID,type,callback){
 
                     cmdCache.split(require('os').EOL).forEach(function(message,index,array){
                         if(index == array.length - 1){
-                            if (cmdCache.lastIndexOf("\r\n")+2 !== cmdCache.length){
-                                cmdCache = cmdCache.substring(cmdCache.lastIndexOf("\r\n") + 2,cmdCache.length);
+                            if (cmdCache.lastIndexOf(require('os').EOL)+2 !== cmdCache.length){
+                                cmdCache = cmdCache.substring(cmdCache.lastIndexOf(require('os').EOL) + 2,cmdCache.length);
                             }else{
                                 if (message != ""){
                                     common.logger.info("sending:"+message);
