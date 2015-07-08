@@ -8,21 +8,30 @@ var spawn = require('child_process').spawn;
 var walk = require('walk');
 var images = require("./imageautomation");
 var script = require("./script");
+var executionengine = require("./executionengine");
 
 exports.scriptsPush = function(req,res){
-    git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-        git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-            git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
-                res.contentType('json');
-                if(code != 0){
-                    res.json({success:true,error:"Push did not succeed please do a pull first."});
-                }
-                else{
-                    res.json({success:true});
-                }
+    executionengine.compileBuild(req.cookies.project,req.cookies.username,function(err){
+        if (err != null){
+            res.contentType('json');
+            res.json({error:"Unable to compile scripts.  Make sure compilation problems are fixed before you push."});
+            return;
+        }
+
+        git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+            git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
+                    res.contentType('json');
+                    if(code != 0){
+                        res.json({success:true,error:"Push did not succeed please do a pull first."});
+                    }
+                    else{
+                        res.json({success:true});
+                    }
+                });
             });
         });
-    });
+    })
 };
 
 exports.scriptsPull = function(req,res){
