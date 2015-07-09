@@ -607,7 +607,7 @@ Ext.define('Redwood.view.ActionView', {
                             dataIndex: '_id',
                             renderer: function(value,meta,record){
                                 //meta.tdCls = 'x-redwood-results-cell';
-                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:openActionHistory(&quot;"+ me.dataRecord.get("_id") +"&quot;,&quot;" + value + "&quot;)'>View Test Case</a>"
+                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:openActionHistory(&quot;"+ me.dataRecord.get("_id") +"&quot;,&quot;" + value + "&quot;)'>View Action</a>"
                             }
                         },
                         {
