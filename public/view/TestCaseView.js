@@ -420,7 +420,6 @@ Ext.define('Redwood.view.TestCaseView', {
                     itemId:"historyGrid",
                     selType: 'rowmodel',
                     height:200,
-                    overflowY: 'auto',
                     viewConfig: {
                         markDirty: false,
                         enableTextSelection: true
