@@ -459,6 +459,23 @@ Ext.define('Redwood.view.ActionView', {
 
                 ]
             },
+            {
+                xtype: 'fieldset',
+                title: 'Used In Test Cases',
+                defaultType: 'textfield',
+                itemId: "inTestCases",
+                flex: 1,
+                hidden:false,
+                collapsible: true,
+                collapsed:true,
+                //layout: "column",
+                defaults: {
+                    flex: 1
+                },
+                items: [
+
+                ]
+            },
             /*
             {
 
@@ -639,6 +656,58 @@ Ext.define('Redwood.view.ActionView', {
                 else{
                     me.down("#actionHistory").items.add(me.historyGrid);
                 }
+
+                //in what test cases this action is used
+                var testcases = [];
+                var testcasesStore = Ext.data.StoreManager.lookup('TestCases');
+                testcasesStore.query("_id",/.*/).each(function(testcase){
+                    if (testcase.get("type") == "collection"){
+                        for(var i=0;i<testcase.get("collection").length;i++){
+                            if(testcase.get("collection")[i].actionid == me.dataRecord.get("_id")){
+                                testcases.push(testcase);
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                me.inTestCasesStore =  Ext.create('Ext.data.Store', {
+                    storeId: "InTestCasesStore"+me.dataRecord.get("_id"),
+                    idProperty: '_id',
+                    fields: [
+                        {name: 'name',     type: 'string'},
+                        {name: '_id',     type: 'string'}
+                    ],
+                    data:testcases
+                });
+
+                me.inTestCasesGrid = Ext.create('Ext.grid.Panel', {
+                    store: me.inTestCasesStore,
+                    itemId:"inTestCasesGrid",
+                    selType: 'rowmodel',
+                    height:200,
+                    viewConfig: {
+                        markDirty: false,
+                        enableTextSelection: true
+                    },
+                    plugins: [
+                        "bufferedrenderer"],
+                    columns:[
+                        {
+                            header: 'Name',
+                            dataIndex: 'name',
+                            flex: 1,
+                            renderer: function(value,meta,record){
+                                //meta.tdCls = 'x-redwood-results-cell';
+                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ record.get("_id") +"&quot;,&quot;" + value + "&quot;)'>"+record.get("name")+"</a>"
+                            }
+                        }
+                    ]
+
+                });
+                me.down("#inTestCases").items.add(me.inTestCasesGrid);
+
+
 
             }
             else{
