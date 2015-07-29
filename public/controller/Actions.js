@@ -118,7 +118,7 @@ Ext.define("Redwood.controller.Actions", {
             name = "[HISTORY " + Ext.Date.format(record.get("date"),"m/d h:i:s") + "] "+name;
         }
 
-        var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+name+"$"),0,false,true);
+        var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+XRegExp.escape(name)+"$"),0,false,true);
         if (foundIndex == -1){
             //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
             foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
