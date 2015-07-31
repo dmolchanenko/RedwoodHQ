@@ -824,11 +824,6 @@ Ext.define('Redwood.view.ExecutionView', {
                                 testcasesGrid.down('[dataIndex=startAction]').setVisible(false);
                                 testcasesGrid.down('[dataIndex=endAction]').setVisible(false);
                             }
-                        },
-                        listeners:{
-                            afterrender: function(){
-                                Ext.data.StoreManager.lookup('Executions').filter(me.lockedFilter);
-                            }
                         }
                     },
                     {
