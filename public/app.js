@@ -44,6 +44,7 @@ Ext.application({
                 wait:true,
                 waitConfig: {interval:200}
             });
+            return;
             //update execution status of TCs that are running
             Ext.data.StoreManager.each(function(store){
                 if (store.storeId.indexOf("ExecutionTCs") == -1) return;
