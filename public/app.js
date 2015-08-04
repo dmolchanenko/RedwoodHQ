@@ -10,6 +10,7 @@ Ext.application({
     launch: function(){
         Redwood.app = this;
         Ext.clipboard = {};
+        Ext.Ajax.timeout = 120000;
         Ext.uniqueId = function()
         {
             var newDate = new Date;
@@ -43,6 +44,25 @@ Ext.application({
                 wait:true,
                 waitConfig: {interval:200}
             });
+            //update execution status of TCs that are running
+            Ext.data.StoreManager.each(function(store){
+                if (store.storeId.indexOf("ExecutionTCs") == -1) return;
+
+                var records = store.query("_id",testCase._id).getAt(0);
+                var executionID = store.storeId.replace("ExecutionTCs","");
+
+                records.forEach(function(record){
+
+                    for(var propt in testCase){
+                        if ((propt != "_id")&&(propt != "name")){
+                            record.set(propt.toString(),Ext.util.Format.htmlEncode(testCase[propt]));
+                        }
+                    }
+                    store.fireEvent("beforesync",{update:[record]});
+                })
+            });
+
+
         });
         Ext.socket.on('connect', function(){
             if (Ext.MessageBox.isVisible()){
