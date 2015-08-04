@@ -461,7 +461,7 @@ Ext.define('Redwood.view.ActionView', {
             },
             {
                 xtype: 'fieldset',
-                title: 'Used In Test Cases',
+                title: 'Used In Test Cases/Actions',
                 defaultType: 'textfield',
                 itemId: "inTestCases",
                 flex: 1,
@@ -671,11 +671,26 @@ Ext.define('Redwood.view.ActionView', {
                     }
                 });
 
+
+                //in what actions this action is used
+                var actionsStore = Ext.data.StoreManager.lookup('Actions');
+                actionsStore.query("_id",/.*/).each(function(action){
+                    if (action.get("type") == "collection"){
+                        for(var i=0;i<action.get("collection").length;i++){
+                            if(action.get("collection")[i].actionid == me.dataRecord.get("_id")){
+                                testcases.push(action);
+                                break;
+                            }
+                        }
+                    }
+                });
+
                 me.inTestCasesStore =  Ext.create('Ext.data.Store', {
                     storeId: "InTestCasesStore"+me.dataRecord.get("_id"),
                     idProperty: '_id',
                     fields: [
                         {name: 'name',     type: 'string'},
+                        {name: 'tag',     type: 'array'},
                         {name: '_id',     type: 'string'}
                     ],
                     data:testcases
@@ -690,6 +705,20 @@ Ext.define('Redwood.view.ActionView', {
                         markDirty: false,
                         enableTextSelection: true
                     },
+                    tbar:{
+                        xtype: 'toolbar',
+                        dock: 'top',
+                        items: [
+                            {
+                                width: 400,
+                                fieldLabel: 'Search',
+                                labelWidth: 50,
+                                xtype: 'searchfield',
+                                paramNames: ["tag","name"],
+                                store: me.inTestCasesStore
+                            }
+                        ]
+                    },
                     plugins: [
                         "bufferedrenderer"],
                     columns:[
@@ -699,7 +728,12 @@ Ext.define('Redwood.view.ActionView', {
                             flex: 1,
                             renderer: function(value,meta,record){
                                 //meta.tdCls = 'x-redwood-results-cell';
-                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ record.get("_id") +"&quot;,&quot;" + value + "&quot;)'>"+record.get("name")+"</a>"
+                                if(record.$className == "Redwood.model.TestCases"){
+                                    return "<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ record.get("_id") +"&quot;,&quot;" + value + "&quot;)'>"+record.get("name")+" (Test Case)</a>"
+                                }
+                                else{
+                                    return "<a style= 'color:font-weight:bold;blue;' href='javascript:openAction(&quot;"+ record.get("_id") +"&quot;,&quot;" + value + "&quot;)'>"+record.get("name")+" (Action)</a>"
+                                }
                             }
                         }
                     ]
