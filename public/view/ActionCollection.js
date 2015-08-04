@@ -1065,6 +1065,7 @@ Ext.define('Redwood.view.ActionCollection', {
 
 
         me.insertAction = function(actionName,actionSelected){
+            if(actionName == null) return;
             me.waitMsg("Inserting Action");
             var actionSelectedOrder;
             var rowOrderSelected;
