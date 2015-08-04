@@ -237,6 +237,7 @@ Ext.define("Redwood.controller.Scripts", {
             Ext.Ajax.request({
                 url:"/scripts/push",
                 method:"POST",
+                timeout: 400000,
                 jsonData : {},
                 success: function(response) {
                     me.treePanel.getRootNode().cascadeBy(function(node) {
