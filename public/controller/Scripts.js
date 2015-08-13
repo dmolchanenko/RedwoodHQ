@@ -430,6 +430,13 @@ Ext.define("Redwood.controller.Scripts", {
                 var elem = output.getEl();
                 var lines = msg.split("\n");
                 lines.forEach(function(line,index){
+                    //add green color for BUILD SUCCESSFUL
+                    if(line.indexOf("BUILD SUCCESSFUL") != -1){
+                        line = "<b style='color:green'>BUILD SUCCESSFUL</b>"
+                    }
+                    else if(line.indexOf("BUILD FAILED") != -1){
+                        line = "<b style='color:red'>BUILD FAILED</b>"
+                    }
                     //see if we get our file to show up
                     var srcIndex = line.lastIndexOf("\\src\\");
                     if(srcIndex != -1){
@@ -491,6 +498,8 @@ Ext.define("Redwood.controller.Scripts", {
                         Ext.DomHelper.append(elem, {tag: 'div',html:line});
                     }
                 });
+                //scroll to bottom
+                elem.dom.parentNode.scrollTop = elem.dom.parentNode.scrollHeight;
             });
             me.compileEventAttached = true;
         }
