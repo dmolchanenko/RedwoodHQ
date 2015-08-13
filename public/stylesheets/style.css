@@ -35,6 +35,10 @@
     background-color:#f5f5f5 !important;
 }
 
+.x-redwood-action-divider-row .x-tree-expander {
+    display: none !important;
+}
+
 .x-redwood-action-name-cell{
     background-color:white !important;
     border-width: 1px !important;

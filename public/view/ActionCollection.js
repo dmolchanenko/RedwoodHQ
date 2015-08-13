@@ -335,7 +335,7 @@ Ext.define('Redwood.view.ActionCollection', {
             }],
             listeners:{
                 update:function( tree, record, operation, modifiedFieldNames){
-                    if ((modifiedFieldNames == null) ||(modifiedFieldNames == [])) return;
+                    if ((modifiedFieldNames == null) ||(modifiedFieldNames.length == 0)) return;
                     if ((me.markDirty)&&(me.loadingData == false)){
                         var dontModify = false;
                         modifiedFieldNames.forEach(function(field){
