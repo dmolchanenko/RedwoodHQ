@@ -11,9 +11,9 @@ exports.operation = function(msg, id,callback,onFinish){
         if(compileProcs[id].pythonProc) compileProcs[id].pythonProc.kill();
         if(compileProcs[id].csharpProc) compileProcs[id].csharpProc.kill();
     }
-    if(!msg.java) msg.java = true;
-    if(!msg.python) msg.python = true;
-    if(!msg.csharp) msg.csharp = true;
+    //if(!msg.java) msg.java = true;
+    //if(!msg.python) msg.python = true;
+    //if(!msg.csharp) msg.csharp = true;
 
     var buildDir = path.resolve(__dirname,"../public/automationscripts/"+msg.project)+"/"+msg.username;
     compileProcs[id] = {};

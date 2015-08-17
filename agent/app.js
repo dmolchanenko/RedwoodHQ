@@ -10,6 +10,7 @@ var common = require('./common');
 var path = require('path');
 //var idesync = require('./routes/idesync');
 
+process.setMaxListeners(0);
 
 var app = express();
 process.env.TMPDIR = path.resolve(__dirname,"../logs");
@@ -23,29 +24,27 @@ app.configure(function(){
     //app.use(express.cookieParser());
     app.use(express.methodOverride());
     app.use(app.router);
+    app.use(express.timeout(300000));
     //app.use(express.bodyParser({ keepExtensions: true, uploadDir: '/bin' }));
 });
 
 app.post('/command',command.Post);
 app.post('/update',update.Post);
 app.post('/fileupload',fileupload.Post);
+app.post('/matchfile',fileupload.MatchFile);
 app.post('/uploadfiles',uploadfiles.uploadFiles);
 app.post('/recordimage',imageautomation.recordImage);
 app.post('/startrecording',recorder.record);
 
-app.configure('development', function(){
-    app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-});
-
-app.configure('production', function(){
-    app.use(express.errorHandler());
-});
+app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+app.use(express.errorHandler());
 common.initLogger("agent");
 common.parseConfig(function(){
     app.listen(common.Config.AgentPort, function(){
         if(common.Config.CloudAgent !== "true"){
             heartbeat.startHeartBeat(common.Config.AppServerIPHost,common.Config.AppServerPort,common.Config.AgentPort,common.Config.AgentVNCPort,common.Config.AgentVersion,common.Config.OS);
         }
+        common.logger.info('Agent Started.');
         command.cleanUp();
         //console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
     });

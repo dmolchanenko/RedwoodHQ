@@ -18,6 +18,7 @@ var os = require('os');
 var archiver = require('archiver');
 var db;
 var compilations = {};
+var fileSync = {};
 
 exports.stopexecutionPost = function(req, res){
     var execution = executions[req.body.executionID];
@@ -392,6 +393,7 @@ function applyMultiThreading(executionID,callback){
                             }
                             newMachine.threadID = i+startThread-1;
                             common.logger.info(newMachine);
+                            if(!executions[executionID]) return;
                             executions[executionID].machines.push(newMachine);
                             sendAgentCommand(newMachine.host,newMachine.port,{command:"start launcher",executionID:executionID,threadID:newMachine.threadID},3,function(err){
                                 newMachineCount++;
@@ -1462,70 +1464,200 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
         }
 
         files.push({file:root+"/"+fileStats.name,dest:dest});
+        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,0,function(error){
+            fileCount++;
+            if(fileCount === files.length){
+                callback();
+            }
+        })
     });
 
     walker.on("end",function(){
-        sendFiles()
+        //sendFiles()
     });
 }
 
-function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
-    var stat = fs.statSync(file);
-
-    var readStream = fs.createReadStream(file);
-    var boundary = '--------------------------';
-    for (var i = 0; i < 24; i++) {
-        boundary += Math.floor(Math.random() * 10).toString(16);
-    }
-
-    var message =  '------' + boundary + '\r\n'
-        // use your file's mime type here, if known
-        + 'Content-Disposition: form-data; name="file"; filename="'+dest+'"\r\n'
-        + 'Content-Type: application/octet-stream\r\n'
-        // "name" is the name of the form field
-        // "filename" is the name of the original file
-        + 'Content-Transfer-Encoding: binary\r\n\r\n';
-
-
+//if agent already got the file in cache don't copy
+function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
 
     var options = {
         hostname: agentHost,
         port: port,
-        path: '/fileupload',
+        path: '/matchfile',
         method: 'POST',
         headers: {
-            //'Content-Type': 'text/plain'//,
-            'Content-Type': 'multipart/form-data; boundary=----'+boundary,
-            //'Content-Disposition': 'form-data; name="file"; filename="ProjectName.jar"',
-            //'Content-Length': 3360
-            //'Content-Length': stat.size + message.length + 30 + boundary.length
-            'Content-Length': stat.size + message.length + boundary.length + 14
+            'Content-Type': 'application/json'
         }
     };
 
     var req = http.request(options, function(res) {
-        //res.setEncoding('utf8');
+        res.setEncoding('utf8');
         res.on('data', function (chunk) {
-            if (callback) callback();
+            try{
+                var msg = JSON.parse(chunk);
+            }
+            catch(err){
+                if (callback) callback(err);
+            }
+
+            if((msg )&&(msg.error != null)){
+                if (callback) callback(msg.error);
+            }
+            else if (msg){
+                if(callback) callback(msg);
+            }
+            else{
+                if(callback) callback();
+            }
         });
     });
-
     req.on('error', function(e) {
         if(retryCount <= 0){
-            if (callback) callback({error:'sendFileToAgent problem with request: ' + e.message+ ' file:'+file});
-            common.logger.error('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
+            if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
+            common.logger.error('matchFileWithAgent problem with request: ' + e.message+ ' ');
         }
         else{
             retryCount--;
-            setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,callback),1000)
+            setTimeout(matchFileWithAgent(file,dest,agentHost,port,retryCount,callback),1000)
         }
     });
-
-    req.write(message);
-    readStream.pipe(req, { end: false });
-    readStream.on("end", function(){
-        req.end('\r\n------' + boundary + '--\r\n');
+    //fs.readFile(file, function(err, buf) {
+        // write data to request body
+        //req.write(JSON.stringify({dest:dest,file:file,md5:md5(buf)}));
+    var md5sum = require("crypto").createHash('md5');
+    var s = fs.ReadStream(file);
+    fileSync[file] = s;
+    s.on('data',function(d){
+        md5sum.update(d);
     });
+
+    s.on('error',function(err){
+        s.destroy.bind(s);
+        s.end();
+    });
+
+    s.on('close',function(){
+        var d = md5sum.digest('hex');
+        this.destroy();
+        req.write(JSON.stringify({dest:dest,file:file,md5:d.toString()}));
+        req.end();
+        //md5sum.end();
+    });
+    //});
+}
+
+function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
+    if (file in fileSync){
+        if(fileSync[file].close){
+            fileSync[file].destroy();
+            delete fileSync[file];
+        }
+    }
+    fileSync[file] = true;
+    matchFileWithAgent(file,dest,agentHost,port,0,function(response){
+        if(response && response.matched == true){
+            if(file in fileSync && fileSync[file].close){
+                fileSync[file].destroy();
+            }
+            delete fileSync[file];
+            if (callback) callback();
+            return;
+        }
+        var stat = fs.statSync(file);
+
+        var readStream = fs.createReadStream(file);
+        fileSync[file] = readStream;
+        var boundary = '--------------------------';
+        for (var i = 0; i < 24; i++) {
+            boundary += Math.floor(Math.random() * 10).toString(16);
+        }
+
+        var message =  '------' + boundary + '\r\n'
+            // use your file's mime type here, if known
+            + 'Content-Disposition: form-data; name="file"; filename="'+dest+'"\r\n'
+            + 'Content-Type: application/octet-stream\r\n'
+            // "name" is the name of the form field
+            // "filename" is the name of the original file
+            + 'Content-Transfer-Encoding: binary\r\n\r\n';
+
+
+
+        var options = {
+            hostname: agentHost,
+            port: port,
+            path: '/fileupload',
+            method: 'POST',
+            headers: {
+                //'Content-Type': 'text/plain'//,
+                'Content-Type': 'multipart/form-data; boundary=----'+boundary,
+                //'Content-Disposition': 'form-data; name="file"; filename="ProjectName.jar"',
+                //'Content-Length': 3360
+                //'Content-Length': stat.size + message.length + 30 + boundary.length
+                'Content-Length': stat.size + message.length + boundary.length + 14
+            }
+        };
+
+        var req = http.request(options, function(res) {
+            //res.setEncoding('utf8');
+            res.on('data', function (chunk) {
+                if (file in fileSync){
+                    if(fileSync[file].close){
+                        fileSync[file].destroy();
+                        delete fileSync[file];
+                    }
+                }
+                if (callback) callback();
+            });
+            res.on('close', function(){
+                if(file in fileSync && fileSync[file].close){
+                    fileSync[file].destroy();
+                }
+                delete fileSync[file];
+                readStream.destroy.bind(readStream);
+            });
+        });
+
+        var handleError = function(e){
+            if(file in fileSync && fileSync[file].close){
+                fileSync[file].destroy();
+            }
+            delete fileSync[file];
+            if(retryCount <= 0){
+                if (callback) callback({error:'sendFileToAgent problem with request: ' + e.message+ ' file:'+file});
+                common.logger.error('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
+            }
+            else{
+                retryCount--;
+                setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,callback),1000)
+            }
+        };
+        req.on('error', function(e) {
+            handleError(e);
+            this.end();
+        });
+
+        req.write(message);
+        //readStream.pipe(req, { end: false });
+        readStream.on("error",function(e){
+            this.end();
+            handleError(e);
+        }).pipe(req, { end: false });
+        readStream.on("end", function(){
+            try{
+                req.end('\r\n------' + boundary + '--\r\n');
+            }
+            catch(e){
+                //req.end();
+                readStream.end();
+            }
+        });
+        readStream.on('close',function(){
+            if(file in fileSync && fileSync[file].close){
+                fileSync[file].destroy();
+            }
+            delete fileSync[file];
+        })
+    })
 }
 
 exports.sendAgentCommand = function(agentHost,port,command,retryCount,callback){sendAgentCommand(agentHost,port,command,retryCount,callback)};
@@ -2132,6 +2264,15 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     cb();
                     return;
                 }
+                for(var iTCParamCount=0;iTCParamCount<lastPoint.dbAction.parameters.length;iTCParamCount++){
+                    for(var iActionParamCount=0;iActionParamCount<action.params.length;iActionParamCount++){
+                        if(action.params[iActionParamCount].id == lastPoint.dbAction.parameters[iTCParamCount].paramid){
+                            lastPoint.dbAction.parameters[iTCParamCount].paramname = action.params[iActionParamCount].name;
+                            lastPoint.dbAction.parameters[iTCParamCount].parametertype = action.params[iActionParamCount].parametertype;
+                            break;
+                        }
+                    }
+                }
                 lastPoint.name = action.name;
                 lastResultPoint.name = action.name;
                 lastResultPoint.actionStatus = action.status;
@@ -2353,6 +2494,14 @@ function copyFiles(sourceDir,destDir,callback){
                             fs.stat(sourceDir + '/' + file,function(err,stat){
                                 if(!stat.isDirectory()){
                                     copyFile(sourceDir + '/' + file,destDir + '/' + file,function(){
+                                        if (sourceDir + '/' + file in fileSync){
+                                            if(fileSync[sourceDir + '/' + file].close){
+                                                fileSync[sourceDir + '/' + file].destroy();
+                                                fileSync[destDir + '/' + file].destroy();
+                                                delete fileSync[destDir + '/' + file];
+                                                delete fileSync[sourceDir + '/' + file];
+                                            }
+                                        }
                                         if(copied == files.length) callback();
                                         copied++;
                                     });
@@ -2379,22 +2528,59 @@ function copyFiles(sourceDir,destDir,callback){
 
 function copyFile(source, target, cb) {
     var cbCalled = false;
+    if (source in fileSync){
+        if(fileSync[source].close){
+            fileSync[source].destroy();
+        }
+    }
+    else{
+        fileSync[source] = true;
+    }
 
     var rd = fs.createReadStream(source);
-    rd.on("error", function(err) {
-        done(err);
-    });
+    fileSync[source] = rd;
     var wr = fs.createWriteStream(target);
+    fileSync[target] = wr;
+
     wr.on("error", function(err) {
-        wr.destroy();
+        if(source in fileSync && fileSync[source].close){
+            fileSync[source].destroy();
+        }
+        delete fileSync[source];
+        delete fileSync[target];
+        this.close();
+        rd.destroy.bind(rd);
         done(err);
     });
     wr.on("close", function(ex) {
         done();
+        rd.destroy.bind(rd);
     });
-    rd.pipe(wr);
+
+    rd.on("close",function(){
+        if(source in fileSync && fileSync[source].close){
+            fileSync[source].destroy();
+            fileSync[target].destroy();
+        }
+        delete fileSync[source];
+        delete fileSync[target];
+    });
+
+    rd.on("error",function(e){
+        if(source in fileSync && fileSync[source].close){
+            fileSync[source].destroy();
+            fileSync[target].destroy();
+        }
+        delete fileSync[source];
+        delete fileSync[target];
+        this.end();
+        done(err);
+    }).pipe(wr, { end: true });
+
 
     function done(err) {
+        if(fileSync[source]) {fileSync[source].destroy();delete fileSync[source]}
+        if(fileSync[target]) {fileSync[target].destroy();delete fileSync[target]}
         if (!cbCalled) {
             cb(err);
             cbCalled = true;

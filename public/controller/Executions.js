@@ -312,7 +312,25 @@ Ext.define("Redwood.controller.Executions", {
             var id = execution._id;
             delete execution._id;
             execution.status = "Ready To Run";
-            executionView.dataRecord = this.getStore('Executions').add(execution)[0];
+            //execution.id = Ext.id();
+            var newRecord = new Redwood.model.Executions({});
+            try{
+                this.getStore('Executions').add(newRecord);
+            }
+            catch(e){
+                Ext.Msg.alert('Error', "Unable to Save execution "+ e.message);
+                executionView.dataRecord = null;
+                return;
+            }
+
+            executionView.dataRecord = newRecord;
+
+            for(var propt in execution){
+                executionView.dataRecord.set(propt,execution[propt])
+            }
+            //executionView.dataRecord = this.getStore('Executions').add(execution)[0];
+            //executionView.dataRecord = this.getStore('Executions').data.add(execution);
+            //executionView.dataRecord._id = id;
             executionView.dataRecord.set("_id",id);
             executionView.dataRecord.phantom = true;
             window.history.replaceState("", "", '/index.html?execution='+id+"&project="+Ext.util.Cookies.get('project'));

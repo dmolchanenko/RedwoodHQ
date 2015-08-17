@@ -55,6 +55,22 @@ function GetScreenShot(db,query,callback){
 
 function GetLogs(db,query,executionID,callback){
     var logs = [];
+    db.collection('executionlogs'+executionID.replace(/-/g, ''), function(err, LogCollection) {
+        if(err) callback(logs);
+        LogCollection.find(query, {}, function(err, cursor) {
+            cursor.each(function(err, log) {
+                if(log == null) {
+                    callback(logs);
+                    return;
+                }
+                logs.push(log);
+            });
+        })
+    });
+}
+
+function GetLogs_old(db,query,executionID,callback){
+    var logs = [];
     db.collection('system.namespaces').find({ name: 'automationframework.executionlogs'+executionID.replace(/-/g, '') }).toArray(function(err, items) {
         var collectionName = "executionlogs";
         if(items.length > 0){

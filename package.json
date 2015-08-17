@@ -11,7 +11,7 @@
     , "walk" : "2.2.1"
     , "optimist" : "0.5.2"
     , "forever-monitor" : "1.1.0"
-    , "xml-writer" : "1.4.0"
+    , "xml-writer" : ">=1.4.0"
     , "nodemailer" : "0.5.2"
     , "winston" : "0.7.2"
     , "multiparty" : "3.1.1"

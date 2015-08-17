@@ -47,11 +47,12 @@ var express = require('express')
   , recorder = require('./routes/recorder')
   , license = require('./routes/license')
   , actionHistory = require('./routes/actionHistory')
+  , versionControl = require('./routes/versionControl')
   , testcaseHistory = require('./routes/testcaseHistory');
 
 
 //var app = express.createServer();
-process.setMaxListeners(300);
+process.setMaxListeners(0);
 var app = express();
 process.env.TMPDIR = __dirname + '/logs';
 process.env.TMP = __dirname + '/logs';
@@ -82,13 +83,15 @@ process.env.TEMP = __dirname + '/logs';
 //});
 //DB
 
-
 // Routes
 app.post('/login',auth.logIn,auth.logInSucess);
 app.get('/login',auth.loginPage);
 
 app.post('/license',auth.auth,license.licensePost);
 app.get('/license',auth.auth,license.licenseGet);
+
+//versioncontrol
+app.post('/versioncontrolhistory',auth.auth,versionControl.getLocalVersionHistory);
 
 //emailsettings
 app.post('/emailsettings',auth.auth,emailsettings.Post);

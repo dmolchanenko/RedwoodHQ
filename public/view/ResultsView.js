@@ -2,7 +2,7 @@
 Ext.define('Redwood.view.ResultsView', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.resultsview',
-    overflowY: 'auto',
+    //overflowY: 'auto',
     bodyPadding: 5,
     dataRecord: null,
     viewType: "Results",
@@ -497,13 +497,62 @@ Ext.define('Redwood.view.ResultsView', {
             itemId:"executionLogs",
             selType: 'rowmodel',
             height:500,
-            overflowY: 'auto',
             viewConfig: {
                 markDirty: false,
                 enableTextSelection: true
             },
-            plugins: [
-                "bufferedrenderer"],
+            tbar:{
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [
+                    {
+                        width: 400,
+                        fieldLabel: 'Search',
+                        labelWidth: 50,
+                        xtype: 'searchfield',
+                        paramNames: ["message"],
+                        store: me.logStore
+                    },"",
+                    {
+                        icon: 'images/down.png',
+                        hidden:false,
+                        tooltip:"Download Logs.",
+                        handler: function(){
+
+                            var link = document.createElement("a");
+                            var records = "";
+                            me.logStore.each(function(record){
+                                records = records + record.get("actionName") + "\t" + record.get("date")+"\t"+record.get("message") + "\r\n"
+                            });
+
+                            if(Ext.isIE){
+                                var blob = new Blob([records],{
+                                    type: "text/csv;charset=utf-8;"
+                                });
+
+                                navigator.msSaveBlob(blob, "log.txt");
+                            }
+                            else{
+                                var a = window.document.createElement('a');
+                                a.href = window.URL.createObjectURL(new Blob([records], {type: 'text/csv'}));
+                                a.download = 'log.txt';
+
+                                // Append anchor to body.
+                                document.body.appendChild(a);
+                                a.click();
+
+                                // Remove anchor from body
+                                document.body.removeChild(a);
+                            }
+                        }
+                    }
+                ]
+            },
+            plugins: [{
+                ptype:"bufferedrenderer",
+                trailingBufferZone:200,
+                leadingBufferZone:200
+            }],
             columns:[
                 {
                     header: 'Action Name',
