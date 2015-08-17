@@ -47,7 +47,7 @@ var express = require('express')
   , recorder = require('./routes/recorder')
   , license = require('./routes/license')
   , actionHistory = require('./routes/actionHistory')
-  , versionControl = require('./routes/versionControl')
+  //, versionControl = require('./routes/versionControl')
   , testcaseHistory = require('./routes/testcaseHistory');
 
 
@@ -91,7 +91,7 @@ app.post('/license',auth.auth,license.licensePost);
 app.get('/license',auth.auth,license.licenseGet);
 
 //versioncontrol
-app.post('/versioncontrolhistory',auth.auth,versionControl.getLocalVersionHistory);
+//app.post('/versioncontrolhistory',auth.auth,versionControl.getLocalVersionHistory);
 
 //emailsettings
 app.post('/emailsettings',auth.auth,emailsettings.Post);
