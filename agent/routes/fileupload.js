@@ -264,7 +264,7 @@ function copyFile(source, target, cb) {
         }
         delete fileSync[source];
         delete fileSync[target];
-        this.end();
+        //this.end();
         done(err);
     }).pipe(wr, { end: true });
 
