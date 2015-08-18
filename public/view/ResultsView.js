@@ -2,7 +2,7 @@
 Ext.define('Redwood.view.ResultsView', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.resultsview',
-    //overflowY: 'auto',
+    overflowY: 'auto',
     bodyPadding: 5,
     dataRecord: null,
     viewType: "Results",
