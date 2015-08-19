@@ -208,6 +208,7 @@ Ext.define('Redwood.ux.EditorPanel', {
     plain:      true,
     editorType: "text/x-groovy",
     title:"",
+    closeAfterSave: false,
 
     initComponent: function() {
         var me = this;
@@ -241,12 +242,12 @@ Ext.define('Redwood.ux.EditorPanel', {
                     icon: Ext.Msg.QUESTION,
                     fn: function(id){
                         if (id == "no"){
-                            me.destroy();
+                            me.clearDirty();
+                            me.close();
                         }
                         if (id == "yes"){
-                            //me.fireEvent('saveAll');
+                            me.closeAfterSave = true;
                             me.up('scriptBrowser').fireEvent('saveAll');
-                            me.destroy();
                         }
                     }
                 });

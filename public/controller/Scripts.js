@@ -23,6 +23,10 @@ Ext.define("Redwood.controller.Scripts", {
         this.control({
             'scriptBrowser': {
                 newScript: this.onNewScript,
+                scriptVersionDiff: this.onScriptVersionDiff,
+                syncDiffs: this.onSyncDiffs,
+                loadVersionHistory: this.loadVersionHistory,
+                clearVersionHistory: this.clearVersionHistory,
                 scriptEdit: this.onScriptEdit,
                 render: this.onScriptRender,
                 saveAll: this.onScriptSave,
@@ -57,6 +61,63 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     compileEventAttached: false,
+
+    onSyncDiffs: function(sourceTab){
+        var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
+        allScripts = allScripts.concat(Ext.ComponentQuery.query('diffpanel'));
+
+        Ext.each(allScripts,function(script){
+            if(script != sourceTab && script.path == sourceTab.path){
+                script.fireSyncEvent = false;
+                script.setValue(sourceTab.getValue());
+                script.fireSyncEvent = true;
+                script.refreshNeeded = true;
+            }
+        })
+    },
+
+    onScriptVersionDiff: function(record,version){
+        var me = this;
+
+        if(me.tabPanel.down("#"+version)){
+            me.tabPanel.setActiveTab(me.tabPanel.down("#"+version));
+            return;
+        }
+
+        var editorType = me.getEditorType(record.get("fullpath"));
+
+        var tab = this.tabPanel.add({
+            inConflict:false,
+            path:record.get("fullpath"),
+            editorType:editorType,
+            title:"["+version+"]"+record.get("text"),
+            closable:true,
+            xtype:"diffpanel",
+            itemId:version,
+            node:record,
+            listeners:{
+                focus: function(mel){
+                    me.up('scriptBrowser').fireEvent('focused',me.down("mergepanel").editor);
+                }
+            }
+        });
+
+        me.tabPanel.setActiveTab(tab);
+
+        Ext.Ajax.request({
+            url:"/versioncontrolhistory/diff",
+            method:"POST",
+            jsonData : {path:record.get("fullpath"),version:version},
+            success: function(response, action) {
+                var obj = Ext.decode(response.responseText);
+                tab.setCurrentVersion(obj.currentVersion);
+                tab.sePrevVersion(obj.prevVersion);
+                tab.clearDirty();
+            }
+        });
+
+
+    },
 
     onRunPip: function(){
         var panel = this.scriptBrowser.down("#outputPanel");
@@ -423,6 +484,7 @@ Ext.define("Redwood.controller.Scripts", {
         }
         var panel = me.scriptBrowser.down("#outputPanel");
         panel.expand();
+        panel.down("tabpanel").setActiveTab(0);
         if (me.compileEventAttached == false){
             //handle compile messages
             Ext.socket.on('compile',function(msg){
@@ -499,7 +561,8 @@ Ext.define("Redwood.controller.Scripts", {
                     }
                 });
                 //scroll to bottom
-                elem.dom.parentNode.scrollTop = elem.dom.parentNode.scrollHeight;
+                elem.dom.scrollTop = elem.dom.scrollHeight;
+                //elem.dom.parentNode.scrollTop = elem.dom.parentNode.scrollHeight;
             });
             me.compileEventAttached = true;
         }
@@ -916,6 +979,9 @@ Ext.define("Redwood.controller.Scripts", {
                                     }
                                 }
                                 script.clearDirty();
+                                if(script.closeAfterSave == true){
+                                    script.close();
+                                }
                                 script.node.set("text",'<span style="color:blue">' + script.node.get("name") + '</span>');
                                 script.node.set("qtip",'This file is not yet pushed.');
                                 total++;
@@ -985,6 +1051,34 @@ Ext.define("Redwood.controller.Scripts", {
         });
     },
 
+    loadVersionHistory: function(tab){
+        this.scriptBrowser.down("#versionControl").store.load({params:{path:tab.path}});
+        this.scriptBrowser.down("#versionControl").lastTab = tab;
+    },
+    clearVersionHistory: function(){
+        this.scriptBrowser.down("#versionControl").store.removeAll();
+    },
+
+    getEditorType: function(path){
+        var editorType = "text";
+
+        if (path.slice(-6) == "groovy"){
+            editorType = "text/x-groovy";
+        }else if (path.slice(-4) == "java"){
+            editorType = "text/x-java";
+        }else if (path.slice(-3) == "xml"){
+            editorType = "application/xml";
+        }else if (path.slice(-2) == "js"){
+            editorType = "text/javascript";
+        }else if (path.slice(-2) == "py"){
+            editorType = "text/x-python";
+        }else if (path.slice(-2) == "cs"){
+            editorType = "text/x-csharp";
+        }
+
+        return editorType;
+    },
+
     onScriptEdit: function(record,lineNumber){
         var me = this;
         //if string search for
@@ -1011,21 +1105,8 @@ Ext.define("Redwood.controller.Scripts", {
             }
         });
         if (foundTab == null){
-            var editorType = "text";
+            var editorType = me.getEditorType(record.get("fullpath"));
 
-            if (record.get("fullpath").slice(-6) == "groovy"){
-                editorType = "text/x-groovy";
-            }else if (record.get("fullpath").slice(-4) == "java"){
-                editorType = "text/x-java";
-            }else if (record.get("fullpath").slice(-3) == "xml"){
-                editorType = "application/xml";
-            }else if (record.get("fullpath").slice(-2) == "js"){
-                editorType = "text/javascript";
-            }else if (record.get("fullpath").slice(-2) == "py"){
-                editorType = "text/x-python";
-            }else if (record.get("fullpath").slice(-2) == "cs"){
-                editorType = "text/x-csharp";
-            }
 
             var tab;
 
@@ -1045,6 +1126,17 @@ Ext.define("Redwood.controller.Scripts", {
                     listeners:{
                         focus: function(me){
                             me.up('scriptBrowser').fireEvent('focused',me.down("codeeditorfield").editor);
+                        },
+                        close: function(){
+                            //close all diff panels
+                            var allScripts = Ext.ComponentQuery.query('diffpanel');
+                            Ext.each(allScripts,function(script){
+                                if (tab.path == script.path){
+                                    script.close();
+                                }
+                            });
+                            me.clearVersionHistory();
+                            me.tabPanel.setActiveTab(0);
                         }
                     }
                 });
@@ -1103,12 +1195,14 @@ Ext.define("Redwood.controller.Scripts", {
             me.tabPanel.getActiveTab().setCursor({line:lineNumber,ch:0});
             foundTab.focus();
         }
+        me.loadVersionHistory(foundTab);
     },
 
     onScriptRender: function(){
         var me = this;
         this.scriptBrowser = Ext.ComponentQuery.query('scriptBrowser')[0];
-        this.tabPanel = Ext.ComponentQuery.query('tabpanel',this.scriptBrowser)[0];
+        //this.tabPanel = Ext.ComponentQuery.query('tabpanel',this.scriptBrowser)[0];
+        this.tabPanel = this.scriptBrowser.down("#scriptstab");
         this.treePanel = Ext.ComponentQuery.query('treepanel',this.scriptBrowser)[0];
         this.searchField = Ext.ComponentQuery.query('#findTextField',this.scriptBrowser);
         this.treePanel.on("afterrender",function(tree){
