@@ -164,8 +164,7 @@ Ext.define('Redwood.ux.CodeEditorField', {
     },
 
     getValue: function() {
-        this.editor.save();
-        return this.callParent(arguments);
+        return this.editor.getValue();
     },
 
     clearHistory: function() {
