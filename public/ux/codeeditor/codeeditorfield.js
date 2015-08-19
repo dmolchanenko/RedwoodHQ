@@ -1,12 +1,12 @@
 Ext.define('Redwood.ux.CodeEditorField', {
-    extend: 'Ext.form.field.TextArea',
+    extend: 'Ext.panel.Panel',
     alias: 'widget.codeeditorfield',
-    cls: 'codemirror-field',
-    fieldLabel: 'Label',
-    hideLabel: true,
+    layout:     'fit',
+    preventHeader: true,
+    plain:      true,
     anchor:     '100%',
-    allowBlank: true,
     editorType: "text/x-groovy",
+    fireSyncEvent: false,
 
     isFullScreen: function(){
         return /\bCodeMirror-fullscreen\b/.test(this.editor.getWrapperElement().className);
@@ -56,16 +56,16 @@ Ext.define('Redwood.ux.CodeEditorField', {
 
     onCodeeditorfieldRender: function(abstractcomponent, options) {
         var me = this;
-        var element = document.getElementById(abstractcomponent.getInputId());
-
-        this.editor = CodeMirror.fromTextArea(element, {
+        var target = this.getEl().dom;
+        target.innerHTML = "";
+        this.editor = CodeMirror(target, {
             styleActiveLine: true,
             lineNumbers: true,
             matchBrackets: true,
             autoCloseBrackets: true,
             indentUnit: 4,
             tabSize: 4,
-            anchor:     '100% -20',
+            //anchor:     '100% -20',
             extraKeys:
                 {"Ctrl-S": function(){
                     me.up("scriptBrowser").fireEvent('saveAll',null);
@@ -107,6 +107,11 @@ Ext.define('Redwood.ux.CodeEditorField', {
                 }
             }
             me.onChange(cm,changeOpt);
+        });
+        this.editor.on("changes",function(cm,changeOpt){
+            if(me.fireSyncEvent == true){
+                me.up('scriptBrowser').fireEvent('syncDiffs',me.up("codeeditorpanel"));
+            }
         });
         this.editor.on("beforeSelectionChange",function(cm,changeOpt){
             if(me.up("codeeditorpanel").inCollab === true){
@@ -169,8 +174,10 @@ Ext.define('Redwood.ux.CodeEditorField', {
 
     setValue: function(value) {
         if (this.editor) {
+            this.fireSyncEvent = false;
             this.editor.setValue(value);
-            return
+            this.fireSyncEvent = true;
+            return;
             this.editor.setValue("click(action)");
 
             var cacheImage = document.createElement('img');
@@ -201,8 +208,6 @@ Ext.define('Redwood.ux.EditorPanel', {
     preventHeader: true,
     plain:      true,
     editorType: "text/x-groovy",
-    //autoScroll:false,
-
     title:"",
 
     initComponent: function() {
@@ -214,7 +219,6 @@ Ext.define('Redwood.ux.EditorPanel', {
                 {
                     xtype: 'codeeditorfield',
                     editorType:me.editorType,
-                    margin: '0 0 -100 0',
                     onChange: function(cm,changeOpt){
                         if (me.dirty == false){
                             me.setTitle(me.title + "*");
@@ -266,7 +270,8 @@ Ext.define('Redwood.ux.EditorPanel', {
     },
 
     focus: function() {
-        this.down('codeeditorfield').focus();
+        var editField = this.down('codeeditorfield');
+        if(editField != null) editField.focus();
     },
 
     getValue: function() {
