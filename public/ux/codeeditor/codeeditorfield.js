@@ -159,7 +159,7 @@ Ext.define('Redwood.ux.CodeEditorField', {
     },
 
     destroy: function() {
-        this.editor.toTextArea();
+        this.getEl().dom.removeChild(this.getEl().dom.firstChild);
         this.callParent(arguments);
     },
 
