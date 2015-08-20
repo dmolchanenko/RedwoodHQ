@@ -44,35 +44,75 @@ exports.scriptsPull = function(req,res){
                         if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
                             files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
                         }
-                        if(cliOut.indexOf("PipRequirements ") != -1){
-                            var uninstallAll = false;
-                            fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
-                                if(!data.match(/[^\W_]/)){
-                                    uninstallAll = true;
-                                }
-                                script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
-                                    res.contentType('json');
-                                    res.json({success:true,conflicts:files});
-                                    realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
-                                })
-                            });
+                        //accept theirs for binary
+                        handleConflicts(rootDir+req.cookies.project+"/"+req.cookies.username,files,function(nonBinaryFiles){
+                            if(cliOut.indexOf("PipRequirements ") != -1){
+                                var uninstallAll = false;
+                                fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
+                                    if(!data.match(/[^\W_]/)){
+                                        uninstallAll = true;
+                                    }
+                                    script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
+                                        res.contentType('json');
+                                        res.json({success:true,conflicts:nonBinaryFiles});
+                                        realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
+                                    })
+                                });
 
-                        }
-                        else{
-                            res.contentType('json');
-                            res.json({success:true,conflicts:files});
-                        }
-                        //try and delete jar file to trigger compile from execution
-                        try{
-                            fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
-                        }
-                        catch(err){}
+                            }
+                            else{
+                                res.contentType('json');
+                                res.json({success:true,conflicts:nonBinaryFiles});
+                            }
+                            //try and delete jar file to trigger compile from execution
+                            try{
+                                fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
+                            }
+                            catch(err){}
+                        })
                     })
                 });
             });
         });
     });
 };
+
+//accept theirs for binary files
+function handleConflicts(workingDir,files,callback){
+    var returnedFiles = [];
+    if(files.length == 0){
+        callback(files);
+        return;
+    }
+    var i = 1;
+    files.forEach(function(file){
+        git.isBinary(workingDir,file,function(binary){
+            if(binary == true){
+                git.acceptTheirs(workingDir,file,function(){
+                    git.add(workingDir,file,function(){
+                        git.acceptTheirs(workingDir,file,function(){
+                            if(i == files.length){
+                                callback(returnedFiles)
+                            }
+                            else{
+                                i++;
+                            }
+                        });
+                    });
+                })
+            }
+            else{
+                returnedFiles.push(file);
+                if(i == files.length){
+                    callback(returnedFiles)
+                }
+                else{
+                    i++;
+                }
+            }
+        })
+    })
+}
 
 exports.scriptsGet = function(req, res){
     GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,req.cookies.project,function(data){

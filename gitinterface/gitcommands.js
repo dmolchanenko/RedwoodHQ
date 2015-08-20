@@ -4,6 +4,46 @@ var path = require('path');
 var common = require('../common');
 var fs = require('fs');
 
+exports.acceptTheirs = function(workdir,filePath,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['checkout','--theirs',"--",filePath],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('isBinary stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback();
+    });
+
+};
+
+exports.isBinary = function(workdir,filePath,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff-tree','-p',"4b825dc642cb6eb9a060e54bf8d69288fbee4904",'HEAD','--',filePath],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('isBinary stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        if(cliData.indexOf("Binary") == -1){
+            callback(false);
+        }
+        else{
+            callback(true);
+        }
+    });
+
+};
 
 exports.fileLog = function(workdir,filePath,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['log','--pretty=format:%H||%an||%ad||%s',"--",filePath],{cwd: workdir,timeout:300000});
@@ -14,7 +54,7 @@ exports.fileLog = function(workdir,filePath,callback){
     });
 
     git.stderr.on('data', function (data) {
-        common.logger.error('filesInConflict stderr: ' + data);
+        common.logger.error('fileLog stderr: ' + data);
     });
 
     git.on('close', function (code) {
