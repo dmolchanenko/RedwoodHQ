@@ -93,7 +93,7 @@ Ext.define("Redwood.controller.Scripts", {
             title:"["+version+"]"+record.get("text"),
             closable:true,
             xtype:"diffpanel",
-            itemId:version,
+            itemId:version+record.get("fullpath"),
             node:record,
             listeners:{
                 focus: function(mel){

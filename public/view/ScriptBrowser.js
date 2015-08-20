@@ -554,6 +554,38 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
     initComponent: function () {
         var scriptEditor = this;
+        var versionControlStore = Ext.create('Ext.data.Store', {
+            autoLoad: false,
+            storeId: "VersionControl",
+            idProperty: 'version',
+            proxy: {
+                type: 'ajax',
+                actionMethods: {
+                    read: 'POST'
+                },
+                timeout : 240000,
+                url: '/versioncontrolhistory',
+                reader: {
+                    type: 'json',
+                    root: 'history',
+                    successProperty: 'success'
+                },
+                paramsAsJson:true
+            },
+            fields: [
+                {name: 'version',     type: 'string'},
+                {name: 'author',     type: 'string'},
+                {name: 'commitMessage',     type: 'string'},
+                {name: 'masterMatch',     type: 'boolean'},
+                {name: 'date',     type: 'date'}
+            ],
+            sorters: [{
+                property : 'date',
+                direction: 'DESC'
+            }]
+            //data:[]
+        });
+
         var scriptView = Ext.create('Ext.Panel', {
             layout: 'border',
 
@@ -569,26 +601,98 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     collapseDirection:"down",
                     collapsible: true,
                     readOnly: true,
-                    title: "Output",
+                    //title: "Output",
                     collapsed: true,
                     layout: 'fit',
-                    autoScroll:true,
-                    items:{
-                        xtype: "box",
-                        itemId: "compileOutput",
-                        anchor: '100%',
-                        listeners:{
-                            added: function(){
-                                //console.log("tes")
-                            }
+                    items:[
+                        {
+                            xtype:"tabpanel",
+                            ui: "red-tab",
+                            tabPosition:"bottom",
+                            items:[
+                                {
+                                    xtype: "box",
+                                    autoScroll:true,
+                                    title: "Output",
+                                    itemId: "compileOutput",
+                                    anchor: '100%'
+                                },
+                                {
+                                    xtype: "grid",
+                                    autoScroll:true,
+                                    title: "Version Control",
+                                    itemId: "versionControl",
+                                    anchor: '100%',
+                                    selType: 'rowmodel',
+                                    viewConfig: {
+                                        markDirty: false
+                                    },
+                                    flex: 1,
+                                    overflowY: 'auto',
+                                    header: 'Name',
+                                    dataIndex: 'name',
+                                    store: versionControlStore,
+                                    lastTab:null,
+                                    listeners:{
+                                        celldblclick: function(me,td,cell,record){
+                                            scriptEditor.fireEvent('scriptVersionDiff',me.up("scriptBrowser").down("#scriptstab").getActiveTab().node, record.get("version"));
+                                        }
+                                    },
+                                    columns:[
+                                        {
+                                            header: 'Version',
+                                            dataIndex: 'version',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Date',
+                                            dataIndex: 'date',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Author',
+                                            dataIndex: 'author',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Commit Message',
+                                            dataIndex: 'commitMessage',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Exists in Master',
+                                            dataIndex: 'masterMatch',
+                                            width: 100,
+                                            renderer: function(value,meta){
+                                                if(value == true){
+                                                    meta.style = 'background-image: url(images/online.png);background-position: center; background-repeat: no-repeat;';
+                                                    meta.tdAttr = 'data-qtip="Exists in Master"';
+                                                }
+                                                else{
+                                                    meta.style = 'background-image: url(images/offline.png);background-position: center; background-repeat: no-repeat;';
+                                                    meta.tdAttr = 'data-qtip="Does not exist in Master"';
+                                                }
+                                            }
+                                        },
+                                        {
+                                            xtype: 'actioncolumn',
+                                            width: 30,
+                                            items: [
+                                                {
+                                                    icon: 'images/edit-diff-icon.png',
+                                                    tooltip: 'Diff',
+                                                    handler: function(grid, rowIndex, colIndex) {
+                                                        scriptEditor.fireEvent('scriptVersionDiff',grid.up("scriptBrowser").down("#scriptstab").getActiveTab().node, grid.store.getAt(rowIndex).get("version"));
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
                         }
-                        //readOnly: true,
-                        //grow: true,
-                        //bodyPadding: 0,
-                        //border: false,
-                        //labelStyle: 'white-space: nowrap;',
-                        //fieldStyle:"border:none 0px black;background-image:none"
-                    }
+
+                    ]
                 },
                 {
                     region: 'west',
@@ -697,6 +801,9 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     listeners: {
                         tabchange: function(tabPanel,newCard,oldCard,eOpts){
                             if(newCard.path){
+                                if(newCard.xtype == "codeeditorpanel" && tabPanel.up("#ScriptBrowser").down("#versionControl").lastTab != newCard){
+                                    scriptEditor.fireEvent('loadVersionHistory',newCard);
+                                }
                                 setTimeout(function(){newCard.focus();},100);
                                 if(newCard.refreshNeeded == true) {
                                     newCard.focusArea();

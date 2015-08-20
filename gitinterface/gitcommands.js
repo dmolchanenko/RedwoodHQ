@@ -4,13 +4,31 @@ var path = require('path');
 var common = require('../common');
 var fs = require('fs');
 
+
+exports.fileLog = function(workdir,filePath,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['log','--pretty=format:%H||%an||%ad||%s',"--",filePath],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('filesInConflict stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.filesInConflict = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff','--name-only','--diff-filter=U'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
@@ -29,7 +47,6 @@ exports.commitsSinceDate = function(workdir,date,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
@@ -52,7 +69,6 @@ exports.lsFiles = function(workdir,query,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
@@ -71,7 +87,6 @@ exports.filesNotPushed = function(workdir,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
@@ -85,12 +100,11 @@ exports.filesNotPushed = function(workdir,callback){
 };
 
 exports.showFileContents = function(workdir,file,version,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['show','HEAD:'+file],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['show',version+':'+file],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
