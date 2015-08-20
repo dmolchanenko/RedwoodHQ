@@ -418,7 +418,7 @@ Ext.define("Redwood.controller.Scripts", {
                                     //node.parentNode.expand();
                                     if (node.get("inConflict") == true){
                                         script.close();
-                                        me.onScriptEdit(node);
+                                        //me.onScriptEdit(node);
                                         node.parentNode.expand();
                                     }
                                     else{
@@ -439,6 +439,11 @@ Ext.define("Redwood.controller.Scripts", {
                                 }
                             });
                             if (foundIt == false) script.close();
+                        });
+                        me.treePanel.getRootNode().cascadeBy(function(node) {
+                            if (node.get("inConflict") == true){
+                                me.onScriptEdit(node);
+                            }
                         });
                     }});
                     Ext.MessageBox.hide();
