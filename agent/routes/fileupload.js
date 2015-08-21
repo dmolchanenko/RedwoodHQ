@@ -304,7 +304,7 @@ function copyFile_old(source, target, cb) {
 
     rd.on("error",function(e){
         this.end();
-        done(err);
+        done(e);
     }).pipe(wr, { end: true });
 
     //rd.pipe(wr);
