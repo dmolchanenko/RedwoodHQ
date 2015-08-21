@@ -256,6 +256,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                             if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
+                                            git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
                                             /*
                                             if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"Images") == false){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"Images");
