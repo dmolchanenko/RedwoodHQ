@@ -66,6 +66,15 @@ exports.startexecutionPost = function(req, res){
     var testcases = req.body.testcases;
     var template = null;
 
+    //clean up previous files if needed
+    /*
+    for(var file in fileSync){
+        if (file.indexOf() != "_id"){
+            record.getAt(0).set(propt,item[propt]);
+        }
+    }
+    */
+
     req.body.variables.forEach(function(variable){
         variables[variable.name] = variable.value;
     });
@@ -2574,7 +2583,7 @@ function copyFile(source, target, cb) {
         delete fileSync[source];
         delete fileSync[target];
         //this.end();
-        done(err);
+        done(e);
     }).pipe(wr, { end: true });
 
 
