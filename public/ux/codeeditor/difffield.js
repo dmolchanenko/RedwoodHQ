@@ -25,7 +25,6 @@ Ext.define('Redwood.ux.DiffPanel', {
         var me = this;
         //var target = this.getEl().dom.firstChild;
         var target = this.getEl().dom;
-        console.log(target);
         target.innerHTML = "";
         var value = "";
         this.editor = CodeMirror.MergeView(target, {
