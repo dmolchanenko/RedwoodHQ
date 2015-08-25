@@ -300,6 +300,9 @@ Ext.define('Redwood.view.ActionCollection', {
                         e.stopEvent();
                         return false;
                     }
+                    else if(e.target.nodeName == "INPUT"){
+                        return true;
+                    }
                     //ctrl+c
                     else if ((e.getKey() == 67)&&(e.ctrlKey == true)){
                         this.ownerCt.copyToClipboard();
