@@ -1,6 +1,6 @@
 Ext.define('Redwood.ux.DiffPanel', {
-    //extend: 'Ext.panel.Panel',
-    extend: 'Ext.Component',
+    extend: 'Ext.panel.Panel',
+    //extend: 'Ext.Component',
     alias: 'widget.diffpanel',
     layout:     'fit',
     frame: true,
