@@ -1572,9 +1572,16 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
             if (callback) callback();
             return;
         }
-        var stat = fs.statSync(file);
 
-        var readStream = fs.createReadStream(file);
+        try{
+            var stat = fs.statSync(file);
+
+            var readStream = fs.createReadStream(file);
+        }
+        catch(e){
+            if (callback) callback();
+            return;
+        }
         fileSync[file] = readStream;
         var boundary = '--------------------------';
         for (var i = 0; i < 24; i++) {
