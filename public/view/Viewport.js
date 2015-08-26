@@ -279,7 +279,7 @@ Ext.define('Redwood.view.Viewport', {
                     {
                         xtype:"tabpanel",
                         region: "center",
-                        autoScroll: true,
+                        //autoScroll: true,
                         listeners:{
                             afterrender: function(me){
                                 me.tabBar.setVisible(false);
