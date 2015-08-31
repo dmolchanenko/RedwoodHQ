@@ -269,6 +269,7 @@ app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
 app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 app.post('/scripts/push',auth.auth, scripts.scriptsPush);
 app.post('/scripts/pull',scripts.scriptsPull);
+app.get('/scripts/notpushed',scripts.notPushedScripts);
 
 
 //script

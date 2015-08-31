@@ -39,6 +39,10 @@ Ext.define('Redwood.model.Scripts', {
         {
             name: '_id',
             type: 'string'
+        },
+        {
+            name: 'notPushed',
+            type: 'boolean'
         }
     ]
 

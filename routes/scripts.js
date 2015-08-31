@@ -10,6 +10,58 @@ var images = require("./imageautomation");
 var script = require("./script");
 var executionengine = require("./executionengine");
 
+exports.notPushedScripts = function(req,res){
+    git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesNotPushed){
+        var filesNP = [];
+        if ((filesNotPushed != "")&&(filesNotPushed.indexOf("\n") != -1)){
+            filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/g).length);
+        }
+
+        var notPushedTree = [];
+        var dirsAdded = {};
+        filesNP.forEach(function(file){
+            var dirs = file.split("/");
+            var lastDir = null;
+            dirs.forEach(function(dir,index){
+                if(index >= dirs.length - 1){
+                    var fileNotPushed = {checked:true,leaf:true,name:dir,fullpath:file,icon:getFileTypeIcon(file)};
+                    if(lastDir == null){
+                        notPushedTree.push(fileNotPushed);
+                    }
+                    else{
+                        lastDir.children.push(fileNotPushed);
+                    }
+                    return;
+                }
+                if(lastDir == null){
+                    for(var i=0;i<notPushedTree.length;i++){
+                        if(dir == notPushedTree[i].name){
+                            lastDir = notPushedTree[i];
+                            return;
+                        }
+                    }
+                    lastDir = {expanded:true,checked:true,name:dir,cls:"folder",leaf:false,children:[]};
+                    notPushedTree.push(lastDir);
+                }
+                else{
+                    for(var i2=0;i2<lastDir.children.length;i2++){
+                        if(dir == lastDir.children[i2].name){
+                            lastDir = lastDir.children[i2];
+                            return;
+                        }
+                    }
+                    var DirToAdd = {expanded:true,checked:true,name:dir,cls:"folder",leaf:false,children:[]};
+                    lastDir.children.push(DirToAdd);
+                    lastDir = DirToAdd;
+                }
+
+            })
+        });
+        res.contentType('json');
+        res.json({notPushed:notPushedTree});
+    });
+};
+
 exports.scriptsPush = function(req,res){
     executionengine.compileBuild(req.cookies.project,req.cookies.username,function(err){
         if (err != null){
@@ -17,6 +69,7 @@ exports.scriptsPush = function(req,res){
             res.json({error:"Unable to compile scripts.  Make sure compilation problems are fixed before you push."});
             return;
         }
+
 
         git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
             git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
@@ -323,7 +376,7 @@ function SetupPython(userFolder,callback){
         cliData = cliData + data.toString();
         if(cliData.indexOf("done.") != -1){
             python.stdin.end();
-            python.disconnect();
+            //python.disconnect();
         }
         //common.logger.info('stdout: ' + data);
     });
@@ -613,17 +666,7 @@ var walkDir = function(dir,filesInConflict,filesNotPushed, done) {
                         }
                     }
                     result.fileType = "file";
-                    if (file.slice(-6) == "groovy"){
-                        result.icon = "images/fileTypeGroovy.png";
-                    }else if (file.slice(-4) == "java"){
-                        result.icon = "images/fileTypeJava.png";
-                    }else if (file.slice(-2) == "js"){
-                        result.icon = "images/fileTypeJavascript.png";
-                    }else if (file.slice(-2) == "py"){
-                        result.icon = "images/python.png";
-                    }else if (file.slice(-2) == "cs"){
-                        result.icon = "images/csharp.png";
-                    }
+                    result.icon = getFileTypeIcon(file);
                     result.leaf= true;
                     if (file.slice(-3) == "pyc"){
                         if (!--pending) done(null, results);
@@ -640,3 +683,20 @@ var walkDir = function(dir,filesInConflict,filesNotPushed, done) {
         });
     });
 };
+
+function getFileTypeIcon(file){
+    var icon = "";
+
+    if (file.slice(-6) == "groovy"){
+        icon = "images/fileTypeGroovy.png";
+    }else if (file.slice(-4) == "java"){
+        icon = "images/fileTypeJava.png";
+    }else if (file.slice(-2) == "js"){
+        icon = "images/fileTypeJavascript.png";
+    }else if (file.slice(-2) == "py"){
+        icon = "images/python.png";
+    }else if (file.slice(-2) == "cs"){
+        icon = "images/csharp.png";
+    }
+    return icon;
+}

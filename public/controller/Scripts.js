@@ -15,7 +15,7 @@ Ext.define("Redwood.controller.Scripts", {
 
     stores: ['Scripts'],
     models: ['Scripts'],
-    views:  ['ScriptBrowser','ImageView'],
+    views:  ['ScriptBrowser','ImageView','CommitView'],
     clipBoard: [],
     lastFocused: "",
 
@@ -276,13 +276,6 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onPushChanges: function(){
-        Ext.MessageBox.show({
-            msg: 'Pushing changes to master branch, please wait...',
-            progressText: 'Pushing...',
-            width:300,
-            wait:true,
-            waitConfig: {interval:200}
-        });
         var me = this;
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
         allScripts = allScripts.concat(Ext.ComponentQuery.query('mergepanel'));
@@ -295,6 +288,19 @@ Ext.define("Redwood.controller.Scripts", {
         });
 
         var doPush = function(){
+            var commitWindow = new Redwood.view.CommitView({});
+            commitWindow.show();
+            return;
+
+            Ext.MessageBox.show({
+                msg: 'Pushing changes to master branch, please wait...',
+                progressText: 'Pushing...',
+                width:300,
+                wait:true,
+                waitConfig: {interval:200}
+            });
+
+
             Ext.Ajax.request({
                 url:"/scripts/push",
                 method:"POST",

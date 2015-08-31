@@ -78,15 +78,13 @@ function CreateProjects(data,emit,callback){
 
 function UpdateProjects(db,data,callback){
     db.collection('projects', function(err, collection) {
-        collection.findOne({_id:data._id},{},function(err,u){
-            u.projectkey = data.projectkey;
-            u.name = data.name;
-            u._id = data._id;
-            collection.save(u,{safe:true},function(err){
+        //collection.findOne({name:data.name},{},function(err,u){
+            //u.projectkey = data.projectkey;
+            collection.save(data,{safe:true},function(err){
                 if (err) console.warn(err.message);
                 else callback(err);
             });
-        });
+        //});
     });
 
 }

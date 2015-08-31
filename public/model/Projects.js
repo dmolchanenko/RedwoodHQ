@@ -22,6 +22,10 @@ Ext.define('Redwood.model.Projects', {
         {
             name: '_id',
             type: 'string'
+        },
+        {
+            name: 'tcFields',
+            type: 'array'
         }
     ]
 });

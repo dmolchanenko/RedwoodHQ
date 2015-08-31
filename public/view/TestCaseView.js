@@ -1,5 +1,5 @@
 Ext.require([
-    'Redwood.view.ActionCollection'
+    'Redwood.view.ActionCollection','Redwood.view.TestCaseData'
 ]);
 
 Ext.define('Redwood.view.TestCaseView', {
@@ -271,6 +271,23 @@ Ext.define('Redwood.view.TestCaseView', {
                                 collection.markDirty = function(){me.markDirty()}
                             }
                         }
+                    }
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Test Case Data',
+                itemId: "testcaseData",
+                flex: 1,
+                hidden:false,
+                collapsible: true,
+                //layout: "column",
+                defaults: {
+                    flex: 1
+                },
+                items: [
+                    {
+                        //xtype:"testcasedata"
                     }
                 ]
             },

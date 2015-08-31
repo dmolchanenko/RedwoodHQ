@@ -30,6 +30,16 @@ Ext.define('Redwood.view.Projects', {
                 width: 50,
                 items: [
                     {
+                        icon: 'images/edit.png',  // Use a URL in the icon config
+                        tooltip: 'Edit',
+                        handler: function(grid, rowIndex, colIndex) {
+                            me.fireEvent('projectEdit', {
+                                rowIndex: rowIndex,
+                                colIndex: colIndex
+                            });
+                        }
+                    },
+                    {
                         icon: 'images/delete.png',
                         tooltip: 'Delete',
                         handler: function(grid, rowIndex, colIndex) {

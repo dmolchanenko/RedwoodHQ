@@ -8,7 +8,7 @@ Ext.apply(Ext.form.field.VTypes, {
         if (index != -1){
             //return false;
             var foundID = store.getAt(index).get("_id");
-            var testSetData = field.up("testsetEdit").testSetData;
+            var testSetData = field.up("testsetEdit").commitTreeData;
             if (testSetData != null){
                 if (testSetData.get("_id") != foundID){
                     this.testsetnameTestText = "Test Set name should be unique.";
@@ -35,8 +35,8 @@ Ext.define('Redwood.view.TestSetEdit', {
     autoScroll:true,
     listeners:{
         afterrender: function(me){
-            if (me.testSetData != null){
-                me.down("#testsetname").setValue(me.testSetData.get("name"));
+            if (me.commitTreeData != null){
+                me.down("#testsetname").setValue(me.commitTreeData.get("name"));
                 this.loadingData = false;
                 me.down("#testcases").getRootNode().eachChild(function(node){
                     if ((node.get("leaf") == false)&&(node.findChild("checked",true) != null)){

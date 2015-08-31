@@ -9,7 +9,7 @@ Ext.define("Redwood.controller.Projects", {
         this.control({
             'projectsEditor': {
                 render: this.onEditorRender,
-                edit: this.afterUserEdit,
+                projectEdit: this.onProjectEdit,
                 projectDelete: this.onProjectDelete
             },
             'projectsEditor button': {
@@ -17,6 +17,13 @@ Ext.define("Redwood.controller.Projects", {
             }
 
         });
+    },
+
+    onProjectEdit: function(evtData) {
+        var store = Ext.data.StoreManager.lookup('Projects');
+        var record = store.getAt(evtData.rowIndex);
+        var projectEditWindow = new Redwood.view.ProjectEdit({newProject:false,dataRecord:record});
+        projectEditWindow.show();
     },
 
     onProjectDelete: function(evtData){

@@ -165,13 +165,13 @@ Ext.define('Redwood.view.UserEdit', {
                     xtype:'combo',
                     afterLabelTextTpl: this.requiredText,
                     fieldLabel: 'Role',
-                    hidden:true,
-                    store: ["Admin","User"],
+                    hidden:false,
+                    store: ["Test Designer","Developer"],
                     name: 'role',
                     forceSelection: true,
                     editable: false,
                     allowBlank: false,
-                    value:"User",
+                    value:"Developer",
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
