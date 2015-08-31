@@ -165,7 +165,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
                 }
                 else{
                     pip.stdin.end();
-                    pip.disconnect();
+                    //pip.disconnect();
                     return;
                 }
             }
