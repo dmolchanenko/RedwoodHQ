@@ -279,7 +279,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 title: 'Test Case Data',
                 itemId: "testcaseData",
                 flex: 1,
-                hidden:false,
+                hidden:true,
                 collapsible: true,
                 //layout: "column",
                 defaults: {
