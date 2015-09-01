@@ -133,10 +133,12 @@ Ext.define('Redwood.view.ProjectEdit', {
                 },
                 {
                     xtype:"text",
-                    text:"Test Case Custom Fields:"
+                    text:"Test Case Custom Fields:",
+                    hidden:true
                 }
                 ,{
                     xtype:'customfields',
+                    hidden:true,
                     itemId:"tcFields",
                     dataRecordName: "tcFields",
                     dataRecord:me.dataRecord,
