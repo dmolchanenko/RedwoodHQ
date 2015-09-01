@@ -23,7 +23,7 @@ Ext.define('Redwood.view.ProjectEdit', {
     draggable: true,
     resizable: true,
     width: 700,
-    height: 500,
+    height: 200,
     layout: 'fit',
     modal: true,
     dataRecord:null,
