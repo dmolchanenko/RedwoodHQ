@@ -1012,6 +1012,7 @@ Ext.define("Redwood.controller.Scripts", {
                                 if (total == allScripts.length){
                                     if (callback) callback();
                                 }
+                                me.loadVersionHistory(me.tabPanel.getActiveTab())
                             },
                             failure: function (response) {
                                 var obj = Ext.decode(response.responseText);
@@ -1076,8 +1077,10 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     loadVersionHistory: function(tab){
-        this.scriptBrowser.down("#versionControl").store.load({params:{path:tab.path}});
-        this.scriptBrowser.down("#versionControl").lastTab = tab;
+        if(tab){
+            this.scriptBrowser.down("#versionControl").store.load({params:{path:tab.path}});
+            this.scriptBrowser.down("#versionControl").lastTab = tab;
+        }
     },
     clearVersionHistory: function(){
         this.scriptBrowser.down("#versionControl").store.removeAll();
