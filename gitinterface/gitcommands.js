@@ -4,6 +4,42 @@ var path = require('path');
 var common = require('../common');
 var fs = require('fs');
 
+exports.rebase = function(workdir,files,comment,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','-i','-p'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('rebase stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+exports.getParentCommit = function(workdir,commit,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rev-list',commit+"..master",'--first-parent'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('rebase stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.acceptTheirs = function(workdir,filePath,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['checkout','--theirs',"--",filePath],{cwd: workdir,timeout:300000});
     var cliData = "";
@@ -45,8 +81,44 @@ exports.isBinary = function(workdir,filePath,callback){
 
 };
 
+exports.gitStatus = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['status'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('gitStatus stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+exports.fileLogNotPushed = function(workdir,filePath,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['log','origin/master..HEAD','--simplify-merges','--reverse','--pretty=format:%H',"--",filePath],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('fileLogNotPushed stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.fileLog = function(workdir,filePath,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['log','--pretty=format:%H||%an||%ad||%s',"--",filePath],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['log','--pretty=format:%H||%an||%ad||%s','--simplify-merges',"--",filePath],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -212,6 +284,40 @@ exports.init = function(workdir,callback){
 exports.push = function(workdir,callback){
     common.logger.info("push");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push','origin','master'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('push stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(code);
+    });
+};
+
+exports.pushSkipCommits = function(workdir,skipCommits,callback){
+    common.logger.info("push");
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push','origin','HEAD~'+skipCommits+':master'],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('push stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(code);
+    });
+};
+
+exports.pushDryRun = function(workdir,callback){
+    common.logger.info("push");
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push','origin','master','--dry-run'],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);

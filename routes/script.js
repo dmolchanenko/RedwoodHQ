@@ -165,7 +165,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
                 }
                 else{
                     pip.stdin.end();
-                    //pip.disconnect();
+                    pip.disconnect();
                     return;
                 }
             }
@@ -198,6 +198,7 @@ function UpdateScript(path,data,callback){
             var gitInfo = git.getGitInfo(path);
 
             git.commit(gitInfo.path,gitInfo.fileName,function(){
+
                 callback(null)
             });
         })
@@ -215,8 +216,10 @@ function ResolveConflict(path,data,callback){
         }
         var gitInfo = git.getGitInfo(path);
         git.add(gitInfo.path,gitInfo.fileName,function(){
-            git.commit(gitInfo.path,"",function(){
-                callback(null)
+            git.commitAll(gitInfo.path,function(){
+                git.commit(gitInfo.path,gitInfo.fileName,function(){
+                    callback(null)
+                });
             });
         });
     })

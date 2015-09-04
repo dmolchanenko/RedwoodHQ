@@ -12,6 +12,8 @@ Ext.define('Redwood.view.CommitView', {
     layout: 'fit',
     modal: true,
     initComponent: function () {
+        var me = this;
+
         this.items= {
             xtype:"form",
             layout:"anchor",
@@ -21,46 +23,85 @@ Ext.define('Redwood.view.CommitView', {
             },
             buttons: [
                 {
+                    text: 'Cancel',
+                    handler: function() {
+                        var controller = Redwood.app.getController("Scripts");
+                        this.up('form').up('window').close();
+                    }
+                },
+                {
                     text: 'Submit',
                     itemId: "submit",
                     formBind: true, //only enabled once the form is valid
                     disabled: true,
                     handler: function() {
+                        var controller = Redwood.app.getController("Scripts");
                         this.setDisabled(true);
                         var form = this.up('form').getForm();
                         if (form.isValid()) {
                             var window = this.up('window');
 
-                            this.up('window').close();
+                            Ext.MessageBox.show({
+                                msg: 'Pushing changes to master branch, please wait...',
+                                progressText: 'Pushing...',
+                                width:300,
+                                wait:true,
+                                waitConfig: {interval:200}
+                            });
+
+                            var comment = form.findField("commitMessage").getValue();
+                            var files = [];
+                            me.down("#scripts").getRootNode().cascadeBy(function(node){
+                                if (node.get("fullpath")){
+                                    files.push(node.get("fullpath"));
+                                }
+                            });
+
                             Ext.Ajax.request({
                                 url:"/scripts/push",
                                 method:"POST",
-                                jsonData : {},
-                                success: function(response, action) {
+                                timeout: 400000,
+                                jsonData : {comment:comment,files:files},
+                                success: function(response) {
+                                    window.close();
+                                    Ext.MessageBox.hide();
                                     var obj = Ext.decode(response.responseText);
-
+                                    if(obj.error){
+                                        Ext.Msg.alert('Error', obj.error);
+                                    }
+                                    else{
+                                        Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+                                        Ext.ComponentQuery.query('#scriptsTree')[0].getRootNode().cascadeBy(function(node) {
+                                            if(node.get("text").indexOf("<span") != -1){
+                                                for(var i=0;i<files.length;i++){
+                                                    if(node.get("fullpath").indexOf(files[i]) != -1){
+                                                        node.set("text",node.get("name"));
+                                                        node.set("qtip","");
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
                                 }
                             });
 
                         }
                     }
-                },
-                {
-                    text: 'Cancel',
-                    handler: function() {
-                        this.up('form').up('window').close();
-                    }
-                }],
+                }
+            ],
 
             items: [
                 {
-                    xtype:"commitTree"
+                    xtype:"commitTree",
+                    itemId:"commitTree"
                 },
                 {
                     xtype:'textarea',
                     afterLabelTextTpl: this.requiredText,
                     fieldLabel: 'Commit Message',
                     name: 'commitMessage',
+                    itemId: "commitMessage",
                     labelAlign:"top",
                     allowBlank: false,
                     listeners: {
@@ -94,6 +135,10 @@ Ext.define('Redwood.view.CommitTree', {
                 method:"GET",
                 success: function(response, action) {
                     var obj = Ext.decode(response.responseText);
+                    if(obj.notPushed.length == 0){
+                        Ext.Msg.alert('Error', 'There Is Nothing To Push.');
+                        me.up("window").close();
+                    }
                     obj.notPushed.forEach(function(node){
                         me.down("#scripts").getRootNode().appendChild(node,false,true);
                     })

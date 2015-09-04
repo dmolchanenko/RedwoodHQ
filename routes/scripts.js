@@ -69,8 +69,46 @@ exports.scriptsPush = function(req,res){
             res.json({error:"Unable to compile scripts.  Make sure compilation problems are fixed before you push."});
             return;
         }
-
-
+        git.gitStatus(rootDir+req.cookies.project+"/"+req.cookies.username,function(data){
+            if(data.indexOf("You have unmerged paths") != -1){
+                res.json({error:"You have unmerged files.  Please resolve all conflicts first."});
+                return;
+            }
+            var files = "";
+            req.body.files.forEach(function(file){
+                if(files == ""){
+                    files = file
+                }
+                else{
+                    files = files + "|" + file
+                }
+            });
+            git.pushDryRun(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
+                if(code != 0){
+                    res.json({success:true,error:"Push did not succeed please do a pull first."});
+                }
+                else{
+                    git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function() {
+                        git.commitAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
+                            git.rebase(rootDir+req.cookies.project+"/"+req.cookies.username,files,req.body.comment,function(cliOUT){
+                                var skipCommits = cliOUT.split("|||")[1];
+                                if(skipCommits == "0"){
+                                    git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
+                                        res.json({success:true});
+                                    })
+                                }
+                                else{
+                                    git.pushSkipCommits(rootDir+req.cookies.project+"/"+req.cookies.username,skipCommits,function(code){
+                                        res.json({success:true});
+                                    })
+                                }
+                            })
+                        });
+                    });
+                }
+            });
+        });
+        /*
         git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
             git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
                 git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
@@ -84,6 +122,7 @@ exports.scriptsPush = function(req,res){
                 });
             });
         });
+        */
     })
 };
 
@@ -303,8 +342,8 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                         fs.mkdirSync(newProjectPath + "/" + user.username);
                                         SetupPython(newProjectPath + "/" + user.username);
                                         git.clone(newProjectPath + "/" + user.username,masterBranch,function(){
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "src") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "src");
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/src") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/src");
                                             }
                                             if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");

@@ -84,6 +84,19 @@ Ext.define("Redwood.controller.Scripts", {
             return;
         }
 
+        var foundTab = null;
+
+        me.tabPanel.items.each(function(tab){
+            if (tab.title === "["+version+"]"+record.get("text")){
+                foundTab = tab;
+            }
+        });
+
+        if(foundTab){
+            me.tabPanel.setActiveTab(foundTab);
+            return;
+        }
+
         var editorType = me.getEditorType(record.get("fullpath"));
 
         var tab = this.tabPanel.add({
