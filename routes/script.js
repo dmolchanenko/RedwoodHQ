@@ -218,7 +218,9 @@ function ResolveConflict(path,data,callback){
         git.add(gitInfo.path,gitInfo.fileName,function(){
             git.commitAll(gitInfo.path,function(){
                 git.commit(gitInfo.path,gitInfo.fileName,function(){
-                    callback(null)
+                    git.rebaseContinue(gitInfo.path,function(){
+                        callback(null)
+                    })
                 });
             });
         });
