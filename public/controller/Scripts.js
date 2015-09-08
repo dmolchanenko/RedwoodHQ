@@ -468,6 +468,7 @@ Ext.define("Redwood.controller.Scripts", {
                     Ext.MessageBox.hide();
 
                     Ext.Msg.alert('Success', message);
+                    me.loadVersionHistory(me.tabPanel.getActiveTab());
                 }
             });
         };

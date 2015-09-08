@@ -684,6 +684,7 @@ function startTCExecution(id,variables,executionID,callback){
         testcase.machineVars = [];
         var reservedHosts = [];
         var busyMachines = false;
+        if(!executions[executionID]) return;
         executions[executionID].machines.forEach(function(machine,index){
             if(machine.runningTC != undefined){
                 busyMachines = true;

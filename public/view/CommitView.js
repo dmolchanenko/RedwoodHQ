@@ -52,7 +52,7 @@ Ext.define('Redwood.view.CommitView', {
                             var comment = form.findField("commitMessage").getValue();
                             var files = [];
                             me.down("#scripts").getRootNode().cascadeBy(function(node){
-                                if (node.get("fullpath")){
+                                if (node.get("fullpath") && node.get("checked") == true){
                                     files.push(node.get("fullpath"));
                                 }
                             });
@@ -70,6 +70,7 @@ Ext.define('Redwood.view.CommitView', {
                                         Ext.Msg.alert('Error', obj.error);
                                     }
                                     else{
+                                        controller.loadVersionHistory(controller.tabPanel.getActiveTab());
                                         Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
                                         Ext.ComponentQuery.query('#scriptsTree')[0].getRootNode().cascadeBy(function(node) {
                                             if(node.get("text").indexOf("<span") != -1){

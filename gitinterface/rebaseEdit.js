@@ -10,7 +10,6 @@ if(process.argv[2].indexOf("git-rebase-todo") != -1){
     fs.readFile(process.argv[2], 'utf8', function(err, data) {
         if (err) throw err;
         console.log(data);
-        var finalOutput = [];
         var commits = [];
         var splitFile = data.split("\n");
 
@@ -24,16 +23,17 @@ if(process.argv[2].indexOf("git-rebase-todo") != -1){
 
         getSortedCommits(files,commits,function(sortedCommits){
 
+
             sortedCommits.forEach(function(commit){
                 for(var i=0;i<commits.length;i++){
                     if(commit.indexOf(commits[i].split(" ")[1]) != -1){
                         commits.splice(i,1);
+                        i--;
                         return;
                     }
                 }
             });
             var notToPushCommits = commits.length;
-            //commits = commits.concat(sortedCommits);
             commits = sortedCommits.concat(commits);
             commits.forEach(function(commit){
                 finalString = finalString + commit + "\n";
@@ -56,7 +56,6 @@ function getSortedCommits(files,toRebaseCommits,callback){
     var count = 0;
     files.forEach(function(file){
         notPushedCommits(workingDir,file,function(commits){
-            console.log(commits);
             //make sure only commits to rebase are included
             var i;
             var found = false;
@@ -68,14 +67,12 @@ function getSortedCommits(files,toRebaseCommits,callback){
                     }
                 }
                 if (found == false){
-                    console.log("removing"+commits[i])
                     commits.splice(i,1);
                     i--;
                 }
             }
 
             count++;
-            console.log(commits);
             sortedCommits = sortedCommits.concat(commits);
             if(count == files.length){
                 console.log(sortedCommits);

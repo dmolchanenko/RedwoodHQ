@@ -5,7 +5,7 @@ var common = require('../common');
 var fs = require('fs');
 
 exports.rebase = function(workdir,files,comment,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','-i','-p'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','-i'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -334,7 +334,7 @@ exports.pushDryRun = function(workdir,callback){
 
 exports.pull = function(workdir,callback){
     common.logger.info("pull");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','origin','master'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{cwd: workdir,timeout:300000});
 
     var cliOut = "";
     git.stdout.on('data', function (data) {
