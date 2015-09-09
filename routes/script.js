@@ -218,8 +218,15 @@ function ResolveConflict(path,data,callback){
         git.add(gitInfo.path,gitInfo.fileName,function(){
             git.commitAll(gitInfo.path,function(){
                 git.commit(gitInfo.path,gitInfo.fileName,function(){
-                    git.rebaseContinue(gitInfo.path,function(){
-                        callback(null)
+                    git.rebaseContinue(gitInfo.path,function(cliData){
+                        if(cliData.indexOf("--skip") != -1){
+                            git.rebaseSkip(gitInfo.path,function(cliData){
+                                callback(null)
+                            });
+                        }
+                        else{
+                            callback(null)
+                        }
                     })
                 });
             });

@@ -23,6 +23,25 @@ exports.rebase = function(workdir,files,comment,callback){
 };
 
 exports.rebaseContinue = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--continue'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('rebaseContinue stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+exports.rebaseSkip = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--skip'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
     var cliData = "";
 
@@ -31,7 +50,7 @@ exports.rebaseContinue = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
-        common.logger.error('rebaseContinue stderr: ' + data);
+        common.logger.error('rebaseSkip stderr: ' + data);
     });
 
     git.on('close', function (code) {
