@@ -417,11 +417,16 @@ Ext.define("Redwood.controller.Scripts", {
                 success: function(response) {
                     var obj = Ext.decode(response.responseText);
                     var message = "";
+                    var title = "Success";
                     if (obj.conflicts.length > 0){
                         message = "Code was pulled but the following files are in conflict:<br>";
                         Ext.each(obj.conflicts,function(conflict){
                             message = message + "<b color='red'>"+conflict+"</b><br>";
                         });
+                    }
+                    else if(obj.error){
+                        title = "Error";
+                        message = obj.error;
                     }
                     else{
                         message = "Code was successfully pulled from the main branch.";
@@ -467,7 +472,7 @@ Ext.define("Redwood.controller.Scripts", {
                     }});
                     Ext.MessageBox.hide();
 
-                    Ext.Msg.alert('Success', message);
+                    Ext.Msg.alert(title, message);
                     me.loadVersionHistory(me.tabPanel.getActiveTab());
                 }
             });
@@ -1056,6 +1061,7 @@ Ext.define("Redwood.controller.Scripts", {
                         method:"POST",
                         jsonData : {path:script.path,text:script.getValue()},
                         success: function(response, action) {
+                            var obj = Ext.decode(response.responseText);
                             script.clearDirty();
                             total++;
                             if (total == allScripts.length){
@@ -1064,6 +1070,18 @@ Ext.define("Redwood.controller.Scripts", {
                                 script.node.set("text",script.node.get("name"));
                                 if (callback) callback();
                             }
+                            me.treePanel.getRootNode().cascadeBy(function(node) {
+                                if ((node.get("fullpath") && (node.get("fullpath").indexOf(obj.filesInConflict[0]) != -1))){
+                                    node.set("inConflict",true);
+                                    node.set("text",'<span style="color:red">' + node.get("name") + '</span>');
+                                    me.tabPanel.items.each(function(tab){
+                                        if (tab.path === node.get("fullpath")){
+                                            tab.close();
+                                        }
+                                    });
+                                    me.onScriptEdit(node);
+                                }
+                            });
                         }
                     });
                 }

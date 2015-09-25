@@ -47,7 +47,7 @@ exports.scriptGet = function(req, res){
 exports.mergeInfo = function(req,res){
     var workDir = rootDir+req.cookies.project+"/"+req.cookies.username;
     var relativePath = req.body.path.replace(workDir+"/","");
-    git.showFileContents(workDir,relativePath,"HEAD",function(mine){
+    git.showFileContents(workDir,relativePath,":3",function(mine){
         git.showFileContents(rootDir+req.cookies.project+"/"+"master.git",relativePath,"HEAD",function(theirs){
             res.json({mine:mine,theirs:theirs});
         });
@@ -55,8 +55,12 @@ exports.mergeInfo = function(req,res){
 };
 
 exports.resolveConflict = function(req, res){
-    ResolveConflict(req.body.path,req.body.text,function(){
-        res.json({error:null});
+    ResolveConflict(req.body.path,req.body.text,function(filesInConflict){
+        var files = [];
+        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+            files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+        }
+        res.json({error:null,filesInConflict:files});
     });
 };
 
@@ -221,11 +225,15 @@ function ResolveConflict(path,data,callback){
                     git.rebaseContinue(gitInfo.path,function(cliData){
                         if(cliData.indexOf("--skip") != -1){
                             git.rebaseSkip(gitInfo.path,function(cliData){
-                                callback(null)
+                                git.filesInConflict(gitInfo.path,function(files){
+                                    callback(files);
+                                });
                             });
                         }
                         else{
-                            callback(null)
+                            git.filesInConflict(gitInfo.path,function(files){
+                                callback(files);
+                            });
                         }
                     })
                 });

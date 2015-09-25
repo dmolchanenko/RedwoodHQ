@@ -23,7 +23,7 @@ exports.rebase = function(workdir,files,comment,callback){
 };
 
 exports.rebaseContinue = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--continue'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--continue'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -42,7 +42,7 @@ exports.rebaseContinue = function(workdir,callback){
 };
 
 exports.rebaseSkip = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--skip'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--skip'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {

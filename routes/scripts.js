@@ -127,46 +127,52 @@ exports.scriptsPush = function(req,res){
 };
 
 exports.scriptsPull = function(req,res){
-    git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-        git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-            git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(cliOut){
-                git.gitFetch(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-                    git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
-                        var files = [];
-                        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                            files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
-                        }
-                        //accept theirs for binary
-                        handleConflicts(rootDir+req.cookies.project+"/"+req.cookies.username,files,function(nonBinaryFiles){
-                            if(cliOut.indexOf("PipRequirements ") != -1){
-                                var uninstallAll = false;
-                                fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
-                                    if(!data.match(/[^\W_]/)){
-                                        uninstallAll = true;
-                                    }
-                                    script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
-                                        res.contentType('json');
-                                        res.json({success:true,conflicts:nonBinaryFiles});
-                                        realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
-                                    })
-                                });
+    git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+        if(filesInConflict != ""){
+            res.json({success:true,conflicts:[],error:"Unable to pull.  You still have unresoved conflicts.\n"+filesInConflict});
+            return;
+        }
+        git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+            git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(cliOut){
+                    git.gitFetch(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                        git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+                            var files = [];
+                            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                            }
+                            //accept theirs for binary
+                            handleConflicts(rootDir+req.cookies.project+"/"+req.cookies.username,files,function(nonBinaryFiles){
+                                if(cliOut.indexOf("PipRequirements ") != -1){
+                                    var uninstallAll = false;
+                                    fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
+                                        if(!data.match(/[^\W_]/)){
+                                            uninstallAll = true;
+                                        }
+                                        script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
+                                            res.contentType('json');
+                                            res.json({success:true,conflicts:nonBinaryFiles});
+                                            realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
+                                        })
+                                    });
 
-                            }
-                            else{
-                                res.contentType('json');
-                                res.json({success:true,conflicts:nonBinaryFiles});
-                            }
-                            //try and delete jar file to trigger compile from execution
-                            try{
-                                fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
-                            }
-                            catch(err){}
+                                }
+                                else{
+                                    res.contentType('json');
+                                    res.json({success:true,conflicts:nonBinaryFiles});
+                                }
+                                //try and delete jar file to trigger compile from execution
+                                try{
+                                    fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
+                                }
+                                catch(err){}
+                            })
                         })
-                    })
+                    });
                 });
             });
         });
-    });
+    })
 };
 
 //accept theirs for binary files
@@ -349,20 +355,6 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
                                             git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
-                                            /*
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"Images") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"Images");
-                                            }
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/JVM/" +"src") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/PUPPET/" +"src");
-                                            }
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/PUPPET/" +"src") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/PUPPET/" +"src");
-                                            }
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
-                                            }
-                                            */
                                             fs.writeFile(newProjectPath + "/" + user.username+"/JVM/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc");
                                         });
                                     }
