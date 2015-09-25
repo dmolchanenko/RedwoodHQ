@@ -355,7 +355,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
                                             git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/JVM/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc");
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc");
                                         });
                                     }
                                 });
