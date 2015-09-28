@@ -1483,7 +1483,7 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
     });
 
     walker.on("end",function(){
-        //sendFiles()
+        if(files.length == 0) callback();
     });
 }
 
@@ -1712,9 +1712,9 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
             }
         });
     });
-    req.setTimeout(50000, function(){
-        if (callback) callback({error:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
-    });
+    //req.setTimeout(50000, function(){
+    //    if (callback) callback({error:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
+    //});
     req.on('error', function(e) {
         retryCount = 0;
         if(retryCount <= 0){
