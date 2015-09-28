@@ -10,7 +10,10 @@ Ext.application({
     launch: function(){
         Redwood.app = this;
         Ext.clipboard = {};
-        Ext.Ajax.timeout = 120000;
+        Ext.Ajax.timeout = 300000;
+        Ext.override(Ext.data.proxy.Ajax, { timeout: 300000 });
+        Ext.data.proxy.JsonP.timeout = 300000;
+
         Ext.uniqueId = function()
         {
             var newDate = new Date;
