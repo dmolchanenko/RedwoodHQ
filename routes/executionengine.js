@@ -1383,7 +1383,7 @@ exports.agentBaseState = function(project,executionID,agentHost,port,threadID,ca
 function agentBaseState(project,executionID,agentHost,port,threadID,callback){
     sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},3,function(message){
         if (message.error){
-            callback(message.error);
+            callback(message);
             return;
         }
         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(error){
@@ -1394,7 +1394,7 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
                     syncFilesWithAgent(agentHost,port,os.tmpDir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",function(){
                         sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
-                                callback(message.error);
+                                callback(message);
                             }
                             else{
                                 callback();
@@ -1713,18 +1713,19 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
         });
     });
     req.setTimeout(50000, function(){
-        //when timeout, this callback will be called
+        if (callback) callback({error:"Unable to connect to machine: "+agentHost + " error: " + e.message});
     });
     req.on('error', function(e) {
         retryCount = 0;
         if(retryCount <= 0){
-            if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
+            if (callback) callback({error:"Unable to connect to machine: "+agentHost + " error: " + e.message});
             common.logger.error('sendAgentCommand problem with request: ' + e.message+ ' ');
         }
         else{
             retryCount--;
-            setTimeout(sendAgentCommand(agentHost,port,command,retryCount,callback),1000)
+            setTimeout(sendAgentCommand(agentHost,port,command,retryCount,callback),3000)
         }
+        req.close();
     });
 
     // write data to request body
