@@ -1698,11 +1698,11 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
                 var msg = JSON.parse(chunk);
             }
             catch(err){
-                if (callback) callback(err);
+                if (callback) callback({error:err});
             }
 
             if((msg )&&(msg.error != null)){
-                if (callback) callback(msg.error);
+                if (callback) callback({error:msg.error});
             }
             else if (msg){
                 if(callback) callback(msg);
