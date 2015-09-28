@@ -520,6 +520,9 @@ function sendLauncherCommand(command,port,callback){
     if (launcherConn[command.executionID+portNumber.toString()] == null){
         common.logger.error("unable to connect to launcher");
         callback("unable to connect to launcher");
+        actionCache[portNumber].error = "Launcher crashed";
+        actionCache[portNumber].result = "Failed";
+        sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
         return;
     }
     launcherConn[command.executionID+portNumber.toString()].write(JSON.stringify(command)+"\r\n");
