@@ -1388,10 +1388,12 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
         }
         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(error){
             if(error) {callback(error);return}
-            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
-                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
-                    //syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
-                    syncFilesWithAgent(agentHost,port,os.tmpDir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",function(){
+            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(error){
+                if(error) {callback(error);return}
+                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(error){
+                    if(error) {callback(error);return}
+                    syncFilesWithAgent(agentHost,port,os.tmpDir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",function(error){
+                        if(error) {callback(error);return}
                         sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
                                 callback(message);
@@ -1475,6 +1477,11 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
 
         files.push({file:root+"/"+fileStats.name,dest:dest});
         sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,0,function(error){
+            if(error){
+                foundError = true;
+                callback(error);
+                return;
+            }
             fileCount++;
             if(fileCount === files.length){
                 callback();
@@ -1580,7 +1587,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
             var readStream = fs.createReadStream(file);
         }
         catch(e){
-            if (callback) callback();
+            if (callback) callback({error: "Can't read file: " + file + " " + e.message});
             return;
         }
         fileSync[file] = readStream;
