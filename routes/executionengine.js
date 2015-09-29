@@ -1649,7 +1649,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
             }
         };
         req.setTimeout(300000, function(){
-            if (callback) callback({error:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
+            handleError({message:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
         });
         req.on('error', function(e) {
             handleError(e);
