@@ -1386,6 +1386,7 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
             callback(message);
             return;
         }
+        //os.tmpDir()+"/jar_"+executionID
         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(error){
             if(error) {callback(error);return}
             syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(error){
@@ -1657,6 +1658,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
         };
         req.setTimeout(300000, function(){
             handleError({message:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
+            this.end();
         });
         req.on('error', function(e) {
             handleError(e);
