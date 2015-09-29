@@ -1648,6 +1648,9 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
                 setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,callback),1000)
             }
         };
+        req.setTimeout(300000, function(){
+            if (callback) callback({error:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
+        });
         req.on('error', function(e) {
             handleError(e);
             this.end();
@@ -2549,6 +2552,11 @@ function copyFile(source, target, cb) {
     if (source in fileSync){
         if(fileSync[source].close){
             fileSync[source].destroy();
+        }
+    }
+    else if (target in fileSync){
+        if(fileSync[target].close){
+            fileSync[target].destroy();
         }
     }
     else{
