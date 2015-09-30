@@ -41,6 +41,45 @@ exports.rebaseContinue = function(workdir,callback){
 
 };
 
+exports.rebaseAbort = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--abort'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('rebaseAbort stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+exports.findText = function(workdir,text,patternType,callback){
+    //git grep --full-name -F -n 'DIMA' --
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['grep','--full-name',patternType,'-n',text],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('findText stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.rebaseSkip = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--skip'],{cwd: workdir,timeout:300000});
     var cliData = "";
