@@ -53,6 +53,7 @@ var express = require('express')
 
 //var app = express.createServer();
 process.setMaxListeners(0);
+require('events').EventEmitter.defaultMaxListeners = 100;
 var app = express();
 process.env.TMPDIR = __dirname + '/logs';
 process.env.TMP = __dirname + '/logs';
