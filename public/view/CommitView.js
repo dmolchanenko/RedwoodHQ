@@ -8,7 +8,7 @@ Ext.define('Redwood.view.CommitView', {
     draggable: true,
     resizable: true,
     width: 480,
-    height: 400,
+    height: 500,
     layout: 'fit',
     modal: true,
     initComponent: function () {
@@ -95,7 +95,8 @@ Ext.define('Redwood.view.CommitView', {
             items: [
                 {
                     xtype:"commitTree",
-                    itemId:"commitTree"
+                    itemId:"commitTree",
+                    maxHeight: 300
                 },
                 {
                     xtype:'textarea',
@@ -125,10 +126,10 @@ Ext.define('Redwood.view.CommitTree', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.commitTree',
     requiredText: '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>',
-    bodyPadding: 5,
+    //bodyPadding: 5,
     loadingData: true,
     //layout: 'fit',
-    autoScroll:true,
+    //autoScroll:true,
     listeners: {
         afterrender: function (me) {
             Ext.Ajax.request({
@@ -289,14 +290,14 @@ Ext.define('Redwood.view.CommitTree', {
             {
                 xtype:"treepanel",
                 title: 'Commit Scripts',
+                maxHeight: 300,
                 multiSelect: false,
                 itemId: "scripts",
                 rootVisible: false,
                 store: treeStore,
                 displayField:"name",
                 focused: false,
-                autoScroll:true,
-                minHeight:200,
+                minHeight:300,
                 listeners: {
                     checkchange:function(firstNode,checked,eOpt){
                         if(firstNode.get("leaf") == true){
