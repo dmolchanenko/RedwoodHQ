@@ -27,6 +27,13 @@ exports.stopexecutionPost = function(req, res){
         res.json({success:true});
         return;
     }
+    if(execution.fileReqs){
+        execution.fileReqs.forEach(function(req){
+            req.end();
+            req.destroy();
+        })
+    }
+
     cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
     unlockCloudMachines(execution.machines);
@@ -1386,14 +1393,15 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
             callback(message);
             return;
         }
+        executions[executionID].fileReqs = [];
         //os.tmpDir()+"/jar_"+executionID
-        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(error){
+        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",executionID,function(error){
             if(error) {callback(error);return}
-            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(error){
+            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",executionID,function(error){
                 if(error) {callback(error);return}
-                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(error){
+                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",executionID,function(error){
                     if(error) {callback(error);return}
-                    syncFilesWithAgent(agentHost,port,os.tmpDir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",function(error){
+                    syncFilesWithAgent(agentHost,port,os.tmpDir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",executionID,function(error){
                         if(error) {callback(error);return}
                         sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
@@ -1438,7 +1446,7 @@ function syncFilesWithAgent_old(agentHost,port,rootPath,destDir,callback){
     });
 }
 
-function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
+function syncFilesWithAgent(agentHost,port,rootPath,destDir,executionID,callback){
     var walker = walk.walkSync(rootPath);
     var fileCount = 0;
     var files = [];
@@ -1451,7 +1459,7 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
             callback();
             return;
         }
-        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,function(error){
+        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,executionID,function(error){
             if(error){
                 foundError = true;
                 callback(error);
@@ -1477,7 +1485,7 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
         }
 
         files.push({file:root+"/"+fileStats.name,dest:dest});
-        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,0,function(error){
+        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,3,executionID,function(error){
             if(error){
                 foundError = true;
                 callback(error);
@@ -1564,7 +1572,7 @@ function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
     //});
 }
 
-function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
+function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callback){
     if (file in fileSync){
         if(fileSync[file].close){
             fileSync[file].destroy();
@@ -1641,6 +1649,8 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
                 readStream.destroy.bind(readStream);
             });
         });
+
+        executions[executionID].fileReqs.push(req);
 
         var handleError = function(e){
             if(file in fileSync && fileSync[file].close){
