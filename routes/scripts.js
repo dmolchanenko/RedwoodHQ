@@ -10,8 +10,18 @@ var images = require("./imageautomation");
 var script = require("./script");
 var executionengine = require("./executionengine");
 
+exports.findText = function(req,res){
+    git.findText(req.body.fullPath,req.body.text,req.body,patternType,function(cliOut){
+        var foundResults = [];
+        if ((cliOut != "")&&(cliOut.indexOf("\n") != -1)){
+            foundResults = cliOut.split("\n",cliOut.match(/\n/g).length);
+        }
+        res.json({foundResults:foundResults});
+    })
+};
+
 exports.notPushedScripts = function(req,res){
-    git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesNotPushed){
+    git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,true,function(filesNotPushed){
         var filesNP = [];
         if ((filesNotPushed != "")&&(filesNotPushed.indexOf("\n") != -1)){
             filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/g).length);
@@ -20,11 +30,25 @@ exports.notPushedScripts = function(req,res){
         var notPushedTree = [];
         var dirsAdded = {};
         filesNP.forEach(function(file){
+            var state = file.split("\t")[0];
+            file = file.split("\t")[1];
             var dirs = file.split("/");
             var lastDir = null;
             dirs.forEach(function(dir,index){
                 if(index >= dirs.length - 1){
                     var fileNotPushed = {checked:true,leaf:true,name:dir,fullpath:file,icon:getFileTypeIcon(file)};
+                    if(state == "A"){
+                        fileNotPushed.text = '<span style="color:green">' + dir + '</span>';
+                    }
+                    else if(state == "M"){
+                        fileNotPushed.text = '<span style="color:blue">' + dir + '</span>';
+                    }
+                    else if(state == "D"){
+                        fileNotPushed.text = '<span style="color:red">' + dir + '</span>';
+                    }
+                    else{
+                        fileNotPushed.text = '<span style="color:black">' + dir + '</span>';
+                    }
                     if(lastDir == null){
                         notPushedTree.push(fileNotPushed);
                     }
@@ -133,7 +157,7 @@ exports.scriptsPull = function(req,res){
             return;
         }
 
-        git.rebaseAbort(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+        //git.rebaseAbort(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
             git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
                 git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
                     git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(cliOut){
@@ -174,7 +198,7 @@ exports.scriptsPull = function(req,res){
                     });
                 });
             });
-        });
+        //});
     })
 };
 
@@ -346,22 +370,6 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                     git.commit(adminBranch,"",function(){
                         git.push(adminBranch,function(){
                             users.getAllUsers(function(users){
-                                users.forEach(function(user){
-                                    if (user.username !== "admin"){
-                                        fs.mkdirSync(newProjectPath + "/" + user.username);
-                                        SetupPython(newProjectPath + "/" + user.username);
-                                        git.clone(newProjectPath + "/" + user.username,masterBranch,function(){
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/src") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/src");
-                                            }
-                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
-                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
-                                            }
-                                            git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc");
-                                        });
-                                    }
-                                });
                                 console.log('--eval var projectName="'+projectName+'" '+path.resolve(__dirname,"../project_templates/"+template+".js"));
                                 var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
                                 //var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','localhost:27017/automationframework','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
@@ -375,6 +383,28 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
                                 mongoScript.on('exit', function (code) {
                                     callback();
+                                });
+                                users.forEach(function(user){
+                                    if (user.username !== "admin"){
+                                        fs.mkdirSync(newProjectPath + "/" + user.username);
+                                        SetupPython(newProjectPath + "/" + user.username);
+                                        git.clone(newProjectPath + "/" + user.username,masterBranch,function(){
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/src") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/src");
+                                            }
+                                            if(fs.existsSync(newProjectPath + "/" + user.username + "/" +"bin") == false){
+                                                fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
+                                            }
+                                            git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc",function(){
+                                                git.addAll(newProjectPath + "/" + user.username,function(){
+                                                    git.commitAll(newProjectPath + "/" + user.username,function(){
+                                                        git.push(newProjectPath + "/" + user.username,function(){})
+                                                    })
+                                                })
+                                            });
+                                        });
+                                    }
                                 });
                             });
                         })
@@ -543,7 +573,7 @@ function CopyScripts(scripts,destDir,projectDir,callback){
 
 function GetScripts(rootDir,project,callback){
     git.filesInConflict(rootDir,function(filesInConflict){
-        git.filesNotPushed(rootDir,function(filesNotPushed){
+        git.filesNotPushed(rootDir,false,function(filesNotPushed){
             var files = [];
             if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
                 files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);

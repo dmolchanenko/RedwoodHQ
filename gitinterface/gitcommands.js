@@ -269,8 +269,12 @@ exports.lsFiles = function(workdir,query,callback){
 
 };
 
-exports.filesNotPushed = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff','--name-only','origin/master'],{cwd: workdir,timeout:300000});
+exports.filesNotPushed = function(workdir,status,callback){
+    var statusOption = "--name-only";
+    if(status == true){
+        statusOption = "--name-status"
+    }
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff',statusOption,'origin/master'],{cwd: workdir,timeout:300000});
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff','--name-only','origin/master', 'HEAD'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
