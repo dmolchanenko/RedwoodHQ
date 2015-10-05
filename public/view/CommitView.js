@@ -278,7 +278,8 @@ Ext.define('Redwood.view.CommitTree', {
                 {name: 'leaf',     type: 'boolean'},
                 {name: 'cls',     type: 'string'},
                 {name: 'checked',     type: 'boolean'},
-                {name: 'expanded',     type: 'boolean'}
+                {name: 'expanded',     type: 'boolean'},
+                {name: 'text',     type: 'string'}
             ],
             root: {
                 expanded: true,
@@ -295,7 +296,7 @@ Ext.define('Redwood.view.CommitTree', {
                 itemId: "scripts",
                 rootVisible: false,
                 store: treeStore,
-                displayField:"name",
+                displayField:"text",
                 focused: false,
                 minHeight:300,
                 listeners: {
