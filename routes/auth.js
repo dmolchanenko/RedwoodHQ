@@ -22,15 +22,16 @@ exports.loadSessions = function(){
 };
 
 exports.logIn = function (req,res,next){
-    verifyUser(req.body.username,req.body.password,function(userFound){
+    verifyUser(req.body.username,req.body.password,function(userFound,role){
         if (userFound){
             require('crypto').randomBytes(20, function(ex, buf) {
                 realtime.emitMessage("Login",req.body.username);
                 var token = buf.toString('hex');
-                sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000)};
+                sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000),role:role};
                 storeSession(req.body.username,token,new Date(Date.now() + 2592000000));
                 res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: false});
                 res.cookie('username', req.body.username, {maxAge: 2592000000, httpOnly: false });
+                res.cookie('role', role, {maxAge: 2592000000, httpOnly: false });
                 return next();
             });
         }
@@ -111,12 +112,12 @@ function verifyUser(username,password,callback){
     var app =  require('../common');
     var db = app.getDB();
     db.collection('users', function(err, collection) {
-        collection.find({username:username,password:hash}).count(function(err,number){
-            if (number == 0){
-                callback(false);
+        collection.findOne({username:username,password:hash},function(err,user){
+            if (user == null){
+                callback(false,user.role);
             }
             else{
-                callback(true);
+                callback(true,user.role);
             }
         });
     })

@@ -60,9 +60,13 @@ exports.rebaseAbort = function(workdir,callback){
 
 };
 
-exports.findText = function(workdir,text,patternType,callback){
+exports.findText = function(workdir,text,patternType,caseSensitive,relativePath,callback){
     //git grep --full-name -F -n 'DIMA' --
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['grep','--full-name',patternType,'-n',text],{cwd: workdir,timeout:300000});
+    var args = ['grep','--full-name','--line-number',patternType,text,"--",relativePath];
+    if(caseSensitive){
+        args.splice(3,0,caseSensitive)
+    }
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),args,{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {

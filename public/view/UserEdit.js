@@ -165,7 +165,7 @@ Ext.define('Redwood.view.UserEdit', {
                     xtype:'combo',
                     afterLabelTextTpl: this.requiredText,
                     fieldLabel: 'Role',
-                    hidden:true,
+                    hidden:false,
                     store: ["Test Designer","Developer"],
                     name: 'role',
                     forceSelection: true,

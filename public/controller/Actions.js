@@ -58,6 +58,7 @@ Ext.define("Redwood.controller.Actions", {
     },
 
     onCloneAction:function(){
+        if(Ext.util.Cookies.get('role') == "Test Designer") return;
         var actionView = this.tabPanel.getActiveTab();
         var me = this;
         if (actionView === null){
@@ -90,6 +91,7 @@ Ext.define("Redwood.controller.Actions", {
     },
 
     onDeleteAction:function(){
+        if(Ext.util.Cookies.get('role') == "Test Designer") return;
         var actionView = this.tabPanel.getActiveTab();
         if (actionView === null){
             return;
@@ -157,6 +159,7 @@ Ext.define("Redwood.controller.Actions", {
     },
 
     onSaveAction: function(){
+        if(Ext.util.Cookies.get('role') == "Test Designer") return;
         var actionView = this.tabPanel.getActiveTab();
         if (actionView === null){
             return;

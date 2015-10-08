@@ -23,6 +23,7 @@ var recordStepsActionActions = Ext.create('Ext.Action', {
 
 var saveAction = Ext.create('Ext.Action', {
     icon: "images/save.gif",
+    itemId:"saveAction",
     tooltip: "Save Selected Action",
     handler: function(widget, event) {
         var editor = this.up('actions');

@@ -298,7 +298,7 @@ Ext.define('Redwood.view.ActionView', {
             }
         };
         me.on("beforeclose",function(panel){
-            if (this.dirty == true){
+            if (this.dirty == true && Ext.util.Cookies.get('role') != "Test Designer"){
                 var me = this;
                 Ext.Msg.show({
                     title:'Save Changes?',

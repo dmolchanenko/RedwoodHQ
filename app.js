@@ -271,6 +271,7 @@ app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 app.post('/scripts/push',auth.auth, scripts.scriptsPush);
 app.post('/scripts/pull',scripts.scriptsPull);
 app.get('/scripts/notpushed',scripts.notPushedScripts);
+app.post('/scripts/findtext',scripts.findText);
 
 
 //script

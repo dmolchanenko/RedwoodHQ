@@ -15,7 +15,7 @@ Ext.define("Redwood.controller.Scripts", {
 
     stores: ['Scripts'],
     models: ['Scripts'],
-    views:  ['ScriptBrowser','ImageView','CommitView'],
+    views:  ['ScriptBrowser','ImageView','CommitView','FindTextView'],
     clipBoard: [],
     lastFocused: "",
 
@@ -33,6 +33,7 @@ Ext.define("Redwood.controller.Scripts", {
                 deleteScript: this.onDelete,
                 newFolder: this.onNewFolder,
                 rename: this.onRename,
+                findText: this.onFindText,
                 copy: this.onCopy,
                 focused: this.onFocus,
                 paste: this.onPaste,
@@ -61,6 +62,23 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     compileEventAttached: false,
+
+    onFindText: function(path){
+        var selection = this.treePanel.getSelectionModel().getSelection()[0];
+        var path = selection.get("fullpath");
+
+        var win = Ext.create('Redwood.view.FindTextView',{
+            path:path
+        });
+        win.show();
+    },
+
+    onFindTextResults: function(foundTextResults){
+        this.scriptBrowser.down("#findText").store.loadData(foundTextResults);
+        var panel = this.scriptBrowser.down("#outputPanel");
+        panel.expand();
+        panel.down("tabpanel").setActiveTab(2);
+    },
 
     onSyncDiffs: function(sourceTab){
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
@@ -886,6 +904,7 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onDelete: function(){
+        if(Ext.util.Cookies.get('role') == "Test Designer") return;
         var me = this;
         var selection = this.treePanel.getSelectionModel().getSelection();
         if(selection.length > 0){
@@ -975,6 +994,7 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onScriptSave: function(callback){
+        if(Ext.util.Cookies.get('role') == "Test Designer") return;
         var me = this;
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
         allScripts = allScripts.concat(Ext.ComponentQuery.query('mergepanel'));

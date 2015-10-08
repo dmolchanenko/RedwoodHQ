@@ -2,6 +2,7 @@ var pushAction = Ext.create('Ext.Action', {
     icon: 'images/install.png',
     tooltip: "Push Changes to Master Branch",
     margin: "0 3 0 3",
+    itemId:"push",
     handler: function(widget, event) {
         this.up('scriptBrowser').fireEvent('pushChanges');
     }
@@ -83,6 +84,7 @@ var pullAction = Ext.create('Ext.Action', {
 var copyAction = Ext.create('Ext.Action', {
     icon: 'images/page_copy.png',
     tooltip: "Copy File/Folder",
+    itemId:"copyBar",
     margin: "0 3 0 3",
     handler: function(widget, event) {
         this.up('scriptBrowser').fireEvent('copy');
@@ -125,6 +127,7 @@ var uploadAction = Ext.create('Ext.Action', {
 var importAllTCsAction = Ext.create('Ext.Action', {
     tooltip: "Import TestNG/Junit Test Cases.",
     text:"Import Test Cases",
+    itemId:"importAllTCs",
     icon: 'images/import.png',
     handler: function(widget, event) {
         Redwood.app.getController("Scripts").onImportAllTCs();
@@ -252,6 +255,7 @@ var replaceAllAction = Ext.create('Ext.Button', {
 var terminalAction = Ext.create('Ext.Action', {
     icon: 'images/terminal.png',
     tooltip: "Open terminal",
+    itemId:"terminal",
     margin: "0 3 0 3",
     handler: function(widget, event) {
         this.up('scriptBrowser').fireEvent('terminal');
@@ -353,6 +357,7 @@ var saveScriptAction = Ext.create('Ext.Action', {
     //text: '',
     disabled: false,
     tooltip: "Save All",
+    itemId:"saveAll",
     margin: "0 3 0 3",
     handler: function(widget, event) {
         this.setDisabled(true);
@@ -477,6 +482,14 @@ var renameMenuAction = Ext.create('Ext.Action', {
     }
 });
 
+var findTextMenuAction = Ext.create('Ext.Action', {
+    text: "Find in Path",
+    itemId: "findText",
+    handler: function(widget, event) {
+        this.up('menu').scriptEditor.fireEvent('findText');
+    }
+});
+
 var contextMenu = Ext.create('Ext.menu.Menu', {
     itemId:"treeContext",
     items: [
@@ -485,6 +498,7 @@ var contextMenu = Ext.create('Ext.menu.Menu', {
         {xtype: 'menuseparator'},
         deleteMenuAction,
         renameMenuAction,
+        findTextMenuAction,
         {xtype: 'menuseparator'},
         copyMenuAction,
         pasteMenuAction
@@ -581,6 +595,21 @@ Ext.define('Redwood.view.ScriptBrowser', {
             ],
             sorters: [{
                 property : 'date',
+                direction: 'DESC'
+            }]
+            //data:[]
+        });
+
+        var findTextStore = Ext.create('Ext.data.Store', {
+            autoLoad: false,
+            storeId: "FindTextStore",
+            fields: [
+                {name: 'matchedText',     type: 'string'},
+                {name: 'fullPath',     type: 'string'},
+                {name: 'line',     type: 'string'}
+            ],
+            sorters: [{
+                property : 'fullPath',
                 direction: 'DESC'
             }]
             //data:[]
@@ -688,6 +717,37 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                             ]
                                         }
                                     ]
+                                },
+                                {
+                                    xtype:"grid",
+                                    autoScroll:true,
+                                    title: "Find",
+                                    itemId: "findText",
+                                    anchor: '100%',
+                                    selType: 'rowmodel',
+                                    viewConfig: {
+                                        markDirty: false
+                                    },
+                                    flex: 1,
+                                    overflowY: 'auto',
+                                    header: 'Name',
+                                    dataIndex: 'name',
+                                    store: findTextStore,
+                                    columns:[
+                                        {
+                                            header: 'File Name',
+                                            dataIndex: 'fullPath',
+                                            width: 500,
+                                            renderer: function(value,meta,record){
+                                                return '<p><a style="color: blue;" href="javascript:openScript(\''+value+'\',\''+ (parseInt(record.get('line')) - 1).toString() +'\')">' + value +':'+record.get("line")+'</a></p>';
+                                            }
+                                        },
+                                        {
+                                            header: 'Matched Text',
+                                            dataIndex: "matchedText",
+                                            flex:1
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -719,6 +779,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                         listeners: {
                             itemcontextmenu: function(view, rec, node, index, e) {
                                 e.stopEvent();
+                                if(Ext.util.Cookies.get('role') == "Test Designer") return false;
                                 view.getSelectionModel().select(rec);
                                 contextMenu.treePanel = view;
                                 contextMenu.scriptEditor = scriptEditor;

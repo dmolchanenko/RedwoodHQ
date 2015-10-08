@@ -5,6 +5,26 @@ Ext.application({
     appFolder: ".",
     autoCreateViewport: true,
 
+    applyPermissions: function(){
+        var mainTab = Ext.ComponentQuery.query('#mainTabPanel')[0];
+        if(Ext.util.Cookies.get('role') == "Test Designer"){
+            mainTab.remove(mainTab.down("#adminTab"));
+            mainTab.down("scriptBrowser").down("#compileBar").hide();
+            mainTab.down("scriptBrowser").down("#saveAll").hide();
+            mainTab.down("scriptBrowser").down("#push").hide();
+            mainTab.down("scriptBrowser").down("#runUnitTest").hide();
+            mainTab.down("scriptBrowser").down("#importAllTCs").hide();
+            mainTab.down("scriptBrowser").down("#newItemsMenu").hide();
+            mainTab.down("scriptBrowser").down("#deleteBar").hide();
+            mainTab.down("scriptBrowser").down("#pasteBar").hide();
+            mainTab.down("scriptBrowser").down("#copyBar").hide();
+            mainTab.down("scriptBrowser").down("#terminal").hide();
+            mainTab.down("actions").down("#saveAction").hide();
+            mainTab.down("actions").down("#deleteAction").hide();
+            mainTab.down("actions").down("#cloneAction").hide();
+        }
+    },
+
     controllers: [
         'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions','License','EmailSettings','Hosts','Templates'],
     launch: function(){
@@ -13,6 +33,7 @@ Ext.application({
         Ext.Ajax.timeout = 300000;
         Ext.override(Ext.data.proxy.Ajax, { timeout: 300000 });
         Ext.data.proxy.JsonP.timeout = 300000;
+        this.applyPermissions();
 
         Ext.uniqueId = function()
         {

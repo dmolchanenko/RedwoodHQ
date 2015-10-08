@@ -11,12 +11,30 @@ var script = require("./script");
 var executionengine = require("./executionengine");
 
 exports.findText = function(req,res){
-    git.findText(req.body.fullPath,req.body.text,req.body,patternType,function(cliOut){
+    var workDir = rootDir+req.cookies.project+"/"+req.cookies.username;
+    var relativePath = req.body.fullPath.replace(workDir+"/","");
+    var patternType = "--fixed-strings";
+    var caseSensitive = null;
+    if(req.body.regExp == true){
+        patternType = "--basic-regexp"
+    }
+
+    if(req.body.case == false){
+        caseSensitive = "--ignore-case"
+    }
+    git.findText(workDir,req.body.text,patternType,caseSensitive,relativePath,function(cliOut){
         var foundResults = [];
+        var returnValue = [];
         if ((cliOut != "")&&(cliOut.indexOf("\n") != -1)){
             foundResults = cliOut.split("\n",cliOut.match(/\n/g).length);
         }
-        res.json({foundResults:foundResults});
+        foundResults.forEach(function(file){
+            if (file.indexOf("Binary file") == 0){
+                return
+            }
+            returnValue.push({fullPath:file.split(":")[0],line:file.split(":")[1],matchedText:file.split(":")[2]});
+        });
+        res.json({foundResults:returnValue,error:null});
     })
 };
 
