@@ -32,7 +32,7 @@ exports.findText = function(req,res){
             if (file.indexOf("Binary file") == 0){
                 return
             }
-            returnValue.push({fullPath:file.split(":")[0],line:file.split(":")[1],matchedText:file.split(":")[2]});
+            returnValue.push({fullPath:file.split(":")[0],line:file.split(":")[1],matchedText:file.split(file.split(":")[1]+":")[1]});
         });
         res.json({foundResults:returnValue,error:null});
     })
