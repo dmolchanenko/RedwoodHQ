@@ -151,7 +151,7 @@ function UpdateUsers(db,data,callback){
             u.tag = data.tag;
             u.email = data.email;
             u._id = data._id;
-            if(data.password){
+            if(data.password && data.password != ""){
                 u.password = data.password;
             }
             //myColl.save(j);
