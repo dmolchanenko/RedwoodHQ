@@ -11,6 +11,7 @@ var path = require('path');
 //var idesync = require('./routes/idesync');
 
 process.setMaxListeners(0);
+require('events').EventEmitter.defaultMaxListeners = 100;
 
 var app = express();
 process.env.TMPDIR = path.resolve(__dirname,"../logs");
