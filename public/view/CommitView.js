@@ -204,12 +204,11 @@ Ext.define('Redwood.view.CommitTree', {
         var changeCheck = function(node){
             //if not a dir
             if (node.hasChildNodes() == false){
-                me.down("#scripts").getRootNode().cascadeBy(function(searchNode){
-                    if ((node != searchNode) && (node.get("_id") == searchNode.get("_id"))){
-                        if (searchNode.get("checked") != checked){
-                            searchNode.set("checked",checked);
-                            searchNode.set("propagatedCheck",checked);
-                        }
+                //me.down("#scripts").getRootNode().cascadeBy(function(searchNode){
+                node.cascadeBy(function(searchNode){
+                    if (searchNode.get("checked") != checked){
+                        searchNode.set("checked",checked);
+                        searchNode.set("propagatedCheck",checked);
                     }
                 })
             }
