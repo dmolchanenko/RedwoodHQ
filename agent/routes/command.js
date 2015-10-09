@@ -379,12 +379,14 @@ function stopLauncher(executionID,port,callback){
     if (launcherProc[executionID+port.toString()] != null){
         sendLauncherCommand({command:"exit",executionID:executionID},port,function(){
             try{
-                process.kill(launcherProc[executionID+port.toString()].pid);
+                launcherConn[executionID+port.toString()].destroy();
+                process.kill(launcherProc[executionID+port.toString()].pid,"SIGINT");
             }
             catch(exception){
                 common.logger.error(exception);
             }
             delete launcherProc[executionID+port.toString()];
+            delete launcherConn[executionID+port.toString()];
         });
     }
     //if there is runaway launcher try to kill it
@@ -401,21 +403,21 @@ function stopLauncher(executionID,port,callback){
     if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"java_launcher.pid") == true){
         var jpid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+port.toString+"java_launcher.pid").toString();
         try{
-            process.kill(jpid,"SIGTERM");
+            process.kill(jpid,"SIGINT");
         }
         catch(err){}
     }
     if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"python_launcher.pid") == true){
         var ppid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"python_launcher.pid").toString();
         try{
-            process.kill(ppid,"SIGTERM");
+            process.kill(ppid,"SIGINT");
         }
         catch(err){}
     }
     if (fs.existsSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"csharp_launcher.pid") == true){
         var ppid = fs.readFileSync(baseExecutionDir+"/"+executionID+"/"+port.toString()+"csharp_launcher.pid").toString();
         try{
-            process.kill(ppid,"SIGTERM");
+            process.kill(ppid,"SIGINT");
         }
         catch(err){}
     }
@@ -523,6 +525,7 @@ function sendLauncherCommand(command,port,callback){
         actionCache[portNumber].error = "Launcher crashed";
         actionCache[portNumber].result = "Failed";
         sendActionResult(actionCache[portNumber],common.Config.AppServerIPHost,common.Config.AppServerPort);
+        callback(null);
         return;
     }
     launcherConn[command.executionID+portNumber.toString()].write(JSON.stringify(command)+"\r\n");
