@@ -82,7 +82,7 @@ exports.notPushedScripts = function(req,res){
                             return;
                         }
                     }
-                    lastDir = {expanded:true,checked:true,name:dir,cls:"folder",leaf:false,children:[]};
+                    lastDir = {expanded:true,checked:true,text:dir,name:dir,cls:"folder",leaf:false,children:[]};
                     notPushedTree.push(lastDir);
                 }
                 else{
@@ -92,7 +92,7 @@ exports.notPushedScripts = function(req,res){
                             return;
                         }
                     }
-                    var DirToAdd = {expanded:true,checked:true,name:dir,cls:"folder",leaf:false,children:[]};
+                    var DirToAdd = {expanded:true,checked:true,text:dir,name:dir,cls:"folder",leaf:false,children:[]};
                     lastDir.children.push(DirToAdd);
                     lastDir = DirToAdd;
                 }
