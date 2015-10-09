@@ -22,6 +22,7 @@ Ext.application({
             mainTab.down("actions").down("#saveAction").hide();
             mainTab.down("actions").down("#deleteAction").hide();
             mainTab.down("actions").down("#cloneAction").hide();
+            mainTab.down("actions").down("#newAction").hide();
         }
     },
 
