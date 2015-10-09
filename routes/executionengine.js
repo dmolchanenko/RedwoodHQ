@@ -25,6 +25,8 @@ exports.stopexecutionPost = function(req, res){
     if(!execution) {
         res.contentType('json');
         res.json({success:true});
+        //update execution status in DB anyway
+        updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true);
         return;
     }
     if(execution.fileReqs){
@@ -127,6 +129,7 @@ exports.startexecutionPost = function(req, res){
         if (err != null){
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});
+            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
             delete executions[executionID];
         }
         else{
