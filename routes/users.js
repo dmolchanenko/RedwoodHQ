@@ -151,11 +151,11 @@ function UpdateUsers(db,data,callback){
             u.tag = data.tag;
             u.email = data.email;
             u._id = data._id;
-            if(data.password && data.password != ""){
+            if(data.password){
                 u.password = data.password;
             }
             //myColl.save(j);
-            collection.save(u,{safe:true},function(err){
+            collection.findAndModify({_id: u._id},{},u,{safe:true,new:true},function(err,user){
                 if (err) console.warn(err.message);
                 else callback(err);
             });

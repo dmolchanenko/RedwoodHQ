@@ -71,7 +71,9 @@ Ext.define('Redwood.view.UserEdit', {
                             }
                             form.updateRecord();
                             Ext.data.StoreManager.lookup('UserTags').sync();
-                            Ext.data.StoreManager.lookup('Users').sync();
+                            Ext.data.StoreManager.lookup('Users').sync({success:function(){
+                                record.set("password","");
+                            }});
                             window.close();
                         }else{
                             //Ext.Ajax.request({
