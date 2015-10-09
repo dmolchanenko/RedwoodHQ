@@ -121,6 +121,7 @@ exports.startexecutionPost = function(req, res){
     }
 
     executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{}};
+    updateExecution({_id:executionID},{$set:{status:"Running"}},false);
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
         if (err != null){
