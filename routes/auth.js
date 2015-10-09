@@ -114,7 +114,7 @@ function verifyUser(username,password,callback){
     db.collection('users', function(err, collection) {
         collection.findOne({username:username,password:hash},function(err,user){
             if (user == null){
-                callback(false,user.role);
+                callback(false,null);
             }
             else{
                 callback(true,user.role);
