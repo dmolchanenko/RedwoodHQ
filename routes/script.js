@@ -6,6 +6,7 @@ var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var spawn = require('child_process').spawn;
 var realtime = require("./realtime");
 var curentPipProcs = {};
+var scripts = require("./scripts");
 
 
 exports.runPipGet = function(req,res){
@@ -226,13 +227,17 @@ function ResolveConflict(path,data,callback){
                         if(cliData.indexOf("--skip") != -1){
                             git.rebaseSkip(gitInfo.path,function(cliData){
                                 git.filesInConflict(gitInfo.path,function(files){
-                                    callback(files);
+                                    scripts.handleConflicts(gitInfo.path,files,function(files){
+                                        callback(files);
+                                    })
                                 });
                             });
                         }
                         else{
                             git.filesInConflict(gitInfo.path,function(files){
-                                callback(files);
+                                scripts.handleConflicts(gitInfo.path,files,function(files){
+                                    callback(files);
+                                })
                             });
                         }
                     })

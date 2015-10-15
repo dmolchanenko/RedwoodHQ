@@ -175,12 +175,17 @@ exports.scriptsPull = function(req,res){
             return;
         }
 
-        //git.rebaseAbort(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+        git.rebaseAbort(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
             git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
                 git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
                     git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(cliOut){
                         git.gitFetch(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
                             git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+                                git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,false,function(filesNotPushed){
+                                    if(filesNotPushed == "" && filesInConflict == ""){
+                                        git.reset(rootDir+req.cookies.project+"/"+req.cookies.username,function(){});
+                                    }
+                                });
                                 var files = [];
                                 if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
                                     files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
@@ -216,44 +221,109 @@ exports.scriptsPull = function(req,res){
                     });
                 });
             });
-        //});
+        });
     })
+};
+
+exports.handleConflicts = function(workingDir,files,callback){
+    handleConflicts(workingDir,files,callback)
 };
 
 //accept theirs for binary files
 function handleConflicts(workingDir,files,callback){
     var returnedFiles = [];
     if(files.length == 0){
-        callback(files);
-        return;
-    }
-    var i = 1;
-    files.forEach(function(file){
-        git.isBinary(workingDir,file,function(binary){
-            if(binary == true){
-                git.acceptTheirs(workingDir,file,function(){
-                    git.add(workingDir,file,function(){
-                        git.acceptTheirs(workingDir,file,function(){
-                            if(i == files.length){
-                                callback(returnedFiles)
-                            }
-                            else{
-                                i++;
-                            }
+        git.status(workingDir,function(cliOut){
+            var cliFiles = [];
+            if ((cliOut != "")&&(cliOut.indexOf("\n") != -1)){
+                cliFiles = cliOut.split("\n",cliOut.match(/\n/g).length);
+            }
+            var matchHead = common.ArrayIndexOf(cliFiles,function(file){
+                return file.indexOf("~HEAD") != -1 && file.indexOf("??") != -1;
+            });
+            if(matchHead != -1){
+                var fileName = cliFiles[matchHead].split(" ")[1];
+                fileName = fileName.split("~")[0];
+                fs.unlink(workingDir+"/"+cliFiles[matchHead].split(" ")[1]);
+                git.resetFile(workingDir,fileName,function() {
+                    git.acceptTheirs(workingDir, fileName, function () {
+                        git.add(workingDir, fileName, function () {
+                            git.rebaseContinue(workingDir, function (cliOut) {
+                                if (cliOut.indexOf("No changes - did you forget to use 'git add'?") != -1) {
+                                    git.rebaseSkip(workingDir, function () {
+                                        git.filesInConflict(workingDir,function(filesInConflict){
+                                            var files = [];
+                                            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                                                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                                            }
+                                            handleConflicts(workingDir,files,function(){
+                                                callback([])
+                                            })
+                                        })
+                                    });
+                                }
+                                else{
+                                    git.filesInConflict(workingDir,function(filesInConflict){
+                                        var files = [];
+                                        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                                            files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                                        }
+                                        handleConflicts(workingDir,files,function(){
+                                            callback([])
+                                        })
+                                    })
+                                }
+                            });
                         });
                     });
-                })
+                });
             }
             else{
-                returnedFiles.push(file);
-                if(i == files.length){
-                    callback(returnedFiles)
-                }
-                else{
-                    i++;
-                }
+                callback(files);
             }
-        })
+        });
+        return;
+    }
+
+    var i = 1;
+    git.isBinary(workingDir,files[0],function(binary){
+        if(binary == true){
+            git.resetFile(workingDir,files[0],function(){
+                git.acceptTheirs(workingDir,files[0],function(){
+                    git.add(workingDir,files[0],function(){
+                        git.rebaseContinue(workingDir,function(cliOut){
+                            if(cliOut.indexOf("No changes - did you forget to use 'git add'?") != -1){
+                                git.rebaseSkip(workingDir,function(){
+                                    git.filesInConflict(workingDir,function(filesInConflict){
+                                        var files = [];
+                                        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                                            files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                                        }
+                                        handleConflicts(workingDir,files,function(){
+                                            callback([])
+                                        })
+                                    })
+                                })
+                            }
+                            else{
+                                git.filesInConflict(workingDir,function(filesInConflict){
+                                    var files = [];
+                                    if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                                        files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                                    }
+                                    handleConflicts(workingDir,files,function(){
+                                        callback([])
+                                    })
+                                })
+                            }
+                        })
+                    });
+                });
+            })
+        }
+        else{
+            callback(files)
+        }
     })
 }
 
