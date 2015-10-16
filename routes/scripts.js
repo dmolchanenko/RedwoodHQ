@@ -137,11 +137,28 @@ exports.scriptsPush = function(req,res){
                                 if(skipCommits == "0"){
                                     git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
                                         res.json({success:true});
+                                        git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict) {
+                                            git.filesNotPushed(rootDir + req.cookies.project + "/" + req.cookies.username, false, function (filesNotPushed) {
+                                                if (filesNotPushed == "" && filesInConflict == "") {
+                                                    git.reset(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
+                                                    });
+                                                }
+                                            });
+                                        });
                                     })
                                 }
                                 else{
                                     git.pushSkipCommits(rootDir+req.cookies.project+"/"+req.cookies.username,skipCommits,function(code){
                                         res.json({success:true});
+                                        git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict) {
+                                            git.filesNotPushed(rootDir + req.cookies.project + "/" + req.cookies.username, false, function (filesNotPushed) {
+                                                if (filesNotPushed == "" && filesInConflict == "") {
+                                                    git.reset(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
+                                                    });
+                                                }
+                                            });
+                                        });
+
                                     })
                                 }
                             })
