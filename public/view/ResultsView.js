@@ -572,7 +572,7 @@ Ext.define('Redwood.view.ResultsView', {
                     flex: 1,
                     renderer: function(value,meta,record){
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p>"+value+"</p>"
+                        return "<p>"+Ext.util.Format.htmlEncode(value)+"</p>"
                     }
                 }
 
