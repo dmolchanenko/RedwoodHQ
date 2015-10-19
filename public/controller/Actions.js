@@ -180,7 +180,9 @@ Ext.define("Redwood.controller.Actions", {
             }});
         }
         else{
-            actionView.dataRecord.set("collection",action.collection);
+            if(action.collection){
+                actionView.dataRecord.set("collection",action.collection);
+            }
             actionView.dataRecord.set("name",action.name);
             actionView.dataRecord.set("description",action.description);
             actionView.dataRecord.set("status",action.status);
