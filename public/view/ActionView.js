@@ -352,6 +352,7 @@ Ext.define('Redwood.view.ActionView', {
                     {
                         fieldLabel: "Description",
                         allowBlank: true,
+                        xtype:"textarea",
                         itemId:"description",
                         anchor:'90%',
                         listeners:{
