@@ -452,7 +452,7 @@ Ext.define('Redwood.view.ActionView', {
                 hidden:false,
                 collapsible: true,
                 collapsed:true,
-                //layout: "column",
+                layout: "fit",
                 defaults: {
                     flex: 1
                 },

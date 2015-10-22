@@ -228,7 +228,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 hidden:false,
                 collapsible: true,
                 collapsed:true,
-                //layout: "column",
+                layout: "fit",
                 defaults: {
                     flex: 1
                 },
