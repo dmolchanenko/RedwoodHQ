@@ -126,24 +126,39 @@ Ext.define('Redwood.view.ExecutionView', {
         var variablesGrid = new Ext.grid.Panel({
 
             listeners:{
-                afterrender: function(me){
-                    me.down("#varValue").setEditor(Ext.create('Ext.ux.ComboGridBox', {
-                        typeAhead: true,
-                        displayField: 'text',
-                        queryMode: 'local',
-                        valueField:'value',
-                        grid: me,
-                        dataIndex:"possibleValues",
-                        displayNULLOption:true,
-                        listeners:{
-                            focus: function(){
-                                this.selectText();
+                beforeedit: function(editor,e){
+                    var data = [];
+                    if(e.field === "value"){
+                        e.record.get("possibleValues").forEach(function(value){
+                            if (!Ext.Array.contains(e.record.get("value"),value)){
+                                data.push({text:Ext.util.Format.htmlEncode(value),value:value});
                             }
-                        },
-                        getDisplayValue: function() {
-                            return Ext.String.htmlDecode(this.value);
-                        }
-                    }))
+                        });
+
+                        var valuesStore = new Ext.data.Store({
+                            fields: [
+                                {type: 'string', name: 'value'}
+                            ],
+                            data: data
+                        });
+
+                        e.column.setEditor({
+                            xtype:"combo",
+                            displayField:"value",
+                            overflowY:"auto",
+                            descField:"value",
+                            height:24,
+                            labelWidth: 100,
+                            forceSelection:false,
+                            createNewOnEnter:true,
+                            encodeSubmitValue:true,
+                            autoSelect: true,
+                            store: valuesStore,
+                            valueField:"value",
+                            queryMode: 'local',
+                            removeOnDblClick:true
+                        });
+                    }
                 }
             },
             store: linkedVarStore,
@@ -175,7 +190,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     renderer:function(value, meta, record){
                         return Ext.util.Format.htmlEncode(value);
                     },
-                    //width: 500,
+                    editor: {},
                     flex: 1
                 },
                 {
