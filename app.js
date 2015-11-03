@@ -259,6 +259,7 @@ app.get('/projects', auth.auth, projects.projectsGet);
 app.put('/projects/:id',auth.auth, projects.projectsPut);
 app.post('/projects',auth.auth, projects.projectsPost);
 app.del('/projects/:id',auth.auth, projects.projectsDelete);
+app.post('/projects/clone',auth.auth, projects.projectsClone);
 
 //userTags
 app.get('/userTags',auth.auth, userTags.userTagsGet);

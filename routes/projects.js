@@ -5,6 +5,7 @@ var path = require('path');
 var realtime = require("../routes/realtime");
 var app =  require('../common');
 var spawn = require('child_process').spawn;
+var ncp = require('ncp').ncp;
 
 exports.allProjects = function(callback){
     GetProjects(app.getDB(),{},callback);
@@ -58,6 +59,17 @@ exports.projectsPost = function(req, res){
     });
 };
 
+exports.projectsClone = function(req, res){
+    var data = req.body;
+    CloneProjects(data,true,function(returnData){
+        res.contentType('json');
+        res.json({
+            success: true,
+            projects: returnData
+        });
+    });
+};
+
 exports.projectCreate = function(data,callback){
     CreateProjects(data,false,callback);
 };
@@ -67,6 +79,144 @@ function CreateProjects(data,emit,callback){
         data._id = app.getDB().bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             scripts.CreateNewProject(data.name,data.language,data.template,function(){
+                callback(returnData);
+                if (emit == true){
+                    realtime.emitMessage("newProject",returnData[0]);
+                }
+            });
+        });
+    });
+}
+
+function CloneProjects(data,emit,callback){
+    var toClone = data.toClone;
+    delete data.toClone;
+
+    var db = app.getDB();
+    db.collection('projects', function(err, collection) {
+        data._id = app.getDB().bson_serializer.ObjectID(data._id);
+        collection.insert(data, {safe:true},function(err,returnData){
+            ncp(path.resolve(__dirname,"../public/automationscripts/"+toClone), path.resolve(__dirname,"../public/automationscripts/"+data.name), function (err) {
+                var cloneCollection = function(name){
+                    db.collection(name, function(err, collection) {
+                        collection.find({project:toClone},{},function(err, cursor) {
+                            cursor.each(function(err, cloneData) {
+                                if(cloneData == null) {
+                                    return;
+                                }
+                                cloneData.project = data.name;
+                                delete cloneData._id;
+                                collection.insert(cloneData, {safe:true},function(err,returnData){
+
+                                })
+                            });
+                        });
+                    });
+                };
+
+                var actionMapping = {};
+                var testcaseMapping = {};
+                var updateTestCases = function(){
+                    db.collection('testcases', function(err, collection) {
+                        collection.find({project:toClone},{},function(err, cursor) {
+                            cursor.each(function(err, cloneData) {
+                                if(cloneData == null) {
+                                    var updateTestCaseCollections = function(name){
+                                        db.collection(name, function(err, collection) {
+                                            collection.find({project:toClone},{},function(err, cursor) {
+                                                cursor.each(function(err, cloneData) {
+                                                    if(cloneData == null) {
+                                                        return;
+                                                    }
+                                                    if(cloneData.type == 'collection'){
+                                                        cloneData.collection.forEach(function(step){
+                                                            step.actionid = actionMapping[step.actionid];
+                                                        });
+                                                    }
+                                                    if(name == 'testcaseshistory'){
+                                                        delete cloneData._id;
+                                                        cloneData.project = data.name;
+                                                        cloneData.testcaseID = db.bson_serializer.ObjectID(testcaseMapping[cloneData.testcaseID.toString()]);
+                                                        collection.insert(cloneData, {safe:true},function(err,returnData){
+                                                        })
+                                                    }
+                                                    else{
+                                                        cloneData._id = db.bson_serializer.ObjectID(testcaseMapping[cloneData._id.toString()]);
+                                                        cloneData.project = data.name;
+                                                        collection.insert(cloneData, {safe:true},function(err,returnData){
+                                                        })
+                                                    }
+                                                });
+                                            });
+                                        });
+                                    };
+                                    updateTestCaseCollections('testcases');
+                                    updateTestCaseCollections('testcaseshistory');
+                                    return;
+                                }
+                                var id = cloneData._id.toString();
+                                cloneData.project = data.name;
+
+                                cloneData._id = db.bson_serializer.ObjectID();
+                                testcaseMapping[id] = cloneData._id.toString();
+                            });
+                        });
+                    });
+                };
+
+                db.collection('actions', function(err, collection) {
+                    collection.find({project:toClone},{},function(err, cursor) {
+                        cursor.each(function(err, cloneData) {
+                            if(cloneData == null) {
+                                updateTestCases();
+                                var updateActionCollections = function(name){
+                                    db.collection(name, function(err, collection) {
+                                        collection.find({project:toClone},{},function(err, cursor) {
+                                            cursor.each(function(err, cloneData) {
+                                                if(cloneData == null) {
+                                                    return;
+                                                }
+                                                if(cloneData.type == 'collection'){
+                                                    cloneData.collection.forEach(function(step){
+                                                        step.actionid = actionMapping[step.actionid];
+                                                    });
+                                                }
+                                                if(name == 'actionshistory'){
+                                                    delete cloneData._id;
+                                                    cloneData.project = data.name;
+                                                    cloneData.actionID = db.bson_serializer.ObjectID(actionMapping[cloneData.actionID.toString()]);
+                                                    collection.insert(cloneData, {safe:true},function(err,returnData){
+                                                    })
+                                                }
+                                                else{
+                                                    cloneData._id = db.bson_serializer.ObjectID(actionMapping[cloneData._id.toString()]);
+                                                    cloneData.project = data.name;
+                                                    collection.insert(cloneData, {safe:true},function(err,returnData){
+                                                    })
+                                                }
+                                            });
+                                        });
+                                    });
+                                };
+                                updateActionCollections('actions');
+                                updateActionCollections('actionshistory');
+                                return;
+                            }
+                            var id = cloneData._id.toString();
+                            cloneData.project = data.name;
+
+                            cloneData._id = db.bson_serializer.ObjectID();
+                            actionMapping[id] = cloneData._id.toString();
+                        });
+                    });
+                });
+
+                cloneCollection('variables');
+                cloneCollection('actionTags');
+                cloneCollection('testcaseTags');
+                cloneCollection('testsets');
+                cloneCollection('variableTags');
+
                 callback(returnData);
                 if (emit == true){
                     realtime.emitMessage("newProject",returnData[0]);
@@ -99,6 +249,16 @@ function DeleteProjects(db,data,projectName,callback){
         });
     });
     db.collection('testcases', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('testcaseshistory', function(err, collection) {
+        collection.remove({project:projectName},{safe:true},function(err) {
+        });
+    });
+
+    db.collection('actionshistory', function(err, collection) {
         collection.remove({project:projectName},{safe:true},function(err) {
         });
     });

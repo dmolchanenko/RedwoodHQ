@@ -10,13 +10,21 @@ Ext.define("Redwood.controller.Projects", {
             'projectsEditor': {
                 render: this.onEditorRender,
                 projectEdit: this.onProjectEdit,
-                projectDelete: this.onProjectDelete
+                projectDelete: this.onProjectDelete,
+                projectClone: this.onProjectClone
             },
             'projectsEditor button': {
                 click: this.addProject
             }
 
         });
+    },
+
+    onProjectClone: function(evtData) {
+        var store = Ext.data.StoreManager.lookup('Projects');
+        var record = store.getAt(evtData.rowIndex);
+        var projectEditWindow = new Redwood.view.ProjectEdit({newProject:false,cloneProject:true,dataRecord:record});
+        projectEditWindow.show();
     },
 
     onProjectEdit: function(evtData) {

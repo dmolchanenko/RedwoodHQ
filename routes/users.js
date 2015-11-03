@@ -56,6 +56,13 @@ exports.usersPost = function(req, res){
     var data = req.body;
     delete data._id;
     CreateUsers(app.getDB(),data,function(returnData){
+        if(returnData == null){
+            res.json({
+                success: true,
+                users: []
+            });
+            return;
+        }
         delete returnData.password;
         res.contentType('json');
         res.json({
@@ -102,32 +109,35 @@ exports.canAddUser = function(req, res){
 
 function CreateUsers(db,data,callback){
     db.collection('users', function(err, collection) {
-        var hash = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
-        data.password = hash;
-        data._id = db.bson_serializer.ObjectID(data._id);
-        collection.insert(data, {safe:true},function(err,returnData){
-            db.collection('projects',function(err,collection){
-                collection.find({},{},function(err,cursor){
-                    cursor.each(function(err, project) {
-                        if(project == null) {
-                            callback(returnData);
-                            return;
-                        }
-                        var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
-                        var masterBranch = projectPath + "/master.git";
-                        fs.mkdirSync(projectPath + "/" + returnData[0].username);
+        collection.findOne({name:data.name},{},function(err,u){
+            if(u != null) callback(null);
+            var hash = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
+            data.password = hash;
+            data._id = db.bson_serializer.ObjectID(data._id);
+            collection.insert(data, {safe:true},function(err,returnData){
+                db.collection('projects',function(err,collection){
+                    collection.find({},{},function(err,cursor){
+                        cursor.each(function(err, project) {
+                            if(project == null) {
+                                callback(returnData);
+                                return;
+                            }
+                            var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
+                            var masterBranch = projectPath + "/master.git";
+                            fs.mkdirSync(projectPath + "/" + returnData[0].username);
 
-                        git.clone(projectPath + "/" + returnData[0].username,masterBranch,function(){
-                            if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"src") == false){
-                                fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"src");
-                            }
-                            if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"bin") == false){
-                                fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"bin");
-                            }
-                            git.setGitUser(projectPath + "/" + returnData[0].username,returnData[0].username,returnData[0].email);
-                            scripts.setupPython(projectPath + "/" + returnData[0].username,function(){
-                                script.runPip(projectPath + "/" + returnData[0].username +"/PipRequirements",false,returnData[0].username,function(){})
-                            })
+                            git.clone(projectPath + "/" + returnData[0].username,masterBranch,function(){
+                                if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"src") == false){
+                                    fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"src");
+                                }
+                                if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"bin") == false){
+                                    fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"bin");
+                                }
+                                git.setGitUser(projectPath + "/" + returnData[0].username,returnData[0].username,returnData[0].email);
+                                scripts.setupPython(projectPath + "/" + returnData[0].username,function(){
+                                    script.runPip(projectPath + "/" + returnData[0].username +"/PipRequirements",false,returnData[0].username,function(){})
+                                })
+                            });
                         });
                     });
                 });

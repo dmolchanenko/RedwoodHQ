@@ -22,6 +22,7 @@ Ext.define('Redwood.view.ProjectEdit', {
     id: "projectEdit",
     draggable: true,
     resizable: true,
+    cloneProject:false,
     width: 700,
     height: 200,
     layout: 'fit',
@@ -49,23 +50,40 @@ Ext.define('Redwood.view.ProjectEdit', {
                         var form = this.up('form').getForm();
                         if (form.isValid()) {
                             var window = this.up('window');
-                            var newProject = {};
-                            newProject.name = form.getFieldValues().name;
-                            newProject.language = form.getFieldValues().language;
-                            newProject.template = form.getFieldValues().template;
-                            newProject.tcFields = [];
-                            window.down("#tcFields").store.each(function(item){
-                                newProject.tcFields.push(item.data);
-                            });
-                            if(me.newProject == true){
-                                Ext.data.StoreManager.lookup('Projects').add(newProject);
+                            if(me.cloneProject == true){
+                                var cloneProject = {};
+                                cloneProject.name = form.getFieldValues().name;
+                                cloneProject.toClone = me.dataRecord.get("name");
+                                cloneProject.language = form.getFieldValues().language;
+                                cloneProject.template = form.getFieldValues().template;
+                                Ext.Ajax.request({
+                                    url: "/projects/clone",
+                                    method: "POST",
+                                    jsonData : cloneProject,
+                                    success: function (response) {
+                                        var obj = Ext.decode(response.responseText);
+                                    }
+                                });
                             }
                             else{
-                                var projectRecord = Ext.data.StoreManager.lookup('Projects').query("name",me.dataRecord.get("name")).getAt(0);
-                                projectRecord.dirty = true;
-                                projectRecord.set("tcFields",newProject.tcFields);
+                                var newProject = {};
+                                newProject.name = form.getFieldValues().name;
+                                newProject.language = form.getFieldValues().language;
+                                newProject.template = form.getFieldValues().template;
+                                newProject.tcFields = [];
+                                window.down("#tcFields").store.each(function(item){
+                                    newProject.tcFields.push(item.data);
+                                });
+                                if(me.newProject == true){
+                                    Ext.data.StoreManager.lookup('Projects').add(newProject);
+                                }
+                                else{
+                                    var projectRecord = Ext.data.StoreManager.lookup('Projects').query("name",me.dataRecord.get("name")).getAt(0);
+                                    projectRecord.dirty = true;
+                                    projectRecord.set("tcFields",newProject.tcFields);
+                                }
+                                Ext.data.StoreManager.lookup('Projects').sync();
                             }
-                            Ext.data.StoreManager.lookup('Projects').sync();
                             window.close();
                         }
                     }
@@ -147,12 +165,17 @@ Ext.define('Redwood.view.ProjectEdit', {
             ]
         };
         this.callParent(arguments);
-        if (this.newProject == false){
+        if (this.newProject == false && this.cloneProject == false){
             this.down('form').getForm().findField("name").setValue(me.dataRecord.get("name"));
             this.down('form').getForm().findField("name").setDisabled(true);
             this.down('form').getForm().findField("template").setValue(me.dataRecord.get("template"));
             this.down('form').getForm().findField("template").setDisabled(true);
         }
+        else if(this.cloneProject == true){
+            this.down('form').getForm().findField("template").setValue(me.dataRecord.get("template"));
+            this.down('form').getForm().findField("template").setDisabled(true);
+        }
+
         this.down('form').getForm().findField("name").focus();
     }
 
