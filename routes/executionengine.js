@@ -833,7 +833,7 @@ function startTCExecution(id,variables,executionID,callback){
                         result.status = "Finished";
                         result.result = "Failed";
                         updateResult(result);
-                        if (executions[executionID]){
+                        if (executions[executionID].currentTestCases[testcase.dbTestCase._id]){
                             executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
                             finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
                         }
@@ -1654,7 +1654,9 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callbac
             });
         });
 
-        executions[executionID].fileReqs.push(req);
+        if( executions[executionID]){
+            executions[executionID].fileReqs.push(req);
+        }
 
         var handleError = function(e){
             if(file in fileSync && fileSync[file].close){
@@ -1751,7 +1753,7 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
             retryCount--;
             setTimeout(sendAgentCommand(agentHost,port,command,retryCount,callback),3000)
         }
-        req.close();
+        //req.close();
     });
 
     // write data to request body
