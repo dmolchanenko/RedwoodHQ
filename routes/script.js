@@ -214,14 +214,14 @@ function UpdateScript(path,data,callback){
 }
 
 function ResolveConflict(path,data,callback){
-    fs.writeFile(path,data,'utf8',function(err){
-        if (err) {
-            callback({error:err});
-            return;
-        }
-        var gitInfo = git.getGitInfo(path);
-        git.add(gitInfo.path,gitInfo.fileName,function(){
-            git.commitAll(gitInfo.path,function(){
+    var gitInfo = git.getGitInfo(path);
+    git.resetFile(gitInfo.path,gitInfo.fileName,function(){
+        fs.writeFile(path,data,'utf8',function(err){
+            if (err) {
+                callback({error:err});
+                return;
+            }
+            git.add(gitInfo.path,gitInfo.fileName,function(){
                 git.commit(gitInfo.path,gitInfo.fileName,function(){
                     git.rebaseContinue(gitInfo.path,function(cliData){
                         if(cliData.indexOf("--skip") != -1){
