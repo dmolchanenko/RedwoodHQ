@@ -3,9 +3,69 @@ var exec = require('child_process').exec;
 var path = require('path');
 var common = require('../common');
 var fs = require('fs');
+var gitCommands = require('./gitcommands');
 
 exports.rebase = function(workdir,files,comment,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','-i'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var cliData = "";
+    var handlingErrors = false;
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        handlingErrors = true;
+        cliData = cliData + data.toString();
+        common.logger.error('rebase stderr: ' + cliData);
+        if(cliData.toString().indexOf('Could not apply') != -1) {
+            var commit = cliData.split('Could not apply ')[1].split("...")[0];
+            handleRebaseConflicts(workdir, commit,function () {
+                callback("");
+            })
+        }
+        else{
+            callback(cliData)
+        }
+    });
+
+    git.on('close', function (code) {
+        if(handlingErrors == false){
+            callback(cliData);
+        }
+    });
+
+};
+
+function handleRebaseConflicts(workdir,commit,callback) {
+    gitCommands.filesInCommit(workdir, commit, function (out) {
+        if (out != "") {
+            var files = out.split("\n",filesInConflict.match(/\n/g).length);
+            var resetFiles = 0;
+            files.forEach(function (file) {
+                gitCommands.resetFile(workdir, file, function () {
+                    resetFiles++;
+                    if(resetFiles == files.length){
+                        gitCommands.rebaseContinue(workdir, function (out) {
+                            if(out.toString().indexOf('Could not apply') != -1) {
+                                var commit = out.split('Could not apply ')[1].split("...")[0];
+                                handleRebaseConflicts(workdir,commit, function () {
+                                    callback();
+                                })
+                            }
+                            else{
+                                callback();
+                            }
+                        })
+                    }
+                })
+            });
+        }
+    })
+};
+
+exports.filesInCommit = function(workdir,commit,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff-tree','--no-commit-id','--name-only','-r',commit],{cwd: workdir,timeout:300000});
     var cliData = "";
 
     git.stdout.on('data', function (data) {
@@ -13,7 +73,7 @@ exports.rebase = function(workdir,files,comment,callback){
     });
 
     git.stderr.on('data', function (data) {
-        common.logger.error('rebase stderr: ' + data);
+        common.logger.error('filesInConflict stderr: ' + data);
     });
 
     git.on('close', function (code) {
@@ -40,6 +100,96 @@ exports.rebaseContinue = function(workdir,callback){
     });
 
 };
+
+//make sure HEAD is always attached
+exports.attachHEAD = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['status'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('status stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        if(cliData.indexOf("HEAD detached from") != -1){
+            gitCommands.createBranch(workdir,'temp',function(){
+                gitCommands.pointBranchToMaster(workdir,'temp',function(){
+                    gitCommands.deleteBranch(workdir,'temp',function(){
+                        callback();
+                    });
+                })
+            })
+        }
+        else{
+            callback()
+        }
+    });
+
+};
+
+exports.pointBranchToMaster= function(workdir,name,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['checkout','-B','master',name],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('status stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+
+exports.createBranch= function(workdir,name,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['checkout','-b',name],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('status stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+exports.deleteBranch= function(workdir,name,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['branch','-d',name],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('status stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 
 exports.status = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['status','-s'],{cwd: workdir,timeout:300000});
@@ -475,7 +625,7 @@ exports.pushDryRun = function(workdir,callback){
 
 exports.pull = function(workdir,callback){
     common.logger.info("pull");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
 
     var cliOut = "";
     git.stdout.on('data', function (data) {
