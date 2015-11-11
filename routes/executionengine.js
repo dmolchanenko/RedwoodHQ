@@ -139,7 +139,12 @@ exports.startexecutionPost = function(req, res){
                 copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build/jar"),os.tmpDir()+"/jar_"+executionID,function(){
                     zipPythonFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),os.tmpDir()+"/jar_"+executionID,function(){
                         cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
-                            executions[executionID].sourceCache = sourceCache;
+                            if(executions[executionID]){
+                                executions[executionID].sourceCache = sourceCache;
+                            }
+                            else{
+                                return;
+                            }
                             verifyMachineState(machines,function(err){
                                 if(err){
                                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);

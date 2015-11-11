@@ -110,7 +110,10 @@ exports.canAddUser = function(req, res){
 function CreateUsers(db,data,callback){
     db.collection('users', function(err, collection) {
         collection.findOne({name:data.name},{},function(err,u){
-            if(u != null) callback(null);
+            if(u != null) {
+                callback(null);
+                return;
+            }
             var hash = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
             data.password = hash;
             data._id = db.bson_serializer.ObjectID(data._id);
