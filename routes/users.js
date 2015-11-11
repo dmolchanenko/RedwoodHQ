@@ -56,6 +56,7 @@ exports.usersPost = function(req, res){
     var data = req.body;
     delete data._id;
     CreateUsers(app.getDB(),data,function(returnData){
+        res.contentType('json');
         if(returnData == null){
             res.json({
                 success: true,
@@ -64,7 +65,6 @@ exports.usersPost = function(req, res){
             return;
         }
         delete returnData.password;
-        res.contentType('json');
         res.json({
             success: true,
             users: returnData
@@ -109,7 +109,7 @@ exports.canAddUser = function(req, res){
 
 function CreateUsers(db,data,callback){
     db.collection('users', function(err, collection) {
-        collection.findOne({name:data.name},{},function(err,u){
+        collection.findOne({username:data.username},{},function(err,u){
             if(u != null) {
                 callback(null);
                 return;
