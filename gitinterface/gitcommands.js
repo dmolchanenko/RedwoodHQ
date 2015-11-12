@@ -5,7 +5,7 @@ var common = require('../common');
 var fs = require('fs');
 var gitCommands = require('./gitcommands');
 
-exports.rebase = function(workdir,files,comment,callback){
+exports.rebaseInteractive = function(workdir,files,comment,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','-i'],{env:{REDWOODHQ_COMMITCOMMENT:comment,REDWOODHQ_GITWORKINGDIR:workdir,REDWOODHQ_FILES:files,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/rebaseEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
     var cliData = "";
     var handlingErrors = false;
@@ -17,7 +17,7 @@ exports.rebase = function(workdir,files,comment,callback){
     git.stderr.on('data', function (data) {
         handlingErrors = true;
         cliData = cliData + data.toString();
-        common.logger.error('rebase stderr: ' + cliData);
+        common.logger.error('rebaseInteractive stderr: ' + cliData);
         if(cliData.toString().indexOf('Could not apply') != -1) {
             var commit = cliData.split('Could not apply ')[1].split("...")[0];
             handleRebaseConflicts(workdir, commit,function () {
@@ -62,7 +62,7 @@ function handleRebaseConflicts(workdir,commit,callback) {
             });
         }
     })
-};
+}
 
 exports.filesInCommit = function(workdir,commit,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff-tree','--no-commit-id','--name-only','-r',commit],{cwd: workdir,timeout:300000});
@@ -93,6 +93,25 @@ exports.rebaseContinue = function(workdir,callback){
     git.stderr.on('data', function (data) {
         cliData = cliData + data.toString();
         common.logger.error('rebaseContinue stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
+exports.rebase = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','origin','master'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('rebase stderr: ' + data);
     });
 
     git.on('close', function (code) {

@@ -133,7 +133,7 @@ exports.scriptsPush = function(req,res){
                     else{
                         git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function() {
                             git.commitAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
-                                git.rebase(rootDir+req.cookies.project+"/"+req.cookies.username,files,req.body.comment,function(cliOUT){
+                                git.rebaseInteractive(rootDir+req.cookies.project+"/"+req.cookies.username,files,req.body.comment,function(cliOUT){
                                     var skipCommits = cliOUT.split("|||")[1];
                                     if(skipCommits == "0"){
                                         git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code){
@@ -197,49 +197,51 @@ exports.scriptsPull = function(req,res){
         }
 
         git.rebaseAbort(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-            git.attachHEAD(rootDir+req.cookies.project+"/"+req.cookies.username,function() {
-                git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-                    git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-                        git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(cliOut){
-                            git.gitFetch(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-                                git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
-                                    git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,false,function(filesNotPushed){
-                                        if(filesNotPushed == "" && filesInConflict == ""){
-                                            git.reset(rootDir+req.cookies.project+"/"+req.cookies.username,function(){});
+            git.rebase(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                git.attachHEAD(rootDir+req.cookies.project+"/"+req.cookies.username,function() {
+                    git.addAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                        git.commitAll(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                            git.pull(rootDir+req.cookies.project+"/"+req.cookies.username,function(cliOut){
+                                git.gitFetch(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+                                    git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+                                        git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,false,function(filesNotPushed){
+                                            if(filesNotPushed == "" && filesInConflict == ""){
+                                                git.reset(rootDir+req.cookies.project+"/"+req.cookies.username,function(){});
+                                            }
+                                        });
+                                        var files = [];
+                                        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                                            files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
                                         }
-                                    });
-                                    var files = [];
-                                    if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                                        files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
-                                    }
-                                    //accept theirs for binary
-                                    handleConflicts(rootDir+req.cookies.project+"/"+req.cookies.username,files,function(nonBinaryFiles){
-                                        if(cliOut.indexOf("PipRequirements ") != -1){
-                                            var uninstallAll = false;
-                                            fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
-                                                if(!data.match(/[^\W_]/)){
-                                                    uninstallAll = true;
-                                                }
-                                                script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
-                                                    res.contentType('json');
-                                                    res.json({success:true,conflicts:nonBinaryFiles});
-                                                    realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
-                                                })
-                                            });
+                                        //accept theirs for binary
+                                        handleConflicts(rootDir+req.cookies.project+"/"+req.cookies.username,files,function(nonBinaryFiles){
+                                            if(cliOut.indexOf("PipRequirements ") != -1){
+                                                var uninstallAll = false;
+                                                fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
+                                                    if(!data.match(/[^\W_]/)){
+                                                        uninstallAll = true;
+                                                    }
+                                                    script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
+                                                        res.contentType('json');
+                                                        res.json({success:true,conflicts:nonBinaryFiles});
+                                                        realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
+                                                    })
+                                                });
 
-                                        }
-                                        else{
-                                            res.contentType('json');
-                                            res.json({success:true,conflicts:nonBinaryFiles});
-                                        }
-                                        //try and delete jar file to trigger compile from execution
-                                        try{
-                                            fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
-                                            git.attachHEAD(rootDir+req.cookies.project+"/"+req.cookies.username,function() {});
-                                        }
-                                        catch(err){}
+                                            }
+                                            else{
+                                                res.contentType('json');
+                                                res.json({success:true,conflicts:nonBinaryFiles});
+                                            }
+                                            //try and delete jar file to trigger compile from execution
+                                            try{
+                                                fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){})
+                                                git.attachHEAD(rootDir+req.cookies.project+"/"+req.cookies.username,function() {});
+                                            }
+                                            catch(err){}
+                                        })
                                     })
-                                })
+                                });
                             });
                         });
                     });
