@@ -41,7 +41,7 @@ app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 app.use(express.errorHandler());
 common.initLogger("agent");
 common.parseConfig(function(){
-    app.listen(common.Config.AgentPort,'127.0.0.1', function(){
+    app.listen(common.Config.AgentPort, function(){
         if(common.Config.CloudAgent !== "true"){
             heartbeat.startHeartBeat(common.Config.AppServerIPHost,common.Config.AppServerPort,common.Config.AgentPort,common.Config.AgentVNCPort,common.Config.AgentVersion,common.Config.OS);
         }
