@@ -246,7 +246,7 @@ function startLauncher(executionID,threadID,type,callback){
         var launcherCrashed = false;
         launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
             cmdCache += data.toString();
-            common.logger.info('stdout: ' + data.toString());
+            //common.logger.info('stdout: ' + data.toString());
             if (data.toString().indexOf("launcher running.") != -1){
                 cmdCache = "";
                 launcherConn[executionID+portNumber.toString()] = net.connect(portNumber, function(){
@@ -255,7 +255,7 @@ function startLauncher(executionID,threadID,type,callback){
                     launcherConn[executionID+portNumber.toString()].on('data', function(tcpData) {
                         cache += tcpData.toString();
 
-                        common.logger.info('data:', tcpData.toString());
+                        //common.logger.info('data:', tcpData.toString());
                         if (cache.indexOf("--EOM--") != -1){
 
                             //var msg = JSON.parse(cache.substring(0,cache.length - 7));
@@ -309,14 +309,14 @@ function startLauncher(executionID,threadID,type,callback){
                                 cmdCache = cmdCache.substring(cmdCache.lastIndexOf(require('os').EOL) + 2,cmdCache.length);
                             }else{
                                 if (message != ""){
-                                    common.logger.info("sending:"+message);
+                                    //common.logger.info("sending:"+message);
                                     sendLog({executionID:executionID,message:message,date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID},common.Config.AppServerIPHost,common.Config.AppServerPort);
                                 }
                                 cmdCache = "";
                             }
                         }
                         if (message != ""){
-                            common.logger.info("sending:"+message);
+                            //common.logger.info("sending:"+message);
                             if(actionCache[portNumber]){
                                 sendLog({message:message,date:new Date(),actionName:actionCache[portNumber].name,executionID:executionID,runType:actionCache[portNumber].runType,resultID:actionCache[portNumber].resultID,username:actionCache[portNumber].username},common.Config.AppServerIPHost,common.Config.AppServerPort);
                             }
