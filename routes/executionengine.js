@@ -1402,7 +1402,12 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
             callback(message);
             return;
         }
-        executions[executionID].fileReqs = [];
+        if(executions[executionID]){
+            executions[executionID].fileReqs = [];
+        }
+        else{
+            return;
+        }
         //os.tmpDir()+"/jar_"+executionID
         syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",executionID,function(error){
             if(error) {callback(error);return}

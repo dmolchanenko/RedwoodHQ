@@ -50,6 +50,9 @@ var express = require('express')
   , versionControl = require('./routes/versionControl')
   , testcaseHistory = require('./routes/testcaseHistory');
 
+var realFs = require("fs");
+var gracefulFs = require("graceful-fs");
+gracefulFs.gracefulify(realFs);
 
 //var app = express.createServer();
 process.setMaxListeners(0);

@@ -125,22 +125,27 @@ function CreateUsers(db,data,callback){
                                 callback(returnData);
                                 return;
                             }
-                            var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
-                            var masterBranch = projectPath + "/master.git";
-                            fs.mkdirSync(projectPath + "/" + returnData[0].username);
+                            try{
+                                var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
+                                var masterBranch = projectPath + "/master.git";
+                                fs.mkdirSync(projectPath + "/" + returnData[0].username);
 
-                            git.clone(projectPath + "/" + returnData[0].username,masterBranch,function(){
-                                if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"src") == false){
-                                    fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"src");
-                                }
-                                if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"bin") == false){
-                                    fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"bin");
-                                }
-                                git.setGitUser(projectPath + "/" + returnData[0].username,returnData[0].username,returnData[0].email);
-                                scripts.setupPython(projectPath + "/" + returnData[0].username,function(){
-                                    script.runPip(projectPath + "/" + returnData[0].username +"/PipRequirements",false,returnData[0].username,function(){})
-                                })
-                            });
+                                git.clone(projectPath + "/" + returnData[0].username,masterBranch,function(){
+                                    if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"src") == false){
+                                        fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"src");
+                                    }
+                                    if(fs.existsSync(projectPath + "/" + returnData[0].username + "/" +"bin") == false){
+                                        fs.mkdirSync(projectPath + "/" + returnData[0].username + "/" +"bin");
+                                    }
+                                    git.setGitUser(projectPath + "/" + returnData[0].username,returnData[0].username,returnData[0].email);
+                                    scripts.setupPython(projectPath + "/" + returnData[0].username,function(){
+                                        script.runPip(projectPath + "/" + returnData[0].username +"/PipRequirements",false,returnData[0].username,function(){})
+                                    })
+                                });
+                            }
+                            catch(err){
+
+                            }
                         });
                     });
                 });

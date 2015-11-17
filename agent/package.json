@@ -6,6 +6,7 @@
       "express": "3.0.0"
     , "walk" : "2.2.1"
     , "cron": "1.0.1"
+    , "graceful-fs": "4.1.2"
     , "policyfile" : "0.0.5"
     , "optimist" : "0.3.5"
     , "forever-monitor" : "1.1.0"

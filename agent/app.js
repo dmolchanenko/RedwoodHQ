@@ -10,6 +10,11 @@ var common = require('./common');
 var path = require('path');
 //var idesync = require('./routes/idesync');
 
+var realFs = require("fs");
+var gracefulFs = require("graceful-fs");
+gracefulFs.gracefulify(realFs);
+
+
 process.setMaxListeners(0);
 require('events').EventEmitter.defaultMaxListeners = 100;
 
