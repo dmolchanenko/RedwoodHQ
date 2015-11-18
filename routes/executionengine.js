@@ -838,7 +838,7 @@ function startTCExecution(id,variables,executionID,callback){
                         result.status = "Finished";
                         result.result = "Failed";
                         updateResult(result);
-                        if (executions[executionID].currentTestCases[testcase.dbTestCase._id]){
+                        if (executions[executionID] && executions[executionID].currentTestCases[testcase.dbTestCase._id]){
                             executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
                             finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
                         }
@@ -1153,7 +1153,7 @@ exports.actionresultPost = function(req, res){
                     testcase.result.status = "Finished";
                     testcase.result.result = "Failed";
                     updateResult(testcase.result);
-                    if (execution){
+                    if (execution && testcase.dbTestCase){
                         execution.currentTestCases[testcase.dbTestCase._id].result = "Failed";
                         finishTestCaseExecution(execution,req.body.executionID,execution.testcases[id]._id,execution.currentTestCases[testcase.dbTestCase._id]);
                     }
@@ -1664,7 +1664,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callbac
             });
         });
 
-        if( executions[executionID]){
+        if( executions[executionID && executions[executionID].fileReqs]){
             executions[executionID].fileReqs.push(req);
         }
 
@@ -2384,7 +2384,10 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
     deleteOldResult(testcaseID,executionID,function(){
         db.collection('testcases', function(err, collection) {
             collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
-                if(testcase == null) callback(null);
+                if(testcase == null) {
+                    callback(null);
+                    return;
+                }
                 //if (testcase.type == "script"){
                 if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"){
                     var lang = "Java/Groovy";
@@ -2615,7 +2618,9 @@ function copyFile(source, target, cb) {
     });
     wr.on("close", function(ex) {
         done();
-        rd.destroy.bind(rd);
+        if(rd.destroy){
+            rd.destroy.bind(rd);
+        }
     });
 
     rd.on("close",function(){

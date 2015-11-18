@@ -44,6 +44,7 @@ exports.initSocket = function(app){
                 common.getDB().collection('users', function(err, collection) {
                     collection.update({username:users[socket.id]},{$set:{status:"offline"}},{safe:true,multi:true},function(){
                         collection.findOne({username:users[socket.id]},{},function(err,data){
+                            if(data == null)return;
                             delete data.password;
                             realtime.emitMessage("UpdateUsers",data);
                         });

@@ -748,7 +748,7 @@ exports.rename = function(workdir,file,newName,callback){
 exports.deleteFiles = function(workdir,file,callback){
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git.exe'),['commit','-a','-m','files/file removed'],{cwd: workdir,timeout:300000});
     var git = null;
-    git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/rm'),['-R',file],{cwd: workdir,timeout:300000});
+    git  = spawn(path.resolve(__dirname,'../vendor/Git/usr/rm'),['-R',file],{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
