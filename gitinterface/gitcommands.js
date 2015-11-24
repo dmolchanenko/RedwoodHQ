@@ -644,7 +644,8 @@ exports.pushDryRun = function(workdir,callback){
 
 exports.pull = function(workdir,callback){
     common.logger.info("pull");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
 
     var cliOut = "";
     git.stdout.on('data', function (data) {
@@ -712,9 +713,35 @@ exports.add = function(workdir,file,callback){
     });
 };
 
-exports.commit = function(workdir,file,callback){
+exports.commitForMerge = function(workdir,file,message,callback){
+    common.logger.info("commitForMerge");
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['commit','-i',file,'-m',message],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('commit commitForMerge: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback();
+    });
+};
+
+exports.commit = function(workdir,file,message,callback){
     common.logger.info("commit");
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['commit',file,'-m','auto comment'],{cwd: workdir,timeout:300000});
+    var arguments = ["commit"];
+    if(Array.isArray(file)){
+        arguments = arguments.concat(file);
+    }
+    else{
+        arguments.push(file)
+    }
+    arguments.push("-m");
+    arguments.push(message);
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),arguments,{cwd: workdir,timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);

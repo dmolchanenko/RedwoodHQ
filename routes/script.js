@@ -49,14 +49,16 @@ exports.mergeInfo = function(req,res){
     var workDir = rootDir+req.cookies.project+"/"+req.cookies.username;
     var relativePath = req.body.path.replace(workDir+"/","");
     git.showFileContents(workDir,relativePath,":3",function(mine){
-        git.showFileContents(rootDir+req.cookies.project+"/"+"master.git",relativePath,"HEAD",function(theirs){
+        //git.showFileContents(rootDir+req.cookies.project+"/"+"master.git",relativePath,"HEAD",function(theirs){
+        git.showFileContents(workDir,relativePath,":2",function(theirs){
             res.json({mine:mine,theirs:theirs});
         });
     });
 };
 
 exports.resolveConflict = function(req, res){
-    ResolveConflict(req.body.path,req.body.text,function(filesInConflict){
+    var workDir = rootDir+req.cookies.project+"/"+req.cookies.username;
+    ResolveConflict(workDir,req.body.path,req.body.text,function(filesInConflict){
         var files = [];
         if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
             files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
@@ -202,10 +204,10 @@ function UpdateScript(path,data,callback){
             }
             var gitInfo = git.getGitInfo(path);
 
-            git.commit(gitInfo.path,gitInfo.fileName,function(){
+            //git.commit(gitInfo.path,gitInfo.fileName,function(){
 
-                callback(null)
-            });
+                callback(null);
+            //});
         })
     }
     else{
@@ -213,18 +215,17 @@ function UpdateScript(path,data,callback){
     }
 }
 
-function ResolveConflict(path,data,callback){
-    var gitInfo = git.getGitInfo(path);
-    git.resetFile(gitInfo.path,gitInfo.fileName,function(){
-        fs.writeFile(path,data,'utf8',function(err){
+function ResolveConflict(workDir,file,data,callback){
+    git.resetFile(workDir,file,function(){
+        fs.writeFile(file,data,'utf8',function(err){
             if (err) {
                 callback({error:err});
                 return;
             }
-            git.add(gitInfo.path,gitInfo.fileName,function(){
-                git.commit(gitInfo.path,gitInfo.fileName,function(){
-                    git.rebaseContinue(gitInfo.path,function(cliData){
-                        if(cliData.indexOf("--skip") != -1){
+            git.add(workDir,file,function(){
+                git.commitForMerge(workDir,file,'conflict resoved',function(){
+                    //git.rebaseContinue(gitInfo.path,function(cliData){
+                        /*if(cliData.indexOf("--skip") != -1){
                             git.rebaseSkip(gitInfo.path,function(cliData){
                                 git.filesInConflict(gitInfo.path,function(files){
                                     scripts.handleConflicts(gitInfo.path,files,function(files){
@@ -234,13 +235,14 @@ function ResolveConflict(path,data,callback){
                             });
                         }
                         else{
-                            git.filesInConflict(gitInfo.path,function(files){
-                                scripts.handleConflicts(gitInfo.path,files,function(files){
+                        */
+                            git.filesInConflict(workDir,function(files){
+                                scripts.handleConflicts(workDir,files,function(files){
                                     callback(files);
                                 })
                             });
-                        }
-                    })
+                        //}
+                    //})
                 });
             });
         });
@@ -265,9 +267,9 @@ function CreateScript(filePath,data,projectPath,callback){
                     var commit = function(path,callback){
                         var gitInfo = git.getGitInfo(path);
                         git.add(gitInfo.path,gitInfo.fileName,function(){
-                            git.commit(gitInfo.path,gitInfo.fileName,function(){
-                                callback(null)
-                            });
+                            //git.commit(gitInfo.path,gitInfo.fileName,function(){
+                                callback(null);
+                            //});
                         });
                     };
                     //if python make sure __init__ is in all parent paths

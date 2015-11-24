@@ -35,9 +35,9 @@ exports.uploadFromAgent = function(req, res){
                         var gitInfo = git.getGitInfo(target_path);
 
                         git.add(gitInfo.path,gitInfo.fileName,function(){
-                            git.commit(gitInfo.path,gitInfo.fileName,function(){
+                            //git.commit(gitInfo.path,gitInfo.fileName,function(){
                                 res.send("{error:null,success:true}");
-                            });
+                            //});
                         });
                     });
                 });
