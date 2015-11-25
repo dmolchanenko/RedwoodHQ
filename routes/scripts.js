@@ -417,21 +417,21 @@ function handleConflicts(workingDir,files,callback){
             git.resetFile(workingDir,files[0],function(){
                 git.acceptTheirs(workingDir,files[0],function(){
                     git.add(workingDir,files[0],function(){
-                        git.rebaseContinue(workingDir,function(cliOut){
-                            if(cliOut.indexOf("No changes - did you forget to use 'git add'?") != -1){
-                                git.rebaseSkip(workingDir,function(){
-                                    git.filesInConflict(workingDir,function(filesInConflict){
-                                        var files = [];
-                                        if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                                            files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
-                                        }
-                                        handleConflicts(workingDir,files,function(){
-                                            callback([])
-                                        })
-                                    })
-                                })
-                            }
-                            else{
+                        //git.rebaseContinue(workingDir,function(cliOut){
+                            //if(cliOut.indexOf("No changes - did you forget to use 'git add'?") != -1){
+                            //    git.rebaseSkip(workingDir,function(){
+                            //        git.filesInConflict(workingDir,function(filesInConflict){
+                            //            var files = [];
+                            //            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                            //                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+                            //            }
+                            //            handleConflicts(workingDir,files,function(){
+                            //                callback([])
+                            //            })
+                            //        })
+                            //    })
+                            //}
+                            //else{
                                 git.filesInConflict(workingDir,function(filesInConflict){
                                     var files = [];
                                     if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
@@ -441,8 +441,8 @@ function handleConflicts(workingDir,files,callback){
                                         callback([])
                                     })
                                 })
-                            }
-                        })
+                            //}
+                        //})
                     });
                 });
             })
