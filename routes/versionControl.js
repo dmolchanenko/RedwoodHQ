@@ -1,6 +1,7 @@
 var git = require('../gitinterface/gitcommands');
 var path = require('path');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
+var fs = require('fs');
 
 
 exports.getLocalVersionHistory = function(req, res){
@@ -31,8 +32,8 @@ exports.getVersionDiff = function(req,res){
     var gitPath = req.body.path.replace(workingDir+"/","");
     git.showFileContents(workingDir,gitPath,req.body.version,function(data){
         response.prevVersion = data;
-        git.showFileContents(workingDir,gitPath,"HEAD",function(data){
-            response.currentVersion = data;
+        fs.readFile(req.body.path,function(err,data){
+            response.currentVersion = data.toString();
             res.json(response);
         });
     })

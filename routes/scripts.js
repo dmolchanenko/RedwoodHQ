@@ -245,7 +245,7 @@ exports.scriptsPull = function(req,res) {
             return;
         }
         git.addAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
-            git.commitAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
+            //git.commitAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
                 git.pull(rootDir + req.cookies.project + "/" + req.cookies.username, function (cliOut) {
                     git.gitFetch(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
                         git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
@@ -283,7 +283,7 @@ exports.scriptsPull = function(req,res) {
                         //accept theirs for binary
                     });
                 });
-            });
+            //});
         });
     });
 };
