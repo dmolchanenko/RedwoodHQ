@@ -980,18 +980,31 @@ function startTCExecution(id,variables,executionID,callback){
 }
 
 exports.logPost = function(req,res){
-    var record = req.body;
-    var executionID = record.executionID.replace(/-/g, '');
-    delete record.command;
-    delete record.executionID;
+    var insertLogMessage = function(record){
+        var executionID = record.executionID.replace(/-/g, '');
+        delete record.command;
+        delete record.executionID;
 
-    db.collection('executionlogs'+executionID, function(err, collection) {
-        collection.insert(record, {safe:true},function(err,returnData){
-            res.contentType('json');
-            res.json({success:true});
-            realtime.emitMessage("AddExecutionLog",record);
+        db.collection('executionlogs'+executionID, function(err, collection) {
+            collection.insert(record, {safe:true},function(err,returnData){
+                res.contentType('json');
+                res.json({success:true});
+
+                //setTimeout(function(){realtime.emitMessage("AddExecutionLog",record);},Math.floor(Math.random() * (200 - 0 + 1) + 0));
+
+            });
         });
-    });
+    };
+    if(Array.isArray(req.body) == true){
+        req.body.forEach(function(record){
+            insertLogMessage(record);
+        });
+        realtime.emitMessage("AddExecutionLog",req.body);
+    }
+    else{
+        insertLogMessage(req.body);
+        realtime.emitMessage("AddExecutionLog",[req.body]);
+    }
 };
 
 

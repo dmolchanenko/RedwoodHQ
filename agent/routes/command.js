@@ -12,6 +12,8 @@ var basePythonPort = 6445;
 var baseCSharpPort = 8445;
 var baseExecutionDir = path.resolve(__dirname,"../executionfiles");
 var actionCache = {};
+var logCache = [];
+var logCacheUnit = [];
 
 exports.Post = function(req, res){
     var command = req.body;
@@ -571,10 +573,32 @@ function sendActionResult(result,host,port){
 }
 
 function sendLog(result,host,port){
-    var path = '/executionengine/logmessage';
     if(result.runType == "unittest"){
-        path = "/rununittest/log"
+        if(logCacheUnit.length == 0){
+            logCacheUnit.push(result);
+            setTimeout(function(){sendLogPost(logCacheUnit,host,port,"/rununittest/log");logCacheUnit = [];},4000);
+        }
+        else{
+            logCacheUnit.push(result);
+        }
     }
+    else{
+        if(logCache.length == 0){
+            logCache.push(result);
+            setTimeout(function(){sendLogPost(logCache,host,port,"/executionengine/logmessage");logCache = [];},4000);
+        }
+        else{
+            logCache.push(result);
+        }
+    }
+
+}
+
+function sendLogPost(result,host,port,path){
+    //var path = '/executionengine/logmessage';
+    //if(result.runType == "unittest"){
+    //    path = "/rununittest/log"
+    //}
     var options = {
         hostname: host,
         port: port,
@@ -595,7 +619,7 @@ function sendLog(result,host,port){
 
     req.on('error', function(e) {
         common.logger.error('problem with sendLog request: ' + e.message);
-        setTimeout(function(){sendLog(result,host,port);},10000);
+        setTimeout(function(){sendLogPost(result,host,port,path);},10000);
     });
 
     // write data to request body

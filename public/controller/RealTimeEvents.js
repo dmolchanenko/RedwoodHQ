@@ -491,12 +491,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,action);
         });
 
-        Ext.socket.on('AddExecutionLog',function(log){
+        Ext.socket.on('AddExecutionLog',function(logs){
             var controller = Redwood.app.getController("Executions");
-            var foundTab = controller.tabPanel.down("#"+log.resultID);
-            if (foundTab){
-                foundTab.logStore.add(log);
-            }
+            logs.forEach(function(log){
+                var foundTab = controller.tabPanel.down("#"+log.resultID);
+                if (foundTab){
+                    foundTab.logStore.add(log);
+                }
+            });
         });
 
         var UpdateExecutionTestCaseCache = {};

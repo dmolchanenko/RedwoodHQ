@@ -72,5 +72,12 @@ exports.unitTestResult = function(req,res){
 exports.unitTestLog = function(req,res){
     res.contentType('json');
     res.json({success:true});
-    realtime.emitMessage("UnitTestRun"+req.body.username,{message:req.body.message});
+    if(Array.isArray(req.body) == true){
+        req.body.forEach(function(record){
+            realtime.emitMessage("UnitTestRun"+req.body.username,{message:record.message});
+        });
+    }
+    else{
+        realtime.emitMessage("UnitTestRun"+req.body.username,{message:req.body.message});
+    }
 };
