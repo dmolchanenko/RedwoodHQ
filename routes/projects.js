@@ -128,6 +128,9 @@ function CloneProjects(data,emit,callback){
                                                     if(cloneData == null) {
                                                         return;
                                                     }
+                                                    if(cloneData.afterState && cloneData.afterState != ""){
+                                                        cloneData.afterState = actionMapping[cloneData.afterState]
+                                                    }
                                                     if(cloneData.type == 'collection'){
                                                         cloneData.collection.forEach(function(step){
                                                             step.actionid = actionMapping[step.actionid];
