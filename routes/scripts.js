@@ -40,68 +40,75 @@ exports.findText = function(req,res){
 };
 
 exports.notPushedScripts = function(req,res){
-    git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,true,function(filesNotPushed){
-        var filesNP = [];
-        if ((filesNotPushed != "")&&(filesNotPushed.indexOf("\n") != -1)){
-            filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/g).length);
+    isProjectRemote(req.cookies.project,function(remote,externalRepoURL) {
+        var repo = "origin/master";
+        if (remote == true) {
+            repo = "remotes/remoteRepo/"+req.cookies.username;
         }
 
-        var notPushedTree = [];
-        var dirsAdded = {};
-        filesNP.forEach(function(file){
-            var state = file.split("\t")[0];
-            file = file.split("\t")[1];
-            var dirs = file.split("/");
-            var lastDir = null;
-            dirs.forEach(function(dir,index){
-                if(index >= dirs.length - 1){
-                    var fileNotPushed = {checked:true,leaf:true,name:dir,fullpath:file,icon:getFileTypeIcon(file)};
-                    if(state == "A"){
-                        fileNotPushed.text = '<span style="color:green">' + dir + '</span>';
-                    }
-                    else if(state == "M"){
-                        fileNotPushed.text = '<span style="color:blue">' + dir + '</span>';
-                    }
-                    else if(state == "D"){
-                        fileNotPushed.text = '<span style="color:red">' + dir + '</span>';
-                    }
-                    else{
-                        fileNotPushed.text = '<span style="color:black">' + dir + '</span>';
+        git.filesNotPushed(rootDir+req.cookies.project+"/"+req.cookies.username,true,repo,function(filesNotPushed){
+            var filesNP = [];
+            if ((filesNotPushed != "")&&(filesNotPushed.indexOf("\n") != -1)){
+                filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/g).length);
+            }
+
+            var notPushedTree = [];
+            var dirsAdded = {};
+            filesNP.forEach(function(file){
+                var state = file.split("\t")[0];
+                file = file.split("\t")[1];
+                var dirs = file.split("/");
+                var lastDir = null;
+                dirs.forEach(function(dir,index){
+                    if(index >= dirs.length - 1){
+                        var fileNotPushed = {checked:true,leaf:true,name:dir,fullpath:file,icon:getFileTypeIcon(file)};
+                        if(state == "A"){
+                            fileNotPushed.text = '<span style="color:green">' + dir + '</span>';
+                        }
+                        else if(state == "M"){
+                            fileNotPushed.text = '<span style="color:blue">' + dir + '</span>';
+                        }
+                        else if(state == "D"){
+                            fileNotPushed.text = '<span style="color:red">' + dir + '</span>';
+                        }
+                        else{
+                            fileNotPushed.text = '<span style="color:black">' + dir + '</span>';
+                        }
+                        if(lastDir == null){
+                            notPushedTree.push(fileNotPushed);
+                        }
+                        else{
+                            lastDir.children.push(fileNotPushed);
+                        }
+                        return;
                     }
                     if(lastDir == null){
-                        notPushedTree.push(fileNotPushed);
+                        for(var i=0;i<notPushedTree.length;i++){
+                            if(dir == notPushedTree[i].name){
+                                lastDir = notPushedTree[i];
+                                return;
+                            }
+                        }
+                        lastDir = {expanded:true,checked:true,text:dir,name:dir,cls:"folder",leaf:false,children:[]};
+                        notPushedTree.push(lastDir);
                     }
                     else{
-                        lastDir.children.push(fileNotPushed);
-                    }
-                    return;
-                }
-                if(lastDir == null){
-                    for(var i=0;i<notPushedTree.length;i++){
-                        if(dir == notPushedTree[i].name){
-                            lastDir = notPushedTree[i];
-                            return;
+                        for(var i2=0;i2<lastDir.children.length;i2++){
+                            if(dir == lastDir.children[i2].name){
+                                lastDir = lastDir.children[i2];
+                                return;
+                            }
                         }
+                        var DirToAdd = {expanded:true,checked:true,text:dir,name:dir,cls:"folder",leaf:false,children:[]};
+                        lastDir.children.push(DirToAdd);
+                        lastDir = DirToAdd;
                     }
-                    lastDir = {expanded:true,checked:true,text:dir,name:dir,cls:"folder",leaf:false,children:[]};
-                    notPushedTree.push(lastDir);
-                }
-                else{
-                    for(var i2=0;i2<lastDir.children.length;i2++){
-                        if(dir == lastDir.children[i2].name){
-                            lastDir = lastDir.children[i2];
-                            return;
-                        }
-                    }
-                    var DirToAdd = {expanded:true,checked:true,text:dir,name:dir,cls:"folder",leaf:false,children:[]};
-                    lastDir.children.push(DirToAdd);
-                    lastDir = DirToAdd;
-                }
 
-            })
+                })
+            });
+            res.contentType('json');
+            res.json({notPushed:notPushedTree});
         });
-        res.contentType('json');
-        res.json({notPushed:notPushedTree});
     });
 };
 
@@ -130,13 +137,28 @@ exports.scriptsPush = function(req,res) {
             git.attachHEAD(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
                 //git.addAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
                     git.commit(rootDir + req.cookies.project + "/" + req.cookies.username,req.body.files, req.body.comment,function () {
-                        git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code) {
-                            res.contentType('json');
-                            if(code != 0){
-                                res.json({success:true,error:"Push did not succeed please do a pull first."});
+                        isProjectRemote(req.cookies.project,function(remote,externalRepoURL){
+                            if(remote == true){
+                                git.pushRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",req.cookies.username,function(code,cliOut) {
+                                    res.contentType('json');
+                                    if(code != 0){
+                                        res.json({success:true,error:"Push did not succeed please do a pull first.  "+cliOut});
+                                    }
+                                    else{
+                                        res.json({success:true});
+                                    }
+                                });
                             }
                             else{
-                                res.json({success:true});
+                                git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code) {
+                                    res.contentType('json');
+                                    if(code != 0){
+                                        res.json({success:true,error:"Push did not succeed please do a pull first."});
+                                    }
+                                    else{
+                                        res.json({success:true});
+                                    }
+                                });
                             }
                         });
                     });
@@ -234,7 +256,85 @@ exports.scriptsPush_old = function(req,res){
     })
 };
 
+function isProjectRemote(name,callback){
+    var app =  require('../common');
+    var db = app.getDB();
+    db.collection('projects', function(err, collection) {
+        collection.findOne({name:name},{},function(err,project){
+            callback(project.externalRepo,project.externalRepoURL);
+        })
+    })
+}
+
 exports.scriptsPull = function(req,res) {
+
+    var handleConflictsAndPip = function(cliOut){
+        git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
+            var files = [];
+            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+            }
+            handleConflicts(rootDir+req.cookies.project+"/"+req.cookies.username,files,function(nonBinaryFiles){
+                if(cliOut.indexOf("PipRequirements ") != -1){
+                    var uninstallAll = false;
+                    fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
+                        if(!data.match(/[^\W_]/)){
+                            uninstallAll = true;
+                        }
+                        script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
+                            res.contentType('json');
+                            res.json({success:true,conflicts:nonBinaryFiles});
+                            realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
+                        })
+                    });
+
+                }
+                else{
+                    res.contentType('json');
+                    res.json({success:true,conflicts:nonBinaryFiles});
+                }
+                //try and delete jar file to trigger compile from execution
+                try{
+                    git.attachHEAD(rootDir+req.cookies.project+"/"+req.cookies.username,function() {});
+                    fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){});
+                }
+                catch(err){}
+            })
+        });
+    };
+
+    var handleMerges = function(cliOut,remote,callback){
+        var index = cliOut.indexOf("Your local changes to the following files would be overwritten by merge:\n");
+
+        if(index != -1){
+            var n2 = cliOut.indexOf("Please, commit");
+            var conflictingFiles = cliOut.substring(index+74,n2).split("\n");
+            conflictingFiles.pop();
+            var count = 0;
+            conflictingFiles.forEach(function(file){
+                git.commit(rootDir + req.cookies.project + "/" + req.cookies.username,file,"merge commit",function(){
+                    count++;
+                    if(count == conflictingFiles.length){
+                        if(remote == true){
+                            //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
+                            git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', "master",function (cliOut) {
+                                callback(cliOut);
+                            });
+                        }
+                        else{
+                            git.pull(rootDir + req.cookies.project + "/" + req.cookies.username,function(cliOut){
+                                callback(cliOut);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+        else{
+            callback(cliOut);
+        }
+    };
+
     git.filesInConflict(rootDir + req.cookies.project + "/" + req.cookies.username, function (filesInConflict) {
         if (filesInConflict != "") {
             res.json({
@@ -244,47 +344,32 @@ exports.scriptsPull = function(req,res) {
             });
             return;
         }
-        git.addAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
+        //git.addAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
             //git.commitAll(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
-                git.pull(rootDir + req.cookies.project + "/" + req.cookies.username, function (cliOut) {
-                    git.gitFetch(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
-                        git.filesInConflict(rootDir+req.cookies.project+"/"+req.cookies.username,function(filesInConflict){
-                            var files = [];
-                            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
-                            }
-                            handleConflicts(rootDir+req.cookies.project+"/"+req.cookies.username,files,function(nonBinaryFiles){
-                                if(cliOut.indexOf("PipRequirements ") != -1){
-                                    var uninstallAll = false;
-                                    fs.readFile(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements","utf8",function(err,data){
-                                        if(!data.match(/[^\W_]/)){
-                                            uninstallAll = true;
-                                        }
-                                        script.runPip(rootDir+req.cookies.project+"/"+req.cookies.username+"/PipRequirements",uninstallAll,req.cookies.username,function(freezeData){
-                                            res.contentType('json');
-                                            res.json({success:true,conflicts:nonBinaryFiles});
-                                            realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
-                                        })
-                                    });
+            isProjectRemote(req.cookies.project,function(remote,externalRepoURL){
+                    if(remote == true){
+                        //git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
+                            git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
+                                handleMerges(cliOut,true,function(cliOut){
+                                    handleConflictsAndPip(cliOut);
+                                });
+                            });
+                        //})
+                    }
+                    else{
+                        git.pull(rootDir + req.cookies.project + "/" + req.cookies.username, function (cliOut) {
+                            handleMerges(cliOut,false,function(cliOut){
+                                handleConflictsAndPip(cliOut);
+                            });
+                            //git.gitFetch(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
 
-                                }
-                                else{
-                                    res.contentType('json');
-                                    res.json({success:true,conflicts:nonBinaryFiles});
-                                }
-                                //try and delete jar file to trigger compile from execution
-                                try{
-                                    git.attachHEAD(rootDir+req.cookies.project+"/"+req.cookies.username,function() {});
-                                    fs.unlink(rootDir+req.cookies.project+"/"+req.cookies.username+"/build/jar/"+req.cookies.project+".jar",function(err){});
-                                }
-                                catch(err){}
-                            })
+                                //accept theirs for binary
+                            //});
                         });
-                        //accept theirs for binary
-                    });
-                });
+                    }
+            });
             //});
-        });
+        //});
     });
 };
 
@@ -440,7 +525,7 @@ function handleConflicts(workingDir,files,callback){
                                     handleConflicts(workingDir,files,function(){
                                         callback([])
                                     })
-                                })
+                                });
                             //}
                         //})
                     });
@@ -454,7 +539,7 @@ function handleConflicts(workingDir,files,callback){
 }
 
 exports.scriptsGet = function(req, res){
-    GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,req.cookies.project,function(data){
+    GetScripts(rootDir+req.cookies.project+"/"+req.cookies.username,req.cookies.project,req.cookies.username,function(data){
         res.contentType('json');
         res.json(data);
         /*
@@ -785,28 +870,35 @@ function CopyScripts(scripts,destDir,projectDir,callback){
     });
 }
 
-function GetScripts(rootDir,project,callback){
+function GetScripts(rootDir,project,user,callback){
     git.filesInConflict(rootDir,function(filesInConflict){
-        git.filesNotPushed(rootDir,false,function(filesNotPushed){
-            var files = [];
-            if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
-                files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
+        isProjectRemote(project,function(remote,externalRepoURL){
+            var repo = "origin/master";
+            if(remote == true){
+                repo = "remotes/remoteRepo/"+user
             }
 
-            var filesNP = [];
-            if ((filesNotPushed != "")&&(filesNotPushed.indexOf("\n") != -1)){
-                filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/g).length);
-            }
-            walkDir(rootDir,files,filesNP, function(err, results) {
-                if (err) {
-                    callback({error:err});
+            git.filesNotPushed(rootDir,false,repo,function(filesNotPushed){
+                var files = [];
+                if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
+                    files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
                 }
-                else{
-                    //images.getImages(project,function(images){
-                        //results.push({name:"Images",fileType:"folder",text:"Images",children:images});
-                        callback(results);
-                    //});
+
+                var filesNP = [];
+                if ((filesNotPushed != "")&&(filesNotPushed.indexOf("\n") != -1)){
+                    filesNP = filesNotPushed.split("\n",filesNotPushed.match(/\n/g).length);
                 }
+                walkDir(rootDir,files,filesNP, function(err, results) {
+                    if (err) {
+                        callback({error:err});
+                    }
+                    else{
+                        //images.getImages(project,function(images){
+                            //results.push({name:"Images",fileType:"folder",text:"Images",children:images});
+                            callback(results);
+                        //});
+                    }
+                });
             });
         });
     });

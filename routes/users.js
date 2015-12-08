@@ -8,6 +8,110 @@ var spawn = require('child_process').spawn;
 var realtime = require("./realtime");
 var scripts = require("./scripts");
 var script = require("./script");
+var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
+
+exports.usersSSHKeyPost = function(req,res){
+    //var createBranchAndKnownHosts = function(){
+    var sshDir = rootDir+req.cookies.project+"/"+req.cookies.username+"/.ssh";
+    var db = app.getDB();
+    db.collection('projects', function(err, collection) {
+        collection.findOne({name:req.cookies.project},{},function(err,project){
+            //callback(project.externalRepo,project.externalRepoURL);
+            var hostname = project.externalRepoURL;
+            var gitPos = hostname.indexOf("git@") + 4;
+            var hostEndPos = hostname.indexOf("/",gitPos);
+            var result = hostname.substring(gitPos , hostEndPos );
+            git.keyScan(rootDir + req.cookies.project + "/" + req.cookies.username,result,function(cliOut){
+                fs.writeFile(sshDir+"/known_hosts",cliOut,function(){
+                    git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
+                        git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(code,error){
+                            if(code != 0){
+                                res.json({
+                                    error:error,
+                                    success: true
+                                });
+                            }
+                            else{
+                                res.json({
+                                    error:"",
+                                    success: true
+                                });
+                            }
+                        })
+                    });
+                })
+            })
+        })
+    });
+    //};
+
+    /*
+    var sshDir = rootDir+req.cookies.project+"/"+req.cookies.username+"/.ssh";
+    fs.exists(sshDir,function(exists){
+        if(exists == true){
+            fs.writeFile(sshDir+"/id_rsa.pub",req.body.sshKey,function(){
+                res.json({
+                    error:null,
+                    success: true
+                });
+                createBranchAndKnownHosts();
+            })
+        }
+        else{
+            fs.mkdir(sshDir,function(){
+                fs.writeFile(sshDir+"/id_rsa.pub",req.body.sshKey,function(){
+                    res.json({
+                        error:null,
+                        success: true
+                    });
+                    createBranchAndKnownHosts();
+                })
+            })
+        }
+    });
+    */
+};
+
+exports.usersSSHKeyGet = function(req,res){
+    var generateKey = function(){
+        git.keyGen(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
+            fs.readFile(sshFile,function(err,data){
+                res.json({
+                    error:err,
+                    success: !err,
+                    sshKey: data.toString()
+                });
+            });
+        })
+    };
+
+    var sshDir = rootDir+req.cookies.project+"/"+req.cookies.username+"/.ssh";
+    var sshFile = rootDir+req.cookies.project+"/"+req.cookies.username+"/.ssh/id_rsa.pub";
+    fs.exists(sshFile,function(exists){
+        if(exists == true){
+            fs.readFile(sshFile,function(err,data){
+                res.json({
+                    error:err,
+                    success: !err,
+                    sshKey: data.toString()
+                });
+            });
+        }
+        else{
+            fs.exists(sshDir,function(exists){
+                if(exists == true){
+                    generateKey()
+                }
+                else{
+                    fs.mkdir(sshDir,function(){
+                       generateKey()
+                    });
+                }
+            });
+        }
+    });
+
+};
 
 exports.usersPut = function(req, res){
     var db = app.getDB();

@@ -182,6 +182,13 @@ Ext.define('Redwood.view.Viewport', {
                                 plain:true,
                                 items:[
                                     {
+                                        text: 'SSH Key',
+                                        handler: function(){
+                                            var win = Ext.create('Redwood.view.SSHKeyView',{});
+                                            win.show();
+                                        }
+                                    },
+                                    {
                                         text: 'Logout',
                                         handler : function() {
                                             Ext.Msg.show({

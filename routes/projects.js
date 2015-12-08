@@ -6,6 +6,8 @@ var realtime = require("../routes/realtime");
 var app =  require('../common');
 var spawn = require('child_process').spawn;
 var ncp = require('ncp').ncp;
+var git = require('../gitinterface/gitcommands');
+var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 
 exports.allProjects = function(callback){
     GetProjects(app.getDB(),{},callback);
@@ -15,6 +17,11 @@ exports.projectsPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
     data._id = db.bson_serializer.ObjectID(data._id);
+    if(data.externalRepo == true){
+        git.removeRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",function(){
+            git.addRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",data.externalRepoURL)
+        })
+    }
     UpdateProjects(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -50,6 +57,11 @@ exports.projectsDelete = function(req, res){
 exports.projectsPost = function(req, res){
     var data = req.body;
     delete data._id;
+    if(data.externalRepo == true){
+        git.removeRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",function(){
+            git.addRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",data.externalRepoURL)
+        })
+    }
     CreateProjects(data,true,function(returnData){
         res.contentType('json');
         res.json({

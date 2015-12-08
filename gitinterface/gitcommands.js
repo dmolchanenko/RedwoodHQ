@@ -499,12 +499,12 @@ exports.lsFiles = function(workdir,query,callback){
 
 };
 
-exports.filesNotPushed = function(workdir,status,callback){
+exports.filesNotPushed = function(workdir,status,repo,callback){
     var statusOption = "--name-only";
     if(status == true){
         statusOption = "--name-status"
     }
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff',statusOption,'origin/master'],{cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff',statusOption,repo],{cwd: workdir,timeout:300000});
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['diff','--name-only','origin/master', 'HEAD'],{cwd: workdir,timeout:300000});
     var cliData = "";
 
@@ -591,6 +591,39 @@ exports.init = function(workdir,callback){
     });
 };
 
+exports.addRemote = function(workdir,name,url,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['remote','add',name,url],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('addRemote stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback();
+    });
+};
+
+exports.removeRemote = function(workdir,name,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['remote','remove',name],{cwd: workdir,timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('removeRemote stderr: ' + data);
+        callback();
+    });
+
+    git.on('close', function (code) {
+        callback();
+    });
+};
+
 exports.push = function(workdir,callback){
     common.logger.info("push");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push','origin','master'],{cwd: workdir,timeout:300000});
@@ -625,6 +658,49 @@ exports.pushSkipCommits = function(workdir,skipCommits,callback){
     });
 };
 
+exports.keyScan = function(workdir,hostname,callback){
+    var args = [];
+    if(hostname.indexOf(":") != -1){
+        args.push("-p");
+        args.push(hostname.split(":")[1]);
+        args.push(hostname.split(":")[0]);
+    }
+    else{
+        args.push(hostname)
+    }
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/ssh-keyscan'),args,{cwd: workdir,env:{HOME:workdir},timeout:300000});
+    var cliOut = "";
+
+    git.stdout.on('data', function (data) {
+        cliOut = cliOut + data.toString();
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('keyScan stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliOut);
+    });
+};
+
+exports.keyGen = function(workdir,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/ssh-keygen'),["-t","rsa","-N","","-f",".ssh/id_rsa"],{cwd: workdir,env:{HOME:workdir},timeout:300000});
+
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('keyGen stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(code);
+    });
+};
+
 exports.pushDryRun = function(workdir,callback){
     common.logger.info("push");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push','origin','master','--dry-run'],{cwd: workdir,timeout:300000});
@@ -642,6 +718,50 @@ exports.pushDryRun = function(workdir,callback){
     });
 };
 
+exports.pushRemote = function(workdir,repoName,branch,callback){
+    //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push',repoName,branch],{env:{HOME:workdir},cwd: workdir,timeout:300000});
+
+    var cliOut = "";
+    git.stdout.on('data', function (data) {
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        cliOut = cliOut + data.toString();
+        common.logger.error('pushRemote stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(code,cliOut);
+    });
+};
+
+exports.pullRemote = function(workdir,repoName,branch,callback){
+    common.logger.info("pull");
+    //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull',repoName,branch],{env:{HOME:workdir},cwd: workdir,timeout:300000});
+
+    var cliOut = "";
+    git.stdout.on('data', function (data) {
+        cliOut = cliOut + data.toString();
+        common.logger.info('stdout: ' + data);
+    });
+
+    git.stderr.on('data', function (data) {
+        cliOut = cliOut + data.toString();
+        if(cliOut.indexOf("Couldn't find remote ref") != -1){
+            //git.stdin.write('y\n');
+
+        }
+        common.logger.error('pull stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliOut);
+    });
+};
+
 exports.pull = function(workdir,callback){
     common.logger.info("pull");
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
@@ -654,6 +774,7 @@ exports.pull = function(workdir,callback){
     });
 
     git.stderr.on('data', function (data) {
+        cliOut = cliOut + data.toString();
         common.logger.error('pull stderr: ' + data);
     });
 

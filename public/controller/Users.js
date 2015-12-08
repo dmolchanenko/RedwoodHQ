@@ -3,7 +3,7 @@ Ext.define("Redwood.controller.Users", {
 
     models: ['Users','UserTags'],
     stores: ['Users','UserTags'],
-    views:  ['Users','UserEdit'],
+    views:  ['Users','UserEdit','SSHKeyView'],
 
     init: function () {
         this.control({

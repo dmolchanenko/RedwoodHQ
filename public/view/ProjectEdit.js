@@ -70,6 +70,8 @@ Ext.define('Redwood.view.ProjectEdit', {
                                 newProject.name = form.getFieldValues().name;
                                 newProject.language = form.getFieldValues().language;
                                 newProject.template = form.getFieldValues().template;
+                                newProject.externalRepo = form.getFieldValues().externalRepo;
+                                newProject.externalRepoURL = form.getFieldValues().externalRepoURL;
                                 newProject.tcFields = [];
                                 window.down("#tcFields").store.each(function(item){
                                     newProject.tcFields.push(item.data);
@@ -81,6 +83,8 @@ Ext.define('Redwood.view.ProjectEdit', {
                                     var projectRecord = Ext.data.StoreManager.lookup('Projects').query("name",me.dataRecord.get("name")).getAt(0);
                                     projectRecord.dirty = true;
                                     projectRecord.set("tcFields",newProject.tcFields);
+                                    projectRecord.set("externalRepo",newProject.externalRepo);
+                                    projectRecord.set("externalRepoURL",newProject.externalRepoURL);
                                 }
                                 Ext.data.StoreManager.lookup('Projects').sync();
                             }
@@ -150,6 +154,34 @@ Ext.define('Redwood.view.ProjectEdit', {
                     }
                 },
                 {
+                    xtype:'checkbox',
+                    name:'externalRepo',
+                    fieldLabel:'Use External Code Repository',
+                    handler: function(checkbox,checked) {
+                        if(checked === true){
+                            me.down("#externalRepoURL").setDisabled(false);
+                            me.down("#externalRepoURL").allowBlank = false;
+                        }
+                        else{
+                            me.down("#externalRepoURL").setDisabled(true);
+                        }
+                    }
+                },
+                {
+                    xtype:'textfield',
+                    itemId:'externalRepoURL',
+                    name:'externalRepoURL',
+                    fieldLabel:'External Repo URL',
+                    disabled:true,
+                    listeners: {
+                        specialkey: function(field, e){
+                            if (e.getKey() == e.ENTER) {
+                                this.up('form').down("#submit").handler();
+                            }
+                        }
+                    }
+                },
+                {
                     xtype:"text",
                     text:"Test Case Custom Fields:",
                     hidden:true
@@ -170,6 +202,15 @@ Ext.define('Redwood.view.ProjectEdit', {
             this.down('form').getForm().findField("name").setDisabled(true);
             this.down('form').getForm().findField("template").setValue(me.dataRecord.get("template"));
             this.down('form').getForm().findField("template").setDisabled(true);
+            if(me.dataRecord.get("externalRepo") && me.dataRecord.get("externalRepo") == true){
+                this.down('form').getForm().findField("externalRepoURL").setDisabled(false);
+                this.down('form').getForm().findField("externalRepoURL").setValue(me.dataRecord.get("externalRepoURL"));
+                this.down('form').getForm().findField("externalRepo").setValue(true);
+            }
+            else{
+                this.down('form').getForm().findField("externalRepoURL").setDisabled(true);
+                this.down('form').getForm().findField("externalRepo").setValue(false);
+            }
         }
         else if(this.cloneProject == true){
             this.down('form').getForm().findField("template").setValue(me.dataRecord.get("template"));

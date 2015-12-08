@@ -230,6 +230,8 @@ app.put('/users/:id',auth.auth, users.usersPut);
 app.post('/users',auth.auth, users.usersPost);
 app.del('/users/:id',auth.auth, users.usersDelete);
 app.post('/canadduser',auth.auth, users.canAddUser);
+app.post('/users/sshkey',auth.auth, users.usersSSHKeyPost);
+app.get('/users/sshkey',auth.auth, users.usersSSHKeyGet);
 
 //testsets
 app.get('/testsets', auth.auth, testsets.testsetsGet);
