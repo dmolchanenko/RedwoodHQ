@@ -7,7 +7,7 @@ var spawn = require('child_process').spawn;
 var realtime = require("./realtime");
 var curentPipProcs = {};
 var scripts = require("./scripts");
-
+var app = require('../common');
 
 exports.runPipGet = function(req,res){
     if(curentPipProcs[req.cookies.username] == true){
@@ -59,11 +59,25 @@ exports.mergeInfo = function(req,res){
 exports.resolveConflict = function(req, res){
     var workDir = rootDir+req.cookies.project+"/"+req.cookies.username;
     ResolveConflict(workDir,req.body.path,req.body.text,function(filesInConflict){
+        var db = app.getDB();
         var files = [];
         if ((filesInConflict != "")&&(filesInConflict.indexOf("\n") != -1)){
             files = filesInConflict.split("\n",filesInConflict.match(/\n/g).length);
         }
-        res.json({error:null,filesInConflict:files});
+
+        db.collection('projects', function(err, collection) {
+            collection.findOne({name: req.cookies.project}, {}, function (err, project) {
+                var hostname = project.externalRepoURL;
+                if(!hostname){
+                    res.json({error:null,filesInConflict:files});
+                    return;
+                }
+                git.pushRemote(workDir,"remoteRepo",req.cookies.username,function(){
+                    res.json({error:null,filesInConflict:files});
+                })
+            });
+        });
+
     });
 };
 
@@ -224,25 +238,11 @@ function ResolveConflict(workDir,file,data,callback){
             }
             git.add(workDir,file,function(){
                 git.commitForMerge(workDir,file,'conflict resoved',function(){
-                    //git.rebaseContinue(gitInfo.path,function(cliData){
-                        /*if(cliData.indexOf("--skip") != -1){
-                            git.rebaseSkip(gitInfo.path,function(cliData){
-                                git.filesInConflict(gitInfo.path,function(files){
-                                    scripts.handleConflicts(gitInfo.path,files,function(files){
-                                        callback(files);
-                                    })
-                                });
-                            });
-                        }
-                        else{
-                        */
-                            git.filesInConflict(workDir,function(files){
-                                scripts.handleConflicts(workDir,files,function(files){
-                                    callback(files);
-                                })
-                            });
-                        //}
-                    //})
+                    git.filesInConflict(workDir,function(files){
+                        scripts.handleConflicts(workDir,files,function(files){
+                            callback(files);
+                        })
+                    });
                 });
             });
         });

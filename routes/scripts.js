@@ -349,10 +349,13 @@ exports.scriptsPull = function(req,res) {
             isProjectRemote(req.cookies.project,function(remote,externalRepoURL){
                     if(remote == true){
                         //git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
-                            git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
-                                handleMerges(cliOut,true,function(cliOut){
-                                    handleConflictsAndPip(cliOut);
-                                });
+                            //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
+                            git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', 'master',function (cliOut) {
+                                git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(){
+                                    handleMerges(cliOut,true,function(cliOut){
+                                        handleConflictsAndPip(cliOut);
+                                    });
+                                })
                             });
                         //})
                     }
@@ -983,7 +986,7 @@ var walkDir = function(dir,filesInConflict,filesNotPushed, done) {
             fs.stat(file, function(err, stat) {
                 if (stat && stat.isDirectory()) {
                     //ignore .git dirs
-                    if ((file.indexOf(".git", file.length - 4) !== -1)||((file.indexOf("build", file.length - 5) !== -1)&&(file.indexOf("src/") == -1))){
+                    if ((file.indexOf(".ssh", file.length - 4) !== -1)||(file.indexOf(".git", file.length - 4) !== -1)||((file.indexOf("build", file.length - 5) !== -1)&&(file.indexOf("src/") == -1))){
                         if (!--pending) done(null, results);
                         return;
                     }

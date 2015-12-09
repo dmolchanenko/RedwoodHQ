@@ -18,27 +18,38 @@ exports.usersSSHKeyPost = function(req,res){
         collection.findOne({name:req.cookies.project},{},function(err,project){
             //callback(project.externalRepo,project.externalRepoURL);
             var hostname = project.externalRepoURL;
+            if(!hostname){
+                res.json({
+                    error:"This project does not have a remote repo assigned to it.",
+                    success: true
+                });
+                return;
+            }
             var gitPos = hostname.indexOf("git@") + 4;
             var hostEndPos = hostname.indexOf("/",gitPos);
             var result = hostname.substring(gitPos , hostEndPos );
-            git.keyScan(rootDir + req.cookies.project + "/" + req.cookies.username,result,function(cliOut){
-                fs.writeFile(sshDir+"/known_hosts",cliOut,function(){
-                    git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
-                        git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(code,error){
-                            if(code != 0){
-                                res.json({
-                                    error:error,
-                                    success: true
-                                });
-                            }
-                            else{
-                                res.json({
-                                    error:"",
-                                    success: true
-                                });
-                            }
+            git.removeRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",function(){
+                git.addRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",project.externalRepoURL,function(){
+                    git.keyScan(rootDir + req.cookies.project + "/" + req.cookies.username,result,function(cliOut){
+                        fs.writeFile(sshDir+"/known_hosts",cliOut,function(){
+                            git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
+                                git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(code,error){
+                                    if(code != 0){
+                                        res.json({
+                                            error:error,
+                                            success: true
+                                        });
+                                    }
+                                    else{
+                                        res.json({
+                                            error:"",
+                                            success: true
+                                        });
+                                    }
+                                })
+                            });
                         })
-                    });
+                    })
                 })
             })
         })

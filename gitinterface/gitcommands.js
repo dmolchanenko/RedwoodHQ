@@ -740,7 +740,7 @@ exports.pushRemote = function(workdir,repoName,branch,callback){
 exports.pullRemote = function(workdir,repoName,branch,callback){
     common.logger.info("pull");
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull',repoName,branch],{env:{HOME:workdir},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--no-edit',repoName,branch],{env:{HOME:workdir},cwd: workdir,timeout:300000});
 
     var cliOut = "";
     git.stdout.on('data', function (data) {
