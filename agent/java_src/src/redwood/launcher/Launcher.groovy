@@ -29,6 +29,8 @@ class Launcher {
 
     public static Map<String,String> variables = [:]
 
+    public static def threadID
+
     public static log(String message){
         def toServer = [:]
         toServer.command = "Log Message"
@@ -90,6 +92,8 @@ class Launcher {
             if (action.testcaseName){
                 globals.testcaseName = action.testcaseName
             }
+
+            threadID = action.threadID
 
             if (action.variables){
                 action.variables.each{
