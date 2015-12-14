@@ -107,7 +107,7 @@ Ext.define('Redwood.view.ProjectEdit', {
                 name: 'name',
                 vtype:'projectName',
                 allowBlank: false,
-                maxLength: 20,
+                maxLength: 50,
                 enforceMaxLength:true,
                 listeners: {
                     specialkey: function(field, e){

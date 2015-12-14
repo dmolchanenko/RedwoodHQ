@@ -131,7 +131,7 @@ Ext.define('Redwood.view.Viewport', {
                             itemID: "projectSelection",
                             fieldLabel:"Choose Project",
                             labelStyle: "font-weight: bold",
-                            width: 250,
+                            width: 350,
                             forceSelection: true,
                             editable: false,
                             listeners:{
