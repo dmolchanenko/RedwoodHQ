@@ -43,7 +43,11 @@ exports.logIn = function (req,res,next){
 
 exports.logInSucess = function(req,res){
     userState.GetUserProject(req.cookies.username,function(project){
-        if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
+        if(req.cookies.deeplink){
+            res.clearCookie('deeplink');
+            res.json({error:null,redirect:req.cookies.deeplink});
+        }
+        else if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
             projects.allProjects(function(projects){
                 res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
                 res.json({error:null,redirect:"./index.html"});
@@ -76,6 +80,7 @@ exports.auth = function(req,res,next){
     if (sessions[req.cookies.username] != undefined){
         if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
             if (req.cookies.project == undefined){
+                res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
                 res.redirect("/login");
                 return;
             }
@@ -84,6 +89,7 @@ exports.auth = function(req,res,next){
             }
         }
     }
+    res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
     return res.redirect("/login");
 };
 
