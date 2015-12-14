@@ -685,8 +685,8 @@ exports.keyScan = function(workdir,hostname,callback){
     });
 };
 
-exports.keyGen = function(workdir,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/ssh-keygen'),["-t","rsa","-N","","-f",".ssh/id_rsa"],{cwd: workdir,env:{HOME:workdir},timeout:300000});
+exports.keyGen = function(workdir,label,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/ssh-keygen'),["-C",label,"-t","rsa","-N","","-f",".ssh/id_rsa"],{cwd: workdir,env:{HOME:workdir},timeout:300000});
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);

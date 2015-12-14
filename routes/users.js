@@ -85,15 +85,20 @@ exports.usersSSHKeyPost = function(req,res){
 
 exports.usersSSHKeyGet = function(req,res){
     var generateKey = function(){
-        git.keyGen(rootDir+req.cookies.project+"/"+req.cookies.username,function(){
-            fs.readFile(sshFile,function(err,data){
-                res.json({
-                    error:err,
-                    success: !err,
-                    sshKey: data.toString()
-                });
+        var db = app.getDB();
+        db.collection('users', function(err, collection) {
+            collection.findOne({username:req.cookies.username},{},function(err,u) {
+                git.keyGen(rootDir+req.cookies.project+"/"+req.cookies.username, u.email,function(){
+                    fs.readFile(sshFile,function(err,data){
+                        res.json({
+                            error:err,
+                            success: !err,
+                            sshKey: data.toString()
+                        });
+                    });
+                })
             });
-        })
+        });
     };
 
     var sshDir = rootDir+req.cookies.project+"/"+req.cookies.username+"/.ssh";
