@@ -80,7 +80,9 @@ exports.auth = function(req,res,next){
     if (sessions[req.cookies.username] != undefined){
         if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
             if (req.cookies.project == undefined){
-                res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
+                if(req.originalUrl != "/index.html"){
+                    res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
+                }
                 res.redirect("/login");
                 return;
             }
@@ -89,7 +91,9 @@ exports.auth = function(req,res,next){
             }
         }
     }
-    res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
+    if(req.originalUrl != "/index.html"){
+        res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
+    }
     return res.redirect("/login");
 };
 
