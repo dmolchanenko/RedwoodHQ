@@ -1509,6 +1509,7 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,executionID,callback
         }
 
         files.push({file:root+"/"+fileStats.name,dest:dest});
+        /*
         sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,3,executionID,function(error){
             if(error){
                 foundError = true;
@@ -1520,10 +1521,12 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,executionID,callback
                 callback();
             }
         })
+        */
     });
 
     walker.on("end",function(){
         if(files.length == 0) callback();
+        sendFiles();
     });
 }
 
