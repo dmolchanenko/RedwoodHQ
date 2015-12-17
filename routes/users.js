@@ -315,7 +315,7 @@ function DeleteUsers(db,data,callback){
                         var projectPath = path.resolve(__dirname,"../public/automationscripts/"+project.name);
                         var userPath = path.resolve(__dirname,"../public/automationscripts/"+project.name+"/"+data.username);
 
-                        var delDir = spawn(path.resolve(__dirname,'../vendor/Git/bin/rm'),['-rf',userPath],{cwd: projectPath,timeout:300000});
+                        var delDir = spawn(path.resolve(__dirname,'../vendor/Git/usr/rm'),['-rf',userPath],{cwd: projectPath,timeout:300000});
                         //var delDir = spawn("rmdir",['/S','/Q',userPath],{cwd: projectPath,timeout:300000});
 
                         /*

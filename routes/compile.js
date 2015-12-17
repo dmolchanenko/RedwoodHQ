@@ -85,7 +85,7 @@ function compileJava(buildDir,id,msg,callback,onFinish){
         compileProcs[id].proc.stderr.on('data', function(data) {
             //console.log(data.toString());
             callback(data.toString());
-            spawn(path.resolve(__dirname,'../vendor/Git/bin/rm'),['-rf',buildDir+"/build"],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+            spawn(path.resolve(__dirname,'../vendor/Git/usr/rm'),['-rf',buildDir+"/build"],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
         });
         compileProcs[id].proc.on('close', function(data){
             onFinish();
