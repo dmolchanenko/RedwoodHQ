@@ -987,11 +987,6 @@ exports.logPost = function(req,res){
 
         db.collection('executionlogs'+executionID, function(err, collection) {
             collection.insert(record, {safe:true},function(err,returnData){
-                res.contentType('json');
-                res.json({success:true});
-
-                //setTimeout(function(){realtime.emitMessage("AddExecutionLog",record);},Math.floor(Math.random() * (200 - 0 + 1) + 0));
-
             });
         });
     };
@@ -1005,6 +1000,8 @@ exports.logPost = function(req,res){
         insertLogMessage(req.body);
         realtime.emitMessage("AddExecutionLog",[req.body]);
     }
+    res.contentType('json');
+    res.json({success:true});
 };
 
 
