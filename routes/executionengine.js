@@ -591,7 +591,7 @@ function executeTestCases(testcases,executionID){
                     });
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
-                            if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                            if(executions[executionID] && executions[executionID].sendEmail == true) sendNotification(executionID);
                             //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
                             deleteDir(os.tmpDir()+"/jar_"+executionID);
                             delete executions[executionID];
