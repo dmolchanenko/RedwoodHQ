@@ -45,7 +45,12 @@ exports.logInSucess = function(req,res){
     userState.GetUserProject(req.cookies.username,function(project){
         if(req.cookies.deeplink){
             res.clearCookie('deeplink');
-            res.json({error:null,redirect:req.cookies.deeplink});
+            if(req.cookies.deeplink.indexOf("index.html") != -1){
+                res.json({error:null,redirect:req.cookies.deeplink});
+            }
+            else{
+                res.json({error:null,redirect:"./index.html"});
+            }
         }
         else if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
             projects.allProjects(function(projects){
