@@ -477,6 +477,25 @@ exports.commitsSinceDate = function(workdir,date,callback){
 
 };
 
+exports.filesModifiedSinceDate = function(workdir,date,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/find'),['.','-not','-path',"'./build/*'",'-newermt',date,'-type','f'],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+        console.log(cliData);
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('filesModifiedSinceDate stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.lsFiles = function(workdir,query,callback){
     var params = query;
     params.unshift("-o");

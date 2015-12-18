@@ -321,8 +321,8 @@ function compileBuild(project,username,callback){
 function needToCompilePython(workDir,project,username,callback){
     var needToCompile = true;
     if(compilations[project+username+"python"]){
-        git.commitsSinceDate(workDir,compilations[project+username+"python"],function(data){
-            if (data == "0\n"){
+        git.filesModifiedSinceDate(workDir,compilations[project+username+"python"],function(data){
+            if (data == ""){
                 needToCompile = false;
             }
             else{
@@ -346,8 +346,8 @@ function needToCompileJava(workDir,project,callback){
                     callback(needToCompile);
                 }
                 else{
-                    git.commitsSinceDate(workDir,stats.mtime,function(data){
-                        if (data == "0\n"){
+                    git.filesModifiedSinceDate(workDir,stats.mtime,function(data){
+                        if (data == ""){
                             needToCompile = false;
                         }
                         callback(needToCompile)
@@ -370,8 +370,8 @@ function needToCompileCSharp(workDir,project,callback){
                     callback(needToCompile);
                 }
                 else{
-                    git.commitsSinceDate(workDir,stats.mtime,function(data){
-                        if (data == "0\n"){
+                    git.filesModifiedSinceDate(workDir,stats.mtime,function(data){
+                        if (data == ""){
                             needToCompile = false;
                         }
                         callback(needToCompile)
