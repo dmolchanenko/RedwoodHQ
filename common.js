@@ -13,8 +13,14 @@ var common = require("./common");
 exports.parseConfig = function(callback){
     var conf = fs.readFileSync(__dirname+"/properties.conf");
     var i = 0;
-    var parsed = conf.toString().split("\n");
-    //var parsed = conf.toString().split("\r\n");
+    var parsed;
+    if(conf.toString().indexOf("\r\n") != -1){
+        parsed = conf.toString().split("\r\n");
+    }
+    else{
+        parsed = conf.toString().split("\n");
+    }
+
     parsed.forEach(function(line){
         line = line.replace("\r","");
         i++;

@@ -10,7 +10,13 @@ var http = require("http");
 exports.parseConfig = function(callback){
     var conf = fs.readFileSync(path.resolve(__dirname,"../")+"/properties.conf");
     var i = 0;
-    var parsed = conf.toString().split("\r\n");
+    var parsed;
+    if(conf.toString().indexOf("\r\n") != -1){
+        parsed = conf.toString().split("\r\n");
+    }
+    else{
+        parsed = conf.toString().split("\n");
+    }
     parsed.forEach(function(line){
         i++;
         if ((line.indexOf("#") != 0)&&(line.indexOf("=") != -1)){
