@@ -315,6 +315,7 @@ function GenerateReport(cliexecution,callback){
             xw.endElement();
 
             db.collection('executiontestcases', function(err, collection) {
+                var failed = false;
                 collection.find({executionID:execution._id}, {}, function(err, cursor) {
                     cursor.each(function(err, testcase) {
                         if(testcase == null) {
@@ -322,7 +323,12 @@ function GenerateReport(cliexecution,callback){
                             xw.endDocument();
                             //console.log(xw.toString());
                             fs.writeFile("result.xml",xw.toString(),function(){
-                                callback(0);
+                                if(failed == false){
+                                    callback(0);
+                                }
+                                else{
+                                    callback(1);
+                                }
                             });
                             return;
                         }
@@ -335,6 +341,7 @@ function GenerateReport(cliexecution,callback){
                             xw.endElement();
                         }
                         else if (testcase.result == "Failed"){
+                            failed = true;
                             xw.startElement('failure');
                             xw.writeAttribute('type',"Test Case Error");
                             xw.writeAttribute('message',testcase.error);
