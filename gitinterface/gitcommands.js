@@ -82,6 +82,24 @@ exports.filesInCommit = function(workdir,commit,callback){
 
 };
 
+exports.changeOrginURL = function(workdir,newURL,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['remote','set-url','origin',newURL],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        common.logger.error('changeOrginURL stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        if (callback) callback();
+    });
+
+};
+
 exports.rebaseContinue = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['rebase','--continue'],{cwd: workdir,timeout:300000});
     var cliData = "";

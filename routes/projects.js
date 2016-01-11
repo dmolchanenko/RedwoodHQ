@@ -109,6 +109,18 @@ function CloneProjects(data,emit,callback){
         data._id = app.getDB().bson_serializer.ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             ncp(path.resolve(__dirname,"../public/automationscripts/"+toClone), path.resolve(__dirname,"../public/automationscripts/"+data.name), function (err) {
+                var pointOriginRepo = function(){
+                    fs.readdir(path.resolve(__dirname,"../public/automationscripts/"+data.name),function(err, files){
+                        files.forEach(function(file){
+                            fs.stat(path.resolve(__dirname,"../public/automationscripts/"+data.name+"/"+file),function(err,stats){
+                                if(stats.isDirectory()){
+                                    git.changeOrginURL(path.resolve(__dirname,"../public/automationscripts/"+data.name+"/"+file),path.resolve(__dirname,"../public/automationscripts/"+data.name+"/master.git"));
+                                }
+                            })
+                        })
+                    })
+                };
+
                 var cloneCollection = function(name){
                     db.collection(name, function(err, collection) {
                         collection.find({project:toClone},{},function(err, cursor) {
@@ -231,6 +243,7 @@ function CloneProjects(data,emit,callback){
                 cloneCollection('testcaseTags');
                 cloneCollection('testsets');
                 cloneCollection('variableTags');
+                pointOriginRepo();
 
                 callback(returnData);
                 if (emit == true){
