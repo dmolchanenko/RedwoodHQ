@@ -7,6 +7,7 @@ exports.Post = function(req, res){
     var db = require('../common').getDB();
     var form = new multiparty.Form();
     form.parse(req, function(err, fields, files) {
+        if(!files) return;
         var tmp_path = files.file[0].path;
         var id = files.file[0].originalFilename;
         console.log("MY ID IS:"+id);
