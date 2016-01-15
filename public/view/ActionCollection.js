@@ -774,6 +774,7 @@ Ext.define('Redwood.view.ActionCollection', {
                         }
                     }
                 });
+                e.column.getEditor().setActive();
                 return;
             }
             else{

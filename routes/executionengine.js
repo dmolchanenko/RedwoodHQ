@@ -586,6 +586,7 @@ function executeTestCases(testcases,executionID){
                 if(shouldFinish == false) return;
                 unlockCloudMachines(executions[executionID].machines);
                 unlockMachines(executions[executionID].machines,function(){
+                    if(!executions[executionID]) return;
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
 
                     });
@@ -2481,7 +2482,7 @@ function sendNotification(executionID){
                 EXEcollection.findOne({_id:executionID}, {}, function(err, execution) {
                     if(!execution.emails) return;
                     if(execution.emails.length == 0) return;
-                    if((!settings.host) || (settings.host == "")) return;
+                    if((settings == null) || (!settings.host) || (settings.host == "")) return;
                     var options = {};
 
                     var subject = "Execution FINISHED: " + execution.name;
