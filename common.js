@@ -34,7 +34,6 @@ exports.parseConfig = function(callback){
 
     //find .NET location
     setNETLocation(function(){
-        console.log("Aga");
     });
 };
 
