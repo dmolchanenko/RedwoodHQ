@@ -12,7 +12,7 @@ if (process.argv[2] === "--stop"){
         var pids = fs.readFileSync(__dirname+"/app.pid").toString();
         fs.unlink(__dirname+"/app.pid");
         try{
-            process.kill(pids.split("\r\n")[1],"SIGTERM");
+            //process.kill(pids.split("\r\n")[1],"SIGTERM");
             process.kill(pids.split("\r\n")[0],"SIGTERM");
         }
         catch(err){

@@ -86,6 +86,7 @@ process.env.TEMP = __dirname + '/logs';
   app.use(express.errorHandler());
 //});
 //DB
+require("fs").writeFileSync(__dirname+"/app.pid",process.pid);
 
 // Routes
 app.post('/login',auth.logIn,auth.logInSucess);
