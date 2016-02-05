@@ -102,6 +102,10 @@ function compilePython(buildDir,id,msg,callback,onFinish){
     git.lsFiles(buildDir+"/src",["*.py"],function(data){
         if(data.indexOf(".py") != -1){
             callback("------------COMPILE PYTHON------------");
+            if(!compileProcs[id]){
+                onFinish();
+                return;
+            }
             compileProcs[id].pythonProc = spawn('"'+buildDir+'/PythonWorkDir/Scripts/python" -m compileall src',{cwd: buildDir,timeout:1800000,env:{}});
             var failed = false;
             compileProcs[id].pythonProc.stdout.on('data', function(data) {
