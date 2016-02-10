@@ -1002,12 +1002,14 @@ exports.logPost = function(req,res){
         realtime.emitMessage("AddExecutionLog",[req.body]);
     }
     res.contentType('json');
+    res.set('Connection','Close');
     res.json({success:true});
 };
 
 
 exports.actionresultPost = function(req, res){
     res.contentType('json');
+    res.set('Connection','Close');
     res.json({success:true});
 
     var execution = executions[req.body.executionID];
@@ -1678,7 +1680,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callbac
             });
         });
 
-        if( executions[executionID && executions[executionID].fileReqs]){
+        if( executions[executionID] && executions[executionID].fileReqs){
             executions[executionID].fileReqs.push(req);
         }
 
