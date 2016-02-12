@@ -244,10 +244,9 @@ function startLauncher(executionID,threadID,type,callback){
             }
             callback(data.toString());
         });
-        var cmdCache = "";
         var launcherCrashed = false;
         launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
-            cmdCache += data.toString();
+            var cmdCache = data.toString();
             //common.logger.info('stdout: ' + data.toString());
             if (data.toString().indexOf("launcher running.") != -1){
                 cmdCache = "";
@@ -549,7 +548,8 @@ function sendActionResult(result,host,port){
         method: 'POST',
         agent:false,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Connection': 'Close'
         }
     };
 
@@ -608,7 +608,8 @@ function sendLogPost(result,host,port,path){
         method: 'POST',
         agent:false,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Connection': 'Close'
         }
     };
 
