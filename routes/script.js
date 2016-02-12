@@ -197,7 +197,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
     });
 
     pip.stderr.on('data', function (data) {
-        common.logger.error('Setup Python Scripts stderr: ' + data);
+        app.logger.error('Setup Python Scripts stderr: ' + data);
     });
 
     pip.on('close', function (code) {
