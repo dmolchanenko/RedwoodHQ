@@ -250,9 +250,16 @@ function ResolveConflict(workDir,file,data,callback){
 }
 
 function GetScript(path,callback){
-    fs.readFile(path, 'utf8' ,function (err, data) {
-        if (err) callback({error:err});
-        callback(data);
+    fs.stat(path, function(err, stat) {
+        if(stat.size > 31457280){
+            callback("")
+        }
+        else{
+            fs.readFile(path, 'utf8' ,function (err, data) {
+                if (err) callback({error:err});
+                callback(data);
+            });
+        }
     });
 }
 
