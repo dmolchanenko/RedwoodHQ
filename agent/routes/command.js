@@ -245,8 +245,9 @@ function startLauncher(executionID,threadID,type,callback){
             callback(data.toString());
         });
         var launcherCrashed = false;
+        var cmdCache = "";
         launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
-            var cmdCache = data.toString();
+            cmdCache += data.toString();
             //common.logger.info('stdout: ' + data.toString());
             if (data.toString().indexOf("launcher running.") != -1){
                 cmdCache = "";
