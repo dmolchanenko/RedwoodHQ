@@ -99,17 +99,57 @@ Ext.define("Redwood.controller.Actions", {
         if (actionView.title === "[New Action]"){
             return;
         }
+        if(Ext.util.Cookies.get('role') == "Test Designer"){
+            Ext.Msg.show({title: "Error",msg:"Test Designer cannot delete actions.",iconCls:'error',buttons : Ext.MessageBox.OK});
+            return;
+        }
         Ext.Msg.show({
             title:'Delete Confirmation',
-            msg: "Are you sure you want to delete '"+ actionView.title + "' action?" ,
+            msg: "Are you sure you want to delete <b>'"+ actionView.title + "'</b> action?" ,
             buttons: Ext.Msg.YESNO,
             icon: Ext.Msg.QUESTION,
             fn: function(id){
                 if (id === "yes"){
-                    Ext.data.StoreManager.lookup('Actions').remove(actionView.dataRecord);
-                    Ext.data.StoreManager.lookup('Actions').sync({success:function(batch,options){} });
-                    actionView.dirty = false;
-                    actionView.close();
+                    var testcases = Ext.data.StoreManager.lookup('TestCases').queryBy(function(record){
+                        for(var i=0;i<record.get("collection").length;i++){
+                            if(record.get("collection")[i].actionid == actionView.dataRecord.get("_id")){
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+
+                    var actions = Ext.data.StoreManager.lookup('Actions').queryBy(function(record){
+                        for(var i=0;i<record.get("collection").length;i++){
+                            if(record.get("collection")[i].actionid == actionView.dataRecord.get("_id")){
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+
+                    if(testcases.getCount() > 0){
+                        Ext.Msg.show({
+                            title: 'Delete Confirmation',
+                            msg: "This action is used in <b>"+testcases.getCount()+"</b> test cases. Please remove it from all test cases before deleting it.",
+                            buttons: Ext.Msg.OK,
+                            icon: Ext.Msg.ERROR
+                        });
+                    }
+                    else if(actions.getCount() > 0){
+                        Ext.Msg.show({
+                            title: 'Delete Confirmation',
+                            msg: "This action is used in <b>"+actions.getCount()+"</b> actions. Please remove it from all actions before deleting it.",
+                            buttons: Ext.Msg.OK,
+                            icon: Ext.Msg.ERROR
+                        });
+                    }
+                    else{
+                        Ext.data.StoreManager.lookup('Actions').remove(actionView.dataRecord);
+                        Ext.data.StoreManager.lookup('Actions').sync({success:function(batch,options){} });
+                        actionView.dirty = false;
+                        actionView.close();
+                    }
                 }
             }
         });
