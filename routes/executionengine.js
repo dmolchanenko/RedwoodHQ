@@ -1567,15 +1567,20 @@ function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
             }
         });
     });
-    req.on('error', function(e) {
+
+    var retryMatch = function(message){
         if(retryCount <= 0){
-            if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
-            common.logger.error('matchFileWithAgent problem with request: ' + e.message+ ' ');
+            if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + message);
+            common.logger.error('matchFileWithAgent problem with request: ' + message+ ' ');
         }
         else{
             retryCount--;
             setTimeout(matchFileWithAgent(file,dest,agentHost,port,retryCount,callback),1000)
         }
+    }
+
+    req.on('error', function(e) {
+        retryMatch(e.message)
     });
     //fs.readFile(file, function(err, buf) {
         // write data to request body
@@ -1589,6 +1594,7 @@ function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
 
     s.on('error',function(err){
         s.destroy.bind(s);
+        retryMatch("Unable to read file:"+file)
     });
 
     s.on('close',function(){
