@@ -1418,7 +1418,7 @@ function agentBaseState(project,executionID,agentHost,port,threadID,callback){
         if(executions[executionID]){
             executions[executionID].fileReqs = [];
         }
-        else{
+        else if(executionID.indexOf("unittest") == -1){
             return;
         }
         //os.tmpDir()+"/jar_"+executionID
