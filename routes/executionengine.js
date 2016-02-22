@@ -1589,7 +1589,6 @@ function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
 
     s.on('error',function(err){
         s.destroy.bind(s);
-        s.end();
     });
 
     s.on('close',function(){
