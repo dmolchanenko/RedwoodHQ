@@ -204,7 +204,8 @@ function startLauncher(executionID,threadID,type,callback){
             launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/",PYTHONHOME:baseExecutionDir+"/"+executionID},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         else if(type == "csharp"){
-            var csharpLauncherPath = baseExecutionDir+"/"+executionID+"/lib/CSharpLauncher.exe";
+            //var csharpLauncherPath = baseExecutionDir+"/"+executionID+"/lib/CSharpLauncher.exe";
+            var csharpLauncherPath = path.resolve(__dirname,"../lib")+"/CSharpLauncher.exe";
             launcherProc[executionID+portNumber.toString()] = spawn(csharpLauncherPath,[portNumber.toString(),baseExecutionDir+"/"+executionID+"/lib/RedwoodHQAutomation.dll"],{cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         //launcherProc[executionID+portNumber.toString()] = require('child_process').execFile(javaPath+ " -cp " + classPath + " -Xmx512m "+"redwood.launcher.Launcher "+portNumber.toString(),{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
