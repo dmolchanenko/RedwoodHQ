@@ -1017,10 +1017,12 @@ exports.actionresultPost = function(req, res){
     var testcase = execution.currentTestCases[req.body.testcaseID];
     if (testcase == undefined) return;
 
+    var actionFlow = testcase.currentAction.dbAction.executionflow;
+
     if (testcase.testcase.script){
         testcase.result.status = "Finished";
         testcase.result.result = req.body.result;
-        if (req.body.error){
+        if (req.body.error && actionFlow != "Ignore Error Continue Test Case"){
             testcase.result.error = req.body.error;
         }
         else{
@@ -1042,16 +1044,20 @@ exports.actionresultPost = function(req, res){
     }
 
     testcase.currentAction.result.status = "Finished";
+    if (actionFlow != "Ignore Error Continue Test Case"){
+        testcase.result.error = req.body.error;
+    }
+
     testcase.currentAction.result.result = req.body.result;
     if(!testcase.result.error){
         testcase.result.error = "";
     }
-    if (req.body.error){
+    if (req.body.error && actionFlow != "Ignore Error Continue Test Case"){
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
     }
 
-    if (req.body.trace){
+    if (req.body.trace && actionFlow != "Ignore Error Continue Test Case"){
         testcase.result.trace = req.body.trace;
         testcase.currentAction.result.trace = req.body.trace;
         testcase.trace = req.body.trace;
@@ -1073,7 +1079,6 @@ exports.actionresultPost = function(req, res){
         //execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
     }
 
-    var actionFlow = testcase.currentAction.dbAction.executionflow;
     if (req.body.result == "Failed"){
         if (actionFlow == "Record Error Stop Test Case"){
             testcase.result.status = "Finished";
@@ -1102,8 +1107,6 @@ exports.actionresultPost = function(req, res){
             testcase.currentAction.result.result = "";
             testcase.currentAction.result.trace = "";
             testcase.currentAction.result.error = "";
-            testcase.result.result = "";
-            testcase.result.error = "";
         }
     }
 
@@ -1577,7 +1580,7 @@ function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
             retryCount--;
             setTimeout(matchFileWithAgent(file,dest,agentHost,port,retryCount,callback),1000)
         }
-    }
+    };
 
     req.on('error', function(e) {
         retryMatch(e.message)
