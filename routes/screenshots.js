@@ -16,7 +16,7 @@ exports.Post = function(req, res){
             if(!err){
                 db.collection('screenshots', function(err, collection) {
                     collection.save({file:new MongoDB.Binary(data),_id:id,executionID:req.cookies.executionID,resultID:req.cookies.resultID}, {safe:true},function(err,returnData){
-                        fs.unlink(tmp_path);
+                        fs.unlink(tmp_path,function(err){});
                         res.contentType('json');
                         res.json({
                             success: true

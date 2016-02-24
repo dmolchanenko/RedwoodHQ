@@ -55,7 +55,7 @@ exports.recordedImage = function(req, res){
             db.collection('images', function(err, collection) {
                 collection.save({file:new MongoDB.Binary(data),tolerance:"0.7",offset:{x:0,y:0},temp:true,project:req.cookies.project}, {safe:true},function(err,returnData){
                     realtime.emitMessage("ImageRecorded"+req.cookies.username,returnData);
-                    fs.unlink(tmp_path);
+                    fs.unlink(tmp_path,function(err){});
                     res.contentType('json');
                     res.json({
                         success: true

@@ -56,7 +56,10 @@ function GetScreenShot(db,query,callback){
 function GetLogs(db,query,executionID,callback){
     var logs = [];
     db.collection('executionlogs'+executionID.replace(/-/g, ''), function(err, LogCollection) {
-        if(err) callback(logs);
+        if(err) {
+            callback(logs);
+            return;
+        }
         LogCollection.find(query, {}, function(err, cursor) {
             cursor.each(function(err, log) {
                 if(log == null) {

@@ -458,7 +458,7 @@ function handleConflicts(workingDir,files,callback){
             if(matchHead != -1){
                 var fileName = cliFiles[matchHead].split(" ")[1];
                 fileName = fileName.split("~")[0];
-                fs.unlink(workingDir+"/"+cliFiles[matchHead].split(" ")[1]);
+                fs.unlink(workingDir+"/"+cliFiles[matchHead].split(" ")[1],function(err){});
                 git.resetFile(workingDir,fileName,function() {
                     git.acceptTheirs(workingDir, fileName, function () {
                         git.add(workingDir, fileName, function () {
