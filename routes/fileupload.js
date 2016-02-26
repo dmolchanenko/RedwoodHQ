@@ -27,7 +27,6 @@ exports.upload = function(req, res){
                 }
                 // delete the temporary file, so that the explicitly set temporary upload dir does not get filled with unwanted files
                 fs.unlink(tmp_path, function(err) {
-                    if(err) return;
                     var gitInfo = git.getGitInfo(target_path);
 
                     git.add(gitInfo.path,gitInfo.fileName,function(){
