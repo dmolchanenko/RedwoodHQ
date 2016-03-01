@@ -5,21 +5,21 @@ var logPath = path.resolve(__dirname,"../logs");
 
 
 if (process.argv[2] === "--stop"){
+    var pids;
     if (fs.existsSync(__dirname+"/agent.vnc.pid")){
-        var pids = fs.readFileSync(__dirname+"/agent.vnc.pid").toString();
+        pids = fs.readFileSync(__dirname+"/agent.vnc.pid").toString();
         fs.unlink(__dirname+"/agent.vnc.pid");
         try{
             process.kill(pids.split("\r\n")[0],"SIGTERM");
         }
         catch(err){}
-        setTimeout(function(){
-            try{
-                process.kill(pids.split("\r\n")[1],"SIGTERM");
-                process.kill(pids.split("\r\n")[2],"SIGTERM");
-            }
-            catch(err){}
-
-        },3000);
+    }
+    if (fs.existsSync(__dirname+"/agent.vncproxy.pid")){
+        pids = fs.readFileSync(__dirname+"/agent.vncproxy.pid").toString();
+        try{
+            process.kill(pids.split("\r\n")[0],"SIGTERM");
+        }
+        catch(err){}
     }
     return;
 }
