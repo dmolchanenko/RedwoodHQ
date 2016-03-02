@@ -1023,7 +1023,7 @@ exports.actionresultPost = function(req, res){
     if (testcase.testcase.script){
         testcase.result.status = "Finished";
         testcase.result.result = req.body.result;
-        if (req.body.error && (actionFlow == "Record Error Stop Test Case" || actionFlow == "Record Error Continue Test Case")){
+        if (req.body.error && actionFlow != "Ignore Error Continue Test Case"){
             testcase.result.error = req.body.error;
         }
         else{
@@ -1045,12 +1045,9 @@ exports.actionresultPost = function(req, res){
     }
 
     testcase.currentAction.result.status = "Finished";
-    if (actionFlow == "Record Error Stop Test Case" || actionFlow == "Record Error Continue Test Case"){
-        testcase.result.error = req.body.error;
-    }
 
     testcase.currentAction.result.result = req.body.result;
-    if (req.body.error && (actionFlow == "Record Error Stop Test Case" || actionFlow == "Record Error Continue Test Case")){
+    if (req.body.error && actionFlow != "Ignore Error Continue Test Case"){
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
     }
@@ -1059,7 +1056,7 @@ exports.actionresultPost = function(req, res){
         testcase.result.error = "";
     }
 
-    if (req.body.trace && (actionFlow == "Record Error Stop Test Case" || actionFlow == "Record Error Continue Test Case")){
+    if (req.body.trace && actionFlow != "Ignore Error Continue Test Case"){
         testcase.result.trace = req.body.trace;
         testcase.currentAction.result.trace = req.body.trace;
         testcase.trace = req.body.trace;
