@@ -82,7 +82,7 @@ exports.initDB = function(port,callback){
 
     var dbRetry = 420;
     var connect = function(){
-        var dbServer = new Server('localhost', parseInt(port), {auto_reconnect: true,safe:true});
+        var dbServer = new Server('localhost', parseInt(port), {poolSize :100,socketOptions:{socketTimeoutMS:30000,connectTimeoutMS:5000},auto_reconnect: true,safe:true});
         db = new Db('automationframework', dbServer);
         db.open(function(err, db) {
             if(!err) {
