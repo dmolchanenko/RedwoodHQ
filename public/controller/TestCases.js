@@ -40,7 +40,51 @@ Ext.define("Redwood.controller.TestCases", {
                 saveTestCase: this.onSaveTestCase,
                 editTestCase: this.onEditTestCase,
                 deleteTestCase: this.onDeleteTestCase,
-                cloneTestCase: this.onCloneTestCase
+                cloneTestCase: this.onCloneTestCase,
+                testCaseToCode: this.onTestCaseToCode
+            }
+        });
+    },
+
+    onTestCaseToCode: function(){
+        var testcaseView = this.tabPanel.getActiveTab();
+        var me = this;
+        if (testcaseView === null){
+            return;
+        }
+        if (testcaseView.title === "[New TestCase]"){
+            return;
+        }
+
+        if (testcaseView.xtype == "codeeditorpanel"){
+            return;
+        }
+
+        Ext.Ajax.request({
+            url:"/testcasetocode",
+            method:"POST",
+            jsonData : {_id:testcaseView.dataRecord.get("_id")},
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error){
+                    Ext.Msg.alert('Error', obj.error);
+                }
+                else{
+                    var tab = me.tabPanel.add({
+                        inCollab:false,
+                        inConflict:false,
+                        path:"",
+                        editorType:"text/x-groovy",
+                        title:"[Groovy Code]"+testcaseView.dataRecord.get("name"),
+                        closable:true,
+                        xtype:"codeeditorpanel",
+                        readOnly:true
+                    });
+                    me.tabPanel.setActiveTab(tab);
+                    tab.setValue(obj.code);
+                    tab.focus();
+                    tab.clearDirty();
+                }
             }
         });
     },
@@ -75,6 +119,9 @@ Ext.define("Redwood.controller.TestCases", {
         if (testcaseView === null){
             return;
         }
+        if (testcaseView.xtype == "codeeditorpanel"){
+            return;
+        }
         if (testcaseView.dirty === true){
             Ext.Msg.show({title: "Clone Error",msg:"Please save any changes before cloning selected test case.",iconCls:'error',buttons : Ext.MessageBox.OK});
             return;
@@ -106,6 +153,9 @@ Ext.define("Redwood.controller.TestCases", {
         var testcaseView = this.tabPanel.getActiveTab();
         var me = this;
         if (testcaseView === null){
+            return;
+        }
+        if (testcaseView.xtype == "codeeditorpanel"){
             return;
         }
         if (testcaseView.title === "[New TestCase]"){
@@ -204,6 +254,7 @@ Ext.define("Redwood.controller.TestCases", {
             testcaseView.dataRecord.set("afterState",testcase.afterState);
             testcaseView.dataRecord.set("script",testcase.script);
             testcaseView.dataRecord.set("scriptLang",testcase.scriptLang);
+            testcaseView.dataRecord.set("tcData",testcase.tcData);
             testcaseView.dataRecord.dirty = true;
 
             this.getStore('TestCases').sync();

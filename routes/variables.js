@@ -92,6 +92,10 @@ function DeleteVariables(db,data,callback){
 
 }
 
+exports.getVariables = function(db,query,callback){
+    GetVariables(db,query,callback);
+};
+
 function GetVariables(db,query,callback){
     var variables = [];
 

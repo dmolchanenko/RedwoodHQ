@@ -7,6 +7,7 @@ Ext.define('Redwood.ux.CodeEditorField', {
     anchor:     '100%',
     editorType: "text/x-groovy",
     fireSyncEvent: false,
+    readOnly: false,
 
     isFullScreen: function(){
         return /\bCodeMirror-fullscreen\b/.test(this.editor.getWrapperElement().className);
@@ -59,6 +60,7 @@ Ext.define('Redwood.ux.CodeEditorField', {
         var target = this.getEl().dom;
         target.innerHTML = "";
         this.editor = CodeMirror(target, {
+            readOnly:me.readOnly,
             styleActiveLine: true,
             lineNumbers: true,
             matchBrackets: true,
@@ -209,6 +211,7 @@ Ext.define('Redwood.ux.EditorPanel', {
     editorType: "text/x-groovy",
     title:"",
     closeAfterSave: false,
+    readOnly:false,
 
     initComponent: function() {
         var me = this;
@@ -218,6 +221,7 @@ Ext.define('Redwood.ux.EditorPanel', {
 
                 {
                     xtype: 'codeeditorfield',
+                    readOnly:me.readOnly,
                     editorType:me.editorType,
                     onChange: function(cm,changeOpt){
                         if (me.dirty == false){
