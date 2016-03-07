@@ -17,6 +17,7 @@ exports.runUnitTest = function(req,res){
         if (result != null){
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});
+            realtime.emitMessage("UnitTestStop"+username,{error:"Unable to compile scripts."});
         }
         else{
             res.contentType('json');
