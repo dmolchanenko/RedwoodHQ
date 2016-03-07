@@ -150,10 +150,10 @@ exports.scriptsPush = function(req,res) {
                                 });
                             }
                             else{
-                                git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code) {
+                                git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code,error) {
                                     res.contentType('json');
                                     if(code != 0){
-                                        res.json({success:true,error:"Push did not succeed please do a pull first."});
+                                        res.json({success:true,error:"Push did not succeed please do a pull first.\r\n"+error});
                                     }
                                     else{
                                         res.json({success:true});

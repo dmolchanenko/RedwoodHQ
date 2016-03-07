@@ -664,16 +664,18 @@ exports.removeRemote = function(workdir,name,callback){
 exports.push = function(workdir,callback){
     common.logger.info("push");
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['push','origin','master'],{cwd: workdir,timeout:300000});
+    var error = "";
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
+        error += data.toString();
         common.logger.error('push stderr: ' + data);
     });
 
-    git.on('close', function (code) {
+    git.on('close', function (code,error) {
         callback(code);
     });
 };
