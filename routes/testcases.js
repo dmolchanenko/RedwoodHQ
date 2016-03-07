@@ -77,6 +77,14 @@ exports.testCaseToCode = function(req,res){
                 });
             }
             else{
+                if(testcase.collection.length == 0 &&  (!testcase.afterState || testcase.afterstate == "")){
+                    res.contentType('json');
+                    res.json({
+                        success: true,
+                        code: ""
+                    });
+                    return;
+                }
                 turnTestCaseToCode(testcase,req.cookies.project,function(code){
                     res.contentType('json');
                     res.json({
