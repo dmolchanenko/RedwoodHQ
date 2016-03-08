@@ -1,4 +1,3 @@
-var forever = require('forever-monitor');
 var path = require('path');
 var fs = require('fs');
 var logPath = path.resolve(__dirname,"../logs");
