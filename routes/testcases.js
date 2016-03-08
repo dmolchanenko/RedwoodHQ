@@ -189,10 +189,10 @@ function turnTestCaseToCode(testcase,project,callback){
         }
 
         if(action.executionflow == "Record Error Continue Test Case"){
-            action.code = "        try{\r\n            //"+action.action.name+"\r\n           "+execCode+"\r\n         }\r\n       catch(all){println all}"
+            action.code = "        try{\r\n            //"+action.action.name+"\r\n            "+execCode+"\r\n        }\r\n       catch(all){println all}catch(Error err){println err}"
         }
         else if(action.executionflow == "Ignore Error Continue Test Case"){
-            action.code = "        try{\r\n            //"+action.action.name+"\r\n            "+execCode+"\r\n        }\r\n        catch(all){}"
+            action.code = "        try{\r\n            //"+action.action.name+"\r\n            "+execCode+"\r\n        }\r\n       catch(all){}catch(Error err){}"
         }
         else{
             action.code = "        //"+action.action.name+"\r\n        " +execCode;
