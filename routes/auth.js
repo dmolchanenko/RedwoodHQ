@@ -88,8 +88,8 @@ exports.auth = function(req,res,next){
                 if(req.originalUrl != "/index.html"){
                     res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
                 }
-                res.redirect("/login");
-                return;
+                //res.redirect("/login");
+                return next();
             }
             else{
                 return next();
