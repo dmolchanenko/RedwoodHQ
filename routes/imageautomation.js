@@ -3,7 +3,7 @@ var http = require("http");
 var path = require('path');
 var fs = require('fs');
 var common = require('../common');
-
+var ObjectID = require('mongodb').ObjectID;
 
 exports.recordImage = function(req, res){
     var app =  require('../common');
@@ -69,7 +69,7 @@ exports.recordedImage = function(req, res){
 exports.saveImage = function(req, res){
     var db = require('../common').getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     //var target_path = path.resolve(__dirname,"../public/automationscripts/"+req.cookies.project+"/"+req.cookies.username+"/Images/"+req.files.file.name);
     //console.log(target_path);
     db.collection('images', function(err, collection) {
@@ -106,7 +106,7 @@ exports.getImages = function(project,callback){
 exports.getImage = function(req, res){
     var db = require('../common').getDB();
     db.collection('images', function(err, collection) {
-        collection.findOne({_id:db.bson_serializer.ObjectID(req.params.id)}, {}, function(err, image) {
+        collection.findOne({_id:new ObjectID(req.params.id)}, {}, function(err, image) {
             if(image != null){
                 res.contentType("image/png");
                 res.end(image.file.buffer, "binary");

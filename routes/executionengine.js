@@ -19,6 +19,7 @@ var archiver = require('archiver');
 var db;
 var compilations = {};
 var fileSync = {};
+var ObjectID = require('mongodb').ObjectID;
 
 exports.stopexecutionPost = function(req, res){
     var execution = executions[req.body.executionID];
@@ -391,7 +392,7 @@ function applyMultiThreading(executionID,callback){
     var mainMachinesCount = executions[executionID].machines.length;
     executions[executionID].machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machine._id)}, {}, function(err, dbMachine) {
                 var startThread = 0;
                 if(dbMachine){
                     startThread = dbMachine.takenThreads - machine.threads;
@@ -400,7 +401,7 @@ function applyMultiThreading(executionID,callback){
                     startThread = dbMachine.lastStartThread + 1
                 }
 
-                collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
+                collection.findAndModify({_id:new ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
                 });
                 common.logger.info("staring at:"+startThread);
                 machine.threadID = startThread;
@@ -1841,7 +1842,7 @@ function resolveParamValue(value,variables){
 
 function createResult(result,callback){
     db.collection('testcaseresults', function(err, collection) {
-        result._id = db.bson_serializer.ObjectID(result._id);
+        result._id = new ObjectID(result._id);
         collection.insert(result, {safe:true},function(err,returnData){
             callback(returnData);
         });
@@ -1945,7 +1946,7 @@ function verifyMachineState(machines,callback){
     if(machines.length == 0 && callback) callback();
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machine._id)}, {}, function(err, dbMachine) {
 
                 if(dbMachine.maxThreads < dbMachine.takenThreads + machine.threads)
                 {
@@ -2102,7 +2103,7 @@ function lockMachines(machines,executionID,callback){
     machines.forEach(function(machine){
         updateExecutionMachine(executionID,machine._id,"","");
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machine._id)}, {}, function(err, dbMachine) {
                 if(dbMachine.maxThreads < dbMachine.takenThreads + machine.threads)
                 {
                     callback("Machine: "+ machine.host+" has reached thread limit.");
@@ -2116,7 +2117,7 @@ function lockMachines(machines,executionID,callback){
                     else{
                         takenThreads = machine.threads;
                     }
-                    updateMachine({_id:db.bson_serializer.ObjectID(machine._id)},{$set:{takenThreads:takenThreads,state:"Running "+takenThreads+ " of " + machine.maxThreads}},function(){
+                    updateMachine({_id:new ObjectID(machine._id)},{$set:{takenThreads:takenThreads,state:"Running "+takenThreads+ " of " + machine.maxThreads}},function(){
                         machineCount++;
                         if (machineCount == machines.length){
                             if(callback) callback();
@@ -2170,7 +2171,7 @@ function unlockMachines(allmachines,callback){
     unlockCloudMachines(allmachines);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
                 common.logger.info(dbMachine);
                 if(dbMachine != null) {
                     var takenThreads = 1;
@@ -2185,7 +2186,7 @@ function unlockMachines(allmachines,callback){
                     if (takenThreads > 0) state = "Running "+takenThreads+ " of " + dbMachine.maxThreads;
 
                     updateMachine({_id:dbMachine._id},{$set:{takenThreads:takenThreads,state:state}},function(){
-                    //updateMachine({_id:db.bson_serializer.ObjectID(dbMachine._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
+                    //updateMachine({_id:new ObjectID(dbMachine._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
                         machineCount++;
                         if (machineCount == machines.length){
                             if(callback) callback();
@@ -2308,7 +2309,7 @@ function findNextAction (actions,variables,callback){
 
 function deleteOldResult(testcaseID,executionID,callback){
     db.collection('testcaseresults', function(err, collection) {
-        collection.findOne({testcaseID:db.bson_serializer.ObjectID(testcaseID),executionID:executionID}, {}, function(err, result) {
+        collection.findOne({testcaseID:new ObjectID(testcaseID),executionID:executionID}, {}, function(err, result) {
             if(result == null) {
                 if(callback) callback();
                 return;
@@ -2340,7 +2341,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 cb();
                 return;
             }
-            collection.findOne({_id:db.bson_serializer.ObjectID(nextAction.actionid)}, {}, function(err, action) {
+            collection.findOne({_id:new ObjectID(nextAction.actionid)}, {}, function(err, action) {
                 if(action == null){
                     cb();
                     return;
@@ -2408,7 +2409,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
     deleteOldResult(testcaseID,executionID,function(){
         db.collection('testcases', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
+            collection.findOne({_id:new ObjectID(testcaseID)}, {}, function(err, testcase) {
                 if(testcase == null) {
                     callback(null);
                     return;

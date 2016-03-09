@@ -8,6 +8,7 @@ var spawn = require('child_process').spawn;
 var ncp = require('ncp').ncp;
 var git = require('../gitinterface/gitcommands');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
+var ObjectID = require('mongodb').ObjectID;
 
 exports.allProjects = function(callback){
     GetProjects(app.getDB(),{},callback);
@@ -16,7 +17,7 @@ exports.allProjects = function(callback){
 exports.projectsPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     //if(data.externalRepo == true){
     //    git.removeRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",function(){
     //        git.addRemote(rootDir+req.cookies.project+"/"+req.cookies.username,"remoteRepo",data.externalRepoURL)
@@ -43,7 +44,7 @@ exports.projectsGet = function(req, res){
 
 exports.projectsDelete = function(req, res){
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     DeleteProjects(app.getDB(),{_id: id},req.body.name,function(err){
         res.contentType('json');
         res.json({
@@ -88,7 +89,7 @@ exports.projectCreate = function(data,callback){
 
 function CreateProjects(data,emit,callback){
     app.getDB().collection('projects', function(err, collection) {
-        data._id = app.getDB().bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             scripts.CreateNewProject(data.name,data.language,data.template,function(){
                 callback(returnData);
@@ -106,7 +107,7 @@ function CloneProjects(data,emit,callback){
 
     var db = app.getDB();
     db.collection('projects', function(err, collection) {
-        data._id = app.getDB().bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             ncp(path.resolve(__dirname,"../public/automationscripts/"+toClone), path.resolve(__dirname,"../public/automationscripts/"+data.name), function (err) {
                 var pointOriginRepo = function(){
@@ -163,12 +164,12 @@ function CloneProjects(data,emit,callback){
                                                     if(name == 'testcaseshistory'){
                                                         delete cloneData._id;
                                                         cloneData.project = data.name;
-                                                        cloneData.testcaseID = db.bson_serializer.ObjectID(testcaseMapping[cloneData.testcaseID.toString()]);
+                                                        cloneData.testcaseID = new ObjectID(testcaseMapping[cloneData.testcaseID.toString()]);
                                                         collection.insert(cloneData, {safe:true},function(err,returnData){
                                                         })
                                                     }
                                                     else{
-                                                        cloneData._id = db.bson_serializer.ObjectID(testcaseMapping[cloneData._id.toString()]);
+                                                        cloneData._id = new ObjectID(testcaseMapping[cloneData._id.toString()]);
                                                         cloneData.project = data.name;
                                                         collection.insert(cloneData, {safe:true},function(err,returnData){
                                                         })
@@ -184,7 +185,7 @@ function CloneProjects(data,emit,callback){
                                 var id = cloneData._id.toString();
                                 cloneData.project = data.name;
 
-                                cloneData._id = db.bson_serializer.ObjectID();
+                                cloneData._id = new ObjectID();
                                 testcaseMapping[id] = cloneData._id.toString();
                             });
                         });
@@ -211,12 +212,12 @@ function CloneProjects(data,emit,callback){
                                                 if(name == 'actionshistory'){
                                                     delete cloneData._id;
                                                     cloneData.project = data.name;
-                                                    cloneData.actionID = db.bson_serializer.ObjectID(actionMapping[cloneData.actionID.toString()]);
+                                                    cloneData.actionID = new ObjectID(actionMapping[cloneData.actionID.toString()]);
                                                     collection.insert(cloneData, {safe:true},function(err,returnData){
                                                     })
                                                 }
                                                 else{
-                                                    cloneData._id = db.bson_serializer.ObjectID(actionMapping[cloneData._id.toString()]);
+                                                    cloneData._id = new ObjectID(actionMapping[cloneData._id.toString()]);
                                                     cloneData.project = data.name;
                                                     collection.insert(cloneData, {safe:true},function(err,returnData){
                                                     })
@@ -232,7 +233,7 @@ function CloneProjects(data,emit,callback){
                             var id = cloneData._id.toString();
                             cloneData.project = data.name;
 
-                            cloneData._id = db.bson_serializer.ObjectID();
+                            cloneData._id = new ObjectID();
                             actionMapping[id] = cloneData._id.toString();
                         });
                     });

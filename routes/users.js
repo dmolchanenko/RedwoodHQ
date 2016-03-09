@@ -9,6 +9,7 @@ var realtime = require("./realtime");
 var scripts = require("./scripts");
 var script = require("./script");
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
+var ObjectID = require('mongodb').ObjectID;
 
 exports.usersSSHKeyPost = function(req,res){
     //var createBranchAndKnownHosts = function(){
@@ -132,7 +133,7 @@ exports.usersSSHKeyGet = function(req,res){
 exports.usersPut = function(req, res){
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     UpdateUsers(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateUsers",data);
         res.contentType('json');
@@ -158,7 +159,7 @@ exports.usersGet = function(req, res){
 exports.usersDelete = function(req, res){
     //DeleteUsers(app.getDB(),{_id: req.params.id},function(err){
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     if (req.body.username == "admin") return;
     DeleteUsers(app.getDB(),{_id: id,username:req.body.username},function(err){
         realtime.emitMessage("DeleteUsers",{id: id.__id,username:req.body.username});
@@ -236,7 +237,7 @@ function CreateUsers(db,data,callback){
             }
             var hash = require('crypto').createHmac('md5',"redwood").update(data.password).digest('hex');
             data.password = hash;
-            data._id = db.bson_serializer.ObjectID(data._id);
+            data._id = new ObjectID(data._id);
             collection.insert(data, {safe:true},function(err,returnData){
                 db.collection('projects',function(err,collection){
                     collection.find({},{},function(err,cursor){

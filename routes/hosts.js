@@ -1,10 +1,11 @@
 var realtime = require("./realtime");
+var ObjectID = require('mongodb').ObjectID;
 
 exports.hostsPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     UpdateHosts(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateHosts",data);
         res.contentType('json');
@@ -29,7 +30,7 @@ exports.hostsGet = function(req, res){
 exports.hostsDelete = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     DeleteHosts(app.getDB(),{_id: id},function(err){
         realtime.emitMessage("DeleteHosts",{id: req.params.id});
         res.contentType('json');
@@ -56,7 +57,7 @@ exports.hostsPost = function(req, res){
 
 function CreateHosts(db,data,callback){
     db.collection('hosts', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
         });
