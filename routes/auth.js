@@ -85,11 +85,14 @@ exports.auth = function(req,res,next){
     if (sessions[req.cookies.username] != undefined){
         if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
             if (req.cookies.project == undefined){
-                if(req.originalUrl != "/index.html"){
+                //if(req.originalUrl.indexOf("prject=") == "/index.html"){
+                if(req.originalUrl.indexOf("prject=") != -1){
                     res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
+                    return next();
                 }
-                //res.redirect("/login");
-                return next();
+                else{
+                    res.redirect("/index.html");
+                }
             }
             else{
                 return next();
