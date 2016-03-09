@@ -50,6 +50,17 @@ var cloneTestCase = Ext.create('Ext.Action', {
     }
 });
 
+var testCaseToCode = Ext.create('Ext.Action', {
+    icon: 'images/code.png',
+    itemId: "testCaseToCode",
+    tooltip: "View Test Case as Groovy Code",
+    handler: function(widget, event) {
+        var editor = this.up('testcases');
+        editor.fireEvent('testCaseToCode');
+    }
+});
+
+
 function formatTestCase(val,metaData,record) {
     return '<img src="images/testcase.png" align="top"> '+val;
 }
@@ -348,7 +359,9 @@ Ext.define('Redwood.view.TestCases', {
                         " ",
                         deleteTestCase,
                         "-",
-                        cloneTestCase
+                        cloneTestCase,
+                        "-",
+                        testCaseToCode
                     ]
                 },
                 items:[
