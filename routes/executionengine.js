@@ -1853,6 +1853,7 @@ function createResult(result,callback){
 function updateResult(result,callback){
     db.collection('testcaseresults', function(err, collection) {
         collection.save(result,{safe:true},function(err){
+            if(err) common.logger.error("ERROR updating results: "+err);
             if (callback){
                 callback(err);
             }
