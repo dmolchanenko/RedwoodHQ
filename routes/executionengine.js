@@ -475,8 +475,8 @@ function suiteBaseState(executionID,machines,callback){
                 collection.insert({baseState:true,name:machine.host+"_state",status:"Automated",type:"collection",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
                     db.collection('executiontestcases', function(err, collection) {
                         //collection.save({_id:machine.resultID},{},{$set:{executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.resultID}}, {safe:true,new:true},function(err,returnData){
-                        collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.baseStateTCID},function(err,returnData){
-                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.__id,retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",type:"collection"});
+                        collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.toString(),_id: machine.baseStateTCID},function(err,returnData){
+                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.toString(),retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",type:"collection"});
                             count++;
                             lastMachine();
                         });
@@ -871,7 +871,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.testcaseName = testcase.name;
                 agentInstructions.script = testcase.script;
                 agentInstructions.scriptLang = testcase.scriptLang;
-                agentInstructions.resultID = result._id.__id;
+                agentInstructions.resultID = result._id.toString();
                 agentInstructions.parameters = [];
                 agentInstructions.type = testcase.dbTestCase.type;
 
@@ -934,7 +934,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.testcaseName = testcase.dbTestCase.name;
                 agentInstructions.script = action.script;
                 agentInstructions.scriptLang = action.scriptLang;
-                agentInstructions.resultID = result._id.__id;
+                agentInstructions.resultID = result._id.toString();
                 agentInstructions.parameters = [];
                 action.dbAction.parameters.forEach(function(parameter){
                     agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
@@ -952,7 +952,7 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.threadID = foundMachine.threadID;
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
                 if ((testcase.machines.length > 0) &&((testcase.machines[0].baseState))){
-                    updateExecutionMachine(executionID,testcase.machines[0]._id,"",result._id.__id);
+                    updateExecutionMachine(executionID,testcase.machines[0]._id,"",result._id.toString());
                 }
                 executionsRoute.updateExecutionTotals(executionID);
 
@@ -1157,7 +1157,7 @@ exports.actionresultPost = function(req, res){
         agentInstructions.testcaseName = testcase.testcase.dbTestCase.name;
         agentInstructions.script = action.script;
         agentInstructions.scriptLang = action.scriptLang;
-        agentInstructions.resultID = testcase.result._id.__id;
+        agentInstructions.resultID = testcase.result._id.toString();
         agentInstructions.parameters = [];
         action.dbAction.parameters.forEach(function(parameter){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
@@ -1219,13 +1219,13 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
         status = "Not Run";
     }
     var updateTC = function(){
-        updateExecutionTestCase({_id:testcaseId},{$set:{trace:testcase.trace,"status":status,resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
+        updateExecutionTestCase({_id:testcaseId},{$set:{trace:testcase.trace,"status":status,resultID:testcase.result._id.toString(),result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
         executionsRoute.updateExecutionTotals(executionID);
     };
     //update machine base state result
     if(execution.cachedTCs){
         if (testcase.testcase.machines.length > 0){
-            updateExecutionMachine(executionID,testcase.testcase.machines[0]._id,testcase.result.result,testcase.result._id.__id,function(){
+            updateExecutionMachine(executionID,testcase.testcase.machines[0]._id,testcase.result.result,testcase.result._id.toString(),function(){
                 updateTC();
             });
         }
@@ -1858,7 +1858,7 @@ function updateResult(result,callback){
                 callback(err);
             }
             //realtime.emitMessage("UpdateResult",result);
-            realtime.emitMessage("UpdateResult"+result._id.__id,result);
+            realtime.emitMessage("UpdateResult"+result._id.toString(),result);
         });
     });
 }
@@ -1866,6 +1866,7 @@ function updateResult(result,callback){
 function updateExecutionTestCase(query,update,machineHost,vncport,callback){
     db.collection('executiontestcases', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            if(err) common.logger.error("ERROR updating results: "+err);
             if (data == null){
                 if (callback){
                     callback(err);

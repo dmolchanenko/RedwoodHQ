@@ -162,7 +162,7 @@ exports.usersDelete = function(req, res){
     var id = new ObjectID(req.params.id);
     if (req.body.username == "admin") return;
     DeleteUsers(app.getDB(),{_id: id,username:req.body.username},function(err){
-        realtime.emitMessage("DeleteUsers",{id: id.__id,username:req.body.username});
+        realtime.emitMessage("DeleteUsers",{id: id.toString(),username:req.body.username});
         res.contentType('json');
         res.json({
             success: !err,
