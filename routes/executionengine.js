@@ -1112,9 +1112,6 @@ exports.actionresultPost = function(req, res){
         }
     }
 
-    markFinishedResults(testcase.result.children,execution.sourceCache,function(){
-        updateResult(testcase.result);
-    });
 
     var actionVariables = {};
     for (var attrname in execution.variables) { actionVariables[attrname] = execution.variables[attrname]; }
@@ -1127,9 +1124,16 @@ exports.actionresultPost = function(req, res){
         if(action == null){
             testcase.result.status = "Finished";
             if(testcase.result.result != "Failed") testcase.result.result = "Passed";
-            updateResult(testcase.result);
+            markFinishedResults(testcase.result.children,execution.sourceCache,function(){
+                updateResult(testcase.result);
+            });
             finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
             return;
+        }
+        else{
+            markFinishedResults(testcase.result.children,execution.sourceCache,function(){
+                updateResult(testcase.result);
+            });
         }
 
         var foundMachine = null;
