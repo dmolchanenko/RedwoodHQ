@@ -45,7 +45,7 @@ exports.logInSucess = function(req,res){
     userState.GetUserProject(req.cookies.username,function(project){
         if(req.cookies.deeplink){
             res.clearCookie('deeplink');
-            if(req.cookies.deeplink.indexOf("index.html") != -1){
+            if(req.originalUrl != "/index.html"){
                 res.json({error:null,redirect:req.cookies.deeplink});
             }
             else{
@@ -85,13 +85,13 @@ exports.auth = function(req,res,next){
     if (sessions[req.cookies.username] != undefined){
         if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
             if (req.cookies.project == undefined){
-                //if(req.originalUrl.indexOf("prject=") == "/index.html"){
-                if(req.originalUrl.indexOf("prject=") != -1){
+                if(req.originalUrl != "/index.html"){
                     res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
                     return next();
                 }
                 else{
                     res.redirect("/index.html");
+                    return;
                 }
             }
             else{
