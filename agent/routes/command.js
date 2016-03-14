@@ -211,7 +211,12 @@ function startLauncher(executionID,threadID,type,callback){
         //launcherProc[executionID+portNumber.toString()] = require('child_process').execFile(javaPath+ " -cp " + classPath + " -Xmx512m "+"redwood.launcher.Launcher "+portNumber.toString(),{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+type+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
-            sendLog({message:"STDOUT ERROR: " + data.toString(),date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID,executionID:executionID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+            if(actionCache[portNumber]){
+                sendLog({message:"STDOUT ERROR: " + data.toString(),date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID,executionID:executionID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+            }
+            else{
+                return;
+            }
             if(data.toString().indexOf("WARNING") != -1) return;
             if(data.toString().indexOf("JavaScript error") != -1) return;
             common.logger.error("launcher error:"+data.toString());
@@ -580,7 +585,7 @@ function sendLog(result,host,port){
     if(result.runType == "unittest"){
         if(logCacheUnit.length == 0){
             logCacheUnit.push(result);
-            setTimeout(function(){sendLogPost(logCacheUnit,host,port,"/rununittest/log");logCacheUnit = [];},4000);
+            setTimeout(function(){sendLogPost(logCacheUnit,host,port,"/rununittest/log");logCacheUnit = [];},500);
         }
         else{
             logCacheUnit.push(result);
