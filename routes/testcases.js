@@ -186,7 +186,7 @@ function turnTestCaseToCode(testcase,project,callback){
         }
 
         if(action.returnvalue && action.returnvalue != ""){
-            execCode +=  'variables."'+action.returnvalue+'" = ' + execCode;
+            execCode +=  '        \r\nvariables."'+action.returnvalue+'" = ' + execCode;
         }
 
         if(action.executionflow == "Record Error Continue Test Case"){
@@ -235,15 +235,24 @@ function turnTestCaseToCode(testcase,project,callback){
 
 
     var topLevelTC = "";
-    var methods = "";
+    var methods = {};
+    methods["topTestCase"] = "";
     var afterState = "";
 
     //handle afterstate
     if(testcase.afterState && testcase.afterstate != ""){
-        testcase.collection.push({actionid:testcase.afterState,executionflow:"Record Error Stop Test Case",parameters:[],afterState:true})
+        if(Array.isArray(testcase.afterState)){
+            testcase.afterState.forEach(function(afterStateAction){
+                afterStateAction.afterState = true;
+                testcase.collection.push(afterStateAction);
+            })
+        }
+        else{
+            testcase.collection.push({actionid:testcase.afterState,executionflow:"Record Error Stop Test Case",parameters:[],afterState:true})
+        }
     }
     collectionToCode(testcase.collection,testcase,function(){
-        var printCode = function(collection,topLevel,callback){
+        var printCode = function(collection,topLevel,parent,callback){
             if(collection.length == 0){
                 callback();
                 return;
@@ -258,20 +267,25 @@ function turnTestCaseToCode(testcase,project,callback){
                     }
                     else if(topLevel ==  true){
                         //topLevelTC += "            //"+action.action.name+"\r\n";
-                        topLevelTC += action.code+"\r\n";
+                        methods["topTestCase"] += action.code+"\r\n";
                     }
                     else{
-                        methods += "//"+action.action.name+"\r\n";
-                        methods += action.code+"\r\n";
+                        if(action.code.indexOf("\r\n") == -1){
+                            methods[parent.actionid] += "//"+action.action.name+"\r\n";
+                        }
+                        methods[parent.actionid] += action.code+"\r\n";
                     }
-                    if(methods.indexOf(action.actionid) == -1){
-                        methods += "    //"+action.action.name+"\r\n    public static def Action"+action.actionid+"(def params){\r\n";
-                        printCode(action.action.collection,false,function(){
+                    //if(methods.indexOf("def "+action.actionid) == -1){
+                    if(!methods[action.actionid]){
+                        methods[action.actionid] = "";
+                        methods[action.actionid] += "    //"+action.action.name+"\r\n    public static def Action"+action.actionid+"(def params){\r\n";
+                        printCode(action.action.collection,false,action,function(){
+                            methods[action.actionid] += "\r\n    }\r\n";
                             actionCount++;
                             if(actionCount == collection.length){
                                 callback();
                             }
-                        })
+                        });
                     }
                     else{
                         actionCount++;
@@ -285,13 +299,13 @@ function turnTestCaseToCode(testcase,project,callback){
                         afterState += action.code+"\r\n";
                     }
                     else if(topLevel ==  true){
-                        topLevelTC += action.code+"\r\n";
+                        methods["topTestCase"] += action.code+"\r\n";
                     }
                     else{
-                        methods += action.code+"\r\n";
-                        if(index == collection.length-1){
-                            methods += "\r\n    }\r\n"
-                        }
+                        methods[parent.actionid] += action.code+"\r\n";
+                        //if(index == collection.length-1){
+                        //    methods[parent.actionid] += "\r\n    }\r\n"
+                        //}
                     }
                     //console.log(action.code)
                     actionCount++;
@@ -310,29 +324,41 @@ function turnTestCaseToCode(testcase,project,callback){
                 if(variable.value != "<NULL>"){
                     value = variable.value;
                 }
-                varCode += '        variables."'+variable.name+'" = "'+ value +'"\r\n';
+                if(value = "null"){
+                    varCode += '        variables."'+variable.name+'" = null\r\n';
+
+                }
+                else{
+                    varCode += '        variables."'+variable.name+'" = "'+ value +'"\r\n';
+                }
             });
             return varCode;
         };
         //console.log(testcase.collection);
         require("./variables").getVariables(db,{project:project},function(variables){
-            printCode(testcase.collection,true,function(){
+            printCode(testcase.collection,true,null,function(){
+                var methodsString = "";
+                for (var property in methods) {
+                    if(property != "topTestCase"){
+                        methodsString += methods[property];
+                    }
+                }
                 var varCode = variablesToCode(variables);
                 var resultingCode = "import org.testng.annotations.BeforeSuite\r\n"+
                         "import org.testng.annotations.AfterMethod\r\n"+
                         "import org.testng.annotations.Test\r\n\r\n"+
                         "//"+testcase.name+"\r\n"+
                         "class RedwoodHQTestCase{\r\n"+
-                        "    private def variables = [:]\r\n\r\n"+
+                        "    private static def variables = [:]\r\n\r\n"+
                         "    @BeforeSuite\r\n"+
                         "    public void beforeState(){\r\n"+
                         varCode+
                         "    }\r\n"+
                         "    @Test\r\n"+
                         "    public void testcase(){\r\n"+
-                        topLevelTC+
+                        methods["topTestCase"]+
                         "    }\r\n"+
-                        methods+
+                        methodsString+
                         "    @AfterMethod\r\n"+
                         "    public void afterState(){\r\n"+
                         afterState+
