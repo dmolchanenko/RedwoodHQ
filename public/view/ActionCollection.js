@@ -799,8 +799,10 @@ Ext.define('Redwood.view.ActionCollection', {
                         return Ext.String.htmlDecode(this.value);
                     },
                     listeners:{
-                        focus: function(){
-                            this.selectText();
+                        focus: function(elem){
+                            setTimeout(function () {
+                                elem.selectText();
+                            }, 50);
                         },
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
@@ -1131,7 +1133,7 @@ Ext.define('Redwood.view.ActionCollection', {
             if (newRecord.childNodes.length > 0){
                 me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
             }
-
+            me.markDirty();
         };
 
         var barItems = [
@@ -1174,6 +1176,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
                         }
                         Ext.MessageBox.hide();
+                        me.markDirty();
                     }
                 },
                 {
