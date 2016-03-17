@@ -645,7 +645,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
         git.initBare(masterBranch,function(){
             git.clone(adminBranch,masterBranch,function(){
-                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py",function(){});
+                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh/*",function(){});
                 SetupPython(adminBranch);
                 files.forEach(function(file,index,array){
                     var destName = file.replace(templatePath,"");
@@ -698,7 +698,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
                                             git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py",function(){
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh/*",function(){
                                                 git.addAll(newProjectPath + "/" + user.username,function(){
                                                     git.commitAll(newProjectPath + "/" + user.username,function(){
                                                         git.push(newProjectPath + "/" + user.username,function(){})
