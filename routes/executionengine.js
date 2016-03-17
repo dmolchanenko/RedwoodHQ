@@ -2436,9 +2436,22 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     //now process after state
                     var afterStatePresent = false;
                     if((testcase.afterState) && (testcase.afterState != "") &&(executions[executionID].ignoreAfterState == false)){
-                        afterStatePresent = true;
-                        var stateOrder = (testcase.collection.length+1).toString();
-                        testcase.collection.push({order:stateOrder,host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
+                        var stateOrder = (testcase.collection.length+1);
+                        if(Array.isArray(testcase.afterState)){
+                            if(testcase.afterState.length > 0){
+                                afterStatePresent = true;
+                            }
+                            testcase.afterState.forEach(function(afterStateAction,index){
+                                var afterStateActionOrder = stateOrder+index;
+                                afterStateAction.order = afterStateActionOrder.toString();
+                                afterStateAction.afterState = true;
+                                testcase.collection.push(afterStateAction);
+                            })
+                        }
+                        else{
+                            afterStatePresent = true;
+                            testcase.collection.push({order:stateOrder.toString(),host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
+                        }
                     }
                     if (testcase.collection.length > 0){
                         testcaseDetails = {dbTestCase:testcase,actions:[],afterState:afterStatePresent};

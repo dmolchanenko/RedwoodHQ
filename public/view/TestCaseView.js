@@ -190,6 +190,7 @@ Ext.define('Redwood.view.TestCaseView', {
                         xtype: "actionpicker",
                         fieldLabel:"After State",
                         itemId:"afterState",
+                        hidden:true,
                         //width: 400,
                         anchor:'90%',
                         plugins:[
@@ -253,6 +254,33 @@ Ext.define('Redwood.view.TestCaseView', {
             {
                 xtype: 'fieldset',
                 hidden: false,
+                title: 'After State',
+                flex: 1,
+                collapsed:true,
+                layout:"hbox",
+                //height:400,
+                constrainAlign: true,
+
+                collapsible: true,
+                itemId:"afterStateFiledSet",
+                items:[
+                    {
+                        xtype:"actioncollection",
+                        itemId:"afterStateCollection",
+                        flex: 1,
+                        height:400,
+                        listeners:{
+                            afterrender: function(collection){
+                                collection.parentPanel = me;
+                                collection.markDirty = function(){me.markDirty()}
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                hidden: false,
                 title: 'Action Collection',
                 flex: 1,
 
@@ -264,6 +292,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 items:[
                     {
                         xtype:"actioncollection",
+                        itemId:"actionCollection",
                         flex: 1,
                         listeners:{
                             afterrender: function(collection){
@@ -287,7 +316,13 @@ Ext.define('Redwood.view.TestCaseView', {
                 },
                 items: [
                     {
-                        //xtype:"testcasedata"
+                        xtype:"testcasedata",
+                        listeners:{
+                            afterrender: function(tcdata){
+                                tcdata.parentPanel = me;
+                                tcdata.markDirty = function(){me.markDirty()}
+                            }
+                        }
                     }
                 ]
             },
@@ -405,8 +440,17 @@ Ext.define('Redwood.view.TestCaseView', {
                 else{
                     me.down("#scriptLang").setValue("Java/Groovy");
                 }
-                me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
-                me.down("#afterState").setValue(me.dataRecord.get("afterState"));
+                me.down("#actionCollection").loadCollection(me.dataRecord.get("collection"));
+
+                //take care of old after state format and transfer to new
+                if(Array.isArray(me.dataRecord.get("afterState"))){
+                    me.down("#afterStateCollection").loadCollection(me.dataRecord.get("afterState"));
+                }
+                else {
+                    me.down("#afterStateCollection").loadCollection([{actionid:me.dataRecord.get("afterState"),executionflow:"Record Error Stop Test Case",host:"Default",order:"1",parameters:[],returnvalue:""}]);
+                }
+                me.down("testcasedata").loadData(me.dataRecord.get("tcData"));
+                //me.down("#afterState").setValue(me.dataRecord.get("afterState"));
                 me.down("#testcaseDetails").collapse();
 
                 me.historyStore =  Ext.create('Ext.data.Store', {
@@ -499,7 +543,8 @@ Ext.define('Redwood.view.TestCaseView', {
 
             }
             else{
-                me.down("actioncollection").loadCollection("");
+                me.down("#actionCollection").loadCollection("");
+                me.down("#afterStateCollection").loadCollection("");
             }
             setTimeout(function(){me.loadingData = false;},500);
             me.down("#name").focus();
@@ -531,6 +576,7 @@ Ext.define('Redwood.view.TestCaseView', {
             }
         }
 
+        /*
         var afterStateValue = this.down("#afterState").getValue();
         if((afterStateValue != null) && (afterStateValue != "")){
             var action = Ext.data.StoreManager.lookup('Actions').query("_id",this.down("#afterState").getValue()).getAt(0);
@@ -540,6 +586,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 return false;
             }
         }
+        */
 
         if (this.down("#status").getValue() == "Automated"){
             if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng"){
@@ -551,7 +598,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 }
             }
             else{
-                if (this.down("actioncollection").getCollectionData().length == 0){
+                if (this.down("#actionCollection").getCollectionData().length == 0){
                     Ext.Msg.alert('Error', "You must add actions to action collection.");
                     return false;
                 }
@@ -569,10 +616,12 @@ Ext.define('Redwood.view.TestCaseView', {
         testcase.type = this.down("#type").getValue().type;
         testcase.script = this.down("#scriptPath").getValue();
         testcase.scriptLang = this.down("#scriptLang").getValue();
-        testcase.afterState = this.down("#afterState").getValue();
+        //testcase.afterState = this.down("#afterState").getValue();
+        testcase.afterState = this.down("#afterStateCollection").getCollectionData();
 
 
-        testcase.collection = this.down("actioncollection").getCollectionData();
+        testcase.collection = this.down("#actionCollection").getCollectionData();
+        testcase.tcData = this.down("testcasedata").getTestCaseData();
         return testcase;
     }
 
