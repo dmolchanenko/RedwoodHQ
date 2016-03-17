@@ -186,7 +186,7 @@ function turnTestCaseToCode(testcase,project,callback){
         }
 
         if(action.returnvalue && action.returnvalue != ""){
-            execCode +=  '        \r\nvariables."'+action.returnvalue+'" = ' + execCode;
+            execCode =  'variables."'+action.returnvalue+'" = ' + execCode;
         }
 
         if(action.executionflow == "Record Error Continue Test Case"){
@@ -324,7 +324,7 @@ function turnTestCaseToCode(testcase,project,callback){
                 if(variable.value != "<NULL>"){
                     value = variable.value;
                 }
-                if(value = "null"){
+                if(value == "null"){
                     varCode += '        variables."'+variable.name+'" = null\r\n';
 
                 }
