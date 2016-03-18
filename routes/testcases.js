@@ -329,7 +329,8 @@ function turnTestCaseToCode(testcase,project,callback){
 
                 }
                 else{
-                    varCode += '        variables."'+variable.name+'" = "'+ value +'"\r\n';
+                    value = value.replace(/\//g, '\\/');
+                    varCode += '        variables."'+variable.name+'" = /'+ value +'/\r\n';
                 }
             });
             return varCode;
