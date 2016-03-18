@@ -351,11 +351,11 @@ exports.scriptsPull = function(req,res) {
                         //git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
                             //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
                             git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', 'master',function (cliOut) {
-                                git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(){
+                                //git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(){
                                     handleMerges(cliOut,true,function(cliOut){
                                         handleConflictsAndPip(cliOut);
                                     });
-                                })
+                                //})
                             });
                         //})
                     }
