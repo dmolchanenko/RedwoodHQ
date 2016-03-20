@@ -148,7 +148,12 @@ function turnTestCaseToCode(testcase,project,callback){
                     }
                 });
                 parameter.paramvalue = parameter.paramvalue.replace(/\//g, '\\/');
-                paramItem = parameter.paramname+"\":/"+parameter.paramvalue+"/";
+                if(parameter.paramvalue ==""){
+                    paramItem = parameter.paramname+"\":\"\"";
+                }
+                else{
+                    paramItem = parameter.paramname+"\":/"+parameter.paramvalue+"/.toString()";
+                }
             }
             else if(parameter.parametertype == "Boolean"){
                 paramItem = parameter.paramname+'":'+parameter.paramvalue.toLowerCase();
@@ -327,6 +332,9 @@ function turnTestCaseToCode(testcase,project,callback){
                 if(value == "null"){
                     varCode += '        variables."'+variable.name+'" = null\r\n';
 
+                }
+                else if(value == ""){
+                    varCode += '        variables."'+variable.name+'" = ""\r\n';
                 }
                 else{
                     value = value.replace(/\//g, '\\/');
