@@ -1019,12 +1019,10 @@ exports.actionresultPost = function(req, res){
     var testcase = execution.currentTestCases[req.body.testcaseID];
     if (testcase == undefined) return;
 
-    var actionFlow = testcase.currentAction.dbAction.executionflow;
-
     if (testcase.testcase.script){
         testcase.result.status = "Finished";
         testcase.result.result = req.body.result;
-        if (req.body.error && actionFlow != "Ignore Error Continue Test Case"){
+        if (req.body.error){
             testcase.result.error = req.body.error;
         }
         else{
@@ -1045,6 +1043,7 @@ exports.actionresultPost = function(req, res){
         return;
     }
 
+    var actionFlow = testcase.currentAction.dbAction.executionflow;
     testcase.currentAction.result.status = "Finished";
 
     testcase.currentAction.result.result = req.body.result;
