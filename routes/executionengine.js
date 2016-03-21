@@ -1803,12 +1803,38 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
 
 function resolveParamValue(value,variables){
     var returnNULL = false;
+
+    var resolveVariable = function(stringValue){
+        return stringValue.replace(new RegExp("\\$\\{([\\s\\w_.-]+)\\}", "g" ),function(a,b){
+            if(b in variables){
+                if (variables[b] == "<NULL>"){
+                    if (returnNULL == true){
+                        return "<NULL>"
+                    }
+                    else{
+                        return "";
+                    }
+                }
+                else{
+                    return variables[b];
+                }
+            }
+            else{
+                return a;
+            }
+        });
+    };
+
     if(Object.prototype.toString.call(value) == '[object Array]'){
         if((value.length == 1) && (value[0] === "<NULL>")){
             return [];
         }
         else{
-            return value;
+            var returnValue = [];
+            value.forEach(function(arrayItem){
+                returnValue.push(resolveVariable(arrayItem))
+            });
+            return returnValue;
         }
     }
     else if (typeof value != "string"){
@@ -1821,26 +1847,7 @@ function resolveParamValue(value,variables){
             returnNULL = true;
         }
     }
-    //var result = value.replace(new RegExp("\\$\\{([\\w_.-\\s*]+)\\}", "g" ),function(a,b){
-    var result = value.replace(new RegExp("\\$\\{([\\s\\w_.-]+)\\}", "g" ),function(a,b){
-        if(b in variables){
-            if (variables[b] == "<NULL>"){
-                if (returnNULL == true){
-                    return "<NULL>"
-                }
-                else{
-                    return "";
-                }
-            }
-            else{
-                return variables[b];
-            }
-        }
-        else{
-            return a;
-        }
-    });
-    return result;
+    return resolveVariable(value);
 }
 
 function createResult(result,callback){
