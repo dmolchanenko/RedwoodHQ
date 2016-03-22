@@ -54,7 +54,12 @@ exports.startHeartBeat = function(server,serverPort,agentPort,vncPort,agentVersi
             macAddress = addr;
             recursive();
         } else {
-            common.logger.error('MAC address not found');
+            setTimeout(function(){
+                macaddr.address(function(err, addr) {
+                    macAddress = addr;
+                    recursive();
+                });
+            },50000);
         }
     });
 
