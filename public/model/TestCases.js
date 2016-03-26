@@ -26,8 +26,7 @@ Ext.define('Redwood.model.TestCases', {
             type: 'array'
         },
         {
-            name: 'tcData',
-            type: 'array'
+            name: 'tcData'
         },
         {
             name: 'rowIndex',

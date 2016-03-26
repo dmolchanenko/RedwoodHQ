@@ -698,6 +698,9 @@ function startTCExecution(id,variables,executionID,callback){
             callback();
             return;
         }
+        //if(executions[executionID].testcases[id].tcData && executions[executionID].testcases[id].tcData != ""){
+        //    testcase.tcData = executions[executionID].testcases[id].tcData;
+        //}
         testcase.machines = [];
         testcase.machineVars = [];
         var reservedHosts = [];
@@ -735,6 +738,10 @@ function startTCExecution(id,variables,executionID,callback){
         createResult(result,function(writtenResult){
             result._id = writtenResult[0]._id;
             result.executionID = executionID;
+            if(executions[executionID].testcases[id].tcData && executions[executionID].testcases[id].tcData != ""){
+                result.tcData = executions[executionID].testcases[id].tcData;
+                result.rowIndex = executions[executionID].testcases[id].rowIndex;
+            }
             if(!executions[executionID]) return;
             executions[executionID].currentTestCases[testcase.dbTestCase._id] = {testcase:testcase,result:result,executionTestCaseID:id};
             //testcase.machines = [];
@@ -915,6 +922,9 @@ function startTCExecution(id,variables,executionID,callback){
             callback();
             for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
             variables["Framework.TestCaseName"] = testcase.dbTestCase.name;
+            if (result.tcData){
+                for (var tcDataColumn in result.tcData) { variables["TCData."+tcDataColumn] = result.tcData[tcDataColumn]; }
+            }
             findNextAction(testcase.actions,variables,function(action){
                 if (!executions[executionID]) return;
                 if(!executions[executionID].currentTestCases[testcase.dbTestCase._id]) return;
@@ -1900,6 +1910,7 @@ function updateExecution(query,update,finished,callback){
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
             if(err) {
                 common.logger.error("ERROR updating execution: "+err.message);
+                return;
             }
             realtime.emitMessage("UpdateExecutions",data);
             if(finished === true){

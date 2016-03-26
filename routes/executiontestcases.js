@@ -98,19 +98,40 @@ function UpdateNote(db,query,update,callback){
 
 function CreateExecutionTestCases(db,data,callback){
     db.collection('executiontestcases', function(err, collection) {
+
+        var insertRecords = function(){
+            var count = 0;
+            for (var i = 0;i<data.length;i++){
+                collection.insert(data[i], {safe:true},function(err,returnData){
+                    count++;
+                    if (count == data.length){
+                        realtime.emitMessage("AddExecutionTestCase",data);
+                        if (callback) callback();
+                    }
+                    //callback(returnData);
+                });
+            }
+        };
+
+        //delete updated records first
         var count = 0;
-        for (var i = 0;i<data.length;i++){
-            //data[i]._id = db.bson_serializer.ObjectID(data[i]._id);
-            collection.insert(data[i], {safe:true},function(err,returnData){
+        data.forEach(function(testcase,index){
+            if(testcase.updated == true){
+                collection.remove({testcaseID:testcase.testcaseID,executionID:testcase.executionID}, {safe:true},function(err,returnData){
+                    count++;
+                    if (count == data.length){
+                        insertRecords();
+                    }
+                });
+            }
+            else{
                 count++;
                 if (count == data.length){
-                    realtime.emitMessage("AddExecutionTestCase",data);
-                    if (callback) callback();
+                    insertRecords();
                 }
-                //callback(returnData);
-            });
-        }
-    });
+            }
+        });
+    })
 }
 
 function UpdateExecutionTestCases(db,data,callback){

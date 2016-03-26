@@ -175,8 +175,12 @@ Ext.define("Redwood.controller.Executions", {
                         delete me.openingExecutionDetails[id];
                         return;
                     }
+                    var title = "[Test Details] " + obj.testcase.name;
+                    if(obj.testcase.tcData && obj.testcase.tcData != ""){
+                        title = title+"_"+obj.testcase.rowIndex;
+                    }
                     var tab = Ext.create('Redwood.view.ResultsView',{
-                        title:"[Test Details] " + obj.testcase.name,
+                        title:title,
                         closable:true,
                         dataRecord:obj,
                         executionID:executionID,
@@ -373,7 +377,8 @@ Ext.define("Redwood.controller.Executions", {
                 });
             }
             else  */
-            if (newExecution == true){
+            if (newExecution == true || executionView.tcDataRefreshed == true){
+                executionView.tcDataRefreshed = false;
                 execution.testcases.forEach(function(testcase){
                     testcase.executionID = executionView.dataRecord.get("_id");
                 });

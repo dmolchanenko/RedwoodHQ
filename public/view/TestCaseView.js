@@ -172,10 +172,12 @@ Ext.define('Redwood.view.TestCaseView', {
                             change: function(me,newVal,oldVal){
                                 if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng" ){
                                     me.up("testcaseview").down("#actionCollectionFiledSet").hide();
+                                    me.up("testcaseview").down("#testcaseData").hide();
                                     me.up("testcaseview").down("#afterState").hide();
                                     me.up("testcaseview").down("scriptPickerView").show();
                                 }else{
                                     me.up("testcaseview").down("#actionCollectionFiledSet").show();
+                                    me.up("testcaseview").down("#testcaseData").show();
                                     me.up("testcaseview").down("#afterState").show();
                                     me.up("testcaseview").down("scriptPickerView").hide();
                                 }
@@ -308,7 +310,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 title: 'Test Case Data',
                 itemId: "testcaseData",
                 flex: 1,
-                hidden:true,
+                hidden:false,
                 collapsible: true,
                 //layout: "column",
                 defaults: {
