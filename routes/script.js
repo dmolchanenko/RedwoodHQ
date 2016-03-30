@@ -251,6 +251,7 @@ function ResolveConflict(workDir,file,data,callback){
 
 function GetScript(path,callback){
     fs.stat(path, function(err, stat) {
+        if (err) callback({error:err});
         if(stat.size > 209715200){
             callback("")
         }
