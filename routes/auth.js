@@ -46,19 +46,16 @@ function logInSucess(req,res){
         if(req.cookies.deeplink){
             res.clearCookie('deeplink');
             if(req.originalUrl != "/index.html"){
-                //res.json({error:null,redirect:req.cookies.deeplink});
-                return res.redirect(req.cookies.deeplink);
+                res.json({error:null,redirect:req.cookies.deeplink});
             }
             else{
-                //res.json({error:null,redirect:"./index.html"});
-                return res.redirect("./index.html");
+                res.json({error:null,redirect:"./index.html"});
             }
         }
         else if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
             projects.allProjects(function(projects){
                 res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
-                //res.json({error:null,redirect:"./index.html"});
-                return res.redirect("./index.html");
+                res.json({error:null,redirect:"./index.html"});
             });
         }
         else if (project == null){
@@ -72,16 +69,14 @@ function logInSucess(req,res){
                 if (found == false){
                     res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
                 }
-                //res.json({error:null,redirect:"./index.html"});
-                return res.redirect("./index.html");
+                res.json({error:null,redirect:"./index.html"});
             });
         }
         else{
             if ((req.cookies.project === undefined)||(req.cookies.project == "")){
                 res.cookie('project', project, {maxAge: 2592000000, httpOnly: false });
             }
-            //res.json({error:null,redirect:"./index.html"});
-            return res.redirect("./index.html");
+            res.json({error:null,redirect:"./index.html"});
         }
     })
 }
