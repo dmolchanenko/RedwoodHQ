@@ -197,7 +197,14 @@ exports.startexecutionPost = function(req, res){
                                             executions[executionID].machines = machines.concat(cloudMachines);
                                             getGlobalVars(executionID,function(){
                                                 testcases.forEach(function(testcase){
-                                                    executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                                    testcase.dbID = testcase.testcaseID;
+                                                    if(testcase.tcData){
+                                                        testcase.testcaseID = testcase.testcaseID+testcase.rowIndex;
+                                                        executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                                    }
+                                                    else{
+                                                        executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                                    }
                                                 });
                                                 //see if there is a base state
                                                 suiteBaseState(executionID,executions[executionID].machines,function(){
@@ -637,7 +644,7 @@ function executeTestCases(testcases,executionID){
             return;
         }
         testcases[tcArray[count]].executing = true;
-        startTCExecution(testcases[tcArray[count]].testcaseID,variables,executionID,function(){
+        startTCExecution(testcases[tcArray[count]].testcaseID,testcases[tcArray[count]].dbID,variables,executionID,function(){
             if (!executions[executionID]) return;
             count++;
             var machineAvailable = false;
@@ -692,8 +699,8 @@ function executeTestCases(testcases,executionID){
     if (count == 0) nextTC();
 }
 
-function startTCExecution(id,variables,executionID,callback){
-    GetTestCaseDetails(id,executionID,function(testcase,result,hosts){
+function startTCExecution(id,dbID,variables,executionID,callback){
+    GetTestCaseDetails(id,dbID,executionID,function(testcase,result,hosts){
         if(testcase == null){
             callback();
             return;
@@ -1872,7 +1879,7 @@ function createResult(result,callback){
 
 function updateResult(result,callback){
     db.collection('testcaseresults', function(err, collection) {
-        collection.save(result,{safe:true},function(err){
+        collection.save(result,{safe:true},function(err,data){
             if(err) common.logger.error("ERROR updating results: "+err);
             if (callback){
                 callback(err);
@@ -2332,9 +2339,13 @@ function findNextAction (actions,variables,callback){
 }
 
 
-function deleteOldResult(testcaseID,executionID,callback){
+function deleteOldResult(resultID,executionID,callback){
+    if(!resultID) {
+        if(callback) callback();
+        return;
+    }
     db.collection('testcaseresults', function(err, collection) {
-        collection.findOne({testcaseID:new ObjectID(testcaseID),executionID:executionID}, {}, function(err, result) {
+        collection.findOne({_id:new ObjectID(resultID),executionID:executionID}, {}, function(err, result) {
             if(result == null) {
                 if(callback) callback();
                 return;
@@ -2355,7 +2366,7 @@ function deleteOldResult(testcaseID,executionID,callback){
 }
 
 
-function GetTestCaseDetails(testcaseID,executionID,callback){
+function GetTestCaseDetails(testcaseID,dbID,executionID,callback){
     var testcaseDetails = {};
     var testcaseResults = {};
     var hosts = [];
@@ -2432,14 +2443,13 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
         });
     };
 
-    deleteOldResult(testcaseID,executionID,function(){
+    deleteOldResult(executions[executionID].testcases[testcaseID].resultID,executionID,function(){
         db.collection('testcases', function(err, collection) {
-            collection.findOne({_id:new ObjectID(testcaseID)}, {}, function(err, testcase) {
+            collection.findOne({_id:new ObjectID(dbID)}, {}, function(err, testcase) {
                 if(testcase == null) {
                     callback(null);
                     return;
                 }
-                //if (testcase.type == "script"){
                 if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"){
                     var lang = "Java/Groovy";
                     if(testcase.scriptLang){
@@ -2485,7 +2495,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
                             var runAction = true;
 
-                            if(!executions[executionID]){
+                            if(!executions[executionID] || !executions[executionID].testcases[testcaseID]){
                                 return;
                             }
                             //if start action is greater than all actions don't execute anything
