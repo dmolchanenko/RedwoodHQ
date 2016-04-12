@@ -7,7 +7,7 @@ Ext.application({
 
     applyPermissions: function(){
         var mainTab = Ext.ComponentQuery.query('#mainTabPanel')[0];
-        if(Ext.util.Cookies.get('role') == "Test Designer"){
+        if(Ext.util.Cookies.get('role') == "Test Designer" || Ext.util.Cookies.get('role') == "Test Executor") {
             mainTab.remove(mainTab.down("#adminTab"));
             mainTab.down("scriptBrowser").down("#compileBar").hide();
             mainTab.down("scriptBrowser").down("#saveAll").hide();
@@ -23,6 +23,13 @@ Ext.application({
             mainTab.down("actions").down("#deleteAction").hide();
             mainTab.down("actions").down("#cloneAction").hide();
             mainTab.down("actions").down("#newAction").hide();
+        }
+        
+        if(Ext.util.Cookies.get('role') == "Test Executor") {
+            mainTab.down("testcases").down("#newTestCase").hide();
+            mainTab.down("testcases").down("#deleteTestCase").hide();
+            mainTab.down("testcases").down("#cloneTestCase").hide();
+            mainTab.down("testcases").down("#saveTestCase").hide();
         }
     },
 

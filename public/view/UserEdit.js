@@ -168,7 +168,7 @@ Ext.define('Redwood.view.UserEdit', {
                     afterLabelTextTpl: this.requiredText,
                     fieldLabel: 'Role',
                     hidden:false,
-                    store: ["Test Designer","Developer"],
+                    store: ["Developer","Test Designer","Test Executor"],
                     name: 'role',
                     forceSelection: true,
                     editable: false,

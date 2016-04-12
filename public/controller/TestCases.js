@@ -60,6 +60,7 @@ Ext.define("Redwood.controller.TestCases", {
     },
 
     onRecordTestCase:function(){
+        if(Ext.util.Cookies.get('role') == "Test Executor") return;
         var testcaseView = this.tabPanel.getActiveTab();
         var me = this;
         if (testcaseView === null){
@@ -70,6 +71,7 @@ Ext.define("Redwood.controller.TestCases", {
     },
 
     onCloneTestCase:function(){
+        if(Ext.util.Cookies.get('role') == "Test Executor") return;
         var testcaseView = this.tabPanel.getActiveTab();
         var me = this;
         if (testcaseView === null){
@@ -103,6 +105,7 @@ Ext.define("Redwood.controller.TestCases", {
     },
 
     onDeleteTestCase:function(){
+        if(Ext.util.Cookies.get('role') == "Test Executor") return;
         var testcaseView = this.tabPanel.getActiveTab();
         var me = this;
         if (testcaseView === null){
@@ -127,6 +130,7 @@ Ext.define("Redwood.controller.TestCases", {
         });
     },
     onEditTestCase: function(record,collapse){
+        if(Ext.util.Cookies.get('role') == "Test Executor") return;
         var name = record.get("name");
         if(record.get("history") == true){
             name = "[HISTORY " + Ext.Date.format(record.get("date"),"m/d h:i:s") + "] "+name;
@@ -173,6 +177,7 @@ Ext.define("Redwood.controller.TestCases", {
     },
 
     onSaveTestCase: function(){
+        if(Ext.util.Cookies.get('role') == "Test Executor") return;
         var testcaseView = this.tabPanel.getActiveTab();
         if (testcaseView === null){
             return;
@@ -216,6 +221,7 @@ Ext.define("Redwood.controller.TestCases", {
     },
 
     onNewTestCase: function(){
+        if(Ext.util.Cookies.get('role') == "Test Executor") return;
         var tab = Ext.create('Redwood.view.TestCaseView',{
             title:"[New TestCase]",
             closable:true
