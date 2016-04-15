@@ -79,6 +79,7 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
                 tooltip:"Add Row",
                 //itemId: "addColumnAction",
                 handler: function(){
+                    this.up("testcasedata").lastScrollPos = this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop;
                     var grid = this.up("testcasedatagrid");
                     var fields = grid.store.model.getFields();
                     var row = {};
@@ -90,6 +91,7 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
 
                     grid.store.add(row);
                     grid.getView().refresh();
+                    this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop = this.up("testcasedata").lastScrollPos;
                 }
             }
 
@@ -149,6 +151,11 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
                 editor:{
                     xtype: 'textfield',
                     listeners:{
+                        focus: function(elem){
+                            setTimeout(function () {
+                                elem.selectText();
+                            }, 50);
+                        },
                         change: function(){
                             if(this.up("testcasedata").loadingData == false) this.up("testcasedata").markDirty();
                         }
@@ -174,7 +181,7 @@ Ext.define('Redwood.view.TestCaseData', {
     alias: 'widget.testcasedata',
     loadingData: true,
 
-    height: 1000,
+    height: 400,
 
     loadData: function(data){
         var grid = this.down("testcasedatagrid");

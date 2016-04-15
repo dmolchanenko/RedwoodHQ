@@ -75,4 +75,4 @@ automationframework.actionTags.save({"value":"cart","project":projectName,"_id":
 
 automationframework.testcaseTags.save({"value":"amazon","project":projectName,"_id":ObjectId()});
 
-automationframework.executiontestcases.save({"name":"Add Star Trek to Cart","tag":["amazon"],"status":"Not Run","host":"","vncport":"","resultID":"","result":"","startdate":null,"enddate":null,"runtime":"","error":"","_id":ObjectId().str,"testcaseID":AddStarTreckID,"executionID":AmazonShoppingEXID.str,"project":projectName});
+automationframework.executiontestcases.save({"name":"Add Star Trek to Cart","tag":["amazon"],"status":"Not Run","host":"","vncport":"","resultID":"","result":"","startdate":null,"enddate":null,"runtime":"","error":"","_id":ObjectId().str,"testcaseID":AddStarTreckID.str,"executionID":AmazonShoppingEXID.str,"project":projectName});

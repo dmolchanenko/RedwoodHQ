@@ -188,6 +188,7 @@ exports.executionsTestSetUpdatePost = function(req, res){
             db.collection('testsets', function(err, collection) {
                 var id = new ObjectID(data.testset);
                 collection.findOne({_id:id}, {}, function(err, testset) {
+                    var toAdd = testset.testcases.slice(0);
                     testCases.forEach(function(execTC){
                         //var matchedIndex = testset.testcases.indexOf({_id:execTC.testcaseID});
                         var matchedIndex = arrayIndexOf(testset.testcases,function(tc){
@@ -198,14 +199,24 @@ exports.executionsTestSetUpdatePost = function(req, res){
                             //toRemove.push(execTC._id);
                         }
                         else{
-                            testset.testcases.splice(matchedIndex,1);
+                            toAdd.splice(matchedIndex,1);
                         }
                     });
-                    testset.testcases.forEach(function(toAddTC){
-                        var id = require("../common").uniqueId();
-                        CreateExecutionTestCases(db,[{_id:id,executionID:executionID,testcaseID:toAddTC._id,status:"Not Run"}])
+                    db.collection('testcases', function(err, tcCollection) {
+                        toAdd.forEach(function(toAddTC){
+                            tcCollection.findOne({_id:new ObjectID(toAddTC._id)}, {}, function(err, tc) {
+                                if(tc.tcData && tc.tcData.length > 0){
+                                        tc.tcData.forEach(function(row,index){
+                                            CreateExecutionTestCases(db,[{rowIndex:index,tcData:row,name:tc.name+"_"+index,executionID:executionID,tag:tc.tag,status:"Not Run",testcaseID:toAddTC._id,_id: require("../common").uniqueId()}]);
+                                        })
+                                }
+                                else {
+                                    CreateExecutionTestCases(db,[{_id:require("../common").uniqueId(),executionID:executionID,tag:tc.tag,testcaseID:toAddTC._id,status:"Not Run"}])
+                                }
+                            });
+                        });
+                        executions.updateExecutionTotals(executionID);
                     });
-                    executions.updateExecutionTotals(executionID);
                 })
             });
         });

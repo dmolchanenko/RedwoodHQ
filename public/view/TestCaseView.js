@@ -25,6 +25,16 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.setTitle(me.title+"*")
             }
         };
+
+        me.on("blur",function(panel){
+            me.lastScrollPos = me.getEl().dom.children[0].scrollTop;
+        });
+
+        me.on("focus",function(panel){
+            me.getEl().dom.children[0].scrollTop = me.lastScrollPos;
+        });
+
+
         me.on("beforeclose",function(panel){
             if (this.dirty == true){
                 var me = this;
@@ -316,6 +326,14 @@ Ext.define('Redwood.view.TestCaseView', {
                 defaults: {
                     flex: 1
                 },
+                listeners:{
+                    beforeexpand: function(){
+                        me.lastScrollPos = me.getEl().dom.children[0].scrollTop;
+                    },
+                    expand: function(){
+                       me.getEl().dom.children[0].scrollTop =  me.lastScrollPos+200;
+                    }
+                },
                 items: [
                     {
                         xtype:"testcasedata",
@@ -454,6 +472,9 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.down("testcasedata").loadData(me.dataRecord.get("tcData"));
                 //me.down("#afterState").setValue(me.dataRecord.get("afterState"));
                 me.down("#testcaseDetails").collapse();
+                if(!me.dataRecord.get("tcData") || me.dataRecord.get("tcData").length == 0){
+                    me.down("#testcaseData").collapse();
+                }
 
                 me.historyStore =  Ext.create('Ext.data.Store', {
                     model: 'Redwood.model.TestCases',
@@ -547,7 +568,11 @@ Ext.define('Redwood.view.TestCaseView', {
             else{
                 me.down("#actionCollection").loadCollection("");
                 me.down("#afterStateCollection").loadCollection("");
+                me.down("#testcaseData").collapse();
             }
+
+            me.down("#actionCollection").tcDataStore = me.down("testcasedatagrid").store;
+            me.down("#afterStateCollection").tcDataStore = me.down("testcasedatagrid").store;
             setTimeout(function(){me.loadingData = false;},500);
             me.down("#name").focus();
         }
