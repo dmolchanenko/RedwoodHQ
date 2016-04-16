@@ -41,7 +41,12 @@ exports.stopexecutionPost = function(req, res){
     unlockMachines(execution.machines);
     unlockCloudMachines(execution.machines);
     for(var testcase in execution.currentTestCases){
-        updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+        if(execution.currentTestCases[testcase].testcase.dbTestCase.tcData && execution.currentTestCases[testcase].testcase.dbTestCase.tcData.length > 0){
+            updateExecutionTestCase({_id:execution.testcases[testcase+execution.currentTestCases[testcase].testcase.dbTestCase.rowIndex]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+        }
+        else{
+            updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+        }
     }
     //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"jar_"+req.body.executionID);
     deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
