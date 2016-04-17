@@ -276,6 +276,18 @@ Ext.define('Redwood.view.Executions', {
                 },
                 "-",
                 {
+                    icon: "images/pdf.png",
+                    tooltip: "View Results as PDF",
+                    disabled: false,
+                    hidden:true,
+                    itemId: "exportPDF",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('export');
+                    }
+                },
+                "-",
+                {
                     icon: "images/stop.png",
                     tooltip: "Stop Selected Execution",
                     itemId: "stopExecution",
