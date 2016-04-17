@@ -30,7 +30,7 @@ var testDataContextMenu = Ext.create('Ext.menu.Menu', {
 Ext.define('Redwood.view.TestCaseDataGrid', {
     extend: 'Ext.grid.Panel',
     alias: "widget.testcasedatagrid",
-    autoHeight: true,
+    height:400,
     sortableColumns: false,
     selType: 'cellmodel',
     plugins: {
@@ -83,6 +83,7 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
                     var grid = this.up("testcasedatagrid");
                     var fields = grid.store.model.getFields();
                     var row = {};
+                    this.up("testcasedata").lastScrollPos = this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop;
 
                     fields.forEach(function(field){
                         //row[field.name] = "";
@@ -91,7 +92,6 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
 
                     grid.store.add(row);
                     grid.getView().refresh();
-                    this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop = this.up("testcasedata").lastScrollPos;
                 }
             }
 
