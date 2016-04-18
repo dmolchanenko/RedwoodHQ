@@ -755,7 +755,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                 result.rowIndex = executions[executionID].testcases[id].rowIndex;
             }
             if(!executions[executionID]) return;
-            executions[executionID].currentTestCases[testcase.dbTestCase._id] = {testcase:testcase,result:result,executionTestCaseID:id};
+            executions[executionID].currentTestCases[id] = {testcase:testcase,result:result,executionTestCaseID:id};
             //testcase.machines = [];
 
             testcase.startDate = new Date();
@@ -779,7 +779,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                 result.result = error;
                 updateResult(result);
                 //executions[executionID].testcases[id].result = result;
-                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                 callback();
                 return;
             }
@@ -792,7 +792,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                 result.status = "Finished";
                 result.result = "Passed";
                 updateResult(result);
-                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                 callback();
                 return;
             }
@@ -838,7 +838,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                 result.status = "Finished";
                 result.result = "Failed";
                 updateResult(result);
-                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                 callback();
                 return;
             }
@@ -848,7 +848,8 @@ function startTCExecution(id,dbID,variables,executionID,callback){
 
             //var startTC = function(){
 
-            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id,variables:executions[executionID].variables};
+            //var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id,variables:executions[executionID].variables};
+            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:id,variables:executions[executionID].variables};
 
             var foundMachine = null;
 
@@ -860,9 +861,9 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                         result.status = "Finished";
                         result.result = "Failed";
                         updateResult(result);
-                        if (executions[executionID] && executions[executionID].currentTestCases[testcase.dbTestCase._id]){
-                            executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
-                            finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                        if (executions[executionID] && executions[executionID].currentTestCases[id]){
+                            executions[executionID].currentTestCases[id].result = result;
+                            finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                         }
                     }
                     else{
@@ -880,7 +881,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                     result.result = "Failed";
                     updateResult(result);
                     //executions[executionID].testcases[id].result = result;
-                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                     return;
                 }
                 agentInstructions.name = testcase.name;
@@ -939,13 +940,13 @@ function startTCExecution(id,dbID,variables,executionID,callback){
             }
             findNextAction(testcase.actions,variables,function(action){
                 if (!executions[executionID]) return;
-                if(!executions[executionID].currentTestCases[testcase.dbTestCase._id]) return;
+                if(!executions[executionID].currentTestCases[id]) return;
                 if(action == null){
-                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                     return;
                 }
 
-                executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
+                executions[executionID].currentTestCases[id].currentAction = action;
 
                 agentInstructions.name = action.name;
                 agentInstructions.executionflow = action.dbAction.executionflow;
@@ -1169,9 +1170,9 @@ exports.actionresultPost = function(req, res){
         updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
         testcase.result.status = "Running";
 
-        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.testcase.dbTestCase._id,variables:execution.variables};
+        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.executionTestCaseID,variables:execution.variables};
 
-        execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
+        execution.currentTestCases[testcase.executionTestCaseID].currentAction = action;
 
         agentInstructions.name = action.name;
         agentInstructions.executionflow = action.dbAction.executionflow;
@@ -1197,8 +1198,8 @@ exports.actionresultPost = function(req, res){
                     testcase.result.result = "Failed";
                     updateResult(testcase.result);
                     if (execution && testcase.dbTestCase){
-                        execution.currentTestCases[testcase.dbTestCase._id].result = "Failed";
-                        finishTestCaseExecution(execution,req.body.executionID,execution.testcases[id]._id,execution.currentTestCases[testcase.dbTestCase._id]);
+                        execution.currentTestCases[testcase.executionTestCaseID].result = "Failed";
+                        finishTestCaseExecution(execution,req.body.executionID,execution.testcases[id]._id,execution.currentTestCases[testcase.executionTestCaseID]);
                     }
                 }
                 else{

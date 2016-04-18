@@ -26,15 +26,6 @@ Ext.define('Redwood.view.TestCaseView', {
             }
         };
 
-        me.on("blur",function(panel){
-            me.lastScrollPos = me.getEl().dom.children[0].scrollTop;
-        });
-
-        me.on("focus",function(panel){
-            me.getEl().dom.children[0].scrollTop = me.lastScrollPos;
-        });
-
-
         me.on("beforeclose",function(panel){
             if (this.dirty == true){
                 var me = this;
@@ -91,9 +82,10 @@ Ext.define('Redwood.view.TestCaseView', {
                         itemId:"name",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
+                                    field.focus();
                                 }
                             }
                         }
@@ -107,9 +99,10 @@ Ext.define('Redwood.view.TestCaseView', {
                         height: 180,
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
+                                    field.focus();
                                 }
                             }
                         }

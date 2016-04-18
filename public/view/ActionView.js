@@ -342,9 +342,10 @@ Ext.define('Redwood.view.ActionView', {
                         itemId:"name",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
+                                    field.focus();
                                 }
                             }
                         }
@@ -359,6 +360,7 @@ Ext.define('Redwood.view.ActionView', {
                             change: function(){
                                 if (me.loadingData === false){
                                     me.markDirty();
+                                    field.focus();
                                 }
                             }
                         }
