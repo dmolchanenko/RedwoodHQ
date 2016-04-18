@@ -196,10 +196,14 @@ exports.executionsTestSetUpdatePost = function(req, res){
                         });
                         if (matchedIndex == -1){
                             DeleteExecutionTestCases(db,execTC);
-                            //toRemove.push(execTC._id);
                         }
                         else{
-                            toAdd.splice(matchedIndex,1);
+                            var matchedToAddIndex = arrayIndexOf(toAdd,function(tc){
+                                return execTC.testcaseID === tc._id;
+                            });
+                            if(matchedToAddIndex != -1){
+                                toAdd.splice(matchedToAddIndex,1);
+                            }
                         }
                     });
                     db.collection('testcases', function(err, tcCollection) {
