@@ -258,7 +258,7 @@
             });
             Ext.defer(boxKeyNav.enable, 1, boxKeyNav);
         }
-        me.view.focus();
+        //me.view.focus();
     },
     onDestroy: function() {
         var me = this;

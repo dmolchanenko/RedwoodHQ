@@ -211,7 +211,7 @@ exports.executionsTestSetUpdatePost = function(req, res){
                             tcCollection.findOne({_id:new ObjectID(toAddTC._id)}, {}, function(err, tc) {
                                 if(tc.tcData && tc.tcData.length > 0){
                                         tc.tcData.forEach(function(row,index){
-                                            CreateExecutionTestCases(db,[{rowIndex:index,tcData:row,name:tc.name+"_"+index,executionID:executionID,tag:tc.tag,status:"Not Run",testcaseID:toAddTC._id,_id: require("../common").uniqueId()}]);
+                                            CreateExecutionTestCases(db,[{rowIndex:index+1,tcData:row,name:tc.name+"_"+(index+1),executionID:executionID,tag:tc.tag,status:"Not Run",testcaseID:toAddTC._id,_id: require("../common").uniqueId()}]);
                                         })
                                 }
                                 else {

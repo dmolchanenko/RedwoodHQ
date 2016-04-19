@@ -843,7 +843,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                         if(execTestCases.getAt(0).get("tcData") == "" || execTestCases.getAt(0).get("tcData").length == 0){
                                             me.down("#executionTestcases").store.remove(execTestCases.getAt(0));
                                             testcase.get("tcData").forEach(function(row,index){
-                                                me.down("#executionTestcases").store.add({updated:true,rowIndex:index,tcData:row,name:testcase.get("name")+"_"+index,tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                me.down("#executionTestcases").store.add({updated:true,rowIndex:index+1,tcData:row,name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                             })
                                         }
                                         else{
@@ -1251,7 +1251,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         itemId:"name",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -1315,7 +1315,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                     if(testcase){
                                         if(testcase.get("tcData") && testcase.get("tcData").length > 0){
                                             testcase.get("tcData").forEach(function(row,index){
-                                                allTCs.push({rowIndex:index,tcData:row,name:testcase.get("name")+"_"+index,tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                allTCs.push({rowIndex:index+1,tcData:row,name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                             })
                                         }
                                         else{

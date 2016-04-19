@@ -345,7 +345,6 @@ Ext.define('Redwood.view.ActionView', {
                             change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
-                                    field.focus();
                                 }
                             }
                         }
@@ -357,10 +356,9 @@ Ext.define('Redwood.view.ActionView', {
                         itemId:"description",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
-                                    field.focus();
                                 }
                             }
                         }
@@ -436,7 +434,7 @@ Ext.define('Redwood.view.ActionView', {
                         removeOnDblClick:true,
                         itemId:"tag",
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -541,7 +539,7 @@ Ext.define('Redwood.view.ActionView', {
                 hidden: false,
                 width: 955,
                 listeners: {
-                    change: function(){
+                    change: function(field){
                         if (me.loadingData == false){
                             me.markDirty();
                         }

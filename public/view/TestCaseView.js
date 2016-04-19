@@ -85,7 +85,6 @@ Ext.define('Redwood.view.TestCaseView', {
                             change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
-                                    field.focus();
                                 }
                             }
                         }
@@ -102,7 +101,6 @@ Ext.define('Redwood.view.TestCaseView', {
                             change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
-                                    field.focus();
                                 }
                             }
                         }
@@ -176,12 +174,10 @@ Ext.define('Redwood.view.TestCaseView', {
                                 if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng" ){
                                     me.up("testcaseview").down("#actionCollectionFiledSet").hide();
                                     me.up("testcaseview").down("#testcaseData").hide();
-                                    me.up("testcaseview").down("#afterState").hide();
                                     me.up("testcaseview").down("scriptPickerView").show();
                                 }else{
                                     me.up("testcaseview").down("#actionCollectionFiledSet").show();
                                     me.up("testcaseview").down("#testcaseData").show();
-                                    me.up("testcaseview").down("#afterState").show();
                                     me.up("testcaseview").down("scriptPickerView").hide();
                                 }
                                 if (me.up("testcaseview").loadingData === false){

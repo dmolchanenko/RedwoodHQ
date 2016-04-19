@@ -39,6 +39,7 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
     },
 
     viewConfig: {
+        preserveScrollOnRefresh:true,
         markDirty: false
     },
 
@@ -83,7 +84,6 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
                     var grid = this.up("testcasedatagrid");
                     var fields = grid.store.model.getFields();
                     var row = {};
-                    this.up("testcasedata").lastScrollPos = this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop;
 
                     fields.forEach(function(field){
                         //row[field.name] = "";
@@ -92,6 +92,9 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
 
                     grid.store.add(row);
                     grid.getView().refresh();
+                    this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop = this.up("testcasedata").lastScrollPos;
+                    grid.getView().getNode(grid.store.data.getCount()-1).scrollIntoView();
+                    //grid.getView().focusRow(grid.store.data.getCount())
                 }
             }
 
@@ -108,8 +111,10 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
                     icon: 'images/delete.png',
                     tooltip: 'Delete',
                     handler: function (grid, rowIndex, colIndex) {
+                        this.up("testcasedata").lastScrollPos = this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop;
                         grid.store.remove(grid.store.getAt(rowIndex));
                         grid.refresh();
+                        this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop = this.up("testcasedata").lastScrollPos;
                     }
                 }
             ]
