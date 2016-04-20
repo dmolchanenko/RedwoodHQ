@@ -761,9 +761,8 @@ Ext.define('Redwood.view.ActionCollection', {
                     queryMode: 'local',
                     removeOnDblClick:true,
                     listeners:{
-                        show: function(field){
-                            console.log("aga");
-                            field.inputEl.dom.focus();
+                        boxready: function(field){
+                            if(field.view)field.view.focus();
                         },
                         removed: function(field){
                             //console.log("hidden");
