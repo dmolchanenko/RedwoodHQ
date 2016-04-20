@@ -1442,7 +1442,7 @@ exports.agentBaseState = function(project,executionID,agentHost,port,threadID,ca
 
 function agentBaseState(project,executionID,agentHost,port,threadID,callback){
     sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},3,function(message){
-        if (message.error){
+        if (message && message.error){
             callback(message);
             return;
         }

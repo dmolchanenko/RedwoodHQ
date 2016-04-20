@@ -67,6 +67,7 @@ Ext.define("Redwood.controller.Executions", {
                 export: this.onExecutionExport,
                 executionEdit: this.onExecutionEdit,
                 executionDelete: this.onExecutionDelete,
+                deleteExecutions: this.onDeleteExecutions,
                 celldblclick: this.onDoubleClick,
                 newExecution: this.addExecution,
                 save: this.saveExecution,
@@ -559,6 +560,40 @@ Ext.define("Redwood.controller.Executions", {
             });
         }
 
+    },
+
+    onDeleteExecutions: function(grid){
+        var me = this;
+        var records = grid.getSelectionModel().getSelection();
+        if(records.length > 0){
+            Ext.Msg.show({
+                title:'Delete Confirmation',
+                msg: "Are you sure you want to delete selected executions?" ,
+                buttons: Ext.Msg.YESNO,
+                icon: Ext.Msg.QUESTION,
+                fn: function(id){
+                    if (id === "yes"){
+                        for(var i=0;i<records.length;i++){
+                            if (records[i].get("status") == "Running"){
+                                Ext.Msg.alert('Error', "Unable to delete running execution.");
+                                return
+                            }
+                        }
+
+                        var foundTab = null;
+                        records.forEach(function(record){
+                            foundTab = me.tabPanel.down("#"+record.get("_id"));
+                            if (foundTab){
+                                foundTab.dirty = false;
+                                foundTab.close();
+                            }
+                            Ext.data.StoreManager.lookup('Executions').remove(record);
+                        });
+                        Ext.data.StoreManager.lookup('Executions').sync({success:function(batch,options){} });
+                    }
+                }
+            });
+        }
     },
 
     afterExecutionEdit: function(evtData){
