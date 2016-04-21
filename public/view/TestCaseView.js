@@ -637,7 +637,12 @@ Ext.define('Redwood.view.TestCaseView', {
 
 
         testcase.collection = this.down("#actionCollection").getCollectionData();
-        testcase.tcData = this.down("testcasedata").getTestCaseData();
+        if(testcase.type == "collection"){
+            testcase.tcData = this.down("testcasedata").getTestCaseData();
+        }
+        else {
+            testcase.tcData = "";
+        }
         return testcase;
     }
 
