@@ -42,7 +42,7 @@ exports.stopexecutionPost = function(req, res){
     unlockCloudMachines(execution.machines);
     for(var testcase in execution.currentTestCases){
         if(execution.currentTestCases[testcase].testcase.dbTestCase.tcData && execution.currentTestCases[testcase].testcase.dbTestCase.tcData.length > 0){
-            updateExecutionTestCase({_id:execution.testcases[testcase+execution.currentTestCases[testcase].testcase.dbTestCase.rowIndex]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+            updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
         }
         else{
             updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
