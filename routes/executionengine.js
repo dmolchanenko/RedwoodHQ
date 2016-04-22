@@ -1055,6 +1055,7 @@ exports.actionresultPost = function(req, res){
         if (req.body.trace){
             formatTrace(req.body.trace,execution.sourceCache,function(trace){
                 testcase.result.trace = trace;
+                testcase.trace = trace;
                 if(trace == "") testcase.result.trace = req.body.trace;
                 updateResult(testcase.result);
             });
