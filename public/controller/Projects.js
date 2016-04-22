@@ -21,10 +21,21 @@ Ext.define("Redwood.controller.Projects", {
     },
 
     onProjectClone: function(evtData) {
-        var store = Ext.data.StoreManager.lookup('Projects');
-        var record = store.getAt(evtData.rowIndex);
-        var projectEditWindow = new Redwood.view.ProjectEdit({newProject:false,cloneProject:true,dataRecord:record});
-        projectEditWindow.show();
+        Ext.Msg.show({
+            title:'Cloning Confirmation',
+            msg: 'Warning: Cloning a project is a very CPU intensive operation.<br>Depending on the number of users it might take anywhere from <b>20 mins to 2 hours</b> to complete.<br>Are you sure you want to continue?',
+            buttons: Ext.Msg.YESNO,
+            icon: Ext.Msg.QUESTION,
+            fn: function(id){
+                if (id == "yes"){
+                    var store = Ext.data.StoreManager.lookup('Projects');
+                    var record = store.getAt(evtData.rowIndex);
+                    var projectEditWindow = new Redwood.view.ProjectEdit({newProject:false,cloneProject:true,dataRecord:record});
+                    projectEditWindow.show();
+                }
+            }
+        });
+
     },
 
     onProjectEdit: function(evtData) {
