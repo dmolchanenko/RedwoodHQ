@@ -853,7 +853,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                                 }
                                                 else if(JSON.stringify(execTestCase.get("tcData")) != JSON.stringify(testcase.get("tcData")[execTestCase.get("rowIndex")])){
                                                     me.down("#executionTestcases").store.remove(execTestCase);
-                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:index,tcData:testcase.get("tcData")[index],name:testcase.get("name")+"_"+index,tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:index+1,tcData:testcase.get("tcData")[index],name:testcase.get("name")+"_"+index,tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                                 }
                                             });
                                             if(testcase.get("tcData").length > execTestCases.length){
