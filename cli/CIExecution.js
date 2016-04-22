@@ -85,14 +85,32 @@ function saveExecutionTestCases(testsetID,executionID,callback){
             testSetCollection.findOne({_id:db.bson_serializer.ObjectID(testsetID.toString())}, {testcases:1}, function(err, dbtestcases) {
                 dbtestcases.testcases.forEach(function(testcase,index){
                     db.collection('testcases', function(err, tcCollection) {
-                        tcCollection.findOne({_id:db.bson_serializer.ObjectID(testcase._id.toString())},{name:1},function(err,dbtestcase){
-                            var insertTC = {executionID:executionID,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
-                            testcases.push(insertTC);
-                            ExeTCCollection.insert(insertTC, {safe:true},function(err,returnData){
-                                if(index+1 == dbtestcases.testcases.length){
-                                    callback(testcases);
-                                }
-                            });
+                        tcCollection.findOne({_id:db.bson_serializer.ObjectID(testcase._id.toString())},{},function(err,dbtestcase){
+                            if(dbtestcase.tcData && dbtestcase.tcData.length > 0){
+                                var ddTCCount = 0;
+                                dbtestcase.tcData.forEach(function(row,rowIndex){
+                                    var insertTC = {executionID:executionID,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
+                                    insertTC.rowIndex = rowIndex+1;
+                                    insertTC.name = insertTC.name +"_"+(rowIndex+1);
+                                    insertTC.tcData = row;
+                                    testcases.push(insertTC);
+                                    ExeTCCollection.insert(insertTC, {safe:true},function(err,returnData){
+                                        ddTCCount++;
+                                        if(ddTCCount == dbtestcase.tcData.length && index+1 == dbtestcases.testcases.length){
+                                            callback(testcases);
+                                        }
+                                    });
+                                })
+                            }
+                            else{
+                                var insertTC = {executionID:executionID,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
+                                testcases.push(insertTC);
+                                ExeTCCollection.insert(insertTC, {safe:true},function(err,returnData){
+                                    if(index+1 == dbtestcases.testcases.length){
+                                        callback(testcases);
+                                    }
+                                });
+                            }
                         });
                     });
                 });
