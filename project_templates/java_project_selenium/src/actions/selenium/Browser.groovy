@@ -11,19 +11,33 @@ import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.remote.DesiredCapabilities
 
 class Browser{
-  
+
+
   public static WebDriver Driver = null
   public static MainWinHandle = null
-  
+
   //start browser
   public void run(def params){
+    def os = System.getProperty("os.name").toLowerCase();
 
 	sleep(1000)
     if (params."Browser Type" == "Firefox"){
       Driver = new FirefoxDriver()
     }
     else if (params."Browser Type" == "Chrome"){
-      def service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(new File("chromedriver.exe")).build()
+      def service
+
+      if(os.contains("nix") || os.contains("nux")||os.contains("aix")){
+          File chromedriver = new File("chromedriver")
+          if(!chromedriver.exists()){
+              assert false, "Please upload proper chromedriver file to bin directory under scripts tab."
+          }
+          chromedriver.setExecutable(true)
+          service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(chromedriver).build()
+      }
+      else{
+        service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(new File("chromedriver.exe")).build()
+      }
       service.start()
       Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome())
     }
