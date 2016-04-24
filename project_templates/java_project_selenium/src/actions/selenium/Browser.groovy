@@ -30,7 +30,7 @@ class Browser{
       if(os.contains("nix") || os.contains("nux")||os.contains("aix")){
           File chromedriver = new File("chromedriver")
           if(!chromedriver.exists()){
-              assert false, "Please upload proper chromedriver file to bin directory under scripts tab."
+              assert false, "Please upload proper linux chromedriver file to bin directory under scripts tab."
           }
           chromedriver.setExecutable(true)
           service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(chromedriver).build()
