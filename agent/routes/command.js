@@ -42,7 +42,14 @@ exports.Post = function(req, res){
         }
 
         if(!launcherConn[command.executionID+portNumber.toString()]){
-            startLauncher(command.executionID,command.threadID,type,function(){
+            var sent = false;
+            startLauncher(command.executionID,command.threadID,type,function(msg){
+                if(sent == true) return;
+                sent = true;
+                if(msg && msg.error){
+                    res.json({"error":msg.error,"success":true});
+                    return
+                }
                 sendLauncherCommand(command,null,function(err){
                     res.send(JSON.stringify({"error":err,"success":true}));
                 });
@@ -61,7 +68,7 @@ exports.Post = function(req, res){
         //},1*60*1000);
         var count = 0;
         var cleanUpDirs = function(){
-            deleteDir(baseExecutionDir + "/"+command.executionID,function(){
+            common.deleteDir(baseExecutionDir + "/"+command.executionID,function(){
             });
         };
 
@@ -299,7 +306,7 @@ function startLauncher(executionID,threadID,type,callback){
                     //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                     //checkForCrush(portNumber);
                     if(launcherCrashed == false){
-                        callback("Error connecting to launcher on port "+portNumber+": "+err);
+                        callback({error:"Error connecting to launcher on port "+portNumber+": "+err});
                         launcherCrashed = true;
                     }
                 });
@@ -463,7 +470,7 @@ function cleanUpOldExecutions(ignoreExecution){
                                 }
                             });
                             dirs.forEach(function(dirCount){
-                                deleteDir(dirCount)
+                                common.deleteDir(dirCount)
                             });
                         }
                     });
@@ -472,45 +479,6 @@ function cleanUpOldExecutions(ignoreExecution){
             })
         });
     });
-}
-
-function deleteDir(dir,callback){
-    var walker = walk.walkSync(dir);
-
-    var allDirs = [];
-    walker.on("file", function (root, fileStats, next) {
-        fs.unlinkSync(root+"/"+fileStats.name);
-    });
-
-    walker.on("directories", function (root, dirs, next) {
-        dirs.forEach(function(dir){
-            allDirs.push(root+"/"+dir.name);
-        });
-        next();
-    });
-    walker.on("end", function () {
-        //res.send("{error:null,success:true}");
-        allDirs.reverse();
-        allDirs.forEach(function(dirCount){
-            try{
-                fs.rmdirSync(dirCount);
-            }
-            catch(err){
-                common.logger.info("dir "+ dirCount +" is not empty")
-            }
-
-            common.logger.info(dirCount);
-        });
-        try{
-            fs.rmdirSync(dir);
-        }
-        catch(err){
-            common.logger.info("dir "+ dir +" is not empty")
-        }
-
-        if(callback) callback();
-    });
-
 }
 
 function sendLauncherCommand(command,port,callback){
