@@ -851,14 +851,14 @@ Ext.define('Redwood.view.ExecutionView', {
                                                 if(index+1 > testcase.get("tcData").length){
                                                     me.down("#executionTestcases").store.remove(execTestCase);
                                                 }
-                                                else if(JSON.stringify(execTestCase.get("tcData")) != JSON.stringify(testcase.get("tcData")[execTestCase.get("rowIndex")])){
+                                                else if(JSON.stringify(execTestCase.get("tcData")) != JSON.stringify(testcase.get("tcData")[execTestCase.get("rowIndex")-1])){
                                                     me.down("#executionTestcases").store.remove(execTestCase);
                                                     me.down("#executionTestcases").store.add({updated:true,rowIndex:index+1,tcData:testcase.get("tcData")[index],name:testcase.get("name")+"_"+index,tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                                 }
                                             });
                                             if(testcase.get("tcData").length > execTestCases.length){
                                                 for(var tcCount=execTestCases.length;tcCount<testcase.get("tcData").length;tcCount++){
-                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:tcCount,tcData:testcase.get("tcData")[tcCount],name:testcase.get("name")+"_"+tcCount,tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:tcCount+1,tcData:testcase.get("tcData")[tcCount],name:testcase.get("name")+"_"+(tcCount+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                                 }
                                             }
                                         }
