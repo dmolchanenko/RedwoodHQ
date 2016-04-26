@@ -19,6 +19,7 @@ common.parseConfig(function(){
     execution.status = "Ready To Run";
     execution.locked = true;
     execution.ignoreStatus = false;
+    execution.ignoreAfterState = false;
     execution.lastRunDate = null;
     execution.testsetname = argv.testset;
     execution.pullLatest = argv.pullLatest;
@@ -184,7 +185,7 @@ function StartExecution(execution,testcases,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
     req.end();
 }
 
