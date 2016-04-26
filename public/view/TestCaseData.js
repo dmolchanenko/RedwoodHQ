@@ -160,9 +160,11 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
                             setTimeout(function () {
                                 elem.selectText();
                             }, 50);
+                            this.up("testcasedata").lastScrollPos = this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop;
                         },
                         change: function(){
                             if(this.up("testcasedata").loadingData == false) this.up("testcasedata").markDirty();
+                            this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop = this.up("testcasedata").lastScrollPos;
                         }
                     }
                 },
