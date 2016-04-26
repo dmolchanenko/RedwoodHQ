@@ -409,12 +409,12 @@ function applyMultiThreading(executionID,callback){
                 if(dbMachine){
                     startThread = dbMachine.takenThreads - machine.threads;
                 }
-                if(startThread != 0){
-                    startThread = dbMachine.lastStartThread + 1
-                }
+                //if(startThread != 0){
+                //    startThread = dbMachine.lastStartThread + 1
+                //}
 
-                collection.findAndModify({_id:new ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
-                });
+                //collection.findAndModify({_id:new ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
+                //});
                 common.logger.info("staring at:"+startThread);
                 machine.threadID = startThread;
                 //if more than one thread run base state if not let it go
@@ -1700,6 +1700,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callbac
         var req = http.request(options, function(res) {
             //res.setEncoding('utf8');
             res.on('data', function (chunk) {
+                readStream.destroy();
                 if (file in fileSync){
                     if(fileSync[file].close){
                         fileSync[file].destroy();
@@ -1722,6 +1723,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callbac
         }
 
         var handleError = function(e){
+            readStream.destroy();
             if(file in fileSync && fileSync[file].close){
                 fileSync[file].destroy();
             }
@@ -1756,7 +1758,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callbac
             }
             catch(e){
                 //req.end();
-                readStream.end();
+                readStream.destroy();
             }
         });
         readStream.on('close',function(){
