@@ -174,6 +174,7 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
             });
             grid.headerCt.insert(grid.headerCt.gridDataColumns.length-1, eColumn);
             grid.getView().refresh();
+            if(this.up("testcasedata").loadingData == false) this.up("testcasedata").markDirty();
         };
 
         this.callParent(arguments);
