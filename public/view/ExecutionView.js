@@ -831,7 +831,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     },
                     {
                         icon:'images/refresh.png',
-                        toolTip:"Data Driven Test Case Reload",
+                        toolTip:"Get Latest Data Driven Data",
                         handler: function(){
                             var testSet = Ext.data.StoreManager.lookup('TestSets').query("_id",me.dataRecord.get("testset")).getAt(0);
                             testSet.get("testcases").forEach(function(testcaseId){
