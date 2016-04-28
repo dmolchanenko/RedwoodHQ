@@ -126,6 +126,7 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
 
         var me = this;
         me.addDataColumn = function(text){
+            this.up("testcasedata").lastScrollPos = this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop;
             var dataIndex = text;
             //rownumberer needs id field so can't use it directly
             if(text == "id") dataIndex = "id_&&&";
@@ -177,6 +178,7 @@ Ext.define('Redwood.view.TestCaseDataGrid', {
             grid.headerCt.insert(grid.headerCt.gridDataColumns.length-1, eColumn);
             grid.getView().refresh();
             if(this.up("testcasedata").loadingData == false) this.up("testcasedata").markDirty();
+            this.up("testcasedata").parentPanel.getEl().dom.children[0].scrollTop = this.up("testcasedata").lastScrollPos;
         };
 
         this.callParent(arguments);
