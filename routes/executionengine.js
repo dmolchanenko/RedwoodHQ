@@ -713,6 +713,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
         //if(executions[executionID].testcases[id].tcData && executions[executionID].testcases[id].tcData != ""){
         //    testcase.tcData = executions[executionID].testcases[id].tcData;
         //}
+        testcase.variables = {};
         testcase.machines = [];
         testcase.machineVars = [];
         var reservedHosts = [];
@@ -756,6 +757,18 @@ function startTCExecution(id,dbID,variables,executionID,callback){
             }
             if(!executions[executionID]) return;
             executions[executionID].currentTestCases[id] = {testcase:testcase,result:result,executionTestCaseID:id};
+
+            for (var attrname in testcase.machineVars) { testcase.variables[attrname] = testcase.machineVars[attrname]; }
+            for (var attrname in variables) { testcase.variables[attrname] = variables[attrname]; }
+            if(result.rowIndex){
+                testcase.variables["Framework.TestCaseName"] = testcase.dbTestCase.name+"_"+result.rowIndex;
+            }
+            else{
+                testcase.variables["Framework.TestCaseName"] = testcase.dbTestCase.name;
+            }
+            if (result.tcData){
+                for (var tcDataColumn in result.tcData) { testcase.variables["TCData."+tcDataColumn] = result.tcData[tcDataColumn]; }
+            }
             //testcase.machines = [];
 
             testcase.startDate = new Date();
@@ -933,12 +946,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
             }
 
             callback();
-            for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
-            variables["Framework.TestCaseName"] = testcase.dbTestCase.name;
-            if (result.tcData){
-                for (var tcDataColumn in result.tcData) { variables["TCData."+tcDataColumn] = result.tcData[tcDataColumn]; }
-            }
-            findNextAction(testcase.actions,variables,function(action){
+            findNextAction(testcase.actions,testcase.variables,function(action){
                 if (!executions[executionID]) return;
                 if(!executions[executionID].currentTestCases[id]) return;
                 if(action == null){
@@ -1137,7 +1145,7 @@ exports.actionresultPost = function(req, res){
 
 
     var actionVariables = {};
-    for (var attrname in execution.variables) { actionVariables[attrname] = execution.variables[attrname]; }
+    for (var attrname in testcase.testcase.variables) { actionVariables[attrname] = testcase.testcase.variables[attrname]; }
     for (var attrname in testcase.machineVars) { actionVariables[attrname] = testcase.machineVars[attrname]; }
     if(execution.returnVars[testcase.executionTestCaseID]){
         for (var attrname in execution.returnVars[testcase.executionTestCaseID]) { actionVariables[attrname] = execution.returnVars[testcase.executionTestCaseID][attrname]; }
@@ -1171,7 +1179,7 @@ exports.actionresultPost = function(req, res){
         updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
         testcase.result.status = "Running";
 
-        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.executionTestCaseID,variables:execution.variables};
+        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.executionTestCaseID,variables:testcase.testcase.variables};
 
         execution.currentTestCases[testcase.executionTestCaseID].currentAction = action;
 
@@ -1828,6 +1836,7 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
 
 
 function resolveParamValue(value,variables){
+    console.log(variables)
     var returnNULL = false;
 
     var resolveVariable = function(stringValue){
