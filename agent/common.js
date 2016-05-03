@@ -30,7 +30,7 @@ exports.deleteDir = function(dir,callback){
                 fs.rmdirSync(dirCount);
             }
             catch(err){
-                logger.info("dir "+ dirCount +" is not empty")
+                console.log("dir "+ dirCount +" is not empty")
             }
 
         });
@@ -38,7 +38,7 @@ exports.deleteDir = function(dir,callback){
             fs.rmdirSync(dir);
         }
         catch(err){
-            logger.info("dir "+ dir +" is not empty")
+            console.log("dir "+ dir +" is not empty")
         }
 
         if(callback) callback();
