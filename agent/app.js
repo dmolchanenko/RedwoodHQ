@@ -9,7 +9,7 @@ var update = require('./routes/update');
 var common = require('./common');
 var path = require('path');
 var fs = require('fs');
-//var idesync = require('./routes/idesync');
+var idesync = require('./routes/idesync');
 
 var realFs = require("fs");
 var gracefulFs = require("graceful-fs");
@@ -44,6 +44,7 @@ app.post('/matchfile',fileupload.MatchFile);
 app.post('/uploadfiles',uploadfiles.uploadFiles);
 app.post('/recordimage',imageautomation.recordImage);
 app.post('/startrecording',recorder.record);
+app.post('/idesync',idesync.syncToRedwoodHQ);
 
 app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 app.use(express.errorHandler());

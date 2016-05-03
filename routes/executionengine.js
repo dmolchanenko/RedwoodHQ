@@ -921,14 +921,14 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                 executionsRoute.updateExecutionTotals(executionID);
                 if (foundMachine.runBaseState === true){
                     if (foundMachine.multiThreaded  == true){
-                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                     }
                     else{
                         //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
                         //could have changed while test case was running
-                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},3,function(message){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},30,function(message){
                             if (message.loaded == true){
-                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                             }
                             else{
                                 runBaseState();
@@ -988,14 +988,14 @@ function startTCExecution(id,dbID,variables,executionID,callback){
 
                 if (foundMachine.runBaseState === true){
                     if (foundMachine.multiThreaded  == true){
-                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                     }
                     else{
                         //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
                         //could have changed while test case was running
-                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},3,function(message){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},30,function(message){
                             if (message.loaded == true){
-                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                             }
                             else{
                                 runBaseState();
@@ -1835,7 +1835,6 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
 
 
 function resolveParamValue(value,variables){
-    console.log(variables)
     var returnNULL = false;
 
     var resolveVariable = function(stringValue){

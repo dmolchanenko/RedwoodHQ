@@ -9,6 +9,7 @@ var spawn = require('child_process').spawn;
 var MSBuildLocation = null;
 exports.MSBuildLocation = MSBuildLocation;
 var common = require("./common");
+var walk = require("walk");
 
 exports.parseConfig = function(callback){
     var conf = fs.readFileSync(__dirname+"/properties.conf");
@@ -191,6 +192,44 @@ exports.cleanUpUserStatus = function(callback){
             callback();
         });
     });
+};
+
+exports.deleteDir = function(dir,callback){
+    var walker = walk.walkSync(dir);
+
+    var allDirs = [];
+    walker.on("file", function (root, fileStats, next) {
+        fs.unlinkSync(root+"/"+fileStats.name);
+    });
+
+    walker.on("directories", function (root, dirs, next) {
+        dirs.forEach(function(dir){
+            allDirs.push(root+"/"+dir.name);
+        });
+        next();
+    });
+    walker.on("end", function () {
+        //res.send("{error:null,success:true}");
+        allDirs.reverse();
+        allDirs.forEach(function(dirCount){
+            try{
+                fs.rmdirSync(dirCount);
+            }
+            catch(err){
+                logger.info("dir "+ dirCount +" is not empty")
+            }
+
+        });
+        try{
+            fs.rmdirSync(dir);
+        }
+        catch(err){
+            logger.info("dir "+ dir +" is not empty")
+        }
+
+        if(callback) callback();
+    });
+
 };
 
 

@@ -159,21 +159,39 @@ exports.Post = function(req, res){
     CreateParentDirs(req.files.file.name,function(){
         try{
             fs.rename(tmp_path, target_path, function(err) {
+                var zip;
                 if (err){
                     res.send('{error:"'+err+'"}');
                     common.logger.error("rename ERROR:"+err);
                     fs.unlink(tmp_path);
                     return;
                 }
-                if(req.files.file.name.indexOf("pythonLibs.zip") != -1){
+
+                if(req.files.file.name.indexOf("idesync.zip") != -1){
+                    zip = new AdmZip(target_path);
                     var extractTo = path.resolve(__dirname,"../")+"/"+req.files.file.name.substring(0,req.files.file.name.lastIndexOf("/"));
-                    var zip = new AdmZip(target_path);
+                    common.deleteDir(extractTo+"/src",function(){
+                        common.deleteDir(extractTo+"/bin",function(){
+                            common.deleteDir(extractTo+"/External Libraries",function(){
+                                zip.extractAllTo(extractTo, true);
+                                fs.unlink(target_path);
+                                fs.unlink(tmp_path);
+                                res.json({success:true});
+
+                            });
+                        });
+                    });
+                }
+                else if(req.files.file.name.indexOf("pythonLibs.zip") != -1){
+                    zip = new AdmZip(target_path);
+                    var extractTo = path.resolve(__dirname,"../")+"/"+req.files.file.name.substring(0,req.files.file.name.lastIndexOf("/"));
                     zip.extractAllTo(extractTo, true);
                     res.send("{error:null,success:true}");
                     SaveToCache(req.files.file.name,target_path);
                     //var unzip  = spawn(path.resolve(__dirname,'../../vendor/Java/bin/jar'),['xf','pythonLibs.zip'],{cwd: extractTo,timeout:300000});
                 }
                 else if(req.files.file.name.indexOf("pythonSources.zip") != -1){
+                    zip = new AdmZip(target_path);
                     var extractTo = path.resolve(__dirname,"../")+"/"+req.files.file.name.substring(0,req.files.file.name.lastIndexOf("/"));
                     var pythonFileName;
                     if(require('os').platform() == "win32"){
@@ -184,7 +202,6 @@ exports.Post = function(req, res){
                     }
                     copyFile(path.resolve(__dirname,'../../vendor/Python')+"/"+pythonFileName,path.resolve(extractTo,"../")+"/"+pythonFileName,function(){
                         extractTo = path.resolve(extractTo,"../")+"/src/";
-                        var zip = new AdmZip(target_path);
                         zip.extractAllTo(extractTo, true);
                         res.send("{error:null,success:true}");
 
