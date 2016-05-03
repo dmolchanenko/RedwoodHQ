@@ -945,7 +945,6 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                 return;
             }
 
-            callback();
             findNextAction(testcase.actions,testcase.variables,function(action){
                 if (!executions[executionID]) return;
                 if(!executions[executionID].currentTestCases[id]) return;
@@ -979,7 +978,7 @@ function startTCExecution(id,dbID,variables,executionID,callback){
                     }
                 });
 
-
+                callback();
                 agentInstructions.threadID = foundMachine.threadID;
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
                 if ((testcase.machines.length > 0) &&((testcase.machines[0].baseState))){
