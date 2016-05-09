@@ -194,7 +194,66 @@ exports.cleanUpUserStatus = function(callback){
     });
 };
 
+
 exports.deleteDir = function(dir,callback){
+    var walker = walk.walkSync(dir);
+
+    var errors = "";
+    var allDirs = [];
+    if(fs.existsSync(dir) == false){
+        if(callback) callback()
+    }
+    walker.on("file", function (root, fileStats, next) {
+        try{
+            fs.unlinkSync(root+"/"+fileStats.name);
+        }
+        catch(err) {
+            errors += "Unable to delete file: "+root+"/"+fileStats.name;
+        }
+    });
+
+    walker.on("directories", function (root, dirs, next) {
+        dirs.forEach(function(dir){
+            allDirs.push(root+"/"+dir.name);
+        });
+        next();
+    });
+    walker.on("end", function () {
+        //res.send("{error:null,success:true}");
+        allDirs.reverse();
+        if(errors == ""){
+            allDirs.forEach(function(dirCount){
+                try{
+                    fs.rmdirSync(dirCount);
+                }
+                catch(err){
+                    errors += "dir "+ dirCount +" is not empty";
+                    console.log("dir "+ dirCount +" is not empty")
+                }
+
+            });
+            try{
+                fs.rmdirSync(dir);
+            }
+            catch(err){
+                errors += "dir "+ dirCount +" is not empty";
+                console.log("dir "+ dir +" is not empty")
+            }
+        }
+
+        if(callback) {
+            if(errors != ""){
+                callback(errors)
+            }
+            else{
+                callback();
+            }
+        }
+    });
+
+};
+
+exports.deleteDir_old = function(dir,callback){
     var walker = walk.walkSync(dir);
 
     var allDirs = [];

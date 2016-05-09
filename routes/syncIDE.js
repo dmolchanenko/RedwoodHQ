@@ -79,9 +79,21 @@ exports.sourcesFromAgent = function(req,res){
             }
 
             var zip = new AdmZip(target_path);
-            common.deleteDir(extractTo+"/src",function(){
-                common.deleteDir(extractTo+"/bin",function(){
-                    common.deleteDir(extractTo+"/External Libraries",function(){
+            common.deleteDir(extractTo+"/src",function(err){
+                if(err){
+                    res.json({success:true,error:err});
+                    return;
+                }
+                common.deleteDir(extractTo+"/bin",function(err){
+                    if(err){
+                        res.json({success:true,error:err});
+                        return;
+                    }
+                    common.deleteDir(extractTo+"/External Libraries",function(err){
+                        if(err){
+                            res.json({success:true,error:err});
+                            return;
+                        }
                         zip.extractAllTo(extractTo, true);
                         fs.unlink(target_path);
                         fs.unlink(tmp_path);
@@ -167,7 +179,7 @@ function sendSourcesToAgent(file,dest,agentHost,port,callback){
 
     var req = http.request(options, function(res) {
         res.on('data', function (chunk) {
-            if (callback) callback();
+            if (callback) callback(JSON.parse(chunk));
         });
         res.on('close', function(){
             readStream.end();

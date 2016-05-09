@@ -170,9 +170,21 @@ exports.Post = function(req, res){
                 if(req.files.file.name.indexOf("idesync.zip") != -1){
                     zip = new AdmZip(target_path);
                     var extractTo = path.resolve(__dirname,"../")+"/"+req.files.file.name.substring(0,req.files.file.name.lastIndexOf("/"));
-                    common.deleteDir(extractTo+"/src",function(){
-                        common.deleteDir(extractTo+"/bin",function(){
-                            common.deleteDir(extractTo+"/External Libraries",function(){
+                    common.deleteDir(extractTo+"/src",function(err){
+                        if(err){
+                            res.json({success:true,error:err});
+                            return;
+                        }
+                        common.deleteDir(extractTo+"/bin",function(err){
+                            if(err){
+                                res.json({success:true,error:err});
+                                return;
+                            }
+                            common.deleteDir(extractTo+"/External Libraries",function(err){
+                                if(err){
+                                    res.json({success:true,error:err});
+                                    return;
+                                }
                                 zip.extractAllTo(extractTo, true);
                                 fs.unlink(target_path);
                                 fs.unlink(tmp_path);

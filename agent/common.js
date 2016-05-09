@@ -11,9 +11,18 @@ var walk = require("walk");
 exports.deleteDir = function(dir,callback){
     var walker = walk.walkSync(dir);
 
+    var errors = "";
     var allDirs = [];
+    if(fs.existsSync(dir) == false){
+        if(callback) callback()
+    }
     walker.on("file", function (root, fileStats, next) {
-        fs.unlinkSync(root+"/"+fileStats.name);
+        try{
+            fs.unlinkSync(root+"/"+fileStats.name);
+        }
+        catch(err) {
+            errors += "Unable to delete file: "+root+"/"+fileStats.name;
+        }
     });
 
     walker.on("directories", function (root, dirs, next) {
@@ -25,23 +34,34 @@ exports.deleteDir = function(dir,callback){
     walker.on("end", function () {
         //res.send("{error:null,success:true}");
         allDirs.reverse();
-        allDirs.forEach(function(dirCount){
+        if(errors == ""){
+            allDirs.forEach(function(dirCount){
+                try{
+                    fs.rmdirSync(dirCount);
+                }
+                catch(err){
+                    errors += "dir "+ dirCount +" is not empty";
+                    console.log("dir "+ dirCount +" is not empty")
+                }
+
+            });
             try{
-                fs.rmdirSync(dirCount);
+                fs.rmdirSync(dir);
             }
             catch(err){
-                console.log("dir "+ dirCount +" is not empty")
+                errors += "dir "+ dirCount +" is not empty";
+                console.log("dir "+ dir +" is not empty")
             }
-
-        });
-        try{
-            fs.rmdirSync(dir);
-        }
-        catch(err){
-            console.log("dir "+ dir +" is not empty")
         }
 
-        if(callback) callback();
+        if(callback) {
+            if(errors != ""){
+                callback(errors)
+            }
+            else{
+                callback();
+            }
+        }
     });
 
 };
@@ -115,7 +135,7 @@ function sendFileToServer(file,id,url,agentHost,port,cookie,callback){
         res.on('data', function (chunk) {
             readStream.destroy.bind(readStream);
             readStream.destroy();
-            if (callback) callback();
+            if (callback) callback(JSON.parse(chunk));
         });
         res.on('close', function(){
             readStream.destroy.bind(readStream);

@@ -1304,9 +1304,9 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
                 execution.testcases[testcase.executionTestCaseID].executing = false;
             }
             delete execution.currentTestCases[testcase.executionTestCaseID];
-            if(execution.executingTCs != true){
+            //if(execution.executingTCs != true){
                 executeTestCases(execution.testcases,executionID);
-            }
+            //}
         }
     });
 }
