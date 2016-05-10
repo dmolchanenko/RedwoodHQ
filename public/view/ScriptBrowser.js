@@ -31,6 +31,7 @@ var syncToRedwoodHQAction = Ext.create('Ext.Action', {
 var ideSyncButton = Ext.create('Ext.button.Split',{
     text: "IDE",
     itemId:"ideSyncButton",
+    hidden:true,
     icon: 'images/advancedsettings.png',
     handler: function(){
         this.showMenu();
