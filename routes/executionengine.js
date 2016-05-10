@@ -488,7 +488,7 @@ function suiteBaseState(executionID,machines,callback){
                     db.collection('executiontestcases', function(err, collection) {
                         //collection.save({_id:machine.resultID},{},{$set:{executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.resultID}}, {safe:true,new:true},function(err,returnData){
                         collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.toString(),_id: machine.baseStateTCID},function(err,returnData){
-                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.toString(),retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",type:"collection"});
+                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.toString(),retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",dbID:testcaseData[0]._id.toString(),type:"collection"});
                             count++;
                             lastMachine();
                         });
