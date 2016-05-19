@@ -119,8 +119,8 @@ function SaveToCache(fullPath,target_path){
     var i;
     for(i=1;i<6;i++){
         if(fs.existsSync(cacheDir + dirName + "_cache/v"+i+"/") == false){
-            if(i == 1) fs.mkdirSync(cacheDir + dirName+"_cache");
-            fs.mkdirSync(cacheDir + dirName + "_cache/v"+i);
+            if(i == 1) if(!fs.existsSync(cacheDir + dirName+"_cache")) fs.mkdirSync(cacheDir + dirName+"_cache");
+            if(!fs.existsSync(cacheDir + dirName + "_cache/v"+i)) fs.mkdirSync(cacheDir + dirName + "_cache/v"+i);
             copyFile(target_path,cacheDir + dirName + "_cache/v"+i+"/"+fileName,function(){
                 StoreMD5(cacheDir + dirName + "_cache/v"+i+"/"+fileName,cacheDir + dirName + "_cache/v"+i+"/md5.txt");
             });
