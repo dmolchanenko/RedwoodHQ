@@ -236,7 +236,7 @@ exports.deleteDir = function(dir,callback){
                 fs.rmdirSync(dir);
             }
             catch(err){
-                errors += "dir "+ dirCount +" is not empty";
+                errors += "dir "+ dir +" is not empty";
                 console.log("dir "+ dir +" is not empty")
             }
         }
