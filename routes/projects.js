@@ -109,6 +109,7 @@ function CloneProjects(data,emit,callback){
     db.collection('projects', function(err, collection) {
         data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
+            ncp.limit = 16;
             ncp(path.resolve(__dirname,"../public/automationscripts/"+toClone), path.resolve(__dirname,"../public/automationscripts/"+data.name), function (err) {
                 var pointOriginRepo = function(){
                     fs.readdir(path.resolve(__dirname,"../public/automationscripts/"+data.name),function(err, files){
