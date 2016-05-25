@@ -5,7 +5,7 @@ var path = require('path');
 var realtime = require("../routes/realtime");
 var app =  require('../common');
 var spawn = require('child_process').spawn;
-var ncp = require('ncp').ncp;
+var cpr = require('cpr').cpr;
 var git = require('../gitinterface/gitcommands');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var ObjectID = require('mongodb').ObjectID;
@@ -109,8 +109,7 @@ function CloneProjects(data,emit,callback){
     db.collection('projects', function(err, collection) {
         data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
-            ncp.limit = 16;
-            ncp(path.resolve(__dirname,"../public/automationscripts/"+toClone), path.resolve(__dirname,"../public/automationscripts/"+data.name), function (err) {
+            cpr(path.resolve(__dirname,"../public/automationscripts/"+toClone), path.resolve(__dirname,"../public/automationscripts/"+data.name), function (err) {
                 var pointOriginRepo = function(){
                     fs.readdir(path.resolve(__dirname,"../public/automationscripts/"+data.name),function(err, files){
                         files.forEach(function(file){
