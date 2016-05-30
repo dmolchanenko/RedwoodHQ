@@ -1,0 +1,3 @@
+[submodule "public/CodeMirror"]
+	path = public/CodeMirror
+	url = https://github.com/muthuselvas/CodeMirror.git

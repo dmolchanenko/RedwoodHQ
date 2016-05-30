@@ -21,6 +21,7 @@ var recordTestCase = Ext.create('Ext.Action', {
 
 var saveTestCase = Ext.create('Ext.Action', {
     icon: "images/save.gif",
+    itemId: "saveTestCase",
     tooltip: "Save Selected Test Case",
     handler: function(widget, event) {
         var editor = this.up('testcases');
