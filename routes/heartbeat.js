@@ -4,6 +4,7 @@ var http = require("http");
 var fs = require('fs');
 var path = require('path');
 var updatingAgents = {};
+var ObjectID = require('mongodb').ObjectID;
 
 exports.heartbeatPost = function(req, res){
     var app =  require('../common');
@@ -104,7 +105,7 @@ function updateMachine(db,id,query,callback){
 
 function createMachine(db,data,callback){
     db.collection('machines', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             realtime.emitMessage("AddMachines",data);
             if (callback) callback(returnData);

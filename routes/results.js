@@ -1,6 +1,8 @@
+var ObjectID = require('mongodb').ObjectID;
+
 exports.resultsGet = function(req, res){
     var db = require('../common').getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     GetTestCases(db,{_id:id},function(testcase){
         //GetLogs(db,{resultID:req.params.id},function(logs){
             if(testcase!= null && testcase.script){
@@ -56,7 +58,10 @@ function GetScreenShot(db,query,callback){
 function GetLogs(db,query,executionID,callback){
     var logs = [];
     db.collection('executionlogs'+executionID.replace(/-/g, ''), function(err, LogCollection) {
-        if(err) callback(logs);
+        if(err) {
+            callback(logs);
+            return;
+        }
         LogCollection.find(query, {}, function(err, cursor) {
             cursor.each(function(err, log) {
                 if(log == null) {

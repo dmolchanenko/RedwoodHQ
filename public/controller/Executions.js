@@ -64,8 +64,10 @@ Ext.define("Redwood.controller.Executions", {
             'executionsEditor': {
                 render: this.onEditorRender,
                 edit: this.afterExecutionEdit,
+                export: this.onExecutionExport,
                 executionEdit: this.onExecutionEdit,
                 executionDelete: this.onExecutionDelete,
+                deleteExecutions: this.onDeleteExecutions,
                 celldblclick: this.onDoubleClick,
                 newExecution: this.addExecution,
                 save: this.saveExecution,
@@ -78,6 +80,72 @@ Ext.define("Redwood.controller.Executions", {
     },
     openingExecutions: {},
     openingExecutionDetails: {},
+
+    onExecutionExport: function () {
+        var executionView = this.tabPanel.getActiveTab();
+        if ((executionView === undefined)||(executionView.viewType != "Execution")){
+            return;
+        }
+
+        var execution = executionView.getExecutionData();
+        executionView.down("#totalPassed").getValue();
+        executionView.down("#totalFailed").getValue();
+        executionView.down("#totalNotRun").getValue();
+        executionView.down("#totalTestCases").getValue();
+
+        var details = [];
+        details.push([{text:"Name",bold:true},{text:"Status",bold:true},{text:"Result",bold:true},{text:"Error",bold:true}]);
+        execution.testcases.forEach(function (test, index) {
+            var elapsed = test.runtime;
+            if (elapsed != "") {
+                var hours = Math.floor(parseInt(elapsed,10) / 36e5),
+                    mins = Math.floor((parseInt(elapsed,10) % 36e5) / 6e4),
+                    secs = Math.floor((parseInt(elapsed,10) % 6e4) / 1000);
+                elapsed = hours+"h:"+mins+"m:"+secs+"s";
+            }
+
+            var status = {text:test.status};
+            if(test.status == "Not Run"){
+                status.color = "orange"
+            }
+            else if(test.status == "Finished"){
+                status.color = "green"
+            }
+
+            var result = {text:test.result};
+            if(test.result == "Failed"){
+                result.color = "red"
+            }
+            else if(test.result == "Passed"){
+                result.color = "green"
+            }
+
+            details.push([{text:test.name},status,result,{text:test.error,color:"red"}])
+        });
+
+        var docDefinition = { content: [
+            { text: execution.name, style: 'header',alignment: 'center',bold:true },
+            {text:"   "},
+            { text: "Totals:",style:'subheader'},
+            {text:"   "},
+            {table: {
+                body: [
+                    [{ text: 'Total Test Cases', style: 'tableHeader',bold:true }, { text: 'Passed', style: 'tableHeader',bold:true }, { text: 'Failed', style: 'tableHeader',bold:true },{ text: 'Not Run', style: 'tableHeader',bold:true }],
+                    [{text:executionView.down("#totalTestCases").getValue().toString()}, {text:executionView.down("#totalPassed").getValue().toString(),color:'green'},{text:executionView.down("#totalFailed").getValue().toString(),color:'red'},{text:executionView.down("#totalNotRun").getValue().toString(),color:'orange'} ]
+                ]
+            }},
+            {text:"   "},
+            {text:"Test Case Details:",style:"subheader"},
+            {text:"   "},
+            {table:{
+                widths: [130, 'auto', 'auto','*'],
+                body:details
+            }
+            }
+             ]
+        };
+        pdfMake.createPdf(docDefinition).open();
+    },
 
     aggregateReport: function(executionsToAggregate){
         var executions = [];
@@ -175,8 +243,12 @@ Ext.define("Redwood.controller.Executions", {
                         delete me.openingExecutionDetails[id];
                         return;
                     }
+                    var title = "[Test Details] " + obj.testcase.name;
+                    if(obj.testcase.tcData && obj.testcase.tcData != ""){
+                        title = title+"_"+obj.testcase.rowIndex;
+                    }
                     var tab = Ext.create('Redwood.view.ResultsView',{
-                        title:"[Test Details] " + obj.testcase.name,
+                        title:title,
                         closable:true,
                         dataRecord:obj,
                         executionID:executionID,
@@ -373,7 +445,8 @@ Ext.define("Redwood.controller.Executions", {
                 });
             }
             else  */
-            if (newExecution == true){
+            if (newExecution == true || executionView.tcDataRefreshed == true){
+                executionView.tcDataRefreshed = false;
                 execution.testcases.forEach(function(testcase){
                     testcase.executionID = executionView.dataRecord.get("_id");
                 });
@@ -489,6 +562,40 @@ Ext.define("Redwood.controller.Executions", {
 
     },
 
+    onDeleteExecutions: function(grid){
+        var me = this;
+        var records = grid.getSelectionModel().getSelection();
+        if(records.length > 0){
+            Ext.Msg.show({
+                title:'Delete Confirmation',
+                msg: "Are you sure you want to delete selected executions?" ,
+                buttons: Ext.Msg.YESNO,
+                icon: Ext.Msg.QUESTION,
+                fn: function(id){
+                    if (id === "yes"){
+                        for(var i=0;i<records.length;i++){
+                            if (records[i].get("status") == "Running"){
+                                Ext.Msg.alert('Error', "Unable to delete running execution.");
+                                return
+                            }
+                        }
+
+                        var foundTab = null;
+                        records.forEach(function(record){
+                            foundTab = me.tabPanel.down("#"+record.get("_id"));
+                            if (foundTab){
+                                foundTab.dirty = false;
+                                foundTab.close();
+                            }
+                            Ext.data.StoreManager.lookup('Executions').remove(record);
+                        });
+                        Ext.data.StoreManager.lookup('Executions').sync({success:function(batch,options){} });
+                    }
+                }
+            });
+        }
+    },
+
     afterExecutionEdit: function(evtData){
         var varStore = this.getStore('Executions');
         this.getStore('ExecutionTags').sync();
@@ -551,6 +658,7 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").show();
                 tab.up("executionsEditor").down("#stopExecution").show();
                 tab.up("executionsEditor").down("#saveExecution").show();
+                tab.up("executionsEditor").down("#exportPDF").show();
                 //tab.up("executionsEditor").down("#searchExecution").hide();
                 //tab.up("executionsEditor").down("#aggregationReport").hide();
                 if (tab.getStatus() === "Running"){
@@ -566,6 +674,7 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
+                tab.up("executionsEditor").down("#exportPDF").hide();
                 //tab.up("executionsEditor").down("#searchExecution").hide();
                 //tab.up("executionsEditor").down("#aggregationReport").hide();
                 tab.refreshHeight();
@@ -574,6 +683,7 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
+                tab.up("executionsEditor").down("#exportPDF").hide();
                 //tab.up("executionsEditor").down("#searchExecution").hide();
                 //tab.up("executionsEditor").down("#aggregationReport").hide();
             }
@@ -581,6 +691,7 @@ Ext.define("Redwood.controller.Executions", {
                 tab.up("executionsEditor").down("#runExecution").hide();
                 tab.up("executionsEditor").down("#stopExecution").hide();
                 tab.up("executionsEditor").down("#saveExecution").hide();
+                tab.up("executionsEditor").down("#exportPDF").hide();
                 //tab.up("executionsEditor").down("#searchExecution").show();
                 //tab.up("executionsEditor").down("#aggregationReport").show();
             }

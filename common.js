@@ -9,12 +9,19 @@ var spawn = require('child_process').spawn;
 var MSBuildLocation = null;
 exports.MSBuildLocation = MSBuildLocation;
 var common = require("./common");
+var walk = require("walk");
 
 exports.parseConfig = function(callback){
     var conf = fs.readFileSync(__dirname+"/properties.conf");
     var i = 0;
-    var parsed = conf.toString().split("\n");
-    //var parsed = conf.toString().split("\r\n");
+    var parsed;
+    if(conf.toString().indexOf("\r\n") != -1){
+        parsed = conf.toString().split("\r\n");
+    }
+    else{
+        parsed = conf.toString().split("\n");
+    }
+
     parsed.forEach(function(line){
         line = line.replace("\r","");
         i++;
@@ -28,7 +35,6 @@ exports.parseConfig = function(callback){
 
     //find .NET location
     setNETLocation(function(){
-        console.log("Aga");
     });
 };
 
@@ -77,7 +83,7 @@ exports.initDB = function(port,callback){
 
     var dbRetry = 420;
     var connect = function(){
-        var dbServer = new Server('localhost', parseInt(port), {auto_reconnect: true,safe:true});
+        var dbServer = new Server('localhost', parseInt(port), {poolSize :100,auto_reconnect: true,safe:true});
         db = new Db('automationframework', dbServer);
         db.open(function(err, db) {
             if(!err) {
@@ -186,6 +192,103 @@ exports.cleanUpUserStatus = function(callback){
             callback();
         });
     });
+};
+
+
+exports.deleteDir = function(dir,callback){
+    var walker = walk.walkSync(dir);
+
+    var errors = "";
+    var allDirs = [];
+    if(fs.existsSync(dir) == false){
+        if(callback) callback()
+    }
+    walker.on("file", function (root, fileStats, next) {
+        try{
+            fs.unlinkSync(root+"/"+fileStats.name);
+        }
+        catch(err) {
+            errors += "Unable to delete file: "+root+"/"+fileStats.name;
+        }
+    });
+
+    walker.on("directories", function (root, dirs, next) {
+        dirs.forEach(function(dir){
+            allDirs.push(root+"/"+dir.name);
+        });
+        next();
+    });
+    walker.on("end", function () {
+        //res.send("{error:null,success:true}");
+        allDirs.reverse();
+        if(errors == ""){
+            allDirs.forEach(function(dirCount){
+                try{
+                    fs.rmdirSync(dirCount);
+                }
+                catch(err){
+                    errors += "dir "+ dirCount +" is not empty";
+                    console.log("dir "+ dirCount +" is not empty")
+                }
+
+            });
+            try{
+                fs.rmdirSync(dir);
+            }
+            catch(err){
+                errors += "dir "+ dir +" is not empty";
+                console.log("dir "+ dir +" is not empty")
+            }
+        }
+
+        if(callback) {
+            if(errors != ""){
+                callback(errors)
+            }
+            else{
+                callback();
+            }
+        }
+    });
+
+};
+
+exports.deleteDir_old = function(dir,callback){
+    var walker = walk.walkSync(dir);
+
+    var allDirs = [];
+    walker.on("file", function (root, fileStats, next) {
+        fs.unlinkSync(root+"/"+fileStats.name);
+    });
+
+    walker.on("directories", function (root, dirs, next) {
+        dirs.forEach(function(dir){
+            allDirs.push(root+"/"+dir.name);
+        });
+        next();
+    });
+    walker.on("end", function () {
+        //res.send("{error:null,success:true}");
+        allDirs.reverse();
+        allDirs.forEach(function(dirCount){
+            try{
+                fs.rmdirSync(dirCount);
+            }
+            catch(err){
+                logger.info("dir "+ dirCount +" is not empty")
+            }
+
+        });
+        try{
+            fs.rmdirSync(dir);
+        }
+        catch(err){
+            logger.info("dir "+ dir +" is not empty")
+        }
+
+        if(callback) callback();
+    });
+
 };
 
 

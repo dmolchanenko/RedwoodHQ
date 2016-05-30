@@ -14,6 +14,29 @@ Ext.define('Redwood.view.ResultsView', {
     },
     listeners:{
         afterrender: function(me){
+            if(me.dataRecord.testcase.tcData){
+                me.down("#testCaseDetails").add({
+                    xtype:"displayfield",
+                    fieldLabel: 'Test Case Data',
+                    labelStyle: "font-weight: bold",
+                    itemId:"tcData",
+                    value:me.dataRecord.testcase.tcData,
+                    anchor:'90%',
+                    renderer: function (value) {
+                        var rows = "";
+
+                        for (var tcDataColumn in value) {
+                            rows += '<div style="display:table-row;">'+
+                                '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b; font-weight: bold;width:100px;white-space: normal;word-wrap: break-word;">'+Ext.util.Format.htmlEncode(tcDataColumn)+'</span>'+
+                                '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b;width:250px;white-space: normal;word-wrap: break-word;">'+Ext.util.Format.htmlEncode(value[tcDataColumn])+'</span>'+
+                                '</div>';
+                        }
+                        var table = '<div style="display:table;table-layout: fixed;width: 100%;">'+ rows +'</div>';
+
+                        return table;
+                    }
+                })
+            }
             Ext.socket.on('UpdateResult'+me.itemId,function(result){
                 if(!me.UpdateResultCache){
                     me.UpdateResultCache = result;
@@ -657,6 +680,7 @@ Ext.define('Redwood.view.ResultsView', {
                 xtype: 'fieldset',
                 title: 'Details',
                 defaultType: 'displayfield',
+                itemId:"testCaseDetails",
                 flex: 1,
                 collapsible: true,
                 defaults: {
@@ -668,7 +692,14 @@ Ext.define('Redwood.view.ResultsView', {
                         labelStyle: "font-weight: bold",
                         style:"font-weight: bold",
                         itemId:"name",
-                        value:"<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ me.dataRecord.testcase.testcaseID +"&quot;)'>" + me.dataRecord.testcase.name +"</a>",
+                        value:"",
+                        renderer: function (value) {
+                            var name = me.dataRecord.testcase.name;
+                            if(me.dataRecord.testcase.tcData && me.dataRecord.testcase.tcData != ""){
+                                name = name+"_"+me.dataRecord.testcase.rowIndex;
+                            }
+                            return "<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ me.dataRecord.testcase.testcaseID +"&quot;)'>" + name +"</a>"
+                        },
                         anchor:'90%'
                     },
                     {

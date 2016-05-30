@@ -48,6 +48,7 @@ var express = require('express')
   , license = require('./routes/license')
   , actionHistory = require('./routes/actionHistory')
   , versionControl = require('./routes/versionControl')
+  , syncIDE = require('./routes/syncIDE')
   , testcaseHistory = require('./routes/testcaseHistory');
 
 var realFs = require("fs");
@@ -86,6 +87,7 @@ process.env.TEMP = __dirname + '/logs';
   app.use(express.errorHandler());
 //});
 //DB
+require("fs").writeFileSync(__dirname+"/app.pid",process.pid);
 
 // Routes
 app.post('/login',auth.logIn,auth.logInSucess);
@@ -93,6 +95,11 @@ app.get('/login',auth.loginPage);
 
 app.post('/license',auth.auth,license.licensePost);
 app.get('/license',auth.auth,license.licenseGet);
+
+//sync to IDE
+app.post('/synctoide',auth.auth,syncIDE.syncToIDE);
+app.post('/synctoredwoodhq',auth.auth,syncIDE.syncToRedwoodHQ);
+app.post('/sourcesfromagent',syncIDE.sourcesFromAgent);
 
 //versioncontrol
 app.post('/versioncontrolhistory',auth.auth,versionControl.getLocalVersionHistory);
@@ -196,6 +203,7 @@ app.get('/testcases',auth.auth, testcases.testcasesGet);
 app.put('/testcases/:id',auth.auth, testcases.testcasesPut);
 app.post('/testcases',auth.auth, testcases.testcasesPost);
 app.del('/testcases/:id',auth.auth, testcases.testcasesDelete);
+app.post('/testcasetocode',auth.auth, testcases.testCaseToCode);
 
 //testcaseTags
 app.get('/testcasetags',auth.auth, testcaseTags.testcaseTagsGet);

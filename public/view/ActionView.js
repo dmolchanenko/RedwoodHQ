@@ -342,7 +342,7 @@ Ext.define('Redwood.view.ActionView', {
                         itemId:"name",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -356,7 +356,7 @@ Ext.define('Redwood.view.ActionView', {
                         itemId:"description",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -434,7 +434,7 @@ Ext.define('Redwood.view.ActionView', {
                         removeOnDblClick:true,
                         itemId:"tag",
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -539,7 +539,7 @@ Ext.define('Redwood.view.ActionView', {
                 hidden: false,
                 width: 955,
                 listeners: {
-                    change: function(){
+                    change: function(field){
                         if (me.loadingData == false){
                             me.markDirty();
                         }
@@ -666,7 +666,22 @@ Ext.define('Redwood.view.ActionView', {
                         for(var i=0;i<testcase.get("collection").length;i++){
                             if(testcase.get("collection")[i].actionid == me.dataRecord.get("_id")){
                                 testcases.push(testcase);
-                                break;
+                                return;
+                            }
+                        }
+                    }
+                    if(testcase.get("afterState")){
+                        if(Array.isArray(testcase.get("afterState"))){
+                            for(var i2=0;i2<testcase.get("afterState").length;i2++){
+                                if(testcase.get("afterState")[i2].actionid == me.dataRecord.get("_id")){
+                                    testcases.push(testcase);
+                                    return
+                                }
+                            }
+                        }
+                        else {
+                            if(testcase.get("afterState") == me.dataRecord.get("_id")){
+                                testcases.push(testcase);
                             }
                         }
                     }

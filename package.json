@@ -4,7 +4,7 @@
   , "private": true
   , "dependencies": {
       "express": "3.0.0"
-    , "mongodb": "0.9.9-8"
+    , "mongodb": "1.4.9"
     , "cron": "1.0.1"
     , "graceful-fs": "4.1.2"
     , "nodeunit": ">=0.7.4"
@@ -14,9 +14,10 @@
     , "forever-monitor" : "1.1.0"
     , "xml-writer" : ">=1.4.0"
     , "nodemailer" : "0.5.2"
-    , "winston" : "0.7.2"
+    , "winston" : "2.2.0"
     , "multiparty" : "3.1.1"
     , "archiver" : "0.12.0"
+    , "adm-zip" : "0.4.4"
     , "ncp" : "2.0.0"
   }
 }

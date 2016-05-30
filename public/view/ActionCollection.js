@@ -105,6 +105,7 @@ Ext.define('Redwood.view.ActionCollection', {
 
     parentActionID: null,
     parentActionParamsStore: null,
+    tcDataStore: null,
 
     initComponent: function () {
 
@@ -760,6 +761,9 @@ Ext.define('Redwood.view.ActionCollection', {
                     queryMode: 'local',
                     removeOnDblClick:true,
                     listeners:{
+                        boxready: function(field){
+                            if(field.view)field.view.focus();
+                        },
                         removed: function(field){
                             //console.log("hidden");
                             //field.focus();
@@ -768,12 +772,24 @@ Ext.define('Redwood.view.ActionCollection', {
                             if(field.editor) field.editor.onFieldChange();
                         },
                         specialkey: function(field, e){
+                            if(e.getKey() == e.TAB) {
+                                //tab causes exception in sencha
+                                //turing tab into ENTER
+                                e.keyCode = 13;
+                                e.button = 12;
+                                e.which = 13;
+                                e.browserEvent.keyCode = 13;
+                                e.browserEvent.code = "Enter";
+                                e.browserEvent.keyIendifier = "Enter";
+                                me.navigateToNextParam = true;
+                            }
                             if (e.getKey() == e.ENTER) {
                                 me.navigateToNextParam = true;
                             }
                         }
                     }
                 });
+                e.column.getEditor().setActive();
                 return;
             }
             else{
@@ -798,10 +814,23 @@ Ext.define('Redwood.view.ActionCollection', {
                         return Ext.String.htmlDecode(this.value);
                     },
                     listeners:{
-                        focus: function(){
-                            this.selectText();
+                        focus: function(elem){
+                            setTimeout(function () {
+                                elem.selectText();
+                            }, 50);
                         },
                         specialkey: function(field, e){
+                            if(e.getKey() == e.TAB) {
+                                //tab causes exception in sencha
+                                //turing tab into ENTER
+                                e.keyCode = 13;
+                                e.button = 12;
+                                e.which = 13;
+                                e.browserEvent.keyCode = 13;
+                                e.browserEvent.code = "Enter";
+                                e.browserEvent.keyIendifier = "Enter";
+                                me.navigateToNextParam = true;
+                            }
                             if (e.getKey() == e.ENTER) {
                                 me.navigateToNextParam = true;
                             }
@@ -832,6 +861,16 @@ Ext.define('Redwood.view.ActionCollection', {
                     store.add({text:Ext.util.Format.htmlEncode("${"+name+"}"),value:"${"+name+"}"});
                 });
             }
+
+            if(me.tcDataStore != null){
+                me.tcDataStore.model.getFields().forEach(function(field){
+                    if(field.type.type == "auto") return;
+                    var name = field.name;
+                    if(name == "id_&&&") name = "id";
+                    store.add({text:Ext.util.Format.htmlEncode("${TCData."+name+"}"),value:"${TCData."+name+"}"});
+                })
+            }
+
             Ext.data.StoreManager.lookup('Variables').each(function(variable){
                 var name = variable.get("name");
                 store.add({text:Ext.util.Format.htmlEncode("${"+name+"}"),value:"${"+name+"}"});
@@ -1130,7 +1169,7 @@ Ext.define('Redwood.view.ActionCollection', {
             if (newRecord.childNodes.length > 0){
                 me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
             }
-
+            me.markDirty();
         };
 
         var barItems = [
@@ -1173,6 +1212,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
                         }
                         Ext.MessageBox.hide();
+                        me.markDirty();
                     }
                 },
                 {

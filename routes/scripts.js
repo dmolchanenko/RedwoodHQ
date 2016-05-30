@@ -150,10 +150,10 @@ exports.scriptsPush = function(req,res) {
                                 });
                             }
                             else{
-                                git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code) {
+                                git.push(rootDir+req.cookies.project+"/"+req.cookies.username,function(code,error) {
                                     res.contentType('json');
                                     if(code != 0){
-                                        res.json({success:true,error:"Push did not succeed please do a pull first."});
+                                        res.json({success:true,error:"Push did not succeed please do a pull first.\r\n"+error});
                                     }
                                     else{
                                         res.json({success:true});
@@ -351,11 +351,11 @@ exports.scriptsPull = function(req,res) {
                         //git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
                             //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
                             git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', 'master',function (cliOut) {
-                                git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(){
+                                //git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(){
                                     handleMerges(cliOut,true,function(cliOut){
                                         handleConflictsAndPip(cliOut);
                                     });
-                                })
+                                //})
                             });
                         //})
                     }
@@ -458,7 +458,7 @@ function handleConflicts(workingDir,files,callback){
             if(matchHead != -1){
                 var fileName = cliFiles[matchHead].split(" ")[1];
                 fileName = fileName.split("~")[0];
-                fs.unlink(workingDir+"/"+cliFiles[matchHead].split(" ")[1]);
+                fs.unlink(workingDir+"/"+cliFiles[matchHead].split(" ")[1],function(err){});
                 git.resetFile(workingDir,fileName,function() {
                     git.acceptTheirs(workingDir, fileName, function () {
                         git.add(workingDir, fileName, function () {
@@ -645,7 +645,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
         git.initBare(masterBranch,function(){
             git.clone(adminBranch,masterBranch,function(){
-                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc",function(){});
+                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh",function(){});
                 SetupPython(adminBranch);
                 files.forEach(function(file,index,array){
                     var destName = file.replace(templatePath,"");
@@ -698,7 +698,7 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
                                             git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc",function(){
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh",function(){
                                                 git.addAll(newProjectPath + "/" + user.username,function(){
                                                     git.commitAll(newProjectPath + "/" + user.username,function(){
                                                         git.push(newProjectPath + "/" + user.username,function(){})

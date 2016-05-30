@@ -1,10 +1,11 @@
 var realtime = require("./realtime");
+var ObjectID = require('mongodb').ObjectID;
 
 exports.variablesPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateVariables(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateVariables",data);
@@ -34,7 +35,7 @@ exports.variablesDelete = function(req, res){
     var app =  require('../common');
     //DeleteVariables(app.getDB(),{_id: req.params.id},function(err){
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     DeleteVariables(app.getDB(),{_id: id},function(err){
         realtime.emitMessage("DeleteVariables",{id: req.params.id});
         res.contentType('json');
@@ -64,7 +65,7 @@ exports.variablesPost = function(req, res){
 
 function CreateVariables(db,data,callback){
     db.collection('variables', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
         });
@@ -91,6 +92,10 @@ function DeleteVariables(db,data,callback){
     });
 
 }
+
+exports.getVariables = function(db,query,callback){
+    GetVariables(db,query,callback);
+};
 
 function GetVariables(db,query,callback){
     var variables = [];

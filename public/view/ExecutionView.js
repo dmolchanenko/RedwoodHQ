@@ -9,6 +9,7 @@ Ext.define('Redwood.view.ExecutionView', {
     loadingData: true,
     viewType: "Execution",
     noteChanged: false,
+    tcDataRefreshed: false,
 
     initComponent: function () {
         var me = this;
@@ -748,6 +749,9 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'startdate',     type: 'date'},
                 {name: 'enddate',     type: 'date'},
                 {name: 'runtime',     type: 'string'},
+                {name: 'rowIndex'     },
+                {name: 'tcData',     convert:null},
+                {name: 'updated',     type: 'boolean'},
                 {name: 'error',     type: 'string'},
                 {name: 'note',     type: 'string'},
                 {name: '_id',     type: 'string'},
@@ -824,7 +828,67 @@ Ext.define('Redwood.view.ExecutionView', {
                         paramNames: ["name","tag"],
                         //paramNames: ["tempName","tag","status","result"],
                         store: executionTCStore
-                    },"->",
+                    },
+                    {
+                        icon:'images/refresh.png',
+                        tooltip:"Get Latest Data Driven Data",
+                        handler: function(){
+                            var testSet = Ext.data.StoreManager.lookup('TestSets').query("_id",me.dataRecord.get("testset")).getAt(0);
+                            testSet.get("testcases").forEach(function(testcaseId){
+                                var testcase = Ext.data.StoreManager.lookup('TestCases').query("_id",testcaseId._id).getAt(0);
+                                var execTestCases = me.down("#executionTestcases").store.query("testcaseID",testcaseId._id);
+                                if(testcase && execTestCases){
+                                    if(testcase.get("tcData") && testcase.get("tcData").length > 0){
+                                        //if this was a regular tc and now its data driven
+                                        if(execTestCases.getAt(0).get("tcData") == "" || execTestCases.getAt(0).get("tcData").length == 0){
+                                            me.down("#executionTestcases").store.remove(execTestCases.getAt(0));
+                                            testcase.get("tcData").forEach(function(row,index){
+                                                me.down("#executionTestcases").store.add({updated:true,rowIndex:index+1,tcData:row,name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                            })
+                                        }
+                                        else{
+                                            execTestCases.each(function(execTestCase,index){
+                                                if(index+1 > testcase.get("tcData").length){
+                                                    me.down("#executionTestcases").store.remove(execTestCase);
+                                                }
+                                                else if(JSON.stringify(execTestCase.get("tcData")) != JSON.stringify(testcase.get("tcData")[execTestCase.get("rowIndex")-1])){
+                                                    me.down("#executionTestcases").store.remove(execTestCase);
+                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:index+1,tcData:testcase.get("tcData")[index],name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                }
+                                            });
+                                            if(testcase.get("tcData").length > execTestCases.length){
+                                                for(var tcCount=execTestCases.length;tcCount<testcase.get("tcData").length;tcCount++){
+                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:tcCount+1,tcData:testcase.get("tcData")[tcCount],name:testcase.get("name")+"_"+(tcCount+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if ((!testcase.get("tcData") || testcase.get("tcData").length == 0)&& (execTestCases.getAt(0).get("tcData") == "" || execTestCases.getAt(0).get("tcData").length == 0)){
+                                        //execTestCases.each(function(execTestCase){
+                                        //    me.down("#executionTestcases").store.remove(execTestCase);
+                                        //});
+
+                                        //me.down("#executionTestcases").store.add({rowIndex:-1,updated:true,name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    }
+                                    //if tc was data driven and now is not
+                                    else if(execTestCases.getAt(0).get("tcData") && testcase.get("tcData").length == 0){
+                                        execTestCases.each(function(execTestCase){
+                                            me.down("#executionTestcases").store.remove(execTestCase);
+                                        });
+
+                                        me.down("#executionTestcases").store.add({rowIndex:-1,updated:true,name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    }
+                                }
+                            });
+                            me.down("#totalNotRun").setRawValue(me.down("#executionTestcases").store.query("status","Not Run").getCount());
+                            me.down("#totalTestCases").setRawValue(me.down("#executionTestcases").store.getCount());
+                            me.tcDataRefreshed = true;
+                            me.markDirty();
+                            var editor = me.up('executionsEditor');
+                            editor.fireEvent('save');
+                        }
+                    },
+                    "->",
                     {
                         xtype:"checkbox",
                         fieldLabel: "Debug",
@@ -1187,7 +1251,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         itemId:"name",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -1249,7 +1313,14 @@ Ext.define('Redwood.view.ExecutionView', {
                                     var testcase = Ext.data.StoreManager.lookup('TestCases').query("_id",testcaseId._id).getAt(0);
                                     //me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                     if(testcase){
-                                        allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                        if(testcase.get("tcData") && testcase.get("tcData").length > 0){
+                                            testcase.get("tcData").forEach(function(row,index){
+                                                allTCs.push({rowIndex:index+1,tcData:row,name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                            })
+                                        }
+                                        else{
+                                            allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                        }
                                     }
                                 });
                                 me.down("#executionTestcases").store.add(allTCs);
@@ -1732,7 +1803,12 @@ Ext.define('Redwood.view.ExecutionView', {
                     me.dataRecord.get("testcases").forEach(function(testcase){
                         var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
                         if (originalTC){
-                            testcase.name = originalTC.get("name");
+                            if(testcase.tcData && testcase.tcData != ""){
+                                testcase.name = originalTC.get("name")+"_"+testcase.rowIndex;
+                            }
+                            else{
+                                testcase.name = originalTC.get("name");
+                            }
                             testcase.tag = originalTC.get("tag");
                             allTCs.push(testcase);
                         }
@@ -1801,7 +1877,7 @@ Ext.define('Redwood.view.ExecutionView', {
     getSelectedTestCases: function(){
         var testcases = [];
         this.down("#executionTestcases").getSelectionModel().getSelection().forEach(function(testcase){
-            testcases.push({testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id"),resultID:testcase.get("resultID"),startAction:testcase.get("startAction"),endAction:testcase.get("endAction")});
+            testcases.push({rowIndex:testcase.get("rowIndex"),tcData:testcase.get("tcData"),testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id"),resultID:testcase.get("resultID"),startAction:testcase.get("startAction"),endAction:testcase.get("endAction")});
         });
 
         return testcases;

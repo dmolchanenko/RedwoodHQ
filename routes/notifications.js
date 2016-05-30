@@ -1,10 +1,11 @@
 var realtime = require("./realtime");
+var ObjectID = require('mongodb').ObjectID;
 
 exports.Put = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     data.project = req.cookies.project;
     UpdateNotifications(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateNotifications",data);
@@ -34,7 +35,7 @@ exports.Delete = function(req, res){
     var app =  require('../common');
     //DeleteNotifications(app.getDB(),{_id: req.params.id},function(err){
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     DeleteNotifications(app.getDB(),{_id: id},function(err){
         realtime.emitMessage("DeleteNotifications",{id: req.params.id});
         res.contentType('json');
@@ -64,7 +65,7 @@ exports.Post = function(req, res){
 
 function CreateNotifications(db,data,callback){
     db.collection('notifications', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
         });

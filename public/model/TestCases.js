@@ -26,6 +26,13 @@ Ext.define('Redwood.model.TestCases', {
             type: 'array'
         },
         {
+            name: 'tcData'
+        },
+        {
+            name: 'rowIndex',
+            type: 'int'
+        },
+        {
             name: 'script',
             type: 'string'
 
@@ -45,8 +52,7 @@ Ext.define('Redwood.model.TestCases', {
             type: 'string'
         },
         {
-            name: 'afterState',
-            type: 'string'
+            name: 'afterState'
         }
     ]
 });

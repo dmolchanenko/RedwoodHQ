@@ -1,5 +1,6 @@
 var realtime = require("./realtime");
 var executions = require("./executions");
+var ObjectID = require('mongodb').ObjectID;
 
 exports.executionNotes = function(req,res){
     var db = require('../common').getDB();
@@ -18,7 +19,7 @@ exports.executiontestcasesPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     UpdateExecutionTestCases(app.getDB(),data,function(err){
         res.contentType('json');
         res.json({
@@ -61,7 +62,7 @@ exports.executiontestcasesGet = function(req, res){
 exports.executiontestcasesDelete = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     DeleteExecutionTestCases(app.getDB(),{_id: id},function(err){
         res.contentType('json');
         res.json({
@@ -97,19 +98,40 @@ function UpdateNote(db,query,update,callback){
 
 function CreateExecutionTestCases(db,data,callback){
     db.collection('executiontestcases', function(err, collection) {
+
+        var insertRecords = function(){
+            var count = 0;
+            for (var i = 0;i<data.length;i++){
+                collection.insert(data[i], {safe:true},function(err,returnData){
+                    count++;
+                    if (count == data.length){
+                        realtime.emitMessage("AddExecutionTestCase",data);
+                        if (callback) callback();
+                    }
+                    //callback(returnData);
+                });
+            }
+        };
+
+        //delete updated records first
         var count = 0;
-        for (var i = 0;i<data.length;i++){
-            //data[i]._id = db.bson_serializer.ObjectID(data[i]._id);
-            collection.insert(data[i], {safe:true},function(err,returnData){
+        data.forEach(function(testcase,index){
+            if(testcase.updated == true){
+                collection.remove({testcaseID:testcase.testcaseID,executionID:testcase.executionID}, {safe:true},function(err,returnData){
+                    count++;
+                    if (count == data.length){
+                        insertRecords();
+                    }
+                });
+            }
+            else{
                 count++;
                 if (count == data.length){
-                    realtime.emitMessage("AddExecutionTestCase",data);
-                    if (callback) callback();
+                    insertRecords();
                 }
-                //callback(returnData);
-            });
-        }
-    });
+            }
+        });
+    })
 }
 
 function UpdateExecutionTestCases(db,data,callback){
@@ -164,8 +186,9 @@ exports.executionsTestSetUpdatePost = function(req, res){
     var updateExecution = function(executionID){
         GetTestCases(db,{executionID:executionID},function(testCases){
             db.collection('testsets', function(err, collection) {
-                var id = db.bson_serializer.ObjectID(data.testset);
+                var id = new ObjectID(data.testset);
                 collection.findOne({_id:id}, {}, function(err, testset) {
+                    var toAdd = testset.testcases.slice(0);
                     testCases.forEach(function(execTC){
                         //var matchedIndex = testset.testcases.indexOf({_id:execTC.testcaseID});
                         var matchedIndex = arrayIndexOf(testset.testcases,function(tc){
@@ -173,17 +196,31 @@ exports.executionsTestSetUpdatePost = function(req, res){
                         });
                         if (matchedIndex == -1){
                             DeleteExecutionTestCases(db,execTC);
-                            //toRemove.push(execTC._id);
                         }
                         else{
-                            testset.testcases.splice(matchedIndex,1);
+                            var matchedToAddIndex = arrayIndexOf(toAdd,function(tc){
+                                return execTC.testcaseID === tc._id;
+                            });
+                            if(matchedToAddIndex != -1){
+                                toAdd.splice(matchedToAddIndex,1);
+                            }
                         }
                     });
-                    testset.testcases.forEach(function(toAddTC){
-                        var id = require("../common").uniqueId();
-                        CreateExecutionTestCases(db,[{_id:id,executionID:executionID,testcaseID:toAddTC._id,status:"Not Run"}])
+                    db.collection('testcases', function(err, tcCollection) {
+                        toAdd.forEach(function(toAddTC){
+                            tcCollection.findOne({_id:new ObjectID(toAddTC._id)}, {}, function(err, tc) {
+                                if(tc.tcData && tc.tcData.length > 0){
+                                        tc.tcData.forEach(function(row,index){
+                                            CreateExecutionTestCases(db,[{rowIndex:index+1,tcData:row,name:tc.name+"_"+(index+1),executionID:executionID,tag:tc.tag,status:"Not Run",testcaseID:toAddTC._id,_id: require("../common").uniqueId()}]);
+                                        })
+                                }
+                                else {
+                                    CreateExecutionTestCases(db,[{_id:require("../common").uniqueId(),executionID:executionID,tag:tc.tag,testcaseID:toAddTC._id,status:"Not Run"}])
+                                }
+                            });
+                        });
+                        executions.updateExecutionTotals(executionID);
                     });
-                    executions.updateExecutionTotals(executionID);
                 })
             });
         });

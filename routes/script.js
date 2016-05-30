@@ -197,7 +197,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
     });
 
     pip.stderr.on('data', function (data) {
-        common.logger.error('Setup Python Scripts stderr: ' + data);
+        app.logger.error('Setup Python Scripts stderr: ' + data);
     });
 
     pip.on('close', function (code) {
@@ -250,9 +250,20 @@ function ResolveConflict(workDir,file,data,callback){
 }
 
 function GetScript(path,callback){
-    fs.readFile(path, 'utf8' ,function (err, data) {
-        if (err) callback({error:err});
-        callback(data);
+    fs.stat(path, function(err, stat) {
+        if (err) {
+            callback({error:err});
+            return;
+        }
+        if(stat.size > 209715200){
+            callback("")
+        }
+        else{
+            fs.readFile(path, 'utf8' ,function (err, data) {
+                if (err) callback({error:err});
+                callback(data);
+            });
+        }
     });
 }
 

@@ -525,7 +525,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                     record = store.query("_id",testCase._id).getAt(0);
 
                     for(var propt in testCase){
-                        if ((propt != "_id")&&(propt != "name")){
+                        if ((propt != "_id")&&(propt != "name")&&(propt != "tcData")){
                             record.set(propt.toString(),Ext.util.Format.htmlEncode(testCase[propt]));
                         }
                     }
@@ -561,7 +561,12 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('AddExecutionTestCase',function(testCase){
             var addToStore = function(testcase,tcStore){
-                if (tcStore.find("testcaseID",testcase.testcaseID) == -1){
+                if(testcase.tcData && testcase.tcData.length != ""){
+                    if (tcStore.findBy(function(record){if(record.get("testcaseID") == testcase.testcaseID && record.get("rowIndex") == testcase.rowIndex)return true}) == -1){
+                        tcStore.add(testcase);
+                    }
+                }
+                else if (tcStore.find("testcaseID",testcase.testcaseID) == -1){
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
                     if (originalTC){
                         testcase.name = originalTC.get("name");

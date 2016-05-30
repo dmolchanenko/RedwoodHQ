@@ -3,4 +3,5 @@
     <resolvers>
         <ibiblio name="maven2" m2compatible="true"/>
     </resolvers>
+    <caches lockStrategy="artifact-lock-nio"/>
 </ivysettings>

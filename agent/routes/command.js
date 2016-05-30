@@ -42,7 +42,14 @@ exports.Post = function(req, res){
         }
 
         if(!launcherConn[command.executionID+portNumber.toString()]){
-            startLauncher(command.executionID,command.threadID,type,function(){
+            var sent = false;
+            startLauncher(command.executionID,command.threadID,type,function(msg){
+                if(sent == true) return;
+                sent = true;
+                if(msg && msg.error){
+                    res.json({"error":msg.error,"success":true});
+                    return
+                }
                 sendLauncherCommand(command,null,function(err){
                     res.send(JSON.stringify({"error":err,"success":true}));
                 });
@@ -61,7 +68,7 @@ exports.Post = function(req, res){
         //},1*60*1000);
         var count = 0;
         var cleanUpDirs = function(){
-            deleteDir(baseExecutionDir + "/"+command.executionID,function(){
+            common.deleteDir(baseExecutionDir + "/"+command.executionID,function(){
             });
         };
 
@@ -192,7 +199,7 @@ function startLauncher(executionID,threadID,type,callback){
              }
              */
             var javaEnv = process.env;
-            javaEnv.PATH = baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin";
+            javaEnv.PATH = baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:"+javaEnv.PATH;
             launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:javaEnv,cwd:baseExecutionDir+"/"+executionID+"/bin/"});
             //launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
@@ -204,13 +211,19 @@ function startLauncher(executionID,threadID,type,callback){
             launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/",PYTHONHOME:baseExecutionDir+"/"+executionID},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         else if(type == "csharp"){
-            var csharpLauncherPath = baseExecutionDir+"/"+executionID+"/lib/CSharpLauncher.exe";
+            //var csharpLauncherPath = baseExecutionDir+"/"+executionID+"/lib/CSharpLauncher.exe";
+            var csharpLauncherPath = path.resolve(__dirname,"../lib")+"/CSharpLauncher.exe";
             launcherProc[executionID+portNumber.toString()] = spawn(csharpLauncherPath,[portNumber.toString(),baseExecutionDir+"/"+executionID+"/lib/RedwoodHQAutomation.dll"],{cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         //launcherProc[executionID+portNumber.toString()] = require('child_process').execFile(javaPath+ " -cp " + classPath + " -Xmx512m "+"redwood.launcher.Launcher "+portNumber.toString(),{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         fs.writeFileSync(baseExecutionDir+"/"+executionID+"/"+threadID+type+"_launcher.pid",launcherProc[executionID+portNumber.toString()].pid);
         launcherProc[executionID+portNumber.toString()].stderr.on('data', function (data) {
-            sendLog({message:"STDOUT ERROR: " + data.toString(),date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID,executionID:executionID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+            if(actionCache[portNumber]){
+                sendLog({message:"STDOUT ERROR: " + data.toString(),date:new Date(),actionName:actionCache[portNumber].name,resultID:actionCache[portNumber].resultID,executionID:executionID},common.Config.AppServerIPHost,common.Config.AppServerPort);
+            }
+            else{
+                return;
+            }
             if(data.toString().indexOf("WARNING") != -1) return;
             if(data.toString().indexOf("JavaScript error") != -1) return;
             common.logger.error("launcher error:"+data.toString());
@@ -244,8 +257,8 @@ function startLauncher(executionID,threadID,type,callback){
             }
             callback(data.toString());
         });
-        var cmdCache = "";
         var launcherCrashed = false;
+        var cmdCache = "";
         launcherProc[executionID+portNumber.toString()].stdout.on('data', function (data) {
             cmdCache += data.toString();
             //common.logger.info('stdout: ' + data.toString());
@@ -293,7 +306,7 @@ function startLauncher(executionID,threadID,type,callback){
                     //sendActionResult(msg,common.Config.AppServerIPHost,common.Config.AppServerPort);
                     //checkForCrush(portNumber);
                     if(launcherCrashed == false){
-                        callback("Error connecting to launcher on port "+portNumber+": "+err);
+                        callback({error:"Error connecting to launcher on port "+portNumber+": "+err});
                         launcherCrashed = true;
                     }
                 });
@@ -457,7 +470,7 @@ function cleanUpOldExecutions(ignoreExecution){
                                 }
                             });
                             dirs.forEach(function(dirCount){
-                                deleteDir(dirCount)
+                                common.deleteDir(dirCount)
                             });
                         }
                     });
@@ -466,45 +479,6 @@ function cleanUpOldExecutions(ignoreExecution){
             })
         });
     });
-}
-
-function deleteDir(dir,callback){
-    var walker = walk.walkSync(dir);
-
-    var allDirs = [];
-    walker.on("file", function (root, fileStats, next) {
-        fs.unlinkSync(root+"/"+fileStats.name);
-    });
-
-    walker.on("directories", function (root, dirs, next) {
-        dirs.forEach(function(dir){
-            allDirs.push(root+"/"+dir.name);
-        });
-        next();
-    });
-    walker.on("end", function () {
-        //res.send("{error:null,success:true}");
-        allDirs.reverse();
-        allDirs.forEach(function(dirCount){
-            try{
-                fs.rmdirSync(dirCount);
-            }
-            catch(err){
-                common.logger.info("dir "+ dirCount +" is not empty")
-            }
-
-            common.logger.info(dirCount);
-        });
-        try{
-            fs.rmdirSync(dir);
-        }
-        catch(err){
-            common.logger.info("dir "+ dir +" is not empty")
-        }
-
-        if(callback) callback();
-    });
-
 }
 
 function sendLauncherCommand(command,port,callback){
@@ -549,7 +523,8 @@ function sendActionResult(result,host,port){
         method: 'POST',
         agent:false,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Connection': 'Close'
         }
     };
 
@@ -578,7 +553,7 @@ function sendLog(result,host,port){
     if(result.runType == "unittest"){
         if(logCacheUnit.length == 0){
             logCacheUnit.push(result);
-            setTimeout(function(){sendLogPost(logCacheUnit,host,port,"/rununittest/log");logCacheUnit = [];},4000);
+            setTimeout(function(){sendLogPost(logCacheUnit,host,port,"/rununittest/log");logCacheUnit = [];},500);
         }
         else{
             logCacheUnit.push(result);
@@ -608,7 +583,8 @@ function sendLogPost(result,host,port,path){
         method: 'POST',
         agent:false,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Connection': 'Close'
         }
     };
 

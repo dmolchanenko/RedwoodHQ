@@ -66,6 +66,16 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 },
                 "-",
                 {
+                    icon: "images/delete.png",
+                    tooltip: "Delete Selected Executions",
+                    itemId: "deleteExecutions",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('deleteExecutions',me);
+                    }
+                },
+                "-",
+                {
                     icon: "images/symbol_sum.png",
                     tooltip: "Select Executions to Aggregate",
                     itemId: "aggregationReport",
@@ -272,6 +282,18 @@ Ext.define('Redwood.view.Executions', {
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
                         editor.fireEvent('save');
+                    }
+                },
+                "-",
+                {
+                    icon: "images/pdf.png",
+                    tooltip: "View Results as PDF",
+                    disabled: false,
+                    hidden:true,
+                    itemId: "exportPDF",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('export');
                     }
                 },
                 "-",

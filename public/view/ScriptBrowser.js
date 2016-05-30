@@ -8,6 +8,42 @@ var pushAction = Ext.create('Ext.Action', {
     }
 });
 
+var syncToPCAction = Ext.create('Ext.Action', {
+    text: "Sync to IDE",
+    tooltip: "Sync Code With Local IDE",
+    margin: "0 3 0 3",
+    icon: 'images/pc.png',
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('syncToPC');
+    }
+});
+
+var syncToRedwoodHQAction = Ext.create('Ext.Action', {
+    text: "Sync to RedwoodHQ",
+    tooltip: "Sync Code With RedwoodHQ",
+    margin: "0 3 0 3",
+    icon: 'images/redwoodhqicon.png',
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('syncToRedwoodHQ');
+    }
+});
+
+var ideSyncButton = Ext.create('Ext.button.Split',{
+    text: "IDE",
+    itemId:"ideSyncButton",
+    hidden:true,
+    icon: 'images/advancedsettings.png',
+    handler: function(){
+        this.showMenu();
+    },
+    menu: new Ext.menu.Menu({
+        items: [
+            syncToPCAction,
+            syncToRedwoodHQAction
+        ]
+    })
+});
+
 var recordImageAction = Ext.create('Ext.Action', {
     icon: 'images/media_record.png',
     tooltip: "Record Image From Desktop",
@@ -794,6 +830,9 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                 me.getView().focus();
                             });
                         },
+                        beforeitemexpand: function(node){
+                            this.getSelectionModel().select(this.getRootNode().getChildAt(0));
+                        },
                         itemdblclick: function(me,record,item,index,evt,eOpts){
                             if (record.get("fileType") === "file"){
                                 scriptEditor.fireEvent('scriptEdit', record);
@@ -914,6 +953,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                 recordStepsAction,
                 "-",
                 runTCAction,
+                ideSyncButton,
                 //importTCButton,
                 "->",
                 importAllTCsAction,

@@ -15,6 +15,7 @@ Ext.define('Redwood.store.Actions', {
     proxy: {
         type: 'rest',
         url: '/actions',
+        batchActions:true,
         reader: {
             type: 'json',
             root: 'actions',

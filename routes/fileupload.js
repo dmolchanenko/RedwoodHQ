@@ -6,6 +6,7 @@ var multiparty = require('multiparty');
 exports.upload = function(req, res){
     var form = new multiparty.Form();
     form.parse(req, function(err, fields, files) {
+        if(!files) return;
         // get the temporary location of the file
         var tmp_path = files.file[0].path;
         // set where the file should actually exists - in this case it is in the "images" directory
@@ -14,7 +15,7 @@ exports.upload = function(req, res){
         fs.exists(target_path,function(exists){
             if (exists){
                 res.send('{error:"File already exists."}');
-                fs.unlink(tmp_path);
+                fs.unlink(tmp_path,function(err){});
                 return;
             }
             // move the file from the temporary location to the intended location

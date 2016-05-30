@@ -1,4 +1,5 @@
 var realtime = require("./realtime");
+var ObjectID = require('mongodb').ObjectID;
 
 exports.machineTagsGet = function(req, res){
     var app =  require('../common');
@@ -32,7 +33,7 @@ function CreateMachineTags(db,data,callback){
     db.collection('machineTags', function(err, collection) {
         collection.findOne({value:data.value},{},function(err,foundTag){
             if (!foundTag){
-                data._id = db.bson_serializer.ObjectID(data._id);
+                data._id = new ObjectID(data._id);
                 collection.insert(data, {safe:true},function(err,returnData){
                     callback(returnData);
                 });

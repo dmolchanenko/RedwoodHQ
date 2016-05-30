@@ -20,7 +20,7 @@ exports.uploadFromAgent = function(req, res){
                 //return;
                 if (exists){
                     res.send('{error:"File already exists."}');
-                    fs.unlink(tmp_path);
+                    fs.unlink(tmp_path,function(err){});
                     return;
                 }
                 // move the file from the temporary location to the intended location
