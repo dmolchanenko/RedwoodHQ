@@ -5,6 +5,18 @@ import importlib
 import traceback
 import time
 import pythonLauncher
+import os
+
+class Unbuffered(object):
+    def __init__(self,stream):
+        self.stream = stream
+    def write(self,data):
+        self.stream.write(data)
+        self.stream.flush()
+    def __getattr__(self,attr):
+        return getattr(self.stream, attr)
+
+sys.stdout = Unbuffered(sys.stdout)
 
 returnValues = {}
 globalValues = {}
@@ -19,6 +31,7 @@ def runAction(action):
         if "variables" in action:
             for key, value in action["variables"].iteritems():
                 pythonLauncher.variables[key] = value
+                os.environ[key] = value
         if "script" in action:
             if action["script"] == "" or action["script"] is None:
                 raise Exception("Script was not assigned to the action.")
@@ -73,7 +86,7 @@ if __name__ == '__main__':
     host = ''
     port = int(sys.argv[1])
     backlog = 5
-    size = 1024
+    size = 10024
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((host,port))
@@ -85,7 +98,7 @@ if __name__ == '__main__':
     while not stopExecution:
         data = client.recv(size)
         if data:
-            lines = data.split("\r\n")
+            lines = data.split("\n")
             for line in lines:
                 command = None
                 try:
