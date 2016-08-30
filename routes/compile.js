@@ -106,7 +106,12 @@ function compilePython(buildDir,id,msg,callback,onFinish){
                 onFinish();
                 return;
             }
-            compileProcs[id].pythonProc = spawn('"'+buildDir+'/PythonWorkDir/Scripts/python" -m compileall src',{cwd: buildDir,timeout:1800000,env:{}});
+            if(process.platform == "win32"){
+                compileProcs[id].pythonProc = spawn('"'+buildDir+'/PythonWorkDir/Scripts/python" -m compileall src',{cwd: buildDir,timeout:1800000,env:{}});
+            }
+            else{
+                compileProcs[id].pythonProc = spawn('"'+buildDir+'/PythonWorkDir/bin/python" -m compileall src',{cwd: buildDir,timeout:1800000,env:{}});
+            }
             var failed = false;
             compileProcs[id].pythonProc.stdout.on('data', function(data) {
                 //console.log(data.toString());

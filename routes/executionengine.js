@@ -239,7 +239,7 @@ function zipPythonFiles(projectDir,destDir,callback){
             git.lsFiles(projectDir + "/src/",["*.py"],function(data){
                 if ((data != "")&&(data.indexOf("\n") != -1)){
                     zipDir(projectDir + "/PythonWorkDir/Lib",destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
-                        zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py'],function(){
+                        zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py','**/*.cfg'],function(){
                             callback();
                         });
                     })

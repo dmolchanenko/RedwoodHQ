@@ -167,7 +167,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
                         activated = true;
                     }
                     else{
-                        pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py') + '\" --clear '+'"'+baseDir+'/PythonWorkDir"\r\n');
+                        pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/bin/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py') + ' --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\r\n');
                         activated = true;
                     }
                 }

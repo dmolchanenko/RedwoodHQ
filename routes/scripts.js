@@ -734,7 +734,7 @@ function SetupPython(userFolder,callback){
         //python  = python.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     else{
-        python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        python  = spawn(path.resolve(__dirname,'../vendor/Python/bin/python'),[path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     var cliData = "";
 
