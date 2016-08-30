@@ -12,5 +12,6 @@
     , "winston" : ">=0.7.2"
     , "adm-zip" : "0.4.4"
     , "archiver" : "0.12.0"
+    , "tree-kill" : "1.1.0"
   }
 }
