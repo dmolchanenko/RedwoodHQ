@@ -315,6 +315,7 @@ common.parseConfig(function(){
         common.cleanUpExecutions();
         common.cleanUpUserStatus(function(){
             var server = require('http').createServer(app);
+            server.setTimeout(parseInt(common.Config.DefaultTimeout));
             server.listen(common.Config.AppServerPort, function(){
               realtime.initSocket(server);
                common.logger.log("Express server listening on port %d in %s mode", common.Config.AppServerPort, app.settings.env);
