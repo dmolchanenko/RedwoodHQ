@@ -359,6 +359,15 @@ Ext.define("Redwood.controller.Executions", {
                         executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
                         executionView.up("executionsEditor").down("#stopExecution").setDisabled(true);
                     }
+                },
+                failure: function(response) {
+                    if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
+                    var obj = Ext.decode(response.responseText);
+                    if(obj.error != null){
+                        Ext.Msg.alert('Error', Ext.util.Format.htmlEncode(obj.error));
+                        executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
+                        executionView.up("executionsEditor").down("#stopExecution").setDisabled(true);
+                    }
                 }
             });
         })

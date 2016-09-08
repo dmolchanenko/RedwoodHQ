@@ -34,14 +34,38 @@ exports.projectsPut = function(req, res){
 
 exports.projectsGet = function(req, res){
     GetProjects(app.getDB(),{},function(data){
+    	//dev changes
+		common.logger.info("my projects", req.cookies.projects);
+        var userProjects = req.cookies.projects, userRole = req.cookies.role, userId = req.cookies.userId, projectCollection = [];
+        var ObjectID = require('mongodb').ObjectID;
+        
+        common.logger.info("userRole:", userRole, "userProjects:", userProjects);
+        if(userRole !== "Admin") {
+            for (var i = 0; i < data.length; i++){
+
+                common.logger.info("Project id:", data[i]._id.toString());
+                
+                common.logger.info("Project exists:", userProjects.indexOf(data[i]._id.toString()));
+                if(userProjects.indexOf(data[i]._id.toString()) > -1){
+                    projectCollection.push(data[i]);
+                }
+            }
+
+        } else {
+            projectCollection = data;
+        }
+        common.logger.info(projectCollection);
+        //dev changes
+
         res.contentType('json');
         res.json({
             success: true,
-            projects: data
+            //dev changes
+            projects: projectCollection
         });
-    });
+    }, req);
 };
-
+//dev changes
 exports.projectsDelete = function(req, res){
     var db = app.getDB();
     var id = new ObjectID(req.params.id);
@@ -360,15 +384,18 @@ function DeleteProjects(db,data,projectName,callback){
     */
     callback();
 }
-
-function GetProjects(db,query,callback){
+//dev changes
+function GetProjects(db,query,callback, req){
+	//dev changes
     var projects = [];
 
     db.collection('projects', function(err, collection) {
         collection.find(query, {}, function(err, cursor) {
             cursor.each(function(err, project) {
                 if(project == null) {
-                    callback(projects);
+                	//dev changes
+                    callback(projects, req);
+                    //dev changes
                     return;
                 }
                 projects.push(project);
