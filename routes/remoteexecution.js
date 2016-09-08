@@ -1,10 +1,7 @@
 /*
 Add ability to trigger test executions with a URL
-(eg, http://auto-poc01d:8080/executions?testURL=xxxx&Project=Microservices&user=hkirk&pullLatest=false)
 
-node CIExecution.js  --name "Amazon Shopping" --user admin --testset "Amazon Shopping" --machines "127.0.0.1" --pullLatest false --retryCount 1 --project Sample --ignoreScreenshots true
-
-http://localhost:3000/remoteexecution/startexecution?name=Amazon%20Shopping&user=admin&testset=Amazon%20Shopping&machines=127.0.0.1&pullLatest=false&retryCount=1&project=Sample&ignoreScreenshots=true
+e.g. http://localhost:3000/api/remoteexecution/startexecution?name=Amazon%20Shopping&user=admin&testset=Amazon%20Shopping&machines=127.0.0.1&pullLatest=false&retryCount=1&project=Sample&ignoreScreenshots=true
 http header
 http body: { user=admin,
             testset=Amazon Shopping,
