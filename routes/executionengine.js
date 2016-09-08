@@ -16,6 +16,7 @@ var nodemailer = require("nodemailer");
 var spawn = require('child_process').spawn;
 var os = require('os');
 var archiver = require('archiver');
+var elk = require('./elk');
 var db;
 var compilations = {};
 var fileSync = {};
@@ -61,13 +62,47 @@ exports.stopexecutionPost = function(req, res){
     });
 };
 
-
 exports.startexecutionPost = function(req, res){
+    _startexecutionPost(req, res, function(exitcode){
+        console.log("+++++++++++++++++++++++++EXECUTIONS STARTED ++++++++++++++++++++++++++++++++++++++++++++++++")
+        var executionId = req.body.executionID;
+        MonitorExecution(executionId, function(){
+            // End the startexecution request
+            console.log('execution completed');
+            elk.publishDataToElk(executionId, function(){
+                console.log("Data published success: publishDataToElk");
+            });
+        });
+    });
+}
+
+function MonitorExecution(execId,callback){
+    db = common.getDB();
+    var getStatus = function(callback){
+        db.collection('executions', function(err, collection) {
+            collection.findOne({_id:execId}, {status:1}, function(err, dbexecution) {
+                callback(dbexecution.status);
+            });
+        });
+    };
+    var verifyStatus = function(status){
+        if(status == "Ready To Run"){
+            setTimeout(function(){callback()},10000);
+        }else{
+            setTimeout(function(){getStatus(verifyStatus)},10000)
+        }
+    };
+    setTimeout(function(){getStatus(verifyStatus)},20000)
+}
+
+var _startexecutionPost = function(req, res, callback){
     db = common.getDB();
 
+    res.contentType('json');
     if (req.body.testcases.length == 0){
-        res.contentType('json');
+        res.status(403);
         res.json({error:"No Test Cases are selected for execution."});
+        callback(0); // forbidden
         return;
     }
     var executionID =  req.body.executionID;
@@ -96,7 +131,10 @@ exports.startexecutionPost = function(req, res){
 
     var machineConflict = false;
     var updatingConflict = false;
+
     machines.forEach(function(machine){
+        machine.threads = (machine.threads) ? machine.threads : 1;
+        console.log("validating thread count " + machine.threads);
         if (machine.state == "Running Test"){
             machineConflict = true;
         }
@@ -107,20 +145,27 @@ exports.startexecutionPost = function(req, res){
     });
 
     if(machineConflict == true){
-        res.contentType('json');
+        console.log("selected machines are running tests +++++++++");
+        res.status(409);
         res.json({error:"Selected machines are currently running other tests."});
+        callback(0); // conflict
         return;
     }
 
     if(updatingConflict == true){
-        res.contentType('json');
+        console.log("selected machines are running tests 2 +++++++++");
+        res.status(409);
         res.json({error:"Selected machines are being updated."});
+        callback(0); // conflict
         return;
     }
 
     if(executions[executionID]){
+        console.log("selected machines are running tests 3 +++++++++");
         res.contentType('json');
+        res.status(409);
         res.json({error:"Execution is already running."});
+        callback(0); // conflict
         return;
     }
 
@@ -134,9 +179,11 @@ exports.startexecutionPost = function(req, res){
     compileBuild(req.cookies.project,req.cookies.username,function(err){
         if (err != null){
             res.contentType('json');
+            res.status(403);
             res.json({error:"Unable to compile scripts."});
             updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
             delete executions[executionID];
+            callback(0); // forbidden
         }
         else{
             //copy files for each execution to prevent conflicts
@@ -149,16 +196,22 @@ exports.startexecutionPost = function(req, res){
                                 executions[executionID].sourceCache = sourceCache;
                             }
                             else{
+                                console.log("internal error +++++++++");
+                                /*res.status(500);
+                                res.json({error:"Internal Error"});*/
+                                callback(0);
                                 return;
                             }
                             verifyMachineState(machines,function(err){
                                 if(err){
+                                    console.error("verifymachinestate failed +++++++++");
                                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
-                                    res.contentType('json');
+                                    res.status(403);
                                     res.json({error:err});
                                     //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
                                     deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
                                     delete executions[executionID];
+                                    callback(0); // forbidden
                                     return;
                                 }
                                 VerifyCloudCapacity(executions[executionID].template,function(response){
@@ -170,12 +223,15 @@ exports.startexecutionPost = function(req, res){
                                         else{
                                             message = "Cloud does not have the capacity to run this execution."
                                         }
+                                        console.error("cloud error: failed +++++++++");
                                         updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
                                         res.contentType('json');
+                                        res.status(500);
                                         res.json({error:"Cloud Error: "+message});
                                         //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
                                         deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
                                         delete executions[executionID];
+                                        callback(0); //internal error
                                         return;
                                     }
                                     res.contentType('json');
@@ -194,6 +250,8 @@ exports.startexecutionPost = function(req, res){
                                                 //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
                                                 deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
                                                 delete executions[executionID];
+                                                console.error("startcloudmachine failed +++++++++");
+                                                callback(0); //elk
                                                 return;
                                             }
                                             if(executions[executionID].template){
@@ -223,6 +281,7 @@ exports.startexecutionPost = function(req, res){
                                             });
                                         });
                                     });
+                                    callback(0); // elk
                                 });
                             });
                         });
@@ -1937,6 +1996,8 @@ function updateExecution(query,update,finished,callback){
             }
             realtime.emitMessage("UpdateExecutions",data);
             if(finished === true){
+                console.log("FinishExecution +++++++++++++++ ");
+                //console.log(data);
                 realtime.emitMessage("FinishExecution",data);
             }
             if (callback){
@@ -1995,7 +2056,7 @@ function verifyMachineState(machines,callback){
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
             collection.findOne({_id:new ObjectID(machine._id)}, {}, function(err, dbMachine) {
-
+                //console.log("verifyMachineState : " + machine.threads );
                 if(dbMachine.maxThreads < dbMachine.takenThreads + machine.threads)
                 {
                     callback("Machine: "+ machine.host+" has reached thread limit.");
@@ -2768,4 +2829,3 @@ function deleteDir(path,callback){
         }
     })
 }
-
