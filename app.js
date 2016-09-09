@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -49,7 +48,8 @@ var express = require('express')
   , actionHistory = require('./routes/actionHistory')
   , versionControl = require('./routes/versionControl')
   , syncIDE = require('./routes/syncIDE')
-  , testcaseHistory = require('./routes/testcaseHistory');
+  , testcaseHistory = require('./routes/testcaseHistory')
+  , remoteexecution = require('./routes/remoteexecution');
 
 var realFs = require("fs");
 var gracefulFs = require("graceful-fs");
@@ -163,6 +163,9 @@ app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 
 //start execution
 app.post('/executionengine/startexecution', executionengine.startexecutionPost);
+
+// remote execution
+app.get('/api/remoteexecution/startexecution', remoteexecution.startexecutionPost);
 
 //stop
 app.post('/executionengine/stopexecution',auth.auth, executionengine.stopexecutionPost);
@@ -312,6 +315,7 @@ common.parseConfig(function(){
         common.cleanUpExecutions();
         common.cleanUpUserStatus(function(){
             var server = require('http').createServer(app);
+            server.setTimeout(parseInt(common.Config.DefaultTimeout));
             server.listen(common.Config.AppServerPort, function(){
               realtime.initSocket(server);
                common.logger.log("Express server listening on port %d in %s mode", common.Config.AppServerPort, app.settings.env);

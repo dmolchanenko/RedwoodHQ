@@ -46,6 +46,14 @@ exports.executionsDelete = function(req, res){
     Tags.CleanUpExecutionTags(req);
 };
 
+exports.deleteExecution = function(db, execution, callback) {
+    DeleteExecutions(db, execution, function() {
+        console.log("executions.deleteExecution")
+        realtime.emitMessage("DeleteExecutions",{id: execution._id})
+        callback()
+    })
+}
+
 exports.executionsPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
