@@ -9,6 +9,8 @@ Ext.application({
         var mainTab = Ext.ComponentQuery.query('#mainTabPanel')[0];
         if(Ext.util.Cookies.get('role') == "Test Designer"){
             mainTab.remove(mainTab.down("#adminTab"));
+             //dev changes user specific access 
+			//mainTab.remove(mainTab.down("#ScriptBrowser"));
             mainTab.down("scriptBrowser").down("#compileBar").hide();
             mainTab.down("scriptBrowser").down("#saveAll").hide();
             mainTab.down("scriptBrowser").down("#push").hide();
@@ -23,7 +25,10 @@ Ext.application({
             mainTab.down("actions").down("#deleteAction").hide();
             mainTab.down("actions").down("#cloneAction").hide();
             mainTab.down("actions").down("#newAction").hide();
-        }
+                 //dev changes
+        } else if(Ext.util.Cookies.get('role') == "Developer") {
+			mainTab.remove(mainTab.down("#adminTab"));
+		}         //dev changes
     },
 
     controllers: [
