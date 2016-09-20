@@ -50,6 +50,7 @@ var express = require('express')
   , syncIDE = require('./routes/syncIDE')
   , testcaseHistory = require('./routes/testcaseHistory')
   , remoteexecution = require('./routes/remoteexecution');
+  //, elk = require('./routes/elk');
 
 var realFs = require("fs");
 var gracefulFs = require("graceful-fs");
@@ -163,9 +164,12 @@ app.post('/variableTags',auth.auth, variableTags.variableTagsPost);
 
 //start execution
 app.post('/executionengine/startexecution', executionengine.startexecutionPost);
+//app.post('/elk/pushtoelk', elk.publishToElkPost);
 
 // remote execution
 app.get('/api/remoteexecution/startexecution', remoteexecution.startexecutionPost);
+app.get('/api/remoteexecution/verifyexecution', remoteexecution.verifyexecutionGet);
+// verify remote execution request
 
 //stop
 app.post('/executionengine/stopexecution',auth.auth, executionengine.stopexecutionPost);
