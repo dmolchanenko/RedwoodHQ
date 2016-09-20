@@ -1,7 +1,10 @@
 /*
 Add ability to trigger test executions with a URL
+(eg, http://auto-poc01d:8080/executions?testURL=xxxx&Project=Microservices&user=hkirk&pullLatest=false)
 
-e.g. http://localhost:3000/api/remoteexecution/startexecution?name=Amazon%20Shopping&user=admin&testset=Amazon%20Shopping&machines=127.0.0.1&pullLatest=false&retryCount=1&project=Sample&ignoreScreenshots=true
+node CIExecution.js  --name "Amazon Shopping" --user admin --testset "Amazon Shopping" --machines "127.0.0.1" --pullLatest false --retryCount 1 --project Sample --ignoreScreenshots true
+
+http://localhost:3000/api/remoteexecution/startexecution?name=Amazon%20Shopping&user=admin&testset=Amazon%20Shopping&machines=127.0.0.1&pullLatest=false&retryCount=1&project=Sample&ignoreScreenshots=true
 http header
 http body: { user=admin,
             testset=Amazon Shopping,
@@ -63,6 +66,12 @@ exports.startexecutionPost = function(req, res){
     execution.lastRunDate = null;
     execution.testsetname = query.testset;
     execution.pullLatest = query.pullLatest;
+    execution.sendEmail = true;
+
+    if(query.emails){
+        execution.emails = query.emails.split(",");
+
+    }
 
     if(query.tags){
         execution.tag = query.tags.split(",");
@@ -81,26 +90,20 @@ exports.startexecutionPost = function(req, res){
         }
     }
     execution._id = new ObjectID().toString();
-    if(!_validateQueryParams(query)) {
-        var exitDetails = {statusCode : 400, error : "Invalid Query Parameters"};
+    var validationDetails = { status : true, error : "" }
+    if(!_validateQueryParams(query, validationDetails)) {
+        var exitDetails = {statusCode : 400, error : "Mandatory parameter value(s) missing: "
+                                                + validationDetails.error};
         _sendStatus(res, exitDetails);
         return;
     }
 
-    if(!db) {
-        common.initDB(common.Config.DBPort,function(){
-            db = app.getDB();
-            console.log("call _prepareAndRunExecution 1")
-            _prepareAndRunExecution(execution, query, res, function() {
-               console.log("_prepareAndRunExecution completed 1")
-            });
-        });
-    } else {
-        console.log("call _prepareAndRunExecution 2")
+    _initializeDB(function(){
+        console.log("call _prepareAndRunExecution 1")
         _prepareAndRunExecution(execution, query, res, function() {
-           console.log("_prepareAndRunExecution completed 2")
-        })
-    }
+           console.log("_prepareAndRunExecution completed 1")
+        });
+    })
 }
 
 function _prepareAndRunExecution(execution, query, res, callback){
@@ -146,7 +149,7 @@ function _prepareAndRunExecution(execution, query, res, callback){
     });
 }
 
-function _validateQueryParams(query) {
+function _validateQueryParams(query, validationDetails) {
     var valid = true;
     if(!query.project ||
        !query.user ||
@@ -155,6 +158,15 @@ function _validateQueryParams(query) {
        !query.name) {
            valid = false;
        }
+
+    if(valid === false && validationDetails) {
+        if(!query.project) validationDetails.error = " project "
+        if(!query.user) validationDetails.error += " user "
+        if(!query.testset) validationDetails.error += " testset "
+        if(!query.machines) validationDetails.error += " machines "
+        if(!query.name) validationDetails.error += " name "
+        validationDetails.status = false
+    }
 
     return valid;
 }
@@ -268,7 +280,7 @@ function StartExecution(execution,testcases,finalResponse,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,sendEmail:execution.sendEmail,emails:execution.emails,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
     req.end();
 }
 
@@ -483,3 +495,151 @@ function GenerateReport(finalResponse, queryParams,cliexecution,xw,callback){
     });
 }
 
+function _initializeDB(callback) {
+    if(!db) {
+        common.initDB(common.Config.DBPort,function(){
+            db = app.getDB()
+            callback()
+        })
+    } else {
+        callback()
+    }
+}
+
+/*
+**************************************************************************************
+    API : /api/remoteexecution/verifyexecution
+    Mandatory params:
+        (a)user
+        (b)name
+        (c)project
+        (d)testset
+        (e)machines
+    Purpose:
+        (1) Verify required parameters are passed in
+        (2) Verify whether the param values exists in DB
+
+**************************************************************************************
+*/
+exports.verifyexecutionGet = function(req, res) {
+    console.log("verifyexecutionGet");
+    _verifyexecution(req, res);
+}
+
+function _verifyexecution(req, res) {
+    console.log("/api/remoteexecution/verifyexecution");
+    var validationDetails = {status: true, error: "" };
+    var newQueryObj = {};
+    var query = require('url').parse(req.url,true).query;
+
+    // query param validation
+    if(!_validateQueryParams(query, validationDetails)) {
+        var exitDetails = {statusCode : 400, error : "Mandatory parameter value(s) missing: "
+                                                        + validationDetails.error };
+        _sendStatus(res, exitDetails);
+        return;
+    }
+
+    _initializeDB(function(){
+        // (a) validate user
+        verifyUser(query.user, function(error) {
+            if(error) {
+                validationDetails.status = false;
+                validationDetails.error = validationDetails.error + error;
+            }else {
+                console.log(query.user);
+                newQueryObj.user = query.user;
+            }
+        })
+
+        // (b) validate execution 'name' parameter
+        /*verifyExecution(query.name, function(error) {
+            if(error) {
+                validationDetails.status = false;
+                validationDetails.error = validationDetails.error + error;
+            }else {
+                console.log(query.name);
+                newQueryObj.name = query.name;
+            }
+        });*/
+
+        // (c) & (d) validates testset, project
+        validateTestSet(query.testset, query.project, function(error, testsetObj){
+            if(error || !testsetID) {
+                validationDetails.status = false;
+                validationDetails.error = validationDetails.error + error;
+            } else {
+                newQueryObj.project = testsetObj.project;
+                newQueryObj.testset = testsetObj._id;
+            }
+        })
+
+        // (e) parses query for machines and returns an array of machines
+        //   Also verifies the DB for valid machine in 'machines' collection
+        formatMachines(query, function(machines) {
+            if(!machines || machines.length == 0) {
+                validationDetails.status = false;
+                validationDetails.error = validationDetails.error + " machines ";
+            } else {
+                newQueryObj.machines = machines;
+            }
+        })
+
+        setTimeout(function(){
+            console.log(newQueryObj);
+            console.log(validationDetails);
+
+            if(!validationDetails.status) {
+                var exitDetails = {statusCode : 400, error : "Invalid Query Parameter value(s): " + validationDetails.error };
+                _sendStatus(res, exitDetails);
+            } else {
+                res.status(200).json({ status: 'success' });
+            }
+        },400);
+    })
+}
+
+function validateTestSet(testset,project,callback){
+    if(!testset || !project) callback(" testset/project ", null);
+    db.collection('testsets', function(err, collection) {
+        collection.findOne({name:testset,project:project}, function(err, dbtestset) {
+            if(err || !dbtestset) {
+                console.log("validateTestSet failure ")
+                callback(" testset/project ", null);
+            } else {
+                console.log("validateTestSet success ")
+                console.log(dbtestset);
+                callback(null, dbtestset);
+            }
+        });
+    });
+}
+
+function verifyUser(username,callback){
+    if(!username) callback(" user ");
+    db.collection('users', function(err, collection) {
+        collection.findOne({username:username},function(err,user){
+            if (err || !user){
+                callback(" user ");
+            }
+            else{
+                callback();
+            }
+        });
+    })
+}
+
+/*
+function verifyExecution(executionName,callback){
+    if(!executionName) callback(" name ");
+    db.collection('executions', function(err, collection) {
+        collection.findOne({name:executionName},function(err,execution){
+            if (execution == null){
+                callback(" name ");
+            }
+            else{
+                callback();
+            }
+        });
+    })
+}*/
