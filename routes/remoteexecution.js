@@ -63,6 +63,8 @@ exports.startexecutionPost = function(req, res){
     execution.locked = true;
     execution.ignoreStatus = false;
     execution.ignoreAfterState = false;
+    execution.ignoreScreenshots = (query.ignoreScreenshots == 'true');
+    execution.allScreenshots = (query.uiSnapshots == 'true' );
     execution.lastRunDate = null;
     execution.testsetname = query.testset;
     execution.pullLatest = query.pullLatest;
@@ -81,14 +83,17 @@ exports.startexecutionPost = function(req, res){
     } else {
         execution.retryCount = '0';
     }
-    if(query.ignoreScreenshots) {
-        if(query.ignoreScreenshots === 'true' ||
-           query.ignoreScreenshots === 'false') {
-                execution.ignoreScreenshots = query.ignoreScreenshots;
-        } else{
+    /*if(query.ignoreScreenshots){
+        if(query.ignoreScreenshots === "true"){
+            execution.ignoreScreenshots = true;
+        }
+        else{
             execution.ignoreScreenshots = false;
         }
     }
+    else{
+        execution.ignoreScreenshots = false;
+    }*/
     execution._id = new ObjectID().toString();
     var validationDetails = { status : true, error : "" }
     if(!_validateQueryParams(query, validationDetails)) {
@@ -280,7 +285,7 @@ function StartExecution(execution,testcases,finalResponse,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,sendEmail:execution.sendEmail,emails:execution.emails,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,sendEmail:execution.sendEmail,emails:execution.emails,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,allScreenshots:execution.allScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
     req.end();
 }
 
@@ -456,7 +461,7 @@ function GenerateReport(finalResponse, queryParams,cliexecution,xw,callback){
                         if(testcase == null) {
                             xw.endElement();
                             xw.endDocument();
-                            console.log(xw.toString());
+                            //console.log(xw.toString());
                             callback(exitDetails);
                             return;
                         }
@@ -586,8 +591,8 @@ function _verifyexecution(req, res) {
         })
 
         setTimeout(function(){
-            console.log(newQueryObj);
-            console.log(validationDetails);
+            //console.log(newQueryObj);
+            //console.log(validationDetails);
 
             if(!validationDetails.status) {
                 var exitDetails = {statusCode : 400, error : "Invalid Query Parameter value(s): " + validationDetails.error };
