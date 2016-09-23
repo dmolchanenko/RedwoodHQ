@@ -20,6 +20,8 @@ common.parseConfig(function(){
     execution.locked = true;
     execution.ignoreStatus = false;
     execution.ignoreAfterState = false;
+    execution.ignoreScreenshots = (argv.ignoreScreenshots == 'true');
+    execution.allScreenshots = (argv.uiSnaphots == 'true' );
     execution.lastRunDate = null;
     execution.testsetname = argv.testset;
     execution.pullLatest = argv.pullLatest;
@@ -38,7 +40,7 @@ common.parseConfig(function(){
     else{
         execution.retryCount = "0";
     }
-    if(argv.ignoreScreenshots){
+    /*if(argv.ignoreScreenshots){
         if(argv.ignoreScreenshots === "true"){
             execution.ignoreScreenshots = true;
         }
@@ -48,7 +50,7 @@ common.parseConfig(function(){
     }
     else{
         execution.ignoreScreenshots = false;
-    }
+    }*/
     execution._id = new ObjectID().toString();
 
     common.initDB(common.Config.DBPort,function(){
@@ -191,7 +193,7 @@ function StartExecution(execution,testcases,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,sendEmail:execution.sendEmail,emails:execution.emails,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,sendEmail:execution.sendEmail,emails:execution.emails,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,allScreenshots:execution.allScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
     req.end();
 }
 
