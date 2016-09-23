@@ -42,7 +42,7 @@ Ext.define('Redwood.view.CommitView', {
                             var window = this.up('window');
 
                             Ext.MessageBox.show({
-                                msg: 'Pushing changes to master branch, please wait...',
+                                msg: 'Pushing changes to user branch, please wait...',
                                 progressText: 'Pushing...',
                                 width:300,
                                 wait:true,
@@ -71,7 +71,7 @@ Ext.define('Redwood.view.CommitView', {
                                     }
                                     else{
                                         controller.loadVersionHistory(controller.tabPanel.getActiveTab());
-                                        Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+                                        Ext.Msg.alert('Success', "Code was successfully pushed to the user branch.");
                                         Ext.ComponentQuery.query('#scriptsTree')[0].getRootNode().cascadeBy(function(node) {
                                             if(node.get("text").indexOf("<span") != -1){
                                                 for(var i=0;i<files.length;i++){
