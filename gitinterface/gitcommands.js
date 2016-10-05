@@ -860,7 +860,13 @@ exports.clone = function(workdir,dirToClone,callback){
 };
 
 exports.copyFiles = function(workdir,file,dest,callback){
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/cp.exe'),['-R',file,dest],{cwd: workdir,timeout:300000});
+    var git;
+    if(process.platform == "win32"){
+        git = spawn(path.resolve(__dirname,'../vendor/Git/bin/cp.exe'),['-R',file,dest],{cwd: workdir,timeout:300000});
+    }
+    else{
+        git = spawn('cp',['-R',file,dest],{cwd: workdir,timeout:300000});
+    }
 
     git.stdout.on('data', function (data) {
         common.logger.info('stdout: ' + data.toString());

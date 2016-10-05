@@ -168,6 +168,7 @@ Ext.define('Redwood.view.ScriptPicker', {
         Redwood.app.getController("Scripts").onScriptEdit(fullPath+".groovy");
         Redwood.app.getController("Scripts").onScriptEdit(fullPath+".java");
         Redwood.app.getController("Scripts").onScriptEdit(fullPath.substring(0,fullPath.lastIndexOf("/"))+".py");
+        Redwood.app.getController("Scripts").onScriptEdit(fullPath+".py");
     },
 
     listeners:{

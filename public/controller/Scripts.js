@@ -312,6 +312,26 @@ Ext.define("Redwood.controller.Scripts", {
         });
     },
 
+    onImportAllPythonTCs: function(){
+        Ext.MessageBox.show({
+            msg: 'Scanning files for test cases, please wait...',
+            progressText: 'Scanning...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
+        });
+        Ext.Ajax.request({
+            url:"/getallpythonunittcs",
+            method:"POST",
+            jsonData : {import:true},
+            success: function(response) {
+
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+    },
+
     onRecordImage: function(){
         Ext.Ajax.request({
             url:"/recordimage",

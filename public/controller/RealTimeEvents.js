@@ -146,6 +146,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('Login',function(username){
             if (username === Ext.util.Cookies.get('username')){
+                Ext.util.Cookies.clear("sessionid");
                 Ext.socket.disconnect();
                 Ext.Msg.show({
                     title:'Invalid Session',

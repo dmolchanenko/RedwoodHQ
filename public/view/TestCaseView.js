@@ -25,7 +25,6 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.setTitle(me.title+"*")
             }
         };
-
         me.on("beforeclose",function(panel){
             if (this.dirty == true){
                 var me = this;
@@ -82,7 +81,7 @@ Ext.define('Redwood.view.TestCaseView', {
                         itemId:"name",
                         anchor:'90%',
                         listeners:{
-                            change: function(field){
+                            change: function(){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -98,7 +97,7 @@ Ext.define('Redwood.view.TestCaseView', {
                         height: 180,
                         anchor:'90%',
                         listeners:{
-                            change: function(field){
+                            change: function(){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -166,18 +165,21 @@ Ext.define('Redwood.view.TestCaseView', {
                             { boxLabel: 'Junit', name:"type",inputValue: 'junit',width:70,checked: false,formId:formId},
                             { boxLabel: 'TestNG', name:"type",inputValue: 'testng',width:70,checked: false,formId:formId},
                             { boxLabel: 'Script', name:"type",inputValue: 'script',width:70,checked: false,formId:formId},
+                            { boxLabel: 'Pytest', name:"type",inputValue: 'pytest',width:70,checked: false,formId:formId},
                             { boxLabel: 'Action Collection',name:"type", inputValue: 'collection',checked:true,width:200,formId:formId}
                         ]
                         ,
                         listeners: {
                             change: function(me,newVal,oldVal){
-                                if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng" ){
+                                if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng"  || newVal.type == "pytest" ){
                                     me.up("testcaseview").down("#actionCollectionFiledSet").hide();
                                     me.up("testcaseview").down("#testcaseData").hide();
+                                    me.up("testcaseview").down("#afterState").hide();
                                     me.up("testcaseview").down("scriptPickerView").show();
                                 }else{
                                     me.up("testcaseview").down("#actionCollectionFiledSet").show();
                                     me.up("testcaseview").down("#testcaseData").show();
+                                    me.up("testcaseview").down("#afterState").show();
                                     me.up("testcaseview").down("scriptPickerView").hide();
                                 }
                                 if (me.up("testcaseview").loadingData === false){
@@ -605,7 +607,7 @@ Ext.define('Redwood.view.TestCaseView', {
         */
 
         if (this.down("#status").getValue() == "Automated"){
-            if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng"){
+            if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng" || this.down("#type").getValue().type == "pytest"){
 
                 if (this.down("#scriptPath").getValue() == ""){
                     this.down("#scriptPath").focus();

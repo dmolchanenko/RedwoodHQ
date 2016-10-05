@@ -6,7 +6,7 @@ Ext.define('Redwood.view.UnitTests', {
     resizable: true,
     autoScroll: true,
     overflowY: 'auto',
-    width: 400,
+    width: 600,
     height: 300,
     layout: 'fit',
     modal: true,
@@ -31,6 +31,7 @@ Ext.define('Redwood.view.UnitTests', {
             fields: [
                 {name: 'name',     type: 'string'},
                 {name: 'path',     type: 'string'},
+                {name: 'tags',     type: 'array'},
                 {name: 'type',     type: 'string'}
             ],
             data: me.dataRecord
@@ -58,13 +59,13 @@ Ext.define('Redwood.view.UnitTests', {
             {
                 header: 'Name',
                 dataIndex: 'name',
-                //flex: 1,
-                width: 200
+                flex: 1
+                //width: 200
             }, {
                 header: 'Test Type',
                 dataIndex: 'type',
-                //width: 500,
-                flex: 1,
+                width: 100,
+                //flex: 1,
                 renderer:function(value, meta, record){
                     return Ext.util.Format.htmlEncode(value);
                 }
@@ -92,7 +93,7 @@ Ext.define('Redwood.view.UnitTests', {
                     handler: function(btn){
                         var testCases = [];
                         unitTestsGrid.getSelectionModel().getSelection().forEach(function(testcase){
-                            testCases.push({path:testcase.get("path"),name:testcase.get("name"),type:testcase.get("type")})
+                            testCases.push({path:testcase.get("path"),name:testcase.get("name"),type:testcase.get("type"),tags:testcase.get("tags")})
                         });
 
                         if( testCases.length == 0){

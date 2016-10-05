@@ -4,6 +4,14 @@ var common = require('../common');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var appDir = path.resolve(__dirname,"../")+"/";
 var spawn = require('child_process').spawn;
+var divideChar = "\r\n";
+
+if(process.platform == "win32"){
+    divideChar = "\r\n";
+}
+else{
+    divideChar = "\n";
+}
 
 exports.methodFinderPost = function(req,res){
     var path = "";
@@ -84,7 +92,12 @@ function FindClasses(path,projectPath,callback){
     var err = false;
     var proc;
     if (path.slice(-2) == "py"){
-        proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,"class"],{env:{PYTHONPATH:projectPath+"/src"}});
+        if(process.platform == "win32"){
+            proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,"class"],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
+        else{
+            proc = spawn(projectPath+"/PythonWorkDir/bin/python",[appDir+'utils/codeparser.py',"MethodList",path,"class"],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
     }
     else if (path.slice(-2) == "cs"){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,"class"]);
@@ -98,8 +111,8 @@ function FindClasses(path,projectPath,callback){
     var cache = "";
     proc.stdout.on('data', function(data) {
         cache = cache + data;
-        if (cache.indexOf("\r\n") == -1) return;
-        cache.toString().split("\r\n").forEach(function(line,index,array){
+        if (cache.indexOf(divideChar) == -1) return;
+        cache.toString().split(divideChar).forEach(function(line,index,array){
             cache = "";
             if (line == "COMPILATION ERROR:"){
                 err = true;
@@ -134,7 +147,12 @@ function FindMethods(path,classname,projectPath,callback){
     //var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",'"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"',"MethodList",path,classname]);
     var proc;
     if (path.slice(-2) == "py"){
-        proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,classname],{env:{PYTHONPATH:projectPath+"/src"}});
+        if(process.platform == "win32"){
+            proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,classname],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
+        else{
+            proc = spawn(projectPath+"/PythonWorkDir/bin/python",[appDir+'utils/codeparser.py',"MethodList",path,classname],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
     }
     else if (path.slice(-2) == "cs"){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,classname]);
@@ -148,8 +166,8 @@ function FindMethods(path,classname,projectPath,callback){
     var cache = "";
     proc.stdout.on('data', function(data) {
         cache = cache + data;
-        if (cache.indexOf("\r\n") == -1) return;
-        cache.toString().split("\r\n").forEach(function(line,index,array){
+        if (cache.indexOf(divideChar) == -1) return;
+        cache.toString().split(divideChar).forEach(function(line,index,array){
             cache = "";
             if (line == "COMPILATION ERROR:"){
                 err = true;

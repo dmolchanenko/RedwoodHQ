@@ -58,6 +58,9 @@ Ext.define('Redwood.view.FileName', {
                             }else if(me.objectType === "csharpAction"){
                                 field.setValue("CsharpAction.cs");
                                 field.selectText(0,12);
+                            }else if(me.objectType === "javascriptAction"){
+                                field.setValue("JavaScriptAction.js");
+                                field.selectText(0,16);
                             }
                             else{
                                 field.selectText();

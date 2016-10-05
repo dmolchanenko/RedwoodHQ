@@ -20,6 +20,7 @@ var db;
 var compilations = {};
 var fileSync = {};
 var ObjectID = require('mongodb').ObjectID;
+var elasticSearch = require("../routes/elasticsearch");
 
 exports.stopexecutionPost = function(req, res){
     var execution = executions[req.body.executionID];
@@ -234,24 +235,26 @@ exports.startexecutionPost = function(req, res){
 };
 
 function zipPythonFiles(projectDir,destDir,callback){
-    fs.exists(projectDir + "/PythonWorkDir",function(exists){
-        if(exists == true){
-            git.lsFiles(projectDir + "/src/",["*.py"],function(data){
-                if ((data != "")&&(data.indexOf("\n") != -1)){
-                    zipDir(projectDir + "/PythonWorkDir/Lib",destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
-                        zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py','**/*.cfg'],function(){
-                            callback();
-                        });
-                    })
-                }
-                else{
-                    callback();
-                }
-            });
-        }
-        else{
-            callback()
-        }
+    fs.mkdir(destDir,function(){
+        fs.exists(projectDir + "/PythonWorkDir",function(exists){
+            if(exists == true){
+                git.lsFiles(projectDir + "/src/",["*.py"],function(data){
+                    if ((data != "")&&(data.indexOf("\n") != -1)){
+                        zipDir(projectDir + "/PythonWorkDir/Lib",destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
+                            zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py','**.cfg','**.ini'],function(){
+                                callback();
+                            });
+                        })
+                    }
+                    else{
+                        callback();
+                    }
+                });
+            }
+            else{
+                callback()
+            }
+        });
     });
 }
 
@@ -1567,13 +1570,23 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,executionID,callback
     });
 
     walker.on("end",function(){
-        if(files.length == 0) callback();
+        if(files.length == 0) {
+            callback();
+            return;
+        }
         sendFiles();
     });
 }
 
 //if agent already got the file in cache don't copy
 function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
+
+    //don't match pythonLibs or python sources
+    if (file.indexOf("pythonLibs.zip", file.length - "pythonLibs.zip".length) !== -1 || file.indexOf("pythonSources.zip", file.length - "pythonSources.zip".length) !== -1){
+        if(callback) callback({error:null,success:true,matched:false});
+        //if(callback) callback();
+        return;
+    }
 
     var options = {
         hostname: agentHost,
@@ -1916,6 +1929,9 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
                 }
                 return;
             }
+            if (data && data.status == "Finished"){
+                elasticSearch.indexTCResult(data,"PUT");
+            }
             if (machineHost){
                 data.host = machineHost;
                 data.vncport = vncport;
@@ -1931,6 +1947,12 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
 function updateExecution(query,update,finished,callback){
     db.collection('executions', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            try{
+                elasticSearch.indexExecution(data);
+            }
+            catch(e){
+                console.log(e);
+            }
             if(err) {
                 common.logger.error("ERROR updating execution: "+err.message);
                 return;
@@ -1956,6 +1978,7 @@ function updateExecutionMachine(executionID,machineID,result,resultID,callback){
         });
     });
 }
+
 
 function cleanExecutionMachines(executionID,callback){
     db.collection('executions', function(err, collection) {
@@ -2466,7 +2489,8 @@ function GetTestCaseDetails(testcaseID,dbID,executionID,callback){
                     callback(null);
                     return;
                 }
-                if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"){
+                //if (testcase.type == "script"){
+                if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"||testcase.type == "pytest"){
                     var lang = "Java/Groovy";
                     if(testcase.scriptLang){
                         lang = testcase.scriptLang;

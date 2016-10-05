@@ -33,7 +33,12 @@ exports.Post = function(req, res){
         else if(command.scriptLang == "Python"){
             actionCache[basePythonPort+command.threadID] = command;
             portNumber = basePythonPort+command.threadID;
-            type = "python"
+            if(command.type == "pytest"){
+                type = "pytest"
+            }
+            else{
+                type = "python"
+            }
         }
         else if(command.scriptLang == "C#"){
             actionCache[baseCSharpPort+command.threadID] = command;
@@ -157,7 +162,7 @@ function startLauncher(executionID,threadID,type,callback){
     if(type == "java"){
         portNumber = basePort + threadID;
     }
-    else if(type == "python"){
+    else if(type == "python" || type == "pytest"){
         portNumber = basePythonPort + threadID;
     }
     else if(type == "csharp"){
@@ -174,6 +179,10 @@ function startLauncher(executionID,threadID,type,callback){
     }
 
     var startProcess = function(){
+        var pythonPath = "";
+        var pythonLibPath = "";
+        var pythonLauncherPath = "";
+
         if (fs.existsSync(baseExecutionDir+"/"+executionID+"/bin") == false){
             fs.mkdirSync(baseExecutionDir+"/"+executionID+"/bin");
         }
@@ -203,19 +212,18 @@ function startLauncher(executionID,threadID,type,callback){
             launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:javaEnv,cwd:baseExecutionDir+"/"+executionID+"/bin/"});
             //launcherProc[executionID+portNumber.toString()] = spawn(javaPath,["-cp",classPath,"-Xmx512m","-Dfile.encoding=UTF8","redwood.launcher.Launcher",portNumber.toString()],{env:{PATH:baseExecutionDir+"/"+executionID+"/bin/:/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
-        else if(type == "python"){
-            //var pythonPath = baseExecutionDir+"/"+executionID+"/python";
-            var pythonLauncherPath = path.resolve(__dirname,"../lib")+"/pythonLauncher.py";
-
-            var pythonPath;
+        else if(type == "python" || type == "pytest"){
+            pythonLauncherPath = path.resolve(__dirname,"../lib")+"/pythonLauncher.py";
             if(process.platform == "win32"){
+                pythonLibPath = pathDivider+baseExecutionDir+"/"+executionID+"/lib/site-packages";
                 pythonPath = path.resolve(__dirname,"../../vendor/Python")+"/python";
             }
             else{
-                pythonPath = path.resolve(__dirname,"../../vendor/Python/bin")+"/python";
+                pythonLibPath = pathDivider+baseExecutionDir+"/"+executionID+"/lib/python2.7/site-packages";
+                //pythonPath = "/Library/Frameworks/Python.framework/Versions/2.7/bin/python";
+                pythonPath = "/usr/bin/python"
             }
-            //launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PYTHONPATH:baseExecutionDir+"/"+executionID+"/src/"},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
-            launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/",PYTHONHOME:baseExecutionDir+"/"+executionID},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+            launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PATH:process.env.PATH,PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/"+pythonLibPath},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         else if(type == "csharp"){
             //var csharpLauncherPath = baseExecutionDir+"/"+executionID+"/lib/CSharpLauncher.exe";
@@ -235,7 +243,7 @@ function startLauncher(executionID,threadID,type,callback){
             if(data.toString().indexOf("JavaScript error") != -1) return;
             common.logger.error("launcher error:"+data.toString());
             if (actionCache[portNumber]){
-                launcherProc[executionID+portNumber.toString()] = null;
+                //launcherProc[executionID+portNumber.toString()] = null;
                 //org.jclouds.logging.jdk.JDKLogger
                 if(data.toString().indexOf("org.jclouds.logging.jdk.JDKLogger") != -1 && data.toString().indexOf("SEVERE") != -1){
                     //actionCache[portNumber].error = data.toString();
@@ -262,7 +270,12 @@ function startLauncher(executionID,threadID,type,callback){
                 delete launcherProc[executionID+portNumber.toString()];
                 setTimeout(checkForCrush(portNumber),1000);
             }
-            callback(data.toString());
+            if(data != null){
+                callback(data.toString());
+            }
+            else{
+                callback(null);
+            }
         });
         var launcherCrashed = false;
         var cmdCache = "";
@@ -403,13 +416,15 @@ function stopLauncher(executionID,port,callback){
         sendLauncherCommand({command:"exit",executionID:executionID},port,function(){
             try{
                 launcherConn[executionID+port.toString()].destroy();
-                kill(launcherProc[executionID+port.toString()].pid,"SIGINT");
+                kill(launcherProc[executionID+port.toString()].pid, 'SIGKILL');
+                //require('tree-kill').kill(launcherProc[executionID+port.toString()].pid);
+                process.kill(launcherProc[executionID+port.toString()].pid,"SIGINT");
+                //spawn("kill "+launcherProc[executionID+port.toString()].pid)
             }
             catch(exception){
                 common.logger.error(exception);
             }
             delete launcherProc[executionID+port.toString()];
-            delete launcherConn[executionID+port.toString()];
         });
     }
     //if there is runaway launcher try to kill it
@@ -570,10 +585,19 @@ function sendLog(result,host,port){
     else{
         if(logCache.length == 0){
             logCache.push(result);
+            //console.log(result);
             setTimeout(function(){sendLogPost(logCache,host,port,"/executionengine/logmessage");logCache = [];},4000);
         }
         else{
+            //actionName
+            //if(logCache[logCache.length-1].resultID == result.resultID && logCache[logCache.length-1].date.getTime() === result.date.getTime() && logCache[logCache.length-1].actionName === result.actionName){
+            //logCache[logCache.length-1].message = logCache[logCache.length-1].message + "<br>"+result.message;
+            //    result.date = new Date(logCache[logCache.length-1].date.getTime() + 1);
+            //    logCache.push(result);
+            //}
+            //else{
             logCache.push(result);
+            //}
         }
     }
 

@@ -645,13 +645,19 @@ exports.CreateNewProject = function(projectName,language,template,callback){
 
         git.initBare(masterBranch,function(){
             git.clone(adminBranch,masterBranch,function(){
-                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh",function(){});
+                fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n.ssh/*",function(){});
+                //fs.writeFile(newProjectPath + "/admin/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh/*",function(){});
                 SetupPython(adminBranch);
                 files.forEach(function(file,index,array){
                     var destName = file.replace(templatePath,"");
                     destName = adminBranch+destName;
                     //console.log(destName);
-
+                    if(fs.existsSync(newProjectPath + "/admin/src") == false){
+                        fs.mkdirSync(newProjectPath + "/admin/src");
+                    }
+                    if(fs.existsSync(newProjectPath + "/admin/" +"bin") == false){
+                        fs.mkdirSync(newProjectPath + "/admin/" +"bin");
+                    }
                     if (fs.statSync(file).isDirectory()){
                         fs.mkdirSync(destName);
                     }
@@ -698,7 +704,8 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                                 fs.mkdirSync(newProjectPath + "/" + user.username + "/" +"bin");
                                             }
                                             git.setGitUser(newProjectPath + "/" + user.username,user.username,user.email);
-                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh",function(){
+                                            fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n.ssh/*",function(){
+                                            //fs.writeFile(newProjectPath + "/" + user.username+"/.gitignore","build\r\nPythonWorkDir\r\n**/*.pyc\r\n**/__init__.py\r\n.ssh/*",function(){
                                                 git.addAll(newProjectPath + "/" + user.username,function(){
                                                     git.commitAll(newProjectPath + "/" + user.username,function(){
                                                         git.push(newProjectPath + "/" + user.username,function(){})
@@ -734,7 +741,8 @@ function SetupPython(userFolder,callback){
         //python  = python.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     else{
-        python  = spawn(path.resolve(__dirname,'../vendor/Python/bin/python'),[path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        //python  = spawn(path.resolve(__dirname,'../vendor/Python/bin/python'),[path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        python  = spawn('/usr/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     var cliData = "";
 
@@ -1045,10 +1053,10 @@ var walkDir = function(dir,filesInConflict,filesNotPushed, done) {
                         if (!--pending) done(null, results);
                         return;
                     }
-                    if (file.slice(-11) == "__init__.py"){
-                        if (!--pending) done(null, results);
-                        return;
-                    }
+                    //if (file.slice(-11) == "__init__.py"){
+                    //    if (!--pending) done(null, results);
+                    //    return;
+                    //}
                     results.push(result);
                     if (!--pending) done(null, results);
                 }

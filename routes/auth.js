@@ -14,7 +14,11 @@ exports.loadSessions = function(){
         collection.find({}, {}, function(err, cursor) {
             cursor.each(function(err, session) {
                 if(session != null) {
-                    sessions[session.username] = {sessionid:session.sessionid,expires:session.expires};
+                    if(!sessions[session.username]){
+                        sessions[session.username] = [];
+                    }
+                    //sessions[session.username] = {sessionid:session.sessionid,expires:session.expires};
+                    sessions[session.username].push({sessionid:session.sessionid,expires:session.expires});
                 }
             });
         })
@@ -27,7 +31,11 @@ exports.logIn = function (req,res,next){
             require('crypto').randomBytes(20, function(ex, buf) {
                 realtime.emitMessage("Login",req.body.username);
                 var token = buf.toString('hex');
-                sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000),role:role};
+                if (!sessions[req.body.username]){
+                    sessions[req.body.username] = [];
+                }
+                sessions[req.body.username].push({sessionid:token,expires:new Date(Date.now() + 2592000000),role:role});
+                //sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000),role:role};
                 storeSession(req.body.username,token,new Date(Date.now() + 2592000000));
                 res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: false});
                 res.cookie('username', req.body.username, {maxAge: 2592000000, httpOnly: false });
@@ -86,8 +94,18 @@ exports.logInSucess = function(req,res){
 };
 
 exports.auth = function(req,res,next){
+    var matchSessionID = function(userid,sessionid){
+        for(var i=0;i<sessions[req.cookies.username].length;i++){
+            if(sessions[req.cookies.username][i].sessionid == sessionid){
+                return true;
+            }
+        }
+        return false;
+    };
+
     if (sessions[req.cookies.username] != undefined){
-        if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
+        //if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
+        if(matchSessionID(req.cookies.username,req.cookies.sessionid)){
             if (req.cookies.project == undefined){
                 if(req.originalUrl == "/index.html"){
                     res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });

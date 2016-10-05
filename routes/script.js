@@ -98,20 +98,25 @@ exports.scriptPut = function(req, res){
                 res.json({error:null});
                 curentPipProcs[req.cookies.username] = true;
             }
-            fs.writeFile(req.body.path,req.body.text,'utf8',function(err) {
-                if (!err) {
-                    var uninstallAll = false;
-                    if(!req.body.text.match(/[^\W_]/)){
-                        uninstallAll = true;
-                    }
-                    runPip(req.body.path,uninstallAll,req.cookies.username,function(freezeData){
-                        UpdateScript(req.body.path,freezeData,function(){
-                            realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:freezeData});
-                            curentPipProcs[req.cookies.username] = false;
-                        });
-                    })
+
+                var indexURL = "";
+                if(req.body.text && req.body.text.indexOf("\n") != -1 && req.body.text.split("\n")[0].indexOf("--index-url") != -1){
+                    indexURL = req.body.text.split("\n")[0]+"\n";
                 }
-            });
+                fs.writeFile(req.body.path,req.body.text,'utf8',function(err) {
+                    if (!err) {
+                        var uninstallAll = false;
+                        if(!req.body.text.match(/[^\W_]/)){
+                            uninstallAll = true;
+                        }
+                        runPip(req.body.path,uninstallAll,req.cookies.username,function(freezeData){
+                            UpdateScript(req.body.path,indexURL+freezeData,function(){
+                                realtime.emitMessage("PythonRequirementRun"+req.cookies.username,{freezeData:indexURL+freezeData});
+                                curentPipProcs[req.cookies.username] = false;
+                            });
+                        })
+                    }
+                });
         }
         else{
             UpdateScript(req.body.path,req.body.text,function(){
@@ -140,19 +145,27 @@ function runPip(reqFilePath,uninstallAll,username,callback){
         pip = spawn("cmd.exe",["/K"])
     }
     else{
-        pip = spawn("bash")
+        //pip = spawn("bash")
+        pip = spawn("bash");
     }
-    //var python  = spawn(path.resolve(__dirname,'../vendor/Python/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
+    //var python  = spawn(path.resolve(__dirname,'../vendor/Python/bin/python'),[path.resolve(__dirname,'../vendor/Python/Lib/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
     var baseDir = reqFilePath.replace("/PipRequirements","");
-    pip.stdin.write("cd "+baseDir+'/PythonWorkDir/Scripts/\r\n');
     if(process.platform == "win32"){
-        pip.stdin.write("for %I in (.) do cd %~sI\r\n");
+        pip.stdin.write("cd "+baseDir+'/PythonWorkDir/Scripts/\r\n');
     }
-    pip.stdin.write('activate\r\n');
+    else{
+        pip.stdin.write("cd '"+baseDir+"/PythonWorkDir/bin/'\n");
+        pip.stdin.write("echo '(PythonWorkDir)'\n");
+    }
     //pip.stdin.write('cd ../../\r\n');
     var cliData = "";
     var activated = false;
     var freezeFileBegin = false;
+
+    if(process.platform == "win32"){
+        pip.stdin.write("for %I in (.) do cd %~sI\r\n");
+        pip.stdin.write("'"+baseDir+"/PythonWorkDir/bin/activate\r\n'");
+    }
 
     pip.stdout.on('data', function (data) {
         realtime.emitMessage("PythonRequirementRun"+username,{message:data.toString()});
@@ -167,21 +180,36 @@ function runPip(reqFilePath,uninstallAll,username,callback){
                         activated = true;
                     }
                     else{
-                        pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/bin/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py') + ' --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\r\n');
+                        //console.log('"'+path.resolve(__dirname,'../vendor/Python/bin/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py') + '\" --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\r\n');
+                        //pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/bin/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py') + '\" --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\r\n');
+                        pip.stdin.write('/usr/bin/virtualenv --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\n');
                         activated = true;
                     }
                 }
                 else{
-                    pip.stdin.write("pip install -r ../../PipRequirements\r\n");
-                    activated = true;
-                    //pip.stdin.write("pip install -r "+reqFilePath+'\r\n');
+                    if(process.platform == "win32"){
+                        pip.stdin.write("pip install -r ../../PipRequirements\r\n");
+                        activated = true;
+                    }
+                    else{
+                        pip.stdin.write(baseDir+'/PythonWorkDir/bin/'+"pip install -r ../../PipRequirements\n");
+                        pip.stdin.write("echo '(PythonWorkDir)'\n");
+                        activated = true;
+                    }
                 }
             }
             else{
                 if(freezeFileBegin == false){
                     cliData = "";
                     freezeFileBegin = true;
-                    pip.stdin.write("pip freeze\r\n");
+                    if(process.platform == "win32"){
+                        pip.stdin.write("pip freeze\r\n");
+                    }
+                    else{
+                        pip.stdin.write(baseDir+'/PythonWorkDir/bin/'+"pip freeze\n");
+                        pip.stdin.write("echo '(PythonWorkDir)'\n");
+                        //spawn(baseDir+'/PythonWorkDir/bin/'+"pip freeze\r\n",{cwd: baseDir,timeout:300000});
+                    }
                     return;
                 }
                 else{
@@ -197,8 +225,12 @@ function runPip(reqFilePath,uninstallAll,username,callback){
     });
 
     pip.stderr.on('data', function (data) {
-        app.logger.error('Setup Python Scripts stderr: ' + data);
+        console.log( data.toString());
+        realtime.emitMessage("PythonRequirementRun"+username,{message:data.toString()});
+        pip.stdin.end();
+        app.logger.error('Setup Python Scripts stderr: ' + data.toString());
     });
+
 
     pip.on('close', function (code) {
         //fs.writeFile(userFolder + "/" + ".gitignore","Scripts");
@@ -206,7 +238,6 @@ function runPip(reqFilePath,uninstallAll,username,callback){
         if(uninstallAll == true) cliData = "";
         if(callback) callback(cliData);
     });
-
 }
 
 function UpdateScript(path,data,callback){
