@@ -4,6 +4,7 @@ var port = "9200";
 var cache = [];
 
 exports.indexExecution = function(execution){
+    return;
     var indexedExec = {};
     indexedExec.tag = execution.tag;
     indexedExec.project = execution.project;
@@ -22,6 +23,7 @@ exports.indexExecution = function(execution){
 };
 
 exports.indexTestCase = function(testcase,operation){
+    return;
     var indexedTC = {};
     indexedTC.tag = testcase.tag;
     indexedTC.project = testcase.project;
