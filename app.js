@@ -133,6 +133,7 @@ app.post('/uploadfilesdone',uploadFiles.uploadDone);
 //importAllTCs
 app.post('/importalltcs',importtcs.importAllTCs);
 app.post('/getallunittcs',importtcs.getAllUnitTests);
+app.post('/getallpythonunittcs',importtcs.getAllPythonTests);
 app.post('/importselectedtcs',importtcs.importSelectedTCs);
 
 //rununittest
