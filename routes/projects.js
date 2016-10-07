@@ -102,6 +102,9 @@ function CreateProjects(data,emit,callback){
 }
 
 function CloneProjects(data,emit,callback){
+    if(fs.existsSync(path.resolve(__dirname,"../public/automationscripts/"+data.name))){
+        return;
+    }
     var toClone = data.toClone;
     delete data.toClone;
 
