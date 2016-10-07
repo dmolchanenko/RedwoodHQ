@@ -652,12 +652,6 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                     var destName = file.replace(templatePath,"");
                     destName = adminBranch+destName;
                     //console.log(destName);
-                    if(fs.existsSync(newProjectPath + "/admin/src") == false){
-                        fs.mkdirSync(newProjectPath + "/admin/src");
-                    }
-                    if(fs.existsSync(newProjectPath + "/admin/" +"bin") == false){
-                        fs.mkdirSync(newProjectPath + "/admin/" +"bin");
-                    }
                     if (fs.statSync(file).isDirectory()){
                         fs.mkdirSync(destName);
                     }
@@ -673,6 +667,13 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                         fs.writeFileSync(destName,data);
                     }
                 });
+
+                if(fs.existsSync(newProjectPath + "/admin/src") == false){
+                    fs.mkdirSync(newProjectPath + "/admin/src");
+                }
+                if(fs.existsSync(newProjectPath + "/admin/" +"bin") == false){
+                    fs.mkdirSync(newProjectPath + "/admin/" +"bin");
+                }
 
                 git.add(adminBranch,".",function(){
                     git.commit(adminBranch,"","new project",function(){
