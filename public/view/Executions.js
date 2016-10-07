@@ -119,6 +119,13 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 }
             },
             {
+                header: 'Totals',
+                flex:1,
+                renderer: function(value,meta,record){
+                    return "<b style='font-weight:bold;color:green'>"+record.get("passed")+" "+"</b>"+"<b style='font-weight:bold;color:red'>"+record.get("failed")+" "+"</b>"+"<b style='font-weight:bold;color:orange'>"+record.get("notRun")+" "+"</b>";
+                }
+            },
+            {
                 header: 'Tags',
                 dataIndex: 'tag',
                 width: 200
