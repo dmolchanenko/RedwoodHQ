@@ -1,0 +1,34 @@
+<Project ToolsVersion="4.0" DefaultTargets = "Compile"
+    xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+
+    <!-- Set the application name as a property -->
+    <PropertyGroup>
+        <appname>RedwoodHQAutomation</appname>
+        <OutputPath>build\</OutputPath>
+    </PropertyGroup>
+
+    <!-- Specify the inputs by type and file name -->
+    <ItemGroup>
+	<Reference Include="External Libraries\*.dll;..\..\..\..\utils\CSharpLauncher.exe" />
+        <CodeFiles Include="src\**\*.cs"/>
+    </ItemGroup>
+
+    <Target Name = "Compile">
+        <MakeDir Directories="$(OutputPath)" Condition="!Exists('$(OutputPath)')" />
+        <!-- Run the Visual C# compilation using input files of type CSFile -->
+        <CSC
+        	EmitDebugInformation="true"
+            TargetType="library"
+            References="@(Reference)"
+            Sources = "@(CodeFiles)"
+            OutputAssembly = "build\\$(appname).dll">
+            <!-- Set the OutputAssembly attribute of the CSC task
+            to the name of the dll file that is created -->
+            <Output
+                TaskParameter = "OutputAssembly"
+                ItemName = "DLLFile" />
+        </CSC>
+        <!-- Log the file name of the output file -->
+        <Message Text="The output file is @(DLLFile)"/>
+    </Target>
+</Project>
