@@ -1,4 +1,5 @@
 var realtime = require("./realtime");
+var elasticsearch = require('./elasticsearch');
 
 exports.executionsPut = function(req, res){
     var app =  require('../common');
@@ -9,6 +10,7 @@ exports.executionsPut = function(req, res){
     data.user =  req.cookies.username;
     UpdateExecutions(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateExecutions",data);
+        elasticsearch.indexExecution(data);
         res.contentType('json');
         res.json({
             success: !err,

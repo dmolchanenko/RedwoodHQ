@@ -1,6 +1,7 @@
 var realtime = require("./realtime");
 var executions = require("./executions");
 var ObjectID = require('mongodb').ObjectID;
+var elasticSearch = require("./elasticsearch");
 
 exports.testcasesPut = function(req, res){
     var app =  require('../common');
@@ -10,6 +11,7 @@ exports.testcasesPut = function(req, res){
     data.project = req.cookies.project;
     data.user =  req.cookies.username;
     UpdateTestCases(app.getDB(),data,function(err){
+        elasticSearch.indexTestCase(data,"PUT");
         realtime.emitMessage("UpdateTestCases",data);
         res.contentType('json');
         res.json({
@@ -39,6 +41,7 @@ exports.testcasesDelete = function(req, res){
     var id = new ObjectID(req.params.id);
     DeleteTestCases(app.getDB(),{_id: id},function(err){
         realtime.emitMessage("DeleteTestCases",{id: req.params.id});
+        elasticSearch.indexTestCase({_id:req.params.id},"DELETE");
         res.contentType('json');
         res.json({
             success: !err,
@@ -56,6 +59,8 @@ exports.testcasesPost = function(req, res){
     data.project = req.cookies.project;
     data.user =  req.cookies.username;
     CreateTestCases(app.getDB(),data,function(returnData){
+        returnData[0]._id = returnData[0]._id.toString();
+        elasticSearch.indexTestCase(returnData[0],"PUT");
         res.contentType('json');
         res.json({
             success: true,

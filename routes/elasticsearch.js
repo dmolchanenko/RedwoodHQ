@@ -1,10 +1,10 @@
 var http = require("http");
-var host = "localhost";
-var port = "9200";
-var cache = [];
+var common = require("../common");
+var tcCache = [];
+var execTcCache = [];
 
 exports.indexExecution = function(execution){
-    return;
+    if(!common.Config.ELKServer || common.Config.ELKServer == "") return;
     var indexedExec = {};
     indexedExec.tag = execution.tag;
     indexedExec.project = execution.project;
@@ -16,14 +16,15 @@ exports.indexExecution = function(execution){
     indexedExec.failed = execution.failed;
     indexedExec.name = execution.name;
     indexedExec.testsetname = execution.testsetname;
+    indexedExec.url = "http://"+common.Config.AppServerIPHost+":"+common.Config.AppServerPort+"/index.html?execution="+execution._id+"&project="+execution.project;
 
-    indexES(host,port,indexedExec,"executions/execution/"+execution._id,"PUT",function(resp){
-        console.log(resp);
+    indexES(common.Config.ELKServer,common.Config.ELKServerPort,indexedExec,"executions/execution/"+execution._id,"PUT",function(resp){
+        //console.log(resp);
     })
 };
 
 exports.indexTestCase = function(testcase,operation){
-    return;
+    if(!common.Config.ELKServer || common.Config.ELKServer == "") return;
     var indexedTC = {};
     indexedTC.tag = testcase.tag;
     indexedTC.project = testcase.project;
@@ -33,20 +34,20 @@ exports.indexTestCase = function(testcase,operation){
 
     var indexIt = function(){
         var removed;
-        if(cache.length > 0) {
-            removed = cache.splice(0);
+        if(tcCache.length > 0) {
+            removed = tcCache.splice(0);
         }
         else{
             return;
         }
-        indexES(host,port,removed[0].indexedTC,"testcases/testcase/"+removed[0]._id,removed[0].operation,function(resp){
+        indexES(common.Config.ELKServer,common.Config.ELKServerPort,removed[0].indexedTC,"testcases/testcase/"+removed[0]._id,removed[0].operation,function(resp){
             indexIt();
-            console.log(resp);
+            //console.log(resp);
         })
     };
 
-    cache.push({indexedTC:indexedTC,operation:operation,_id:testcase._id});
-    if(cache.length == 1){
+    tcCache.push({indexedTC:indexedTC,operation:operation,_id:testcase._id});
+    if(tcCache.length == 1){
         indexIt();
     }
     //setTimeout(indexES(host,port,indexedTC,"testcases/testcase/"+testcase._id,operation,function(resp){
@@ -59,6 +60,7 @@ exports.indexTestCase = function(testcase,operation){
 };
 
 exports.indexTCResult = function(testcaseResult,operation){
+    if(!common.Config.ELKServer || common.Config.ELKServer == "") return;
     var indexedTC = {};
     indexedTC.tag = testcaseResult.tag;
     indexedTC.project = testcaseResult.project;
@@ -66,23 +68,33 @@ exports.indexTCResult = function(testcaseResult,operation){
     indexedTC.result = testcaseResult.result;
     indexedTC.enddate = testcaseResult.enddate;
     indexedTC.name = testcaseResult.name;
-    //indexES(host,port,indexedTC,"testcaseresults/testcaseresult/"+testcaseResult._id,operation,function(resp){
-    //    console.log(resp);
-    //});
-
     var db = require('../common').getDB();
 
-    db.collection('executions', function(err, collection) {
-        collection.findOne({_id:testcaseResult.executionID}, {}, function(err, execution) {
-            if(execution != null) {
-                indexedTC.executiontag = execution.tag;
-                indexES(host,port,indexedTC,"testcaseresults/testcaseresult/"+testcaseResult._id.toString(),"PUT",function(resp){
-                    console.log(resp);
-                })
-            }
-        })
-    });
+    var indexIt = function(){
+        var removed;
+        if(execTcCache.length > 0) {
+            removed = execTcCache.splice(0);
+        }
+        else{
+            return;
+        }
+        db.collection('executions', function(err, collection) {
+            collection.findOne({_id:removed[0].executionID}, {}, function(err, execution) {
+                if(execution != null) {
+                    removed[0].indexedTC.executiontag = execution.tag;
+                    indexES(common.Config.ELKServer,common.Config.ELKServerPort,removed[0].indexedTC,"testcaseresults/testcaseresult/"+removed[0]._id.toString(),operation,function(resp){
+                        indexIt();
+                        //console.log(resp);
+                    })
+                }
+            })
+        });
+    };
 
+    execTcCache.push({indexedTC:indexedTC,operation:operation,_id:testcaseResult._id,executionID:testcaseResult.executionID});
+    if(execTcCache.length == 1){
+        indexIt();
+    }
 };
 
 
