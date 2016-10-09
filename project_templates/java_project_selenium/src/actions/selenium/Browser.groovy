@@ -20,8 +20,20 @@ class Browser{
   public void run(def params){
     def os = System.getProperty("os.name").toLowerCase();
 
+      println params
 	sleep(1000)
     if (params."Browser Type" == "Firefox"){
+        println os
+      if(os.contains("nix") || os.contains("nux")||os.contains("aix")){
+          System.setProperty("webdriver.gecko.driver", "geckodriver")
+      }
+      else if(os.contains("mac")){
+		System.setProperty("webdriver.gecko.driver", "geckodrivermac")
+      }
+      else{
+		System.setProperty("webdriver.gecko.driver", "geckodriver.exe")
+      }
+
       Driver = new FirefoxDriver()
     }
     else if (params."Browser Type" == "Chrome"){
@@ -42,7 +54,7 @@ class Browser{
       Driver = new RemoteWebDriver(service.getUrl(),DesiredCapabilities.chrome())
     }
     else{
-      def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9516).usingDriverExecutable(new File("IEDriverServer.exe")).build()
+      def serviceIE = new InternetExplorerDriverService.Builder().usingPort(9516).usingDriverExecutable(new File("MicrosoftWebDriver.exe")).build()
       serviceIE.start()
       DesiredCapabilities d = DesiredCapabilities.internetExplorer()
       d.setCapability("nativeEvents", false)
