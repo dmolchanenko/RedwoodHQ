@@ -47,6 +47,14 @@ class Browser{
           chromedriver.setExecutable(true)
           service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(chromedriver).build()
       }
+      else if(os.contains("mac")){
+          File chromedriver = new File("chromedrivermac")
+          if(!chromedriver.exists()){
+              assert false, "Please upload proper linux chromedriver file to bin directory under scripts tab."
+          }
+          chromedriver.setExecutable(true)
+          service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(chromedriver).build()
+      }
       else{
         service = new ChromeDriverService.Builder().usingPort(9518).usingDriverExecutable(new File("chromedriver.exe")).build()
       }
