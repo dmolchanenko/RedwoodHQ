@@ -164,7 +164,7 @@ function runPip(reqFilePath,uninstallAll,username,callback){
 
     if(process.platform == "win32"){
         pip.stdin.write("for %I in (.) do cd %~sI\r\n");
-        pip.stdin.write("'"+baseDir+"/PythonWorkDir/bin/activate\r\n'");
+        pip.stdin.write("activate\r\n");
     }
 
     pip.stdout.on('data', function (data) {
