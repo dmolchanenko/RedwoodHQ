@@ -171,6 +171,15 @@ function CloneProjects(data,emit,callback){
                                                         collection.insert(cloneData, {safe:true},function(err,returnData){
                                                         })
                                                     }
+                                                    else if(name == 'testsets'){
+                                                        delete cloneData._id;
+                                                        cloneData.project = data.name;
+                                                        cloneData.testcases.forEach(function(testcase){
+                                                            testcase._id = new ObjectID(testcaseMapping[testcase._id]);
+                                                        });
+                                                        collection.insert(cloneData, {safe:true},function(err,returnData){
+                                                        })
+                                                    }
                                                     else{
                                                         cloneData._id = new ObjectID(testcaseMapping[cloneData._id.toString()]);
                                                         cloneData.project = data.name;
@@ -183,6 +192,7 @@ function CloneProjects(data,emit,callback){
                                     };
                                     updateTestCaseCollections('testcases');
                                     updateTestCaseCollections('testcaseshistory');
+                                    updateTestCaseCollections('testsets');
                                     return;
                                 }
                                 var id = cloneData._id.toString();
@@ -245,7 +255,7 @@ function CloneProjects(data,emit,callback){
                 cloneCollection('variables');
                 cloneCollection('actionTags');
                 cloneCollection('testcaseTags');
-                cloneCollection('testsets');
+                //cloneCollection('testsets');
                 cloneCollection('variableTags');
                 pointOriginRepo();
 
