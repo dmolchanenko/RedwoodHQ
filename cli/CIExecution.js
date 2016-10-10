@@ -1,5 +1,5 @@
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --cloudTemplate [templateName:instances:threads] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
+    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --emails [email1@host.com,email2@host.com] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
     .demand(['name','testset','project','user'])
     .argv;
 var common = require('../common');
@@ -25,6 +25,9 @@ common.parseConfig(function(){
     execution.pullLatest = argv.pullLatest;
     if(argv.tags){
         execution.tag = argv.tags.split(",");
+    }
+    if(argv.emails){
+        execution.emails = argv.emails.split(",");
     }
     if(argv.retryCount){
         execution.retryCount = argv.retryCount;
@@ -56,7 +59,7 @@ common.parseConfig(function(){
                 }
                 formatTestSet(argv.testset,argv.project,function(testsetID){
                     execution.testset = testsetID.toString();
-                    saveExecutionTestCases(testsetID,execution._id,function(testcases){
+                    saveExecutionTestCases(testsetID,execution._id,execution.retryCount,function(testcases){
                         if(argv.variables){
                             formatVariables(argv.variables.split(","),argv.project,function(variables){
                                 execution.variables = variables;
@@ -78,7 +81,7 @@ common.parseConfig(function(){
     });
 });
 
-function saveExecutionTestCases(testsetID,executionID,callback){
+function saveExecutionTestCases(testsetID,executionID,retryCount,callback){
     var testcases = [];
     db.collection('testsets', function(err, testSetCollection) {
         db.collection('executiontestcases', function(err, ExeTCCollection) {
@@ -90,7 +93,7 @@ function saveExecutionTestCases(testsetID,executionID,callback){
                             if(dbtestcase.tcData && dbtestcase.tcData.length > 0){
                                 var ddTCCount = 0;
                                 dbtestcase.tcData.forEach(function(row,rowIndex){
-                                    var insertTC = {executionID:executionID,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
+                                    var insertTC = {executionID:executionID,retryCount:retryCount,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
                                     insertTC.rowIndex = rowIndex+1;
                                     insertTC.name = insertTC.name +"_"+(rowIndex+1);
                                     insertTC.tcData = row;
@@ -104,7 +107,7 @@ function saveExecutionTestCases(testsetID,executionID,callback){
                                 })
                             }
                             else{
-                                var insertTC = {executionID:executionID,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
+                                var insertTC = {executionID:executionID,retryCount:retryCount,name:dbtestcase.name,tag:testcase.tag,status:"Not Run",testcaseID:testcase._id.toString(),_id: new ObjectID().toString()};
                                 testcases.push(insertTC);
                                 ExeTCCollection.insert(insertTC, {safe:true},function(err,returnData){
                                     if(index+1 == dbtestcases.testcases.length){
@@ -185,7 +188,7 @@ function StartExecution(execution,testcases,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
+    req.write(JSON.stringify({emails:execution.emails,ignoreAfterState:false,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
     req.end();
 }
 
