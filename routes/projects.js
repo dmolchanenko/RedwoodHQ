@@ -176,7 +176,6 @@ function CloneProjects(data,emit,callback){
                                                         cloneData.project = data.name;
                                                         cloneData.testcases.forEach(function(testcase){
                                                             testcase._id = new ObjectID(testcaseMapping[testcase._id]);
-
                                                         });
                                                         collection.insert(cloneData, {safe:true},function(err,returnData){
                                                         })
