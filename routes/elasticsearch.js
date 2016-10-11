@@ -16,6 +16,7 @@ exports.indexExecution = function(execution){
     indexedExec.failed = execution.failed;
     indexedExec.name = execution.name;
     indexedExec.testsetname = execution.testsetname;
+    indexedExec.variables = execution.variables;
     indexedExec.url = "http://"+common.Config.AppServerIPHost+":"+common.Config.AppServerPort+"/index.html?execution="+execution._id+"&project="+execution.project;
 
     indexES(common.Config.ELKServer,common.Config.ELKServerPort,indexedExec,"executions/execution/"+execution._id,"PUT",function(resp){
