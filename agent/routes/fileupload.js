@@ -37,7 +37,7 @@ exports.MatchFile = function(req,res){
                 //var md5Value = md5(buf);
                 if(buf.toString() == req.body.md5){
                     var target_path = path.resolve(__dirname,"../"+req.body.dest);
-                    console.log("COPYING OVER:"+target_path);
+                    //console.log("COPYING OVER:"+target_path);
                     CreateParentDirs(req.body.dest,function(){
                         copyFile(fullPath,target_path,function(){
                             res.send('{"error":null,"success":true,"matched":true}');
@@ -52,7 +52,7 @@ exports.MatchFile = function(req,res){
             });
         }
         else{
-            console.log("FALSE I IS:"+fullPath);
+            //console.log("FALSE I IS:"+fullPath);
             res.send('{"error":null,"success":true,"matched":false}');
         }
     };

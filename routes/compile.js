@@ -69,20 +69,20 @@ function compileJava(buildDir,id,msg,callback,onFinish){
             var antDir = path.resolve(__dirname,"../vendor/ant/bin/")+"/";
             var javaDir = path.resolve(__dirname,"../vendor/Java");
             fs.exists(buildDir+"/ivy.xml",function(exists){
-                console.log(javaDir);
-                console.log(path.resolve(__dirname,"../vendor/ant/"));
+                //console.log(javaDir);
+                //console.log(path.resolve(__dirname,"../vendor/ant/"));
                 var resolve = "";
                 if(exists == true) resolve = "resolve";
                 compileProcs[id].proc =spawn('"'+antDir+'ant" clean '+resolve+' compile jar',{cwd: buildDir,timeout:1800000,env:{ANT_HOME:path.resolve(__dirname,"../vendor/ant/"),JAVA_HOME:javaDir}});
                 common.logger.info(antDir);
                 common.logger.info(buildDir);
                 compileProcs[id].proc.stdout.on('data', function(data) {
-                    console.log(data.toString());
+                    //console.log(data.toString());
                     callback(data.toString());
                 });
 
                 compileProcs[id].proc.stderr.on('data', function(data) {
-                    console.log(data.toString());
+                    //console.log(data.toString());
                     callback(data.toString());
                     spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/rm'),['-rf',buildDir+"/build"],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
                 });

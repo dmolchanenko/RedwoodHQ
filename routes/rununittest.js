@@ -13,7 +13,7 @@ exports.runUnitTest = function(req,res){
     var port = 5009;
 
     execEngine.compileBuild(project,username,function(result){
-        console.log(result);
+        //console.log(result);
         if (result != null){
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});

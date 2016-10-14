@@ -10,8 +10,8 @@ exports.Post = function(req, res){
         if(!files) return;
         var tmp_path = files.file[0].path;
         var id = files.file[0].originalFilename;
-        console.log("MY ID IS:"+id);
-        console.log("MY resultID IS:"+req.cookies.resultID);
+        //console.log("MY ID IS:"+id);
+        //console.log("MY resultID IS:"+req.cookies.resultID);
         fs.readFile(tmp_path,function(err,data){
             if(!err){
                 db.collection('screenshots', function(err, collection) {

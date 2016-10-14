@@ -179,9 +179,11 @@ function runPip(reqFilePath,uninstallAll,username,callback){
                         pip.stdin.write('python Lib/site-packages/virtualenv.py --clear "'+baseDir+'/PythonWorkDir"\r\n');
                         activated = true;
                     }
+                    else if(process.platform == "darwin"){
+                        pip.stdin.write('/Library/Frameworks/python/2.7/bin/virtualenv --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\n');
+                        activated = true;
+                    }
                     else{
-                        //console.log('"'+path.resolve(__dirname,'../vendor/Python/bin/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py') + '\" --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\r\n');
-                        //pip.stdin.write('"'+path.resolve(__dirname,'../vendor/Python/bin/python')+"\" \""+path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py') + '\" --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\r\n');
                         pip.stdin.write('/usr/bin/virtualenv --clear '+"'"+baseDir+'/PythonWorkDir'+"'"+'\n');
                         activated = true;
                     }

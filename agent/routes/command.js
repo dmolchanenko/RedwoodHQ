@@ -219,11 +219,11 @@ function startLauncher(executionID,threadID,type,callback){
                 pythonPath = path.resolve(__dirname,"../../vendor/Python")+"/python";
             }
             else{
-                pythonLibPath = pathDivider+baseExecutionDir+"/"+executionID+"/lib/python2.7/site-packages";
-                //pythonPath = "/Library/Frameworks/Python.framework/Versions/2.7/bin/python";
+                //pythonLibPath = pathDivider+baseExecutionDir+"/"+executionID+"/lib/python2.7/site-packages";
+                pythonLibPath = pathDivider+baseExecutionDir+"/"+executionID+"/lib/site-packages";
                 pythonPath = "/usr/bin/python"
             }
-            launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PATH:process.env.PATH,PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/"+pythonLibPath},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
+            launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PATH:process.env.PATH+pathDivider+baseExecutionDir+"/"+executionID+"/bin/",PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/"+pythonLibPath},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
         else if(type == "csharp"){
             //var csharpLauncherPath = baseExecutionDir+"/"+executionID+"/lib/CSharpLauncher.exe";

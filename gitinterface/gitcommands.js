@@ -508,7 +508,7 @@ exports.filesModifiedSinceDate = function(workdir,date,callback){
 
     git.stdout.on('data', function (data) {
         cliData = cliData + data.toString();
-        console.log(cliData);
+        //console.log(cliData);
     });
 
     git.stderr.on('data', function (data) {

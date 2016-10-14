@@ -240,7 +240,11 @@ function zipPythonFiles(projectDir,destDir,callback){
             if(exists == true){
                 git.lsFiles(projectDir + "/src/",["*.py"],function(data){
                     if ((data != "")&&(data.indexOf("\n") != -1)){
-                        zipDir(projectDir + "/PythonWorkDir/Lib",destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
+                        var libDir = projectDir + "/PythonWorkDir/Lib";
+                        if(process.platform != "win32"){
+                            libDir = projectDir + "/PythonWorkDir/lib/python2.7";
+                        }
+                        zipDir(libDir,destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
                             zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py','**.cfg','**.ini'],function(){
                                 callback();
                             });
@@ -2773,6 +2777,10 @@ function deleteDir(path,callback){
     fs.exists(path,function(exists){
         if(exists == true){
             fs.readdir(path,function(err,files){
+                if(err){
+                    if (callback) callback();
+                    return;
+                }
                 files.forEach(function(file){
                     file = path + '/' + file;
                     try{

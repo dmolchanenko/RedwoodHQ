@@ -680,19 +680,24 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                         git.push(adminBranch,function(){
                             users.getAllUsers(function(users){
                                 console.log('--eval var projectName="'+projectName+'" '+path.resolve(__dirname,"../project_templates/"+template+".js"));
-                                var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
-                                //var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','localhost:27017/automationframework','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
-                                mongoScript.stdout.on('data', function (data) {
-                                    common.logger.info(data.toString());
-                                });
+                                if(fs.existsSync(path.resolve(__dirname,"../project_templates/"+template+".js"))){
+                                    var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo'),['--eval','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
+                                    //var mongoScript = spawn(path.resolve(__dirname,'../vendor/MongoDB/bin/mongo.exe'),['--eval','localhost:27017/automationframework','var projectName="'+projectName+'"',path.resolve(__dirname,"../project_templates/"+template+".js")],{cwd: path.resolve(__dirname,'../vendor/MongoDB/bin'),timeout:300000});
+                                    mongoScript.stdout.on('data', function (data) {
+                                        common.logger.info(data.toString());
+                                    });
 
-                                mongoScript.stderr.on('data', function (data) {
-                                    common.logger.error('stderr: ' + data.toString());
-                                });
+                                    mongoScript.stderr.on('data', function (data) {
+                                        common.logger.error('stderr: ' + data.toString());
+                                    });
 
-                                mongoScript.on('exit', function (code) {
+                                    mongoScript.on('exit', function (code) {
+                                        callback();
+                                    });
+                                }
+                                else{
                                     callback();
-                                });
+                                }
                                 users.forEach(function(user){
                                     if (user.username !== "admin"){
                                         fs.mkdirSync(newProjectPath + "/" + user.username);
@@ -731,18 +736,20 @@ exports.setupPython = function(userFolder,callback){SetupPython(userFolder,callb
 
 function SetupPython(userFolder,callback){
     var python;
-    if(process.platform == "win32"){
-        python = spawn("cmd.exe",["/K"]);
+    if(process.platform == "win32") {
+        python = spawn("cmd.exe", ["/K"]);
 
-        python.stdin.write("cd \""+path.resolve(__dirname,'../vendor/Python')+"\"\r\n");
+        python.stdin.write("cd \"" + path.resolve(__dirname, '../vendor/Python') + "\"\r\n");
         python.stdin.write("for %I in (.) do cd %~sI\r\n");
-        python.stdin.write('python Lib/site-packages/virtualenv.py "'+userFolder+ '/PythonWorkDir"\r\n');
+        python.stdin.write('python Lib/site-packages/virtualenv.py "' + userFolder + '/PythonWorkDir"\r\n');
         //python.stdin.end();
         //python.disconnect();
         //python  = python.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
+    else if(process.platform == "darwin"){
+        python  = spawn('/Library/Frameworks/python/2.7/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+    }
     else{
-        //python  = spawn(path.resolve(__dirname,'../vendor/Python/bin/python'),[path.resolve(__dirname,'../vendor/Python/lib/python2.7/site-packages/virtualenv.py'),'PythonWorkDir'],{cwd: userFolder,timeout:300000});
         python  = spawn('/usr/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     var cliData = "";

@@ -16,7 +16,7 @@ exports.uploadFromAgent = function(req, res){
         res.contentType('text/html');
         fs.exists(target_path,function(exists){
             checkDir(target_path,function(){
-                console.log(target_path);
+                //console.log(target_path);
                 //return;
                 if (exists){
                     res.send('{error:"File already exists."}');

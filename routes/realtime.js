@@ -73,7 +73,7 @@ exports.initSocket = function(app){
             }
             if(msg.change && msg.change.returnBack === true){
                 io.sockets.emit("CollaborateScript"+msg.username,msg);
-                console.log(msg);
+                //console.log(msg);
             }
         });
     });

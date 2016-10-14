@@ -346,7 +346,12 @@ function DeleteProjects(db,data,projectName,callback){
     });
 
     var projectPath = path.resolve(__dirname,"../public/automationscripts/"+projectName);
-    var delDir = spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/rm'),['-rf',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+    if(process.platform == "win32"){
+        spawn(path.resolve(__dirname,'../vendor/Git/usr/bin/rm'),['-rf',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+    }
+    else{
+        spawn('rm',['-rf',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
+    }
     //var delDir = spawn("rmdir",['/S','/Q',projectPath],{cwd: path.resolve(__dirname,"../public/automationscripts/"),timeout:300000});
     /*
     var toDelete = [];

@@ -9,7 +9,7 @@ var comment = process.env.REDWOODHQ_COMMITCOMMENT;
 if(process.argv[2].indexOf("git-rebase-todo") != -1){
     fs.readFile(process.argv[2], 'utf8', function(err, data) {
         if (err) throw err;
-        console.log(data);
+        //console.log(data);
         var commits = [];
         var splitFile = data.split("\n");
 
@@ -38,9 +38,9 @@ if(process.argv[2].indexOf("git-rebase-todo") != -1){
             commits.forEach(function(commit){
                 finalString = finalString + commit + "\n";
             });
-            console.log(finalString);
+            //console.log(finalString);
             fs.writeFile(process.argv[2],finalString,function(){
-                console.log("|||"+notToPushCommits+"|||");
+                //console.log("|||"+notToPushCommits+"|||");
             })
         });
     });
@@ -75,7 +75,7 @@ function getSortedCommits(files,toRebaseCommits,callback){
             count++;
             sortedCommits = sortedCommits.concat(commits);
             if(count == files.length){
-                console.log(sortedCommits);
+                //console.log(sortedCommits);
                 if(sortedCommits.length == 1){
                     sortedCommits[0] = "reword " + sortedCommits[0] + " auto comment"
                 }

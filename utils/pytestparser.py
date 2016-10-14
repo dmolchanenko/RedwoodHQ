@@ -34,7 +34,7 @@ class Unbuffered(object):
 orig = sys.stdout
 sys.stdout = Unbuffered(sys.stdout)
 plugin = PytestPlugin()
-pytest.main(["-q","--collect-only"], plugins=[plugin])
+pytest.main(["-p","no:cacheprovider","-q","--collect-only"], plugins=[plugin])
 
 
 sys.stdout = orig

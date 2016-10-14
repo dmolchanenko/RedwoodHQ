@@ -110,6 +110,11 @@ def runAction(action):
                     action["returnValue"] = returnValue
             elif returnValue.__class__.__name__ == "str" or returnValue.__class__.__name__ == "unicode":
                 action["returnValue"] = returnValue
+    except Exception,e:
+        sys.stdout.flush()
+        action["result"] = "Failed"
+        action["error"] = str(e)
+        action["trace"] = traceback.format_exc()
     except:
         sys.stdout.flush()
         action["result"] = "Failed"
