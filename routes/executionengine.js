@@ -115,7 +115,8 @@ var _startexecutionPost = function(req, res, callback){
     var variables = {};
     var testcases = req.body.testcases;
     var template = null;
-
+    var emails = req.body.emails;
+    console.log(req.body);
     //clean up previous files if needed
     /*
     for(var file in fileSync){
@@ -172,8 +173,8 @@ var _startexecutionPost = function(req, res, callback){
     if(req.body.templates){
         template = req.body.templates[0]
     }
-
-    executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{}};
+    executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{},
+                               emails:emails};
     updateExecution({_id:executionID},{$set:{status:"Running",user:req.cookies.username}},false);
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
@@ -626,7 +627,9 @@ function executeTestCases(testcases,executionID){
                     });
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
-                            if(executions[executionID].sendEmail == true) sendNotification(executionID);
+                            if(executions[executionID].sendEmail == true) {
+                                sendNotification(executionID);
+                            }
                             //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
                             deleteDir(os.tmpDir()+"/jar_"+executionID);
                             delete executions[executionID];
@@ -664,7 +667,10 @@ function executeTestCases(testcases,executionID){
                     });
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
-                            if(executions[executionID] && executions[executionID].sendEmail == true) sendNotification(executionID);
+                            if(executions[executionID] && executions[executionID].sendEmail == true)
+                            {
+                                sendNotification(executionID);
+                            }
                             //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
                             deleteDir(os.tmpDir()+"/jar_"+executionID);
                             delete executions[executionID];
@@ -2611,15 +2617,228 @@ function GetTestCaseDetails(testcaseID,dbID,executionID,callback){
         })
     });
 }
+function _generateEmailReport(settings, execution, callback) {
+    var body = '';
+    //settings.serverHost = 'localhost'; // temp
 
+    // 1. "Test Execution Summary:"
+    function _formTestExecutionSummaryReport() {
+        if(!execution) return '';
+        var str = '<h2>Execution Summary:</h2><p></p><p><table border="1" cellpadding="3">' +
+            '<tr>' +
+            '<th><b>Total </b></th>' +
+            '<td><b>'+execution.total+ " " +'</b></td>' +
+            '</tr>' +
+            '<tr>' +
+                '<th>Passed </th>' +
+                '<td style="color:green">'+execution.passed + " "+'</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<th>Failed </th>' +
+                '<td style="color:red">'+execution.failed+ " " +'</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<th>Not Run </th>' +
+                '<td style="color:#ffb013">'+execution.notRun + " " + '</td>' +
+            '</tr>' +
+        '</table></p>';
+
+        return str;
+    }
+
+    function _getMachinesAsString() {
+        if(!execution || !execution.machines || execution.machines.length < 1) return '';
+        var str = '';
+        for(var i = 0; i < execution.machines.length; i++) {
+            str += " " + execution.machines[i].host + ':' + execution.machines[i].port + '<br>';
+        }
+        return str;
+    }
+
+    // 2. "Execution Details:"
+    function _formExecutionDetailsReport() {
+        if(!execution) return '';
+        var str =  '<h2>Execution Details:</h2><p></p>' +
+            '<p><table border="1" cellpadding="3">' +
+                '<tr>' +
+                    '<th>User </th>' +
+                    '<td>'+execution.user+" "+'</td>' +
+                '</tr>' +
+                '<tr>' +
+                    '<th>Machines </th>' +
+                    '<td>'+_getMachinesAsString()+" "+'</td>' +
+                '</tr>' +
+                '<tr>' +
+                    '<th>Project </th>' +
+                    '<td>'+execution.project+" "+'</td>' +
+                '</tr>' +
+                '<tr>' +
+                    '<th>Test Suite Name </th>' +
+                    '<td>'+execution.testsetname+" "+'</td>' +
+                '</tr>' +
+            '</table></p>';
+
+        return str;
+    }
+
+    // 3. "Execution Variable Details:"
+    function _formExecutionVariablesDetailsReport() {
+        if(!execution || !execution.variables || execution.variables.length < 1) return '';
+
+        var str = '<h2>Execution Variable Details:</h2><p></p>' +
+                    '<p><table border="1" cellpadding="3">' +
+                        '<tr>' +
+                            '<th><b>Name </b></th>' +
+                            '<th><b>Value </b></th>' +
+                        '</tr>';
+        for(var i = 0; i < execution.variables.length; i++) {
+            str += '<tr>' +
+                        '<td>'+ execution.variables[i].name + " " +'</td>' +
+                        '<td>'+ execution.variables[i].value + " " +'</td>' +
+                    '</tr>';
+        }
+
+        str += '</table></p>';
+        return str;
+    }
+
+    function _getParametersAsString(parameters){
+        if(!parameters || parameters.length < 1) return '';
+        var str = '';
+        for(var i = 0; i < parameters.length; i++) {
+            str += "<b>" + parameters[i].paramname + '</b> = ' + parameters[i].paramvalue + '<br>';
+        }
+        return str;
+    }
+
+    function _prepareTestResultRow(rowData, addOrderColumnData) {
+        var row = '';
+        row += '<tr>' +
+                    '<td>'+ function() { return (addOrderColumnData) ? rowData.order : '' }() + '</td>' +
+                    '<td>'+ rowData.name + '</td>' +
+                    '<td>'+ _getParametersAsString(rowData.parameters) +'</td>';
+        if(rowData.status === 'Finished') {
+            row +=  '<td style="color:green"><b>'+ rowData.status +'</b></td>';
+        } else { // Not run
+            row +=  '<td style="color:orange"><b>'+ rowData.status +'</b></td>';
+        }
+        if(rowData.result === 'Passed') {
+            row +=  '<td style="color:green"><b>'+ rowData.result +'</b></td>';
+        } else if(rowData.result === 'Failed') {
+            row +=  '<td style="color:red"><b>'+ rowData.result +'</b></td>';
+        } else {
+            row +=  '<td></td>';
+        }
+            row +=  '<td style="color:red">'+ function() { return (rowData.error) ? rowData.error : '' }() +'</td>';
+        if(rowData.screenshot) {
+            row +=  '<td>'+ "<a href='http://" + settings.serverHost + ":" + common.Config.AppServerPort + "/screenshots/" + rowData.screenshot + "'>view</a>" + '</td>';
+        }else {
+            row +=  '<td></td>';
+        }
+            row +=  '<td style="color:red">'+ function() { return (rowData.trace) ? rowData.trace : ''}() +'</td>' +
+                '</tr>';
+
+        return row;
+    }
+
+    // 4. "TestCase Results:"
+    function _formTestResultsReport(callbackFunc) {
+        var str = '';
+       // console.log("_formTestResultsReport +1")
+        db.collection('testcaseresults', function(err, collection) {
+           // console.log("_formTestResultsReport +2")
+            collection.find({executionID:execution._id}, {}, function(err, cursor) {
+                //console.log("_formTestResultsReport +3")
+                if(!cursor || err) return '<p>_formTestResultsReport failed</p>';
+                //console.log("_formTestResultsReport +4")
+
+                str += '<h2>Test Case Results:</h2>';
+                cursor.each(function(err, testcaseresult) {
+                    //console.log("_formTestResultsReport +5")
+                    if(testcaseresult) {
+                        //console.log("_formTestResultsReport +6")
+
+                        str +=   '<p>' + '<div><b>Name: </b>' + testcaseresult.name + '</div>';
+                        if(testcaseresult.status === 'Finished') {
+                            str +=  '<div><b>Status: </b><b style="color:green">' + testcaseresult.status + '</b></div>';
+                        } else {
+                           str +=  '<div><b>Status: </b><b style="color:orange">' + testcaseresult.status + '</b></div>';
+                        }
+                        if(testcaseresult.result === 'Passed') {
+                            str +=  '<div><b>Result: </b><b style="color:green">' + testcaseresult.result + '</b></div>';
+                        } else if(testcaseresult.result === 'Failed') {
+                            str +=  '<div><b>Result: </b><b style="color:red">' + testcaseresult.result + '</b></div>';
+                        } else {
+                            str +=  '<div><b>Result: </b>' + testcaseresult.result + '</div>';
+                        }
+                        str +=   '</p>' +
+                                  '<p><table border="1" cellpadding="3">' +
+                                    '<tr>' +
+                                        '<th><b>Test Step</b></th>' +
+                                        '<th><b>Action Name</b></th>' +
+                                        '<th><b>Parameters</b></th>' +
+                                        '<th><b>Status</b></th>' +
+                                        '<th><b>Result</b></th>' +
+                                        '<th><b>Error</b></th>' +
+                                        '<th><b>Screenshot</b></th>' +
+                                        '<th><b>Trace</b></th>' +
+                                    '</tr>';
+                        if(!err && testcaseresult.children){ // success
+                            //console.log("_formTestResultsReport +7")
+                            console.log(testcaseresult.children);
+                            var rows = '';
+                            for(var i = 0; i < testcaseresult.children.length; i++) {
+                                //console.log("_formTestResultsReport +8" + i)
+                                rows += _prepareTestResultRow(testcaseresult.children[i], true);
+
+                                // attach nested child report
+                                var grandChild = testcaseresult.children[i].children;
+                                if(grandChild) {
+                                    for(var j = 0; j < grandChild.length; j++) {
+                                       // console.log("_formTestResultsReport GRANDCHILD+8" + j)
+                                        rows += _prepareTestResultRow(grandChild[j], false);
+                                    }
+                                }
+                            }
+                            str += rows + '</table></p><br>';
+                        }
+                    }
+                   // console.log("_formTestResultsReport +9")
+                });
+            });
+        });
+
+        setTimeout(function() {
+            callbackFunc(str);
+        }, 500);
+    }
+
+    var body = "<p><style>tr:nth-child(odd) {background-color: #b8d1f3;} tr:nth-child(even){ background: #dae5f4;} th { background-color: #3f8fdf; color: white; } th,td { padding: 0.25rem; text-align: left; border: 0px solid #000000;}</style>" +
+                  "<a href='http://" + settings.serverHost+ ":" + common.Config.AppServerPort + "/index.html?execution=" + execution._id + "&project=" + execution.project + "'>Execution: " + execution.name + "</a></p>";
+
+    body = body + _formTestExecutionSummaryReport()
+                + _formExecutionDetailsReport()
+                + _formExecutionVariablesDetailsReport();
+
+    _formTestResultsReport(function(str) {
+        body += str;
+        callback(body);
+    });
+}
 function sendNotification(executionID){
+   // console.log("sendNotification +1");
     db.collection('emailsettings', function(err, collection) {
+        //console.log("sendNotification +2");
         db.collection('executions', function(err, EXEcollection) {
+            //console.log("sendNotification +3");
             collection.findOne({}, {}, function(err, settings) {
+                //console.log("sendNotification +4");
                 EXEcollection.findOne({_id:executionID}, {}, function(err, execution) {
-                    if(!execution.emails) return;
-                    if(execution.emails.length == 0) return;
+                    //console.log("sendNotification +5");
+                    if(!execution.emails || execution.emails.length == 0) return;
+                    //console.log("sendNotification +6");
                     if((settings == null) || (!settings.host) || (settings.host == "")) return;
+                    //console.log("sendNotification +7");
                     var options = {};
 
                     var subject = "Execution FINISHED: " + execution.name;
@@ -2628,63 +2847,54 @@ function sendNotification(executionID){
                     }
                     else{
                         subject = subject + " (ALL PASSED)"
+                        // Send email notification only when execution failed
+                        //return;
                     }
 
-                    var body = "<p><a href='http://" + settings.serverHost+ ":" + common.Config.AppServerPort + "/index.html?execution=" + execution._id + "&project=" + execution.project + "'>Execution: " + execution.name + "</a></p>";
-
-                    body = body + '<p><table border="1" cellpadding="3">' +
-                        '<tr>' +
-                        '<td><b>Total</b></td>' +
-                        '<td><b>'+execution.total+'</b></td>' +
-                        '</tr>' +
-                        '<tr>' +
-                            '<td>Passed</td>' +
-                            '<td style="color:green">'+execution.passed+'</td>' +
-                        '</tr>' +
-                        '<tr>' +
-                            '<td>Failed</td>' +
-                            '<td style="color:red">'+execution.failed+'</td>' +
-                        '</tr>' +
-                        '<tr>' +
-                            '<td>Not Run</td>' +
-                            '<td style="color:#ffb013">'+execution.notRun+'</td>' +
-                        '</tr>' +
-                    '</table></p>';
-                    if(settings.user){
-                        options.auth = {user:settings.user,pass:settings.password}
-                    }
-                    options.host = settings.host;
-                    if((settings.port)&&(settings.port!="")){
-                        options.port = parseInt(settings.port);
-                    }
-                    else{
-                        options.port = 25
-                    }
-                    var smtpTransport = nodemailer.createTransport("SMTP",options);
-                    var toList = "";
-                    execution.emails.forEach(function(email){
-                        if(toList == ""){
-                            toList = email
+                    _generateEmailReport(settings, execution, function(body) {
+                        if(settings.user){
+                            options.auth = {user:settings.user,pass:settings.password}
+                        }
+                        options.host = settings.host;
+                        if((settings.port)&&(settings.port!="")){
+                            options.port = parseInt(settings.port);
                         }
                         else{
-                            toList = toList + "," + email
+                            options.port = 25
                         }
-                    });
-                    var mailOptions = {
-                        from: "redwoodhq-no-reply@redwoodhq.com",
-                        to: toList,
-                        subject: subject,
-                        //text: "Hello world", // plaintext body
-                        html: body // html body
-                    };
+                        //console.log("sendNotification +8");
+                        var smtpTransport = nodemailer.createTransport("SMTP",options);
+                        var toList = "";
+                        execution.emails.forEach(function(email){
+                            if(toList == ""){
+                                toList = email
+                            }
+                            else{
+                                toList = toList + "," + email
+                            }
+                        });
+                        var mailOptions = {
+                            from: "redwoodhq-no-reply@redwoodhq.com",
+                            to: toList,
+                            subject: subject,
+                            //text: "Hello world", // plaintext body
+                            html: body // html body
+                        };
 
-                    smtpTransport.sendMail(mailOptions, function(error, response){
-                        if(error){
-                            common.logger.info(error);
-                        }
+                        smtpTransport.sendMail(mailOptions, function(error, response){
+                            //console.log("sendNotification +9");
+                            if(error){
+                                common.logger.info(error);
+                                console.log(error);
+                               // console.log("sendNotification +10");
+                            }
 
-                        smtpTransport.close();
+                            smtpTransport.close();
+                        });
+                        //console.log("sendNotification end +100");
+                        console.log(body);
                     });
+
                 });
             });
         })
