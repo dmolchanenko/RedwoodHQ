@@ -245,7 +245,7 @@ function zipPythonFiles(projectDir,destDir,callback){
                             libDir = projectDir + "/PythonWorkDir/lib/python2.7";
                         }
                         zipDir(libDir,destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
-                            zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py','**.cfg','**.ini'],function(){
+                            zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py','**/*.cfg','**/*.ini'],function(){
                                 callback();
                             });
                         })
