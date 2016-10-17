@@ -6,6 +6,7 @@ import traceback
 import time
 import pythonLauncher
 import os
+import uuid
 from time import sleep
 
 class PytestPlugin:
@@ -110,11 +111,14 @@ def runAction(action):
                     action["returnValue"] = returnValue
             elif returnValue.__class__.__name__ == "str" or returnValue.__class__.__name__ == "unicode":
                 action["returnValue"] = returnValue
-    except Exception,e:
+        if action["allScreenshots"] is True:
+            TakeScreenshot(action)
+    except Exception, e:
         sys.stdout.flush()
         action["result"] = "Failed"
         action["error"] = str(e)
         action["trace"] = traceback.format_exc()
+        TakeScreenshot(action)
     except:
         sys.stdout.flush()
         action["result"] = "Failed"
@@ -123,7 +127,18 @@ def runAction(action):
         else:
             action["error"] = sys.exc_info()[1].message
         action["trace"] = traceback.format_exc()
+        TakeScreenshot(action)
     action["command"] = "action finished"
+
+def TakeScreenshot(action):
+    try:
+        if action["ignoreScreenshots"] is False and action["executionflow"] != "Ignore Error Continue Test Case":
+            shid = str(uuid.uuid4())+action["resultID"]
+            from actions.selenium import OpenBrowser
+            OpenBrowser.driver.save_screenshot(shid)
+            action["screenshot"] = shid
+    except:
+        return
 
 if __name__ == '__main__':
     host = ''
