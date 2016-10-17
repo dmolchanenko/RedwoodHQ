@@ -66,11 +66,19 @@ function setNETLocation(callback){
 }
 
 exports.initLogger = function(fileName){
+    var winTransports = [
+        new (winston.transports.File)({ filename: 'logs/'+fileName+'.log',maxsize:10485760,maxFiles:10,timestamp:true })
+    ];
+
+    if(process.platform == "win32"){
+        winTransports.push(new (winston.transports.Console)());
+    }
     this.logger = new (winston.Logger)({
-        transports: [
-            new (winston.transports.Console)(),
-            new (winston.transports.File)({ filename: 'logs/'+fileName+'.log',maxsize:10485760,maxFiles:10,timestamp:true })
-        ]
+        transports:winTransports
+        //transports: [
+        //    new (winston.transports.Console)(),
+        //    new (winston.transports.File)({ filename: 'logs/'+fileName+'.log',maxsize:10485760,maxFiles:10,timestamp:true })
+        //]
     });
     this.logger.handleExceptions(new winston.transports.File({ filename: 'logs/'+fileName+'_errors.log' }));
     this.logger.exitOnError = false;
