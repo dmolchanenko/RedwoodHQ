@@ -482,9 +482,11 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.updateStore(store,execution);
         });
 
-        Ext.socket.on('AddVariables',function(testCase){
+        Ext.socket.on('AddVariables',function(variable){
             var store = Ext.data.StoreManager.lookup("Variables");
-            me.addToStore(store,testCase);
+            if(!store.query("name",variable.name )){
+                me.addToStore(store,variable);
+            }
         });
 
         Ext.socket.on('DeleteVariables',function(action){
