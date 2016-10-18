@@ -157,7 +157,14 @@ function CloneProjects(data,emit,callback){
                                                         return;
                                                     }
                                                     if(cloneData.afterState && cloneData.afterState != ""){
-                                                        cloneData.afterState = actionMapping[cloneData.afterState]
+                                                        if(Array.isArray(cloneData.afterState)){
+                                                            cloneData.afterState.forEach(function(step){
+                                                                step.actionid = actionMapping[step.actionid];
+                                                            });
+                                                        }
+                                                        else{
+                                                            cloneData.afterState = actionMapping[cloneData.afterState]
+                                                        }
                                                     }
                                                     if(cloneData.type == 'collection'){
                                                         cloneData.collection.forEach(function(step){
