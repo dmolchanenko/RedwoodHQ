@@ -95,8 +95,6 @@ def runAction(action):
                         params[paramKey] = paramValue
                 else:
                     params[paramKey] = paramValue
-            else:
-                params[paramKey] = paramValue
         returnValue = methodValue(params)
         sys.stdout.flush()
         if returnValue is not None:
