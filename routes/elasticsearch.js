@@ -134,7 +134,7 @@ function indexES(host,port,command,path,operation,callback){
 
 
     req.on('error', function(e) {
-        if (callback) callback({error:"Unable to connect to machine: "+agentHost + " error: " + e.message});
+        if (callback) callback({error:"Unable to connect to machine: "+host + " error: " + e.message});
     });
 
     // write data to request body
