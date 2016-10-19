@@ -23,12 +23,13 @@ class Browser{
       println params
 	sleep(1000)
     if (params."Browser Type" == "Firefox"){
-        println os
       if(os.contains("nix") || os.contains("nux")||os.contains("aix")){
           System.setProperty("webdriver.gecko.driver", "geckodriver")
+          new File("geckodriver").setExecutable(true)
       }
       else if(os.contains("mac")){
 		System.setProperty("webdriver.gecko.driver", "geckodrivermac")
+		new File("geckodrivermac").setExecutable(true)
       }
       else{
 		System.setProperty("webdriver.gecko.driver", "geckodriver.exe")
