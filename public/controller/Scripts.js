@@ -23,8 +23,6 @@ Ext.define("Redwood.controller.Scripts", {
         this.control({
             'scriptBrowser': {
                 newScript: this.onNewScript,
-                syncToPC: this.onSyncToPC,
-                syncToRedwoodHQ: this.onSyncToRedwoodHQ,
                 scriptVersionDiff: this.onScriptVersionDiff,
                 syncDiffs: this.onSyncDiffs,
                 loadVersionHistory: this.loadVersionHistory,
@@ -64,85 +62,6 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     compileEventAttached: false,
-
-    onSyncToPC: function(){
-
-        Ext.Msg.show({
-            title:'Sync Confirmation',
-            msg: "Syncing to local IDE will <b>override all local project files</b>.<br>This operation cannot be undone!<br>Are you sure you want to continue?",
-            buttons: Ext.Msg.YESNO,
-            icon: Ext.Msg.QUESTION,
-            fn: function(id){
-                if (id == "yes"){
-                    Ext.MessageBox.show({
-                        msg: 'Syncing Code to your IDE from RedwoodHQ, please wait...',
-                        progressText: 'Syncing...',
-                        width:300,
-                        wait:true,
-                        waitConfig: {interval:200}
-                    });
-
-                    Ext.Ajax.request({
-                        url:"/synctoide",
-                        method:"POST",
-                        jsonData : {},
-                        timeout : 540000,
-                        success: function(response) {
-                            var obj = Ext.decode(response.responseText);
-                            Ext.MessageBox.hide();
-                            if(obj.error){
-                                Ext.Msg.alert('Error', obj.error);
-                            }
-                        }
-                    });
-                }
-            }
-        });
-
-    },
-
-    onSyncToRedwoodHQ: function(){
-        var me = this;
-        var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
-        allScripts = allScripts.concat(Ext.ComponentQuery.query('mergepanel'));
-        var expandedNodes = me.getExpandedNodes(me.treePanel.getRootNode());
-        Ext.Msg.show({
-            title:'Sync Confirmation',
-            msg: "Syncing your local files will <b>override RedwoodHQ files</b>.<br>This operation cannot be undone!<br>Are you sure you want to continue?",
-            buttons: Ext.Msg.YESNO,
-            icon: Ext.Msg.QUESTION,
-            fn: function(id){
-                if (id == "yes"){
-                    Ext.MessageBox.show({
-                        msg: 'Syncing Code from your IDE to RedwoodHQ, please wait...',
-                        progressText: 'Syncing...',
-                        width:300,
-                        wait:true,
-                        waitConfig: {interval:200}
-                    });
-
-                    Ext.Ajax.request({
-                        url:"/synctoredwoodhq",
-                        method:"POST",
-                        jsonData : {},
-                        timeout : 540000,
-                        success: function(response) {
-                            var obj = Ext.decode(response.responseText);
-                            if(obj.error){
-                                Ext.MessageBox.hide();
-                                Ext.Msg.alert('Error', obj.error);
-                            }
-                            else{
-                                Ext.MessageBox.hide();
-                                me.reloadScripts(expandedNodes,allScripts);
-                            }
-                            //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
-                        }
-                    });
-                }
-            }
-        });
-    },
 
     onFindText: function(path){
         var selection = this.treePanel.getSelectionModel().getSelection()[0];
@@ -506,51 +425,6 @@ Ext.define("Redwood.controller.Scripts", {
 
     },
 
-    //pass previously expanded nodes and scripts that were open
-    reloadScripts: function(expandedNodes,allScripts){
-        var me = this;
-
-        me.getStore('Scripts').reload({callback:function(){
-            me.expandNodes(expandedNodes);
-            Ext.each(allScripts,function(script){
-                var foundIt = false;
-                me.treePanel.getRootNode().cascadeBy(function(node) {
-                    if (node.get("fullpath").indexOf(script.path) != -1){
-                        foundIt = true;
-                        //script.close();
-                        //node.parentNode.expand();
-                        if (node.get("inConflict") == true){
-                            script.close();
-                            //me.onScriptEdit(node);
-                            node.parentNode.expand();
-                        }
-                        else{
-                            script.node = node;
-                            //me.onScriptEdit(node);
-                            Ext.Ajax.request({
-                                url:"/script/get",
-                                method:"POST",
-                                jsonData : {path:script.path},
-                                success: function(response, action) {
-                                    var obj = Ext.decode(response.responseText);
-                                    script.setValue(obj.text);
-                                    script.clearDirty();
-                                    script.refreshNeeded = true;
-                                }
-                            });
-                        }
-                    }
-                });
-                if (foundIt == false) script.close();
-            });
-            me.treePanel.getRootNode().cascadeBy(function(node) {
-                if (node.get("inConflict") == true){
-                    me.onScriptEdit(node);
-                }
-            });
-        }});
-    },
-
     onPullChanges: function(){
         Ext.MessageBox.show({
             msg: 'Pulling changes from master branch, please wait...',
@@ -595,8 +469,6 @@ Ext.define("Redwood.controller.Scripts", {
                     else{
                         message = "Code was successfully pulled from the main branch.";
                     }
-                    me.reloadScripts(expandedNodes,allScripts);
-                    /*
                     me.getStore('Scripts').reload({callback:function(){
                         me.expandNodes(expandedNodes);
                         Ext.each(allScripts,function(script){
@@ -636,7 +508,6 @@ Ext.define("Redwood.controller.Scripts", {
                             }
                         });
                     }});
-                    */
                     Ext.MessageBox.hide();
 
                     Ext.Msg.alert(title, message);
@@ -737,6 +608,21 @@ Ext.define("Redwood.controller.Scripts", {
 
                         var pythonLineNumber = line.split('line ')[1];
                         pythonLineNumber = pythonLineNumber.split(')')[0];
+                        pythonLineNumber = parseInt(pythonLineNumber,10) -1;
+                        var pythonLinkHmtl = "<a href='javascript:openScript(&quot;/"+ pythonPath.replace(/\\/g,"/") +"&quot;,"+pythonLineNumber+")'>"+ pythonPath +"</a>";
+
+                        var pythonNewMsg = line.replace(pythonFileName,pythonLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
+                    }else if(line.indexOf("Sorry: ") == 0 && line.indexOf(".py',") != -1){
+                        var pythonPath = lines[index-1].split('Compiling ')[1];
+                        pythonPath = pythonPath.split(' ...')[0];
+
+                        var pythonFileName = line.split('(')[2];
+                        pythonFileName = pythonFileName.split("'")[1];
+
+                        var pythonLineNumber = line.split('(')[2];
+                        pythonLineNumber = pythonLineNumber.split("'")[2];
+                        pythonLineNumber = pythonLineNumber.split(",")[1].trim();
                         pythonLineNumber = parseInt(pythonLineNumber,10) -1;
                         var pythonLinkHmtl = "<a href='javascript:openScript(&quot;/"+ pythonPath.replace(/\\/g,"/") +"&quot;,"+pythonLineNumber+")'>"+ pythonPath +"</a>";
 
