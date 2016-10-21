@@ -750,7 +750,12 @@ function SetupPython(userFolder,callback){
         python  = spawn('/Library/Frameworks/python/2.7/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     else{
-        python  = spawn('/usr/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        if(fs.existsSync("/usr/bin/virtualenv")){
+            python  = spawn('/usr/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        }
+        else{
+            python  = spawn('/usr/local/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        }
     }
     var cliData = "";
 
