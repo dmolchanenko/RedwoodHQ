@@ -10,6 +10,10 @@ exports.record = function(req, res){
     var project = req.cookies.project;
     var username = req.cookies.username;
     var ip = req.connection.remoteAddress;
+    if(ip.indexOf(":") != -1){
+        var ipParts = ip.split(":");
+        ip = ipParts[ipParts.length-1];
+    }
 
     //console.log(ip);
     var options = {
