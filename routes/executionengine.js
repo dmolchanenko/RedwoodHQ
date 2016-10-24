@@ -2732,7 +2732,7 @@ function _generateEmailReport(settings, execution, callback) {
                 if(!cursor || err) return '<p>form Testcase Results Summary Report failed</p>';
                 console.log("_formTestcaseResultsSummaryReport +4")
 
-                str += '<h2>Test Case Summary Results:</h2>';
+                str += '<h2>Test Case Summary:</h2>';
                 str +=   '</p>' +
                           '<p><table border="1" cellpadding="3">' +
                             '<tr>' +
