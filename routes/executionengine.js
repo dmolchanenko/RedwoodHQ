@@ -111,6 +111,7 @@ var _startexecutionPost = function(req, res, callback){
     var allScreenshots =  req.body.allScreenshots;
     var ignoreAfterState =  req.body.ignoreAfterState;
     var sendEmail =  req.body.sendEmail;
+    var sendEmailOnlyOnFailure = req.body.sendEmailOnlyOnFailure;
     var machines = req.body.machines;
     var variables = {};
     var testcases = req.body.testcases;
@@ -173,7 +174,7 @@ var _startexecutionPost = function(req, res, callback){
     if(req.body.templates){
         template = req.body.templates[0]
     }
-    executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{},
+    executions[executionID] = {template:template,sendEmail:sendEmail,sendEmailOnlyOnFailure:sendEmailOnlyOnFailure,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{},
                                emails:emails};
     updateExecution({_id:executionID},{$set:{status:"Running",user:req.cookies.username}},false);
 
@@ -627,8 +628,12 @@ function executeTestCases(testcases,executionID){
                     });
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
-                            if(executions[executionID].sendEmail == true) {
-                                sendNotification(executionID);
+                            console.log(executions[executionID].sendEmail);
+                            console.log(executions[executionID].sendEmailOnlyOnFailure);
+                            if(executions[executionID] &&
+                               (executions[executionID].sendEmail === true || executions[executionID].sendEmailOnlyOnFailure === true) ) {
+                                console.log("sendNotification +++++++++++++++++ ")
+                                sendNotification(executionID, executions[executionID].sendEmailOnlyOnFailure);
                             }
                             //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
                             deleteDir(os.tmpDir()+"/jar_"+executionID);
@@ -667,9 +672,13 @@ function executeTestCases(testcases,executionID){
                     });
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
-                            if(executions[executionID] && executions[executionID].sendEmail == true)
-                            {
-                                sendNotification(executionID);
+                            console.log(executions[executionID].sendEmail);
+                            console.log(executions[executionID].sendEmailOnlyOnFailure);
+
+                            if(executions[executionID] &&
+                               (executions[executionID].sendEmail === true || executions[executionID].sendEmailOnlyOnFailure === true) ) {
+                                console.log("sendNotification --------------------");
+                                sendNotification(executionID, executions[executionID].sendEmailOnlyOnFailure);
                             }
                             //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
                             deleteDir(os.tmpDir()+"/jar_"+executionID);
@@ -2646,14 +2655,14 @@ function _generateEmailReport(settings, execution, callback) {
         return str;
     }
 
-    function _getMachinesAsString() {
+    /*function _getMachinesAsString() {
         if(!execution || !execution.machines || execution.machines.length < 1) return '';
         var str = '';
         for(var i = 0; i < execution.machines.length; i++) {
             str += " " + execution.machines[i].host + ':' + execution.machines[i].port + '<br>';
         }
         return str;
-    }
+    }*/
 
     // 2. "Execution Details:"
     function _formExecutionDetailsReport() {
@@ -2664,10 +2673,10 @@ function _generateEmailReport(settings, execution, callback) {
                     '<th>User </th>' +
                     '<td>'+execution.user+" "+'</td>' +
                 '</tr>' +
-                '<tr>' +
+                /*'<tr>' +
                     '<th>Machines </th>' +
                     '<td>'+_getMachinesAsString()+" "+'</td>' +
-                '</tr>' +
+                '</tr>' + */
                 '<tr>' +
                     '<th>Project </th>' +
                     '<td>'+execution.project+" "+'</td>' +
@@ -2711,6 +2720,63 @@ function _generateEmailReport(settings, execution, callback) {
         return str;
     }
 
+    // 4. "Testcase Results Summary "
+    function _formTestcaseResultsSummaryReport(callbackFunc) {
+        var str = '';
+        var rows = '';
+        console.log("_formTestcaseResultsSummaryReport +1")
+        db.collection('testcaseresults', function(err, collection) {
+            console.log("_formTestcaseResultsSummaryReport +2")
+            collection.find({executionID:execution._id}, {}, function(err, cursor) {
+                console.log("_formTestcaseResultsSummaryReport +3")
+                if(!cursor || err) return '<p>form Testcase Results Summary Report failed</p>';
+                console.log("_formTestcaseResultsSummaryReport +4")
+
+                str += '<h2>Test Case Summary Results:</h2>';
+                str +=   '</p>' +
+                          '<p><table border="1" cellpadding="3">' +
+                            '<tr>' +
+                                '<th><b>Name </b></th>' +
+                                '<th><b>Status </b></th>' +
+                                '<th><b>Result </b></th>' +
+                            '</tr>';
+
+                cursor.each(function(err, testcaseresult) {
+                    console.log("_formTestcaseResultsSummaryReport +5")
+                    if(testcaseresult) {
+                        console.log("_formTestcaseResultsSummaryReport +6")
+
+                        console.log( "DATA => " + testcaseresult.name + testcaseresult.status + testcaseresult.result);
+                        var row = '<tr>' +
+                                    '<td>'+ testcaseresult.name + ' </td>';
+                        if(testcaseresult.status === 'Finished') {
+                            row +=  '<td><b style="color:green">' + testcaseresult.status + ' </b></td>';
+                        } else {
+                            row +=  '<td><b style="color:orange">' + testcaseresult.status + ' </b></td>';
+                        }
+                        if(testcaseresult.result === 'Passed') {
+                            row +=  '<td><b style="color:green">' + testcaseresult.result + ' </b></td>';
+                        } else if(testcaseresult.result === 'Failed') {
+                            row +=  '<td><b style="color:red">' + testcaseresult.result + ' </b></td>';
+                        } else {
+                            row +=  '<td><b>' + testcaseresult.result + ' </b></td>';
+                        }
+                        row += '</tr>';
+                        rows += row;
+                    } else {
+                        console.log("_formTestcaseResultsSummaryReport +7")
+                        str += rows + '</table></p>';
+                        console.log(str);
+                        callbackFunc(str);
+                    }
+                    console.log("_formTestcaseResultsSummaryReport +9")
+                });
+
+            });
+        });
+
+    }
+
     function _prepareTestResultRow(rowData, addOrderColumnData) {
         var row = '';
         row += '<tr>' +
@@ -2741,7 +2807,7 @@ function _generateEmailReport(settings, execution, callback) {
         return row;
     }
 
-    // 4. "TestCase Results:"
+    // 5. "TestCase Results:"
     function _formTestResultsReport(callbackFunc) {
         var str = '';
        // console.log("_formTestResultsReport +1")
@@ -2802,15 +2868,14 @@ function _generateEmailReport(settings, execution, callback) {
                             }
                             str += rows + '</table></p><br>';
                         }
+                    }else {
+                        //console.log("_formTestResultsReport +9")
+                        callbackFunc(str);
                     }
-                   // console.log("_formTestResultsReport +9")
+                   // console.log("_formTestResultsReport +10")
                 });
             });
         });
-
-        setTimeout(function() {
-            callbackFunc(str);
-        }, 500);
     }
 
     var body = "<p><style>tr:nth-child(odd) {background-color: #b8d1f3;} tr:nth-child(even){ background: #dae5f4;} th { background-color: #3f8fdf; color: white; } th,td { padding: 0.25rem; text-align: left; border: 0px solid #000000;}</style>" +
@@ -2820,12 +2885,15 @@ function _generateEmailReport(settings, execution, callback) {
                 + _formExecutionDetailsReport()
                 + _formExecutionVariablesDetailsReport();
 
-    _formTestResultsReport(function(str) {
-        body += str;
-        callback(body);
+    _formTestcaseResultsSummaryReport(function(summStr) {
+        body += summStr;
+        _formTestResultsReport(function(str) {
+            body += str;
+            callback(body);
+        });
     });
 }
-function sendNotification(executionID){
+function sendNotification(executionID, sendEmailOnlyOnFailure){
    // console.log("sendNotification +1");
     db.collection('emailsettings', function(err, collection) {
         //console.log("sendNotification +2");
@@ -2847,8 +2915,12 @@ function sendNotification(executionID){
                     }
                     else{
                         subject = subject + " (ALL PASSED)"
-                        // Send email notification only when execution failed
-                        //return;
+                        //console.log(sendEmailOnlyOnFailure);
+                        if(sendEmailOnlyOnFailure === true) {
+                            // Send email notification only when execution failed
+                            console.log("Donot send email!!!")
+                            return;
+                        }
                     }
 
                     _generateEmailReport(settings, execution, function(body) {
@@ -2874,7 +2946,7 @@ function sendNotification(executionID){
                             }
                         });
                         var mailOptions = {
-                            from: "redwoodhq-no-reply@redwoodhq.com",
+                            from: "redwoodhq-no-reply@wolterskluwer.com",
                             to: toList,
                             subject: subject,
                             //text: "Hello world", // plaintext body
@@ -2894,7 +2966,6 @@ function sendNotification(executionID){
                         //console.log("sendNotification end +100");
                         console.log(body);
                     });
-
                 });
             });
         })

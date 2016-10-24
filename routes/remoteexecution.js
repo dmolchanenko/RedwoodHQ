@@ -4,7 +4,7 @@ Add ability to trigger test executions with a URL
 
 node CIExecution.js  --name "Amazon Shopping" --user admin --testset "Amazon Shopping" --machines "127.0.0.1" --pullLatest false --retryCount 1 --project Sample --ignoreScreenshots true
 
-http://localhost:3000/api/remoteexecution/startexecution?name=Amazon%20Shopping&user=admin&testset=Amazon%20Shopping&machines=127.0.0.1&pullLatest=false&retryCount=1&project=Sample&ignoreScreenshots=true
+http://localhost:3000/api/remoteexecution/startexecution?name=Amazon%20Shopping&user=admin&testset=Amazon%20Shopping&machines=127.0.0.1&pullLatest=false&retryCount=1&project=Sample&ignoreScreenshots=false&uiSnapshots=true&sendEmail=true&emails=xyz@com
 http header
 http body: { user=admin,
             testset=Amazon Shopping,
@@ -68,12 +68,9 @@ exports.startexecutionPost = function(req, res){
     execution.lastRunDate = null;
     execution.testsetname = query.testset;
     execution.pullLatest = query.pullLatest;
-    execution.sendEmail = true;
-
-    if(query.emails){
-        execution.emails = query.emails.split(",");
-
-    }
+    execution.sendEmail = (query.sendEmail == 'true');
+    execution.sendEmailOnlyOnFailure = (query.sendEmailOnlyOnFailure == 'true');
+    execution.emails = (query.emails) ? query.emails.split(',') : [];
 
     if(query.tags){
         execution.tag = query.tags.split(",");
@@ -83,17 +80,6 @@ exports.startexecutionPost = function(req, res){
     } else {
         execution.retryCount = '0';
     }
-    /*if(query.ignoreScreenshots){
-        if(query.ignoreScreenshots === "true"){
-            execution.ignoreScreenshots = true;
-        }
-        else{
-            execution.ignoreScreenshots = false;
-        }
-    }
-    else{
-        execution.ignoreScreenshots = false;
-    }*/
     execution._id = new ObjectID().toString();
     var validationDetails = { status : true, error : "" }
     if(!_validateQueryParams(query, validationDetails)) {
@@ -285,7 +271,8 @@ function StartExecution(execution,testcases,finalResponse,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,sendEmail:execution.sendEmail,emails:execution.emails,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,allScreenshots:execution.allScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates,
+                              sendEmail:execution.sendEmail, sendEmailOnlyOnFailure:execution.sendEmailOnlyOnFailure,emails:execution.emails, allScreenshots:execution.allScreenshots}));
     req.end();
 }
 

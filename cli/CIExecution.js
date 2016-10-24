@@ -1,5 +1,6 @@
+//node CIExecution.js  --name "Amazon Shopping" --user admin --testset "Amazon Shopping" --machines "127.0.0.1" --pullLatest false --retryCount 1 --project Sample --ignoreScreenshots false --allScreenshots true
 var argv = require('optimist')
-    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --cloudTemplate [templateName:instances:threads] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false]')
+    .usage('Usage: $0 --name [name] --user [username] --testset [testset name] --machines [hostname1:threads:baseState,hostname2:threads:baseState] --cloudTemplate [templateName:instances:threads] --pullLatest [true] --retryCount [1] --variables [name=value,name2=value2] --tags [tag1,tag2] --project [projectname] --ignoreScreenshots [true,false] --uiSnapshots [true,false]')
     .demand(['name','testset','project','user'])
     .argv;
 var common = require('../common');
@@ -20,17 +21,15 @@ common.parseConfig(function(){
     execution.locked = true;
     execution.ignoreStatus = false;
     execution.ignoreAfterState = false;
+    execution.allScreenshots = (argv.uiSnapshots == 'true');
     execution.ignoreScreenshots = (argv.ignoreScreenshots == 'true');
-    execution.allScreenshots = (argv.uiSnaphots == 'true' );
     execution.lastRunDate = null;
     execution.testsetname = argv.testset;
     execution.pullLatest = argv.pullLatest;
-    execution.sendEmail=true;
+    execution.sendEmail = (argv.sendEmail == 'true');
+    execution.sendEmailOnlyOnFailure = (argv.sendEmailOnlyOnFailure == 'true');
+    execution.emails = (argv.emails)? argv.emails.split(",") : [];
 
-    if(argv.emails){
-        execution.emails = argv.emails.split(",");
-
-    }
     if(argv.tags){
         execution.tag = argv.tags.split(",");
     }
@@ -40,17 +39,7 @@ common.parseConfig(function(){
     else{
         execution.retryCount = "0";
     }
-    /*if(argv.ignoreScreenshots){
-        if(argv.ignoreScreenshots === "true"){
-            execution.ignoreScreenshots = true;
-        }
-        else{
-            execution.ignoreScreenshots = false;
-        }
-    }
-    else{
-        execution.ignoreScreenshots = false;
-    }*/
+
     execution._id = new ObjectID().toString();
 
     common.initDB(common.Config.DBPort,function(){
@@ -193,7 +182,8 @@ function StartExecution(execution,testcases,callback){
     });
 
     // write data to request body
-    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,sendEmail:execution.sendEmail,emails:execution.emails,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots,allScreenshots:execution.allScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates}));
+    req.write(JSON.stringify({retryCount:execution.retryCount,ignoreAfterState:false,ignoreStatus:execution.ignoreStatus,ignoreScreenshots:execution.ignoreScreenshots, allScreenshots:execution.allScreenshots,testcases:testcases,variables:execution.variables,executionID:execution._id,machines:execution.machines,templates:execution.templates,
+                              sendEmail:execution.sendEmail, sendEmailOnlyOnFailure: execution.sendEmailOnlyOnFailure, emails:execution.emails}));
     req.end();
 }
 
@@ -474,4 +464,3 @@ function formatMachines(callback){
         });
     });
 }
-
