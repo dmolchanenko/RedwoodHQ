@@ -599,7 +599,7 @@ Ext.define("Redwood.controller.Scripts", {
 
                         var pythonNewMsg = line.replace(pythonPath,pythonLinkHmtl);
                         Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
-                    }else if(line.indexOf("Sorry: ") == 0 && line.indexOf(".py,") != -1){
+                    }else if((line.indexOf("Sorry: ") == 0 || line.indexOf("SyntaxError: ") == 0) && line.indexOf(".py,") != -1){
                         var pythonPath = lines[index-1].split('Compiling ')[1];
                         pythonPath = pythonPath.split(' ...')[0];
 
