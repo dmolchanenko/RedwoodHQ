@@ -1381,9 +1381,9 @@ Ext.define('Redwood.view.ExecutionView', {
                 items:[
                     {
                         xtype: "checkbox",
-                        fieldLabel: "Send Email",
-                        itemId:"sendEmail",
-                        labelWidth: 70,
+                        fieldLabel: "Send Email -    Always",
+                        itemId:"sendEmailAlways",
+                        labelWidth: 110,
                         anchor:'90%',
                         listeners:{
                             afterrender: function(me,eOpt){
@@ -1395,9 +1395,45 @@ Ext.define('Redwood.view.ExecutionView', {
                                     dismissDelay: 10000 // Hide after 10 seconds hover
                                 });
                             },
-                            change: function(){
+                            change: function( me, newValue , oldValue , eOpts ){
                                 if (me.loadingData === false){
                                     //me.markDirty();
+                                }
+                                if(newValue == true) {
+                                    var sendEmailOnlyOnFailureComp = Ext.ComponentQuery.query("#sendEmailOnlyOnFailure")[0];
+                                    if(sendEmailOnlyOnFailureComp) {
+                                       sendEmailOnlyOnFailureComp.setValue(false);
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        xtype: "checkbox",
+                        fieldLabel: "Only on Failure",
+                        itemId:"sendEmailOnlyOnFailure",
+                        labelWidth: 90,
+                        anchor:'90%',
+                        listeners:{
+                            afterrender: function(me,eOpt){
+                                Ext.tip.QuickTipManager.register({
+                                    target: me.getEl(),
+                                    //title: 'My Tooltip',
+                                    text: 'Send E-Mail notification only on Failure.',
+                                    //width: 100,
+                                    dismissDelay: 10000 // Hide after 10 seconds hover
+                                });
+                            },
+                            change: function(me, newValue , oldValue , eOpts){
+                                if (me.loadingData === false){
+                                    //me.markDirty();
+                                }
+
+                                if(newValue == true) {
+                                    var sendEmailAlwaysComp = Ext.ComponentQuery.query("#sendEmailAlways")[0];
+                                    if(sendEmailAlwaysComp) {
+                                        sendEmailAlwaysComp.setValue(false);
+                                    }
                                 }
                             }
                         }
@@ -1405,13 +1441,13 @@ Ext.define('Redwood.view.ExecutionView', {
                     {
                         xtype:"combofieldbox",
                         typeAhead:true,
-                        fieldLabel: "E-Mails",
+                        fieldLabel: "E-Mail Addresses",
                         displayField:"name",
                         descField:"name",
                         height:24,
                         width: 800,
                         anchor:'90%',
-                        labelWidth: 50,
+                        labelWidth: 110,
                         forceSelection:false,
                         createNewOnEnter:true,
                         encodeSubmitValue:true,
