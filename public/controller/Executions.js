@@ -286,7 +286,8 @@ Ext.define("Redwood.controller.Executions", {
         var ignoreScreenshots = executionView.down("#ignoreScreenshots").getValue();
         var allScreenshots = executionView.down("#allScreenshots").getValue();
         var retryCount = executionView.down("#retryCount").getValue();
-        var sendEmail = executionView.down("#sendEmail").getValue();
+        var sendEmailAlways = executionView.down("#sendEmailAlways").getValue();
+        var sendEmailOnlyOnFailure = executionView.down("#sendEmailOnlyOnFailure").getValue();
         var status = executionView.getStatus();
         var locked =  false;
         if (executionView.down("#locked").getText() == "Unlock") locked = true;
@@ -350,8 +351,17 @@ Ext.define("Redwood.controller.Executions", {
                 timeout: 120000,
                 url:"/executionengine/startexecution",
                 method:"POST",
-                jsonData : {sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines,templates:templates},
+                jsonData : {sendEmail:sendEmailAlways, sendEmailOnlyOnFailure:sendEmailOnlyOnFailure, ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:testcases,variables:execution.get("variables"),executionID:execution.get("_id"),machines:machines,templates:templates},
                 success: function(response) {
+                    if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
+                    var obj = Ext.decode(response.responseText);
+                    if(obj.error != null){
+                        Ext.Msg.alert('Error', Ext.util.Format.htmlEncode(obj.error));
+                        executionView.up("executionsEditor").down("#runExecution").setDisabled(false);
+                        executionView.up("executionsEditor").down("#stopExecution").setDisabled(true);
+                    }
+                },
+                failure: function(response) {
                     if (Ext.MessageBox.isVisible()) Ext.MessageBox.hide();
                     var obj = Ext.decode(response.responseText);
                     if(obj.error != null){
