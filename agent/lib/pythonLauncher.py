@@ -139,6 +139,8 @@ def TakeScreenshot(action):
         return
 
 if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
     host = ''
     port = int(sys.argv[1])
     backlog = 5
