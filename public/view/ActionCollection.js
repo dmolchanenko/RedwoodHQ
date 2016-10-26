@@ -1164,12 +1164,12 @@ Ext.define('Redwood.view.ActionCollection', {
                 count++;
             });
             me.setVisible(true);
-            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
-            Ext.MessageBox.hide();
             if (newRecord.childNodes.length > 0){
-                me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));
+                setTimeout(function(){me.cellEditing.startEdit(newRecord.getChildAt(0), me.down("#paramvalue"));}, 300);
             }
             me.markDirty();
+            me.parentPanel.getEl().dom.children[0].scrollTop = lastScrollPos;
+            Ext.MessageBox.hide();
         };
 
         var barItems = [
