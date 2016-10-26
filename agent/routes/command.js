@@ -221,7 +221,12 @@ function startLauncher(executionID,threadID,type,callback){
             else{
                 //pythonLibPath = pathDivider+baseExecutionDir+"/"+executionID+"/lib/python2.7/site-packages";
                 pythonLibPath = pathDivider+baseExecutionDir+"/"+executionID+"/lib/site-packages";
-                pythonPath = "/usr/bin/python"
+                if(fs.existsSync("/usr/bin/python")){
+                    pythonPath = "/usr/bin/python"
+                }
+                else{
+                    pythonPath = "/usr/local/bin/python"
+                }
             }
             launcherProc[executionID+portNumber.toString()] = spawn(pythonPath,[pythonLauncherPath,portNumber.toString()],{env:{PATH:process.env.PATH+pathDivider+baseExecutionDir+"/"+executionID+"/bin/",PYTHONPATH:path.resolve(__dirname,"../../vendor/Python/DLLs")+pathDivider+path.resolve(__dirname,"../../vendor/Python/lib")+pathDivider+baseExecutionDir+"/"+executionID+"/src/"+pythonLibPath},cwd:baseExecutionDir+"/"+executionID+"/bin/"});
         }
