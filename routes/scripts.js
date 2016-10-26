@@ -746,15 +746,12 @@ function SetupPython(userFolder,callback){
         //python.disconnect();
         //python  = python.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
-    else if(process.platform == "darwin"){
-        python  = spawn('/Library/Frameworks/python/2.7/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
-    }
     else{
-        if(fs.existsSync("/usr/bin/virtualenv")){
-            python  = spawn('/usr/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+        if(fs.existsSync("/usr/local/bin/virtualenv/usr/local/bin/virtualenv")){
+            python  = spawn('/usr/local/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
         }
         else{
-            python  = spawn('/usr/local/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
+            python  = spawn('/usr/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
         }
     }
     var cliData = "";
