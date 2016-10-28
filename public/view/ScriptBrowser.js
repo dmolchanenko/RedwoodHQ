@@ -842,7 +842,10 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             });
                         },
                         beforeitemexpand: function(node){
-                            this.getSelectionModel().select(this.getRootNode().getChildAt(0));
+                            this.getSelectionModel().select(node);
+                        },
+                        beforeitemcollapse: function(node){
+                            this.getSelectionModel().select(node);
                         },
                         itemdblclick: function(me,record,item,index,evt,eOpts){
                             if (record.get("fileType") === "file"){
