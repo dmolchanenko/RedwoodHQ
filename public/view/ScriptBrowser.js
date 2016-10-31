@@ -561,7 +561,7 @@ var contextMenu = Ext.create('Ext.menu.Menu', {
             }
             var foundRootItem = false;
             selection.forEach(function(node){
-                if (node.parentNode.isRoot() == true){
+                if (node.parentNode && node.parentNode.isRoot() == true){
                     me.down("#renameMenu").setDisabled(true);
                     me.down("#deleteMenu").setDisabled(true);
                     me.down("#copyMenu").setDisabled(true);
@@ -870,7 +870,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             }
                             var foundRootItem = false;
                             selected.forEach(function(node){
-                                if (node.parentNode.isRoot()){
+                                if (node.parentNode && node.parentNode.isRoot()){
                                     copyAction.setDisabled(true);
                                     deleteScriptAction.setDisabled(true);
                                     if (node.get("fileType") === "libs"){
