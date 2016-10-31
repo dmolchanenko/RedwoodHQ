@@ -307,6 +307,13 @@ app.post('/fileupload',auth.auth, fileupload.upload);
 //methodFinder
 app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 
+//disable console output for linux to avoid crashes
+if(process.platform != "win32") {
+    console.log = function(){};
+    console.error = function(){};
+    console.warn = function(){};
+}
+
 common.initLogger("server");
 common.parseConfig(function(){
     common.initDB(common.Config.DBPort,function(){
