@@ -97,7 +97,7 @@ function updateMachine(db,id,query,callback){
     db.collection('machines', function(err, collection) {
         collection.findAndModify({_id:id},{},query,{safe:true,new:true},function(err,data){
             if (data != null) realtime.emitMessage("UpdateMachines",data);
-            if (err) console.warn(err.message);
+            //if (err) console.warn(err.message);
             else if(callback) callback(err);
         });
     });
