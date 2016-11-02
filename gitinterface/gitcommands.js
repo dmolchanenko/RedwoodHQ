@@ -824,7 +824,7 @@ exports.pullRemote = function(workdir,repoName,branch,callback){
 exports.pull = function(workdir,callback){
     common.logger.info("pull");
     //var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--rebase','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
-    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','origin','master'],{env:{GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','origin','master'],{env:{HOME:process.env.HOME,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
 
     var cliOut = "";
     git.stdout.on('data', function (data) {

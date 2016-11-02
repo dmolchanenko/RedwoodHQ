@@ -310,6 +310,7 @@ app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
 //disable console output for linux to avoid crashes
 if(process.platform != "win32") {
     console.log = function(){};
+    console.info = function(){};
     console.error = function(){};
     console.warn = function(){};
 }
