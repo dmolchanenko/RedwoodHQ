@@ -46,6 +46,8 @@ app.post('/recordimage',imageautomation.recordImage);
 app.post('/startrecording',recorder.record);
 app.post('/idesync',idesync.syncToRedwoodHQ);
 
+require("fs").writeFileSync(__dirname+"/app.pid",process.pid);
+
 app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 app.use(express.errorHandler());
 common.initLogger("agent");
