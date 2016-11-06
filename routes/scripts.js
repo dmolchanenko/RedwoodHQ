@@ -747,7 +747,7 @@ function SetupPython(userFolder,callback){
         //python  = python.stdin.write(path.resolve(__dirname,'../vendor/Python/Scripts/virtualenv.exe'),['PythonWorkDir'],{cwd: userFolder,timeout:300000});
     }
     else{
-        if(fs.existsSync("/usr/local/bin/virtualenv/usr/local/bin/virtualenv")){
+        if(fs.existsSync("/usr/local/bin/virtualenv")){
             python  = spawn('/usr/local/bin/virtualenv',['PythonWorkDir'],{cwd: userFolder,timeout:300000});
         }
         else{
