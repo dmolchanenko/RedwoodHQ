@@ -1758,7 +1758,7 @@ function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callbac
             }
             else{
                 retryCount--;
-                setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,callback),1000)
+                setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callback),1000)
             }
         };
         req.setTimeout(300000, function(){
