@@ -8,7 +8,7 @@ class SwitchWindow{
   public run(def params){
     int iTimeout = 20
 
-    if(params."Browser window name" == "Default Window"){
+    if(params."Window Name" == "Default Window"){
       Browser.Driver.switchTo().window(Browser.MainWinHandle)
       return
     }
