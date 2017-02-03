@@ -15,6 +15,14 @@ var realFs = require("fs");
 var gracefulFs = require("graceful-fs");
 gracefulFs.gracefulify(realFs);
 
+//disable console output for linux to avoid crashes
+if(process.platform != "win32") {
+    console.log = function(){};
+    console.info = function(){};
+    console.error = function(){};
+    console.warn = function(){};
+}
+
 fs.writeFileSync(__dirname+"/agent.pid",process.pid);
 
 
