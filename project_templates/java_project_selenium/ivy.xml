@@ -4,8 +4,9 @@
         <dependency org="junit" name="junit" rev="latest.release"/>
         <dependency org="org.testng" name="testng" rev="latest.release"/>
         <dependency org="org.webbitserver" name="webbit" rev="latest.release"/>
-        <dependency org="org.seleniumhq.selenium" name="selenium-java" rev="latest.release"/>
+        <dependency org="org.seleniumhq.selenium" name="selenium-java" rev="3.2.0"/>
         <dependency org="net.jcip" name="jcip-annotations" rev="latest.release"/>
-        <dependency org="org.seleniumhq.selenium" name="selenium-server" rev="latest.release"/>
+        <dependency org="org.seleniumhq.selenium" name="selenium-server" rev="3.2.0"/>
+        <dependency org="org.seleniumhq.selenium" name="selenium-support" rev="3.2.0"/>
     </dependencies>
 </ivy-module>
