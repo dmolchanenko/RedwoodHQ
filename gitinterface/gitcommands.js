@@ -169,6 +169,25 @@ exports.attachHEAD = function(workdir,callback){
 
 };
 
+exports.checkoutFileFromHead= function(workdir,name,callback){
+    var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['checkout','HEAD^',name],{cwd: workdir,timeout:300000});
+    var cliData = "";
+
+    git.stdout.on('data', function (data) {
+        cliData = cliData + data.toString();
+    });
+
+    git.stderr.on('data', function (data) {
+        cliData = cliData + data.toString();
+        common.logger.error('status stderr: ' + data);
+    });
+
+    git.on('close', function (code) {
+        callback(cliData);
+    });
+
+};
+
 exports.pointBranchToMaster= function(workdir,name,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['checkout','-B','master',name],{cwd: workdir,timeout:300000});
     var cliData = "";
@@ -802,14 +821,15 @@ exports.pullRemote = function(workdir,repoName,branch,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','--no-edit',repoName,branch],{env:{HOME:workdir},cwd: workdir,timeout:300000});
 
     var cliOut = "";
+    var cliError = "";
     git.stdout.on('data', function (data) {
         cliOut = cliOut + data.toString();
         common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        cliOut = cliOut + data.toString();
-        if(cliOut.indexOf("Couldn't find remote ref") != -1){
+        cliError = cliError + data.toString();
+        if(cliError.indexOf("Couldn't find remote ref") != -1){
             //git.stdin.write('y\n');
 
         }
@@ -817,7 +837,7 @@ exports.pullRemote = function(workdir,repoName,branch,callback){
     });
 
     git.on('close', function (code) {
-        callback(cliOut);
+        callback(cliOut,cliError);
     });
 };
 
@@ -827,18 +847,19 @@ exports.pull = function(workdir,callback){
     var git  = spawn(path.resolve(__dirname,'../vendor/Git/bin/git'),['pull','origin','master'],{env:{HOME:process.env.HOME,GIT_EDITOR:'"'+process.execPath+'" "'+path.resolve(__dirname,'../gitinterface/echoEdit.js').replace(/\\/g, '/')+'"'},cwd: workdir,timeout:300000});
 
     var cliOut = "";
+    var cliError = "";
     git.stdout.on('data', function (data) {
         cliOut = cliOut + data.toString();
         common.logger.info('stdout: ' + data);
     });
 
     git.stderr.on('data', function (data) {
-        cliOut = cliOut + data.toString();
+        cliError = cliError + data.toString();
         common.logger.error('pull stderr: ' + data);
     });
 
     git.on('close', function (code) {
-        callback(cliOut);
+        callback(cliOut,cliError);
     });
 };
 

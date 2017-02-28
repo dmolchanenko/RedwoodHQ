@@ -308,27 +308,29 @@ exports.scriptsPull = function(req,res) {
 
         if(index != -1){
             var n2 = cliOut.indexOf("Please, commit");
-            var conflictingFiles = cliOut.substring(index+74,n2).split("\n");
-            conflictingFiles.pop();
-            var count = 0;
-            conflictingFiles.forEach(function(file){
-                git.commit(rootDir + req.cookies.project + "/" + req.cookies.username,file,"merge commit",function(){
-                    count++;
-                    if(count == conflictingFiles.length){
-                        if(remote == true){
-                            //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
-                            git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', "master",function (cliOut) {
-                                callback(cliOut);
-                            });
+            if (n2 != -1){
+                var conflictingFiles = cliOut.substring(index+74,n2).split("\n");
+                conflictingFiles.pop();
+                var count = 0;
+                conflictingFiles.forEach(function(file){
+                    git.checkoutFileFromHead(rootDir + req.cookies.project + "/" + req.cookies.username,file,function(){
+                        count++;
+                        if(count == conflictingFiles.length){
+                            if(remote == true){
+                                //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
+                                git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', "master",function (cliOut) {
+                                    callback(cliOut);
+                                });
+                            }
+                            else{
+                                git.pull(rootDir + req.cookies.project + "/" + req.cookies.username,function(cliOut){
+                                    callback(cliOut);
+                                })
+                            }
                         }
-                        else{
-                            git.pull(rootDir + req.cookies.project + "/" + req.cookies.username,function(cliOut){
-                                callback(cliOut);
-                            })
-                        }
-                    }
+                    });
                 })
-            })
+            }
         }
         else{
             callback(cliOut);
@@ -350,9 +352,9 @@ exports.scriptsPull = function(req,res) {
                     if(remote == true){
                         //git.createBranch(rootDir + req.cookies.project + "/" + req.cookies.username,req.cookies.username,function(){
                             //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
-                            git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', 'master',function (cliOut) {
+                            git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', 'master',function (cliOut,error) {
                                 //git.pushRemote(rootDir + req.cookies.project + "/" + req.cookies.username,"remoteRepo",req.cookies.username,function(){
-                                    handleMerges(cliOut,true,function(cliOut){
+                                    handleMerges(error,true,function(cliOut){
                                         handleConflictsAndPip(cliOut);
                                     });
                                 //})
@@ -360,8 +362,8 @@ exports.scriptsPull = function(req,res) {
                         //})
                     }
                     else{
-                        git.pull(rootDir + req.cookies.project + "/" + req.cookies.username, function (cliOut) {
-                            handleMerges(cliOut,false,function(cliOut){
+                        git.pull(rootDir + req.cookies.project + "/" + req.cookies.username, function (cliOut,error) {
+                            handleMerges(error,false,function(cliOut){
                                 handleConflictsAndPip(cliOut);
                             });
                             //git.gitFetch(rootDir + req.cookies.project + "/" + req.cookies.username, function () {
