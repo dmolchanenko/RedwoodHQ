@@ -313,17 +313,69 @@ exports.scriptsPull = function(req,res) {
                 conflictingFiles.pop();
                 var count = 0;
                 conflictingFiles.forEach(function(file){
-                    git.checkoutFileFromHead(rootDir + req.cookies.project + "/" + req.cookies.username,file,function(){
+                    git.commit(rootDir + req.cookies.project + "/" + req.cookies.username,file,"merge commit",function(){
                         count++;
                         if(count == conflictingFiles.length){
                             if(remote == true){
                                 //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
-                                git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', "master",function (cliOut) {
+                                git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', "master",function (cliOut,error) {
+                                    var index = error.indexOf("Your local changes to the following files would be overwritten by merge:\n");
+
+                                    if(index != -1){
+                                        handleMerges2(function(cliOut){
+                                            callback(cliOut);
+                                        })
+                                    }
+                                    else{
+                                        callback(cliOut);
+                                    }
+                                });
+                            }
+                            else{
+                                git.pull(rootDir + req.cookies.project + "/" + req.cookies.username,function(cliOut,error){
+                                    var index = error.indexOf("Your local changes to the following files would be overwritten by merge:\n");
+
+                                    if(index != -1){
+                                        handleMerges2(function(cliOut){
+                                            callback(cliOut);
+                                        })
+                                    }
+                                    else{
+                                        callback(cliOut);
+                                    }
+                                })
+                            }
+                        }
+                    });
+                })
+            }
+        }
+        else{
+            callback(cliOut);
+        }
+    };
+
+    var handleMerges2 = function(cliOut,remote,callback){
+        var index = cliOut.indexOf("Your local changes to the following files would be overwritten by merge:\n");
+
+        if(index != -1){
+            var n2 = cliOut.indexOf("Please, commit");
+            if (n2 != -1){
+                var conflictingFiles = cliOut.substring(index+74,n2).split("\n");
+                conflictingFiles.pop();
+                var count = 0;
+                conflictingFiles.forEach(function(file){
+                    git.checkoutFileFromHead(rootDir + req.cookies.project + "/" + req.cookies.username,file,function(cliOut,error){
+                        count++;
+                        if(count == conflictingFiles.length){
+                            if(remote == true){
+                                //git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', req.cookies.username,function (cliOut) {
+                                git.pullRemote(rootDir + req.cookies.project + "/" + req.cookies.username,'remoteRepo', "master",function (cliOut,error) {
                                     callback(cliOut);
                                 });
                             }
                             else{
-                                git.pull(rootDir + req.cookies.project + "/" + req.cookies.username,function(cliOut){
+                                git.pull(rootDir + req.cookies.project + "/" + req.cookies.username,function(cliOut,error){
                                     callback(cliOut);
                                 })
                             }
