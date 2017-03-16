@@ -322,7 +322,7 @@ exports.scriptsPull = function(req,res) {
                                     var index = error.indexOf("Your local changes to the following files would be overwritten by merge:\n");
 
                                     if(index != -1){
-                                        handleMerges2(function(cliOut){
+                                        handleMerges2(error,remote,function(cliOut){
                                             callback(cliOut);
                                         })
                                     }
@@ -336,7 +336,7 @@ exports.scriptsPull = function(req,res) {
                                     var index = error.indexOf("Your local changes to the following files would be overwritten by merge:\n");
 
                                     if(index != -1){
-                                        handleMerges2(function(cliOut){
+                                        handleMerges2(error,remote,function(cliOut){
                                             callback(cliOut);
                                         })
                                     }
