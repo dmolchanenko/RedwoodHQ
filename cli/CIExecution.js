@@ -90,6 +90,12 @@ function saveExecutionTestCases(testsetID,executionID,retryCount,callback){
                 dbtestcases.testcases.forEach(function(testcase,index){
                     db.collection('testcases', function(err, tcCollection) {
                         tcCollection.findOne({_id:db.bson_serializer.ObjectID(testcase._id.toString())},{},function(err,dbtestcase){
+                            if(!dbtestcase){
+                                if(index+1 == dbtestcases.testcases.length){
+                                    callback(testcases);
+                                }
+                                return
+                            }
                             if(dbtestcase.tcData && dbtestcase.tcData.length > 0){
                                 var ddTCCount = 0;
                                 dbtestcase.tcData.forEach(function(row,rowIndex){
