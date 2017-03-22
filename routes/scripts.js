@@ -774,6 +774,9 @@ exports.CreateNewProject = function(projectName,language,template,callback){
                                             });
                                         });
                                     }
+                                    else{
+                                        git.setGitUser(newProjectPath + "/admin","admin","admin@admin.com");
+                                    }
                                 });
                             });
                         })
