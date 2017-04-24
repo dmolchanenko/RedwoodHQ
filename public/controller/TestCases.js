@@ -177,6 +177,7 @@ Ext.define("Redwood.controller.TestCases", {
         });
     },
     onEditTestCase: function(record,collapse){
+        var me = this;
         var name = record.get("name");
         if(record.get("history") == true){
             name = "[HISTORY " + Ext.Date.format(record.get("date"),"m/d h:i:s") + "] "+name;
@@ -197,31 +198,58 @@ Ext.define("Redwood.controller.TestCases", {
             });
         }
         if (foundIndex == -1){
-            var tab = Ext.create('Redwood.view.TestCaseView',{
-                title:name,
-                closable:true,
-                dataRecord:record,
-                itemId:name
+            Ext.Ajax.request({
+                url:"/testcase/"+record.get("_id"),
+                method:"GET",
+                success: function(response) {
+                    var obj = Ext.decode(response.responseText);
+                    if(obj.error){
+                        Ext.Msg.alert('Error', obj.error);
+                    }
+                    else{
+                        record.set("collection",obj.testcase.collection);
+                        record.set("name",obj.testcase.name);
+                        record.set("description",obj.testcase.description);
+                        record.set("status",obj.testcase.status);
+                        record.set("tag",obj.testcase.tag);
+                        record.set("type",obj.testcase.type);
+                        record.set("afterState",obj.testcase.afterState);
+                        record.set("script",obj.testcase.script);
+                        record.set("scriptLang",obj.testcase.scriptLang);
+                        if (obj.testcase.tcData){
+                            record.set("tcData",obj.testcase.tcData);
+                        }
+                        record.dirty = false;
+                        var tab = Ext.create('Redwood.view.TestCaseView',{
+                            title:name,
+                            closable:true,
+                            dataRecord:record,
+                            itemId:name
+                        });
+
+                        me.tabPanel.add(tab);
+
+                        //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+                        foundIndex = me.tabPanel.items.findIndexBy(function(item,key){
+                            if(key == name){
+                                return true;
+                            }
+                            else{
+                                return false;
+                            }
+                        });
+                        if(!collapse == false){
+                            tab.down("#testcaseDetails").collapse();
+                        }
+                        me.tabPanel.setActiveTab(foundIndex);
+                    }
+                }
             });
 
-            this.tabPanel.add(tab);
-
-            //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
-            foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
-                if(key == name){
-                    return true;
-                }
-                else{
-                    return false;
-                }
-            });
-            if(!collapse == false){
-                tab.down("#testcaseDetails").collapse();
-            }
         }
-
-        this.tabPanel.setActiveTab(foundIndex);
-
+        else{
+            this.tabPanel.setActiveTab(foundIndex);
+        }
     },
 
     onSaveTestCase: function(){

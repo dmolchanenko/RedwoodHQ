@@ -35,6 +35,18 @@ exports.testcasesGet = function(req, res){
     });
 };
 
+exports.getTestCaseDetails = function(req, res){
+    var app =  require('../common');
+    var id = new ObjectID(req.params.id);
+    GetTestCaseDetails(app.getDB(),{project:req.cookies.project,_id:id},function(data){
+        res.contentType('json');
+        res.json({
+            success: true,
+            testcase: data
+        });
+    });
+};
+
 exports.testcasesDelete = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -452,13 +464,21 @@ function GetTestCases(db,query,callback){
     var testcases = [];
 
     db.collection('testcases', function(err, collection) {
-        collection.find(query, {}, function(err, cursor) {
+        collection.find(query, {_id:1,tag:1,name:1}, function(err, cursor) {
             cursor.each(function(err, action) {
                 if(action == null) {
                     callback(testcases);
                 }
                 testcases.push(action);
             });
+        })
+    })
+}
+
+function GetTestCaseDetails(db,query,callback){
+    db.collection('testcases', function(err, collection) {
+        collection.findOne(query, {}, function(err, testcase) {
+            callback(testcase);
         })
     })
 }

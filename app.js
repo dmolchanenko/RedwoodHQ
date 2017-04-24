@@ -204,6 +204,7 @@ app.get('/testcases',auth.auth, testcases.testcasesGet);
 app.put('/testcases/:id',auth.auth, testcases.testcasesPut);
 app.post('/testcases',auth.auth, testcases.testcasesPost);
 app.del('/testcases/:id',auth.auth, testcases.testcasesDelete);
+app.get('/testcase/:id',auth.auth, testcases.getTestCaseDetails);
 app.post('/testcasetocode',auth.auth, testcases.testCaseToCode);
 
 //testcaseTags
