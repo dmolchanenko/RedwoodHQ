@@ -17,5 +17,16 @@ Ext.define('Redwood.store.TestCaseTags', {
             root: 'tags',
             successProperty: 'success'
         }
+    },
+    listeners:{
+        add:function(store , records , index , eOpts ){
+            records.forEach(function(record){
+                if(record.get("_id") == ""){
+                    record.set("_id",Ext.uniqueId());
+                    delete record.dirty;
+                    delete record.modified._id;
+                }
+            })
+        }
     }
 });
