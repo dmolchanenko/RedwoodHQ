@@ -365,7 +365,7 @@ Ext.define('Redwood.view.ActionCollection', {
             fields: [
                 {name: 'actionname',     type: 'string'},
                 {name: 'order',     type: 'string'},
-                {name: 'rowOrder',     type: 'int'},
+                {name: 'rowOrder',     type: 'int', sortType:"asInt"},
                 {name: 'paramname',     type: 'string'},
                 {name: 'paramvalue',     type: 'auto'},
                 {name: 'actionid',     type: 'string'},
@@ -1384,6 +1384,7 @@ Ext.define('Redwood.view.ActionCollection', {
                     waitMsg();
                     setTimeout(function(){
                         var startingOrder = ((me.store.getRootNode().childNodes.length + 1)/2)+1;
+                        var allNodes = [];
 
                         //Ext.clipboard.data.forEach(function(action){
                         for(var i = 0;i<Ext.clipboard.data.length;i++){
@@ -1412,19 +1413,11 @@ Ext.define('Redwood.view.ActionCollection', {
                             newAction.icon = Ext.BLANK_IMAGE_URL;
                             newAction.expanded = true;
 
-                            var newRecord = me.store.getRootNode().appendChild(newAction);
-                            me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:Ext.clipboard.data[i].rowOrder+1});
+                            allNodes.push(newAction);
+                            allNodes.push({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:Ext.clipboard.data[i].rowOrder+1});
 
                             if (i==Ext.clipboard.data.length-1){
-                                var count = 0;
-                                me.store.getRootNode().cascadeBy(function(node,arg2){
-                                    if(node === newRecord) {
-                                        //me.plugins[0].scrollTo(count-1,true);
-                                        return false;
-                                    }
-                                    count++;
-                                });
-
+                                me.store.getRootNode().appendChild(allNodes);
                                 Ext.MessageBox.hide();
                             }
                         }
@@ -1446,27 +1439,26 @@ Ext.define('Redwood.view.ActionCollection', {
                     var lastRowOrder = null;
                     var selectedActionOrder = parseInt(selectedAction.get("order"),10);
                     var numberToPaste = Ext.clipboard.data.length;
+                    var startUpdate = false;
 
 
                     setTimeout(function(){
-
-                        me.store.getRootNode().eachChild(function(node){
-                            var order = parseInt(node.get("order"),10);
-                            if(order > selectedActionOrder){
-                                node.set("order",(order + numberToPaste).toString());
-                                node.set("rowOrder", node.get("rowOrder") + (numberToPaste * 2));
-                                lastRowOrder = node.get("rowOrder");
-                                return;
+                         me.store.getRootNode().eachChild(function(node){
+                             if(node.get("order")){
+                                 var order = parseInt(node.get("order"),10);
+                                 if(order > selectedActionOrder){
+                                     node.set("order",(order + numberToPaste).toString());
+                                     node.set("rowOrder",(order + numberToPaste) + ((order + numberToPaste) - 2));
+                                     lastRowOrder = node.get("rowOrder");
+                                 }
+                             }
+                             else if(lastRowOrder !== null){
+                                 node.set("rowOrder", lastRowOrder+1);
                             }
-                            if (lastRowOrder !== null){
-                                node.set("rowOrder",lastRowOrder + 1);
-                                lastRowOrder = null;
-                            }
-
                         });
 
                         var startingOrder = selectedActionOrder+1;
-
+                        var allNodes = [];
                         Ext.clipboard.data.forEach(function(action,index){
                             var newAction = {};
                             var order = startingOrder + index;
@@ -1475,7 +1467,7 @@ Ext.define('Redwood.view.ActionCollection', {
                             if (newAction.order == 1){
                                 newAction.rowOrder = newAction.order;
                             }else{
-                                newAction.rowOrder = parseInt(order + (order - 1));
+                                newAction.rowOrder = newAction.order + (newAction.order - 2);
                             }
                             //cloneAction(newAction,action);
                             var actionToClone = action;
@@ -1491,19 +1483,12 @@ Ext.define('Redwood.view.ActionCollection', {
                             newAction.icon = actionToClone.icon;
                             newAction.expanded = true;
 
-                            var newRecord = me.store.getRootNode().appendChild(newAction);
-                            me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
+                            allNodes.push(newAction);
+                            allNodes.push({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
 
                             if (index==Ext.clipboard.data.length-1){
+                                me.store.getRootNode().appendChild(allNodes);
                                 me.store.sort("rowOrder","ASC");
-                                var count = 0;
-                                me.store.getRootNode().cascadeBy(function(node,arg2){
-                                    if(node === newRecord) {
-                                        //me.plugins[0].scrollTo(count-1,true);
-                                        return false;
-                                    }
-                                    count++;
-                                });
                                 Ext.MessageBox.hide();
                             }
                         });
