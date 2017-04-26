@@ -454,11 +454,16 @@ Ext.define('Redwood.view.TestCaseView', {
                 me.down("#actionCollection").loadCollection(me.dataRecord.get("collection"));
 
                 //take care of old after state format and transfer to new
-                if(Array.isArray(me.dataRecord.get("afterState"))){
-                    me.down("#afterStateCollection").loadCollection(me.dataRecord.get("afterState"));
+                if(me.dataRecord.get("afterState")){
+                    if(Array.isArray(me.dataRecord.get("afterState"))){
+                        me.down("#afterStateCollection").loadCollection(me.dataRecord.get("afterState"));
+                    }
+                    else {
+                        me.down("#afterStateCollection").loadCollection([{actionid:me.dataRecord.get("afterState"),executionflow:"Record Error Stop Test Case",host:"Default",order:"1",parameters:[],returnvalue:""}]);
+                    }
                 }
-                else {
-                    me.down("#afterStateCollection").loadCollection([{actionid:me.dataRecord.get("afterState"),executionflow:"Record Error Stop Test Case",host:"Default",order:"1",parameters:[],returnvalue:""}]);
+                else{
+                    me.down("#afterStateCollection").loadCollection([]);
                 }
                 me.down("testcasedata").loadData(me.dataRecord.get("tcData"));
                 //me.down("#afterState").setValue(me.dataRecord.get("afterState"));
