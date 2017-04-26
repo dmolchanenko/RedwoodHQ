@@ -1032,6 +1032,7 @@ Ext.define('Redwood.view.ActionCollection', {
             //used ONLY if there are missing action
             var orderAdjustment = 0;
 
+            var allNodes = [];
             collection.sort(function(a,b){return parseInt(a.order,10)-parseInt(b.order,10)});
             collection.forEach(function(action,index){
                 if(!action.actionid) {
@@ -1093,11 +1094,14 @@ Ext.define('Redwood.view.ActionCollection', {
                         newAction.children.push( {icon: Ext.BLANK_IMAGE_URL,paramname: searchParam.name, leaf: true,paramid:searchParam.id,paramvalue:value,possiblevalues:searchParam.possiblevalues,parametertype:searchParam.parametertype});
                     }
                 });
-
-                me.store.getRootNode().appendChild(newAction);
-                me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
+                allNodes.push(newAction);
+                allNodes.push({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
+                //me.store.getRootNode().appendChild(newAction);
+                //me.store.getRootNode().appendChild({icon: Ext.BLANK_IMAGE_URL,expanded:false,rowOrder:newAction.rowOrder+1});
             });
-            me.getView().refresh();
+
+            me.store.getRootNode().appendChild(allNodes);
+            //me.getView().refresh();
             //me.store.getRootNode().collapseChildren();
             //me.store.getRootNode().expandChildren();
             me.loadingData = false;

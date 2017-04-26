@@ -122,6 +122,8 @@ Ext.define('Redwood.view.TestCases', {
             //region: 'west',
             //split:true,
             xtype: 'grid',
+            plugins: [
+                "bufferedrenderer"],
             hideCollapseTool: true,
             //collapseDirection: "left",
             //collapsible: true,
@@ -174,6 +176,8 @@ Ext.define('Redwood.view.TestCases', {
 
         var actionListTree = {
             xtype: 'treepanel',
+            plugins: [
+                "bufferedrenderer"],
             multiSelect: false,
             hideCollapseTool: true,
             rootVisible: false,
@@ -204,6 +208,8 @@ Ext.define('Redwood.view.TestCases', {
 
         var testCaseListTree = {
             xtype: 'treepanel',
+            plugins: [
+                "bufferedrenderer"],
             multiSelect: false,
             hideCollapseTool: true,
             rootVisible: false,
@@ -234,6 +240,8 @@ Ext.define('Redwood.view.TestCases', {
             //split:true,
             xtype: 'grid',
             hideCollapseTool: true,
+            plugins: [
+                "bufferedrenderer"],
             //collapseDirection: "left",
             //collapsible: true,
             multiSelect: false,

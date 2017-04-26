@@ -71,6 +71,8 @@ Ext.define('Redwood.view.Actions', {
             //region: 'west',
             //split:true,
             xtype: 'grid',
+            plugins: [
+                "bufferedrenderer"],
             hideCollapseTool: true,
             //collapseDirection: "left",
             //collapsible: true,
@@ -132,6 +134,8 @@ Ext.define('Redwood.view.Actions', {
 
         var actionListTree = {
             xtype: 'treepanel',
+            plugins: [
+                "bufferedrenderer"],
             multiSelect: false,
             hideCollapseTool: true,
             rootVisible: false,

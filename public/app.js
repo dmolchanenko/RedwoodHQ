@@ -109,8 +109,8 @@ Ext.application({
             }
         }
         if(uri.testcase){
-            mainTab.setActiveTab(mainTab.down("#testcasesBrowser"));
             event = Ext.data.StoreManager.lookup('TestCases').on("load",function(store){
+                mainTab.setActiveTab(mainTab.down("#testcasesBrowser"));
                 var record = store.findRecord("_id",uri.testcase);
                 if(record != null){
                     Redwood.app.getController("TestCases").onEditTestCase(record);
@@ -119,8 +119,8 @@ Ext.application({
             });
         }
         else if(uri.action){
-            mainTab.setActiveTab(mainTab.down("#actionsBrowser"));
             event = Ext.data.StoreManager.lookup('Actions').on("load",function(store){
+                mainTab.setActiveTab(mainTab.down("#actionsBrowser"));
                 var record = store.findRecord("_id",uri.action);
                 if(record != null){
                     Redwood.app.getController("Actions").onEditAction(record);
