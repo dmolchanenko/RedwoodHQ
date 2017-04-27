@@ -196,6 +196,7 @@ Ext.define("Redwood.controller.Actions", {
                             if(obj.action.collection){
                                 record.set("collection",obj.action.collection);
                             }
+                            record.dirty = false;
 
                             var tab = Ext.create('Redwood.view.ActionView',{
                                 title:name,
