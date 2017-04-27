@@ -194,6 +194,7 @@ app.get('/actions',auth.auth, actions.actionsGet);
 app.put('/actions/:id',auth.auth, actions.actionsPut);
 app.post('/actions',auth.auth, actions.actionsPost);
 app.del('/actions/:id',auth.auth, actions.actionsDelete);
+app.get('/action/:id',auth.auth, actions.getActionDetails);
 
 //actionTags
 app.get('/actiontags',auth.auth, actiontags.actionTagsGet);

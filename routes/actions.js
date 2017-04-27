@@ -32,6 +32,19 @@ exports.actionsGet = function(req, res){
     });
 };
 
+
+exports.getActionDetails = function(req, res){
+    var app =  require('../common');
+    var id = new ObjectID(req.params.id);
+    GetActionDetails(app.getDB(),{project:req.cookies.project,_id:id},function(data){
+        res.contentType('json');
+        res.json({
+            success: true,
+            action: data
+        });
+    });
+};
+
 exports.actionsDelete = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
@@ -120,7 +133,7 @@ function GetActions(db,query,callback){
     var actions = [];
 
     db.collection('actions', function(err, collection) {
-        collection.find(query, {}, function(err, cursor) {
+        collection.find(query, {_id:1,tag:1,name:1,params:1}, function(err, cursor) {
             cursor.each(function(err, action) {
                 if(action == null) {
                     callback(actions);
@@ -128,6 +141,14 @@ function GetActions(db,query,callback){
                 }
                 actions.push(action);
             });
+        })
+    })
+}
+
+function GetActionDetails(db,query,callback){
+    db.collection('actions', function(err, collection) {
+        collection.findOne(query, {}, function(err, testcase) {
+            callback(testcase);
         })
     })
 }

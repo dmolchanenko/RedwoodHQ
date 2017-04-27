@@ -155,6 +155,7 @@ Ext.define("Redwood.controller.Actions", {
         });
     },
     onEditAction: function(record,collapse){
+        var me = this;
         var name = record.get("name");
         if(record.get("history") == true){
             name = "[HISTORY " + Ext.Date.format(record.get("date"),"m/d h:i:s") + "] "+name;
@@ -175,28 +176,55 @@ Ext.define("Redwood.controller.Actions", {
             });
         }
         if (foundIndex == -1){
-            var tab = Ext.create('Redwood.view.ActionView',{
-                title:name,
-                closable:true,
-                dataRecord:record,
-                itemId:name
-            });
+            Ext.Ajax.request({
+                    url: "/action/" + record.get("_id"),
+                    method: "GET",
+                    success: function (response) {
+                        var obj = Ext.decode(response.responseText);
+                        if (obj.error) {
+                            Ext.Msg.alert('Error', obj.error);
+                        }
+                        else {
+                            record.set("name",obj.action.name);
+                            record.set("description",obj.action.description);
+                            record.set("status",obj.action.status);
+                            record.set("type",obj.action.type);
+                            record.set("tag",obj.action.tag);
+                            record.set("params",obj.action.params);
+                            record.set("script",obj.action.script);
+                            record.set("scriptLang",obj.action.scriptLang);
+                            if(obj.action.collection){
+                                record.set("collection",obj.action.collection);
+                            }
 
-            this.tabPanel.add(tab);
-            //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
-            foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
-                if(key == name){
-                    return true;
+                            var tab = Ext.create('Redwood.view.ActionView',{
+                                title:name,
+                                closable:true,
+                                dataRecord:record,
+                                itemId:name
+                            });
+
+                            me.tabPanel.add(tab);
+                            foundIndex = me.tabPanel.items.findIndexBy(function(item,key){
+                                if(key == name){
+                                    return true;
+                                }
+                                else{
+                                    return false;
+                                }
+                            });
+                            if(!collapse == false){
+                                tab.down("#actionDetails").collapse();
+                            }
+                            me.tabPanel.setActiveTab(foundIndex);
+                        }
+                    }
                 }
-                else{
-                    return false;
-                }
-            });
-            if(!collapse == false){
-                tab.down("#actionDetails").collapse();
-            }
+            );
         }
-        this.tabPanel.setActiveTab(foundIndex);
+        else {
+            this.tabPanel.setActiveTab(foundIndex);
+        }
 
     },
 

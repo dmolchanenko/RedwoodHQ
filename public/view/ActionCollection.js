@@ -91,6 +91,8 @@ Ext.define('Redwood.view.ActionPickerList', {
 Ext.define('Redwood.view.ActionCollection', {
     extend: 'Ext.tree.Panel',
     alias: 'widget.actioncollection',
+    plugins: [
+        "bufferedrenderer"],
     useArrows: true,
     rootVisible: false,
     multiSelect: true,
