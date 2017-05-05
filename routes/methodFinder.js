@@ -103,7 +103,7 @@ function FindClasses(path,projectPath,callback){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,"class"]);
     }
     else{
-        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
+        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+divideChar+appDir+'vendor/groovy/*'+divideChar+appDir+'utils/*',"MethodList",path,"class"]);
     }
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
@@ -158,7 +158,7 @@ function FindMethods(path,classname,projectPath,callback){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,classname]);
     }
     else{
-        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,classname]);
+        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+divideChar+appDir+'vendor/groovy/*'+divideChar+appDir+'utils/*',"MethodList",path,classname]);
     }
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
