@@ -10,6 +10,7 @@ exports.testcasesPut = function(req, res){
     data._id = new ObjectID(data._id);
     data.project = req.cookies.project;
     data.user =  req.cookies.username;
+    data.lastModified = new Date();
     UpdateTestCases(app.getDB(),data,function(err){
         elasticSearch.indexTestCase(data,"PUT");
         realtime.emitMessage("UpdateTestCases",data);
@@ -70,6 +71,7 @@ exports.testcasesPost = function(req, res){
     delete data._id;
     data.project = req.cookies.project;
     data.user =  req.cookies.username;
+    data.lastModified = new Date();
     CreateTestCases(app.getDB(),data,function(returnData){
         returnData[0]._id = returnData[0]._id.toString();
         elasticSearch.indexTestCase(returnData[0],"PUT");
