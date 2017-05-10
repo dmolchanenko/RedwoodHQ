@@ -32,7 +32,7 @@ exports.indexTestCase = function(testcase,operation){
     indexedTC.user = testcase.user;
     indexedTC.status = testcase.status;
     indexedTC.name = testcase.name;
-    if(indexedTC.lastModified){
+    if(testcase.lastModified){
         indexedTC.lastModified = testcase.lastModified;
     }
 
