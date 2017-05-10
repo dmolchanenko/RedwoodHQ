@@ -142,8 +142,8 @@ Ext.define("Redwood.controller.TestCases", {
                     var testcaseData = batch.operations[0].records[0].data;
                     testcaseData.project = Ext.util.Cookies.get('project');
                     Ext.socket.emit('AddTestCases', testcaseData);
+                    me.onEditTestCase(newTestCase,false);
                 }});
-                me.onEditTestCase(newTestCase,false);
             }
         });
 
