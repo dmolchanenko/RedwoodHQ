@@ -32,6 +32,9 @@ exports.indexTestCase = function(testcase,operation){
     indexedTC.user = testcase.user;
     indexedTC.status = testcase.status;
     indexedTC.name = testcase.name;
+    if(indexedTC.lastModified){
+        indexedTC.lastModified = testcase.lastModified;
+    }
 
     var indexIt = function(){
         var removed;
