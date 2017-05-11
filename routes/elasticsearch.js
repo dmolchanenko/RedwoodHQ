@@ -65,6 +65,7 @@ exports.indexTestCase = function(testcase,operation){
 
 exports.indexTCResult = function(testcaseResult,operation){
     if(!common.Config.ELKServer || common.Config.ELKServer == "") return;
+    if(!testcaseResult.name) return;
     var indexedTC = {};
     indexedTC.tag = testcaseResult.tag;
     indexedTC.project = testcaseResult.project;
