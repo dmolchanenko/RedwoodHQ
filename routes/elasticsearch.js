@@ -72,6 +72,7 @@ exports.indexTCResult = function(testcaseResult,operation){
     indexedTC.status = testcaseResult.status;
     indexedTC.result = testcaseResult.result;
     indexedTC.enddate = testcaseResult.enddate;
+    indexedTC.runtime = testcaseResult.runtime;
     indexedTC.name = testcaseResult.name;
     var db = require('../common').getDB();
 
