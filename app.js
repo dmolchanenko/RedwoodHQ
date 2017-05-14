@@ -217,6 +217,7 @@ app.get('/executions',auth.auth, executions.executionsGet);
 app.put('/executions/:id',auth.auth, executions.executionsPut);
 app.post('/executions/:id',executions.executionsPost);
 app.del('/executions/:id',auth.auth, executions.executionsDelete);
+//app.get('/executionreport/:id',auth.auth, executions.generateExcelReport);
 
 //executionTags
 app.get('/executiontags',auth.auth, executionTags.executionTagsGet);

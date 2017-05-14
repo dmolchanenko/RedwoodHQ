@@ -1,25 +1,25 @@
 var realtime = require("./realtime");
 var elasticsearch = require('./elasticsearch');
-var Excel = require('exceljs');
+//var Excel = require('exceljs');
 
 
-exports.generateExcelReport = function(req, res){
-    var app =  require('../common');
-    var db = app.getDB();
-    //var id = new ObjectID(req.params.id);
-
-    db.collection('executions', function(err, collection) {
-        collection.findOne({_id:req.params.id}, {}, function(err, execution) {
-            var workbook = new Excel.Workbook();
-            workbook.xlsx.readFile("C:/Users/dmolc/Desktop/ExportResults.xlsx")
-                .then(function() {
-                    console.log(workbook);
-                    // use workbook
-                });
-        })
-    })
-
-};
+//exports.generateExcelReport = function(req, res){
+//    var app =  require('../common');
+//    var db = app.getDB();
+//    //var id = new ObjectID(req.params.id);
+//
+//    db.collection('executions', function(err, collection) {
+//        collection.findOne({_id:req.params.id}, {}, function(err, execution) {
+//            var workbook = new Excel.Workbook();
+//            workbook.xlsx.readFile("C:/Users/dmolc/Desktop/ExportResults.xlsx")
+//                .then(function() {
+//                    console.log(workbook);
+//                    // use workbook
+//                });
+//        })
+//    })
+//
+//};
 
 
 
