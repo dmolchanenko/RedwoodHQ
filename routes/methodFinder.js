@@ -5,6 +5,10 @@ var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var appDir = path.resolve(__dirname,"../")+"/";
 var spawn = require('child_process').spawn;
 var divideChar = "\r\n";
+var pathDivider = ";";
+if(require('os').platform() == "linux" || (require('os').platform() == "darwin")) {
+    pathDivider = ":"
+}
 
 if(process.platform == "win32"){
     divideChar = "\r\n";
@@ -103,7 +107,7 @@ function FindClasses(path,projectPath,callback){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,"class"]);
     }
     else{
-        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+divideChar+appDir+'vendor/groovy/*'+divideChar+appDir+'utils/*',"MethodList",path,"class"]);
+        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+pathDivider+appDir+'vendor/groovy/*'+pathDivider+appDir+'utils/*',"MethodList",path,"class"]);
     }
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
@@ -158,7 +162,7 @@ function FindMethods(path,classname,projectPath,callback){
         proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,classname]);
     }
     else{
-        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+divideChar+appDir+'vendor/groovy/*'+divideChar+appDir+'utils/*',"MethodList",path,classname]);
+        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+pathDivider+appDir+'vendor/groovy/*'+pathDivider+appDir+'utils/*',"MethodList",path,classname]);
     }
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
