@@ -8,6 +8,7 @@ exports.indexExecution = function(execution){
     var indexedExec = {};
     indexedExec.tag = execution.tag;
     indexedExec.project = execution.project;
+    indexedExec.runtime = execution.runtime;
     indexedExec.user = execution.user;
     indexedExec.status = execution.status;
     indexedExec.lastRunDate = execution.lastRunDate;
