@@ -466,7 +466,7 @@ function GetTestCases(db,query,callback){
     var testcases = [];
 
     db.collection('testcases', function(err, collection) {
-        collection.find(query, {_id:1,tag:1,name:1}, function(err, cursor) {
+        collection.find(query, {_id:1,tag:1,name:1,tcData:1}, function(err, cursor) {
             cursor.each(function(err, action) {
                 if(action == null) {
                     callback(testcases);
