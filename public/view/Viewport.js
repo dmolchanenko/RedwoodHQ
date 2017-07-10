@@ -131,7 +131,7 @@ Ext.define('Redwood.view.Viewport', {
                             itemID: "projectSelection",
                             fieldLabel:"Choose Project",
                             labelStyle: "font-weight: bold",
-                            width: 250,
+                            width: 350,
                             forceSelection: true,
                             editable: false,
                             listeners:{
@@ -181,6 +181,13 @@ Ext.define('Redwood.view.Viewport', {
                             menu:{
                                 plain:true,
                                 items:[
+                                    {
+                                        text: 'SSH Key',
+                                        handler: function(){
+                                            var win = Ext.create('Redwood.view.SSHKeyView',{});
+                                            win.show();
+                                        }
+                                    },
                                     {
                                         text: 'Logout',
                                         handler : function() {
@@ -279,7 +286,7 @@ Ext.define('Redwood.view.Viewport', {
                     {
                         xtype:"tabpanel",
                         region: "center",
-                        autoScroll: true,
+                        //autoScroll: true,
                         listeners:{
                             afterrender: function(me){
                                 me.tabBar.setVisible(false);

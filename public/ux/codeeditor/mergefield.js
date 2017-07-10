@@ -28,12 +28,12 @@ Ext.define('Redwood.ux.MergePanel', {
             lineNumbers: true,
             mode: me.editorType
         });
-        this.editor.edit.setSize("100%");
-        this.editor.left.orig.setSize("100%");
-        this.editor.right.orig.setSize("100%");
         this.editor.edit.on("change",function(cm,changeOpt){
             me.markDirty();
         });
+        this.editor.edit.setSize("100%",target.parentElement.clientHeight);
+        this.editor.left.orig.setSize("100%",target.parentElement.clientHeight);
+        this.editor.right.orig.setSize("100%",target.parentElement.clientHeight);
     },
 
     initComponent: function() {

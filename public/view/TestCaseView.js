@@ -1,5 +1,5 @@
 Ext.require([
-    'Redwood.view.ActionCollection'
+    'Redwood.view.ActionCollection','Redwood.view.TestCaseData'
 ]);
 
 Ext.define('Redwood.view.TestCaseView', {
@@ -17,6 +17,9 @@ Ext.define('Redwood.view.TestCaseView', {
         var me = this;
 
         this.markDirty = function(){
+            if(this.dataRecord && this.dataRecord.get("history") == true){
+                return;
+            }
             this.dirty = true;
             if(me.title.charAt(me.title.length-1) != "*"){
                 me.setTitle(me.title+"*")
@@ -162,19 +165,22 @@ Ext.define('Redwood.view.TestCaseView', {
                             { boxLabel: 'Junit', name:"type",inputValue: 'junit',width:70,checked: false,formId:formId},
                             { boxLabel: 'TestNG', name:"type",inputValue: 'testng',width:70,checked: false,formId:formId},
                             { boxLabel: 'Script', name:"type",inputValue: 'script',width:70,checked: false,formId:formId},
+                            { boxLabel: 'Pytest', name:"type",inputValue: 'pytest',width:70,checked: false,formId:formId},
                             { boxLabel: 'Action Collection',name:"type", inputValue: 'collection',checked:true,width:200,formId:formId}
                         ]
                         ,
                         listeners: {
                             change: function(me,newVal,oldVal){
-                                if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng" ){
+                                if(newVal.type == "script" || newVal.type == "junit" || newVal.type == "testng"  || newVal.type == "pytest" ){
                                     me.up("testcaseview").down("#actionCollectionFiledSet").hide();
+                                    me.up("testcaseview").down("#testcaseData").hide();
                                     me.up("testcaseview").down("#afterState").hide();
-                                    me.up("testcaseview").down("scriptPicker").show();
+                                    me.up("testcaseview").down("scriptPickerView").show();
                                 }else{
                                     me.up("testcaseview").down("#actionCollectionFiledSet").show();
+                                    me.up("testcaseview").down("#testcaseData").show();
                                     me.up("testcaseview").down("#afterState").show();
-                                    me.up("testcaseview").down("scriptPicker").hide();
+                                    me.up("testcaseview").down("scriptPickerView").hide();
                                 }
                                 if (me.up("testcaseview").loadingData === false){
                                     me.up("testcaseview").markDirty();
@@ -187,6 +193,7 @@ Ext.define('Redwood.view.TestCaseView', {
                         xtype: "actionpicker",
                         fieldLabel:"After State",
                         itemId:"afterState",
+                        hidden:true,
                         //width: 400,
                         anchor:'90%',
                         plugins:[
@@ -218,6 +225,64 @@ Ext.define('Redwood.view.TestCaseView', {
             },
             {
                 xtype: 'fieldset',
+                title: 'History',
+                defaultType: 'textfield',
+                itemId: "testcaseHistory",
+                flex: 1,
+                hidden:false,
+                collapsible: true,
+                collapsed:true,
+                layout: "fit",
+                defaults: {
+                    flex: 1
+                },
+                items: [
+
+                ]
+            },
+            {
+                xtype: 'fieldset',
+                title: 'Test Case Fields',
+                defaultType: 'textfield',
+                itemId: "testcaseFields",
+                flex: 1,
+                hidden:true,
+                collapsible: true,
+                //layout: "column",
+                defaults: {
+                    flex: 1
+                },
+                items: []
+            },
+            {
+                xtype: 'fieldset',
+                hidden: false,
+                title: 'After State',
+                flex: 1,
+                collapsed:true,
+                layout:"hbox",
+                //height:400,
+                constrainAlign: true,
+
+                collapsible: true,
+                itemId:"afterStateFiledSet",
+                items:[
+                    {
+                        xtype:"actioncollection",
+                        itemId:"afterStateCollection",
+                        flex: 1,
+                        height:400,
+                        listeners:{
+                            afterrender: function(collection){
+                                collection.parentPanel = me;
+                                collection.markDirty = function(){me.markDirty()}
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                xtype: 'fieldset',
                 hidden: false,
                 title: 'Action Collection',
                 flex: 1,
@@ -230,6 +295,7 @@ Ext.define('Redwood.view.TestCaseView', {
                 items:[
                     {
                         xtype:"actioncollection",
+                        itemId:"actionCollection",
                         flex: 1,
                         listeners:{
                             afterrender: function(collection){
@@ -241,9 +307,40 @@ Ext.define('Redwood.view.TestCaseView', {
                 ]
             },
             {
-                xtype: "scriptPicker",
+                xtype: 'fieldset',
+                title: 'Test Case Data',
+                itemId: "testcaseData",
+                flex: 1,
+                hidden:false,
+                collapsible: true,
+                //layout: "column",
+                defaults: {
+                    flex: 1
+                },
+                listeners:{
+                    beforeexpand: function(){
+                        me.lastScrollPos = me.getEl().dom.children[0].scrollTop;
+                    },
+                    expand: function(){
+                       me.getEl().dom.children[0].scrollTop =  me.lastScrollPos+200;
+                    }
+                },
+                items: [
+                    {
+                        xtype:"testcasedata",
+                        listeners:{
+                            afterrender: function(tcdata){
+                                tcdata.parentPanel = me;
+                                tcdata.markDirty = function(){me.markDirty()}
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                xtype: "scriptPickerView",
                 hidden: true,
-                width: 700,
+                width: 955,
                 listeners: {
                     change: function(){
                         if (me.loadingData == false){
@@ -259,21 +356,219 @@ Ext.define('Redwood.view.TestCaseView', {
     listeners:{
         afterrender: function(me){
             me.loadingData = true;
+            /*
+            var project = Ext.data.StoreManager.lookup('Projects').query("name",Ext.util.Cookies.get('project')).getAt(0);
+            if(project.get("tcFields")){
+                var rows = 1;
+                var columns = 2;
+                var currentRow;
+                var fields = [];
+                project.get("tcFields").forEach(function(field,index){
+                    if((index+1) % columns > 0){
+                        currentRow = new Ext.container.Container({
+                            layout:"column"
+                        });
+                        me.down("#testcaseFields").add(currentRow);
+                    }
+                    var blank = true;
+                    if(field.required == true) blank = false;
+                    if(field.fieldtype == "Text Field"){
+                        currentRow.add({
+                            xtype: "textfield",
+                            padding: "5 5 5 5",
+                            columnWidth: 0.5,
+                            fieldLabel: field.name,
+                            allowBlank: blank,
+                            //labelStyle: "font-weight: bold",
+                            anchor:'90%',
+                            listeners:{
+                                change: function(){
+                                    if (me.loadingData === false){
+                                        me.markDirty();
+                                    }
+                                }
+                            }
+                        })
+                    }
+                    else  if(field.fieldtype == "ComboBox"){
+                        currentRow.add({
+                            xtype: "combo",
+                            padding: "5 5 5 5",
+                            columnWidth: 0.5,
+                            //width: 240,
+                            //afterLabelTextTpl: this.requiredText,
+                            fieldLabel: field.name,
+                            store: field.possiblevalues,
+                            //value: "To be Automated",
+                            //name: 'status',
+                            //forceSelection: true,
+                            //editable: false,
+                            allowBlank: blank,
+                            listeners:{
+                                change: function(){
+                                    if (me.loadingData === false){
+                                        me.markDirty();
+                                    }
+                                }
+                            }
+                        })
+                    }
+                    /*
+                    if(field.fieldtype == "Text Field"){
+                        me.down("#testcaseFields").add({
+                            xtype: "textfield",
+                            padding: "5 0 5 5",
+                            //columnWidth: 0.5,
+                            fieldLabel: field.name,
+                            allowBlank: field.required,
+                            labelStyle: "font-weight: bold",
+                            anchor:'90%',
+                            listeners:{
+                                change: function(){
+                                    if (me.loadingData === false){
+                                        me.markDirty();
+                                    }
+                                }
+                            }
+                        })
+                    }
+
+
+                });
+            }
+            */
+            //me.down("#testcaseFields").add([{text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"}, {text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"},{text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"},{text:'Button 1',columnWidth: 1/3, padding: "5 0 5 5"}]);
             if (me.dataRecord != null){
                 me.down("#name").setValue(me.dataRecord.get("name"));
                 me.down("#tag").setValue(me.dataRecord.get("tag"));
                 me.down("#status").setValue(me.dataRecord.get("status"));
                 me.down("#description").setValue(me.dataRecord.get("description"));
                 me.down("#type").setValue({type:me.dataRecord.get("type")});
-                me.down("scriptPicker").setValue(me.dataRecord.get("script"));
-                me.down("actioncollection").loadCollection(me.dataRecord.get("collection"));
-                me.down("#afterState").setValue(me.dataRecord.get("afterState"));
+                me.down("#scriptPath").setValue(me.dataRecord.get("script"));
+                if(me.dataRecord.get("scriptLang")){
+                    me.down("#scriptLang").setValue(me.dataRecord.get("scriptLang"));
+                }
+                else{
+                    me.down("#scriptLang").setValue("Java/Groovy");
+                }
+                me.down("#actionCollection").loadCollection(me.dataRecord.get("collection"));
+
+                //take care of old after state format and transfer to new
+                if(me.dataRecord.get("afterState")){
+                    if(Array.isArray(me.dataRecord.get("afterState"))){
+                        me.down("#afterStateCollection").loadCollection(me.dataRecord.get("afterState"));
+                    }
+                    else {
+                        me.down("#afterStateCollection").loadCollection([{actionid:me.dataRecord.get("afterState"),executionflow:"Record Error Stop Test Case",host:"Default",order:"1",parameters:[],returnvalue:""}]);
+                    }
+                }
+                else{
+                    me.down("#afterStateCollection").loadCollection([]);
+                }
+                me.down("testcasedata").loadData(me.dataRecord.get("tcData"));
+                //me.down("#afterState").setValue(me.dataRecord.get("afterState"));
                 me.down("#testcaseDetails").collapse();
+                if(!me.dataRecord.get("tcData") || me.dataRecord.get("tcData").length == 0){
+                    me.down("#testcaseData").collapse();
+                }
+
+                me.historyStore =  Ext.create('Ext.data.Store', {
+                    model: 'Redwood.model.TestCases',
+                    autoLoad: true,
+                    storeId: "TCHistoryStore"+me.dataRecord.get("_id"),
+                    idProperty: '_id',
+                    proxy: {
+                        type: 'rest',
+                        url: '/testcasehistory/'+me.dataRecord.get("_id"),
+                        reader: {
+                            type: 'json',
+                            root: 'testcases',
+                            successProperty: 'success'
+                        }
+                    },
+                    sorters: [{
+                        property : 'date',
+                        direction: 'DESC'
+                    }]
+                });
+
+                //add history specific fields
+                me.historyStore.model.prototype.fields.add(new Ext.data.Field({ name: 'user', type: 'string'}));
+                me.historyStore.model.prototype.fields.add(new Ext.data.Field({ name: 'date', type: 'date'}));
+                me.historyGrid = Ext.create('Ext.grid.Panel', {
+                    store: me.historyStore,
+                    itemId:"historyGrid",
+                    selType: 'rowmodel',
+                    height:200,
+                    viewConfig: {
+                        markDirty: false,
+                        enableTextSelection: true
+                    },
+                    plugins: [
+                        "bufferedrenderer"],
+                    columns:[
+                        {
+                            xtype:"datecolumn",
+                            format:'m/d h:i:s',
+                            header: 'Date',
+                            dataIndex: 'date',
+                            width: 120
+                        },
+                        {
+                            header: 'UserID',
+                            dataIndex: 'user',
+                            width: 180
+                        },
+                        {
+                            header: 'Previous Version',
+                            dataIndex: '_id',
+                            renderer: function(value,meta,record){
+                                //meta.tdCls = 'x-redwood-results-cell';
+                                return "<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCaseHistory(&quot;"+ me.dataRecord.get("_id") +"&quot;,&quot;" + value + "&quot;)'>View Test Case</a>"
+                            }
+                        },
+                        {
+                            xtype: 'actioncolumn',
+                            icon: 'images/undo.png',
+                            width: 40,
+                            tooltip: 'Revert to this version.',
+                            handler: function(grid, rowIndex, colIndex) {
+                                Ext.Msg.show({
+                                    title:'Revert to version.',
+                                    msg: 'Are you sure you want to revert test case to this version?',
+                                    buttons: Ext.Msg.YESNO,
+                                    icon: Ext.Msg.QUESTION,
+                                    fn: function(id){
+                                        if (id == "yes"){
+                                            var controller = Redwood.app.getController("TestCases");
+                                            controller.onRevert(grid.store.getAt(rowIndex).get("_id"));
+                                            me.close();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+
+                    ]
+
+                });
+                if(me.dataRecord.get("history") == true){
+                    me.down("#testcaseHistory").hide();
+                }
+                else{
+                    me.down("#testcaseHistory").items.add(me.historyGrid);
+                }
+
 
             }
             else{
-                me.down("actioncollection").loadCollection("");
+                me.down("#actionCollection").loadCollection("");
+                me.down("#afterStateCollection").loadCollection("");
+                me.down("#testcaseData").collapse();
             }
+
+            me.down("#actionCollection").tcDataStore = me.down("testcasedatagrid").store;
+            me.down("#afterStateCollection").tcDataStore = me.down("testcasedatagrid").store;
             setTimeout(function(){me.loadingData = false;},500);
             me.down("#name").focus();
         }
@@ -304,6 +599,7 @@ Ext.define('Redwood.view.TestCaseView', {
             }
         }
 
+        /*
         var afterStateValue = this.down("#afterState").getValue();
         if((afterStateValue != null) && (afterStateValue != "")){
             var action = Ext.data.StoreManager.lookup('Actions').query("_id",this.down("#afterState").getValue()).getAt(0);
@@ -313,18 +609,19 @@ Ext.define('Redwood.view.TestCaseView', {
                 return false;
             }
         }
+        */
 
         if (this.down("#status").getValue() == "Automated"){
-            if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng"){
+            if (this.down("#type").getValue().type == "script" || this.down("#type").getValue().type == "junit" || this.down("#type").getValue().type == "testng" || this.down("#type").getValue().type == "pytest"){
 
-                if (this.down("scriptPicker").getValue() == ""){
-                    this.down("scriptPicker").focus();
+                if (this.down("#scriptPath").getValue() == ""){
+                    this.down("#scriptPath").focus();
                     Ext.Msg.alert('Error', "You must select script for this action.");
                     return false;
                 }
             }
             else{
-                if (this.down("actioncollection").getCollectionData().length == 0){
+                if (this.down("#actionCollection").getCollectionData().length == 0){
                     Ext.Msg.alert('Error', "You must add actions to action collection.");
                     return false;
                 }
@@ -340,11 +637,19 @@ Ext.define('Redwood.view.TestCaseView', {
         testcase.status = this.down("#status").getValue();
         testcase.description = this.down("#description").getValue();
         testcase.type = this.down("#type").getValue().type;
-        testcase.script = this.down("scriptPicker").getValue();
-        testcase.afterState = this.down("#afterState").getValue();
+        testcase.script = this.down("#scriptPath").getValue();
+        testcase.scriptLang = this.down("#scriptLang").getValue();
+        //testcase.afterState = this.down("#afterState").getValue();
+        testcase.afterState = this.down("#afterStateCollection").getCollectionData();
 
 
-        testcase.collection = this.down("actioncollection").getCollectionData();
+        testcase.collection = this.down("#actionCollection").getCollectionData();
+        if(testcase.type == "collection"){
+            testcase.tcData = this.down("testcasedata").getTestCaseData();
+        }
+        else {
+            testcase.tcData = "";
+        }
         return testcase;
     }
 

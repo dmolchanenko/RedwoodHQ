@@ -23,6 +23,7 @@ var recordStepsActionActions = Ext.create('Ext.Action', {
 
 var saveAction = Ext.create('Ext.Action', {
     icon: "images/save.gif",
+    itemId:"saveAction",
     tooltip: "Save Selected Action",
     handler: function(widget, event) {
         var editor = this.up('actions');
@@ -70,6 +71,8 @@ Ext.define('Redwood.view.Actions', {
             //region: 'west',
             //split:true,
             xtype: 'grid',
+            plugins: [
+                "bufferedrenderer"],
             hideCollapseTool: true,
             //collapseDirection: "left",
             //collapsible: true,
@@ -131,6 +134,8 @@ Ext.define('Redwood.view.Actions', {
 
         var actionListTree = {
             xtype: 'treepanel',
+            plugins: [
+                "bufferedrenderer"],
             multiSelect: false,
             hideCollapseTool: true,
             rootVisible: false,

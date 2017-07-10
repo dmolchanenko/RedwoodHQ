@@ -1,10 +1,11 @@
 var realtime = require("./realtime");
+var ObjectID = require('mongodb').ObjectID;
 
 exports.actionsPut = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
     var data = req.body;
-    data._id = db.bson_serializer.ObjectID(data._id);
+    data._id = new ObjectID(data._id);
     data.project = req.cookies.project;
     data.user =  req.cookies.username;
     UpdateActions(app.getDB(),data,function(err){
@@ -31,10 +32,23 @@ exports.actionsGet = function(req, res){
     });
 };
 
+
+exports.getActionDetails = function(req, res){
+    var app =  require('../common');
+    var id = new ObjectID(req.params.id);
+    GetActionDetails(app.getDB(),{project:req.cookies.project,_id:id},function(data){
+        res.contentType('json');
+        res.json({
+            success: true,
+            action: data
+        });
+    });
+};
+
 exports.actionsDelete = function(req, res){
     var app =  require('../common');
     var db = app.getDB();
-    var id = db.bson_serializer.ObjectID(req.params.id);
+    var id = new ObjectID(req.params.id);
     DeleteActions(app.getDB(),{_id: id},function(err){
         realtime.emitMessage("DeleteActions",{id: req.params.id});
         res.contentType('json');
@@ -65,9 +79,10 @@ exports.actionsPost = function(req, res){
 
 function CreateActions(db,data,callback){
     db.collection('actions', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
+            SaveHistory(db,returnData[0]);
         });
     });
 }
@@ -77,17 +92,22 @@ function UpdateActions(db,data,callback){
         collection.save(data,{safe:true},function(err){
             if (err) console.warn(err.message);
             else callback(err);
-            db.collection('actionshistory', function(err, collection) {
-                data.actionID = data._id;
-                delete data._id;
-                data.date = new Date();
-                collection.save(data,{safe:true},function(err){
-
-                });
-            });
+            SaveHistory(db,data);
         });
     });
+}
 
+exports.SaveHistory = function(db,data){SaveHistory(db,data)};
+
+function SaveHistory(db,data){
+    db.collection('actionshistory', function(err, collection) {
+        data.actionID = data._id;
+        delete data._id;
+        data.date = new Date();
+        collection.insert(data,{safe:true},function(err,returnData){
+            if (err) console.warn(err.message);
+        });
+    });
 }
 
 function DeleteActions(db,data,callback){
@@ -113,7 +133,7 @@ function GetActions(db,query,callback){
     var actions = [];
 
     db.collection('actions', function(err, collection) {
-        collection.find(query, {}, function(err, cursor) {
+        collection.find(query, {_id:1,tag:1,name:1,params:1}, function(err, cursor) {
             cursor.each(function(err, action) {
                 if(action == null) {
                     callback(actions);
@@ -121,6 +141,14 @@ function GetActions(db,query,callback){
                 }
                 actions.push(action);
             });
+        })
+    })
+}
+
+function GetActionDetails(db,query,callback){
+    db.collection('actions', function(err, collection) {
+        collection.findOne(query, {}, function(err, testcase) {
+            callback(testcase);
         })
     })
 }

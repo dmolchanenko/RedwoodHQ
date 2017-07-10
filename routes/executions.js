@@ -1,4 +1,27 @@
 var realtime = require("./realtime");
+var elasticsearch = require('./elasticsearch');
+//var Excel = require('exceljs');
+
+
+//exports.generateExcelReport = function(req, res){
+//    var app =  require('../common');
+//    var db = app.getDB();
+//    //var id = new ObjectID(req.params.id);
+//
+//    db.collection('executions', function(err, collection) {
+//        collection.findOne({_id:req.params.id}, {}, function(err, execution) {
+//            var workbook = new Excel.Workbook();
+//            workbook.xlsx.readFile("C:/Users/dmolc/Desktop/ExportResults.xlsx")
+//                .then(function() {
+//                    console.log(workbook);
+//                    // use workbook
+//                });
+//        })
+//    })
+//
+//};
+
+
 
 exports.executionsPut = function(req, res){
     var app =  require('../common');
@@ -9,6 +32,12 @@ exports.executionsPut = function(req, res){
     data.user =  req.cookies.username;
     UpdateExecutions(app.getDB(),data,function(err){
         realtime.emitMessage("UpdateExecutions",data);
+        try{
+            elasticsearch.indexExecution(data);
+        }
+        catch(e){
+            console.log(e);
+        }
         res.contentType('json');
         res.json({
             success: !err,
@@ -91,6 +120,12 @@ exports.updateExecutionTotals = function(executionID,callback){
                     collection.findAndModify({_id : executionID},{},{$set:{runtime:runtime,failed:failed,passed:passed,total:total,notRun:notRun}},{safe:true,new:true,upsert:true},function(err,data){
                         if(data != null){
                             realtime.emitMessage("UpdateExecutions",data);
+                            try{
+                                elasticsearch.indexExecution(data);
+                            }
+                            catch(e){
+                                console.log(e);
+                            }
                         }
                         if (callback){
                             callback(err);
@@ -129,7 +164,16 @@ function DeleteExecutions(db,data,callback){
                 collection.remove({executionID:data._id},{safe:true},function(err) {
                     db.collection('screenshots', function(err, collection) {
                         collection.remove({executionID:data._id},{safe:true},function(err) {
-                            callback(err);
+                            db.collection('testcaseresults', function(err, collection) {
+                                collection.remove({executionID: data._id}, {safe: true}, function (err) {
+                                    db.collection('executionlogs'+data._id.replace(/-/g, ''), function(err, collection) {
+                                        if(err) callback(err);
+                                        collection.remove({}, {safe: true}, function (err) {
+                                            callback(err);
+                                        });
+                                    });
+                                });
+                            });
                         });
                     });
                 });

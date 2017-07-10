@@ -22,9 +22,9 @@ Ext.apply(Ext.form.field.VTypes, {
             return false;
         }
         return true;
-    }
+    },
 
-    //passwordTestMask: /[a-z_0-9]/
+    userIDTestMask: /[a-z_0-9]/
 });
 
 Ext.define('Redwood.view.UserEdit', {
@@ -71,7 +71,9 @@ Ext.define('Redwood.view.UserEdit', {
                             }
                             form.updateRecord();
                             Ext.data.StoreManager.lookup('UserTags').sync();
-                            Ext.data.StoreManager.lookup('Users').sync();
+                            Ext.data.StoreManager.lookup('Users').sync({success:function(){
+                                record.set("password","");
+                            }});
                             window.close();
                         }else{
                             //Ext.Ajax.request({
@@ -121,6 +123,8 @@ Ext.define('Redwood.view.UserEdit', {
                     name: 'username',
                     vtype:'userIDTest',
                     allowBlank: false,
+                    maskRe: /[a-z_0-9_A-Z]/,
+                    //maskRe: /^[a-z](\w*)[a-z0-9]$/i,
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {
@@ -163,13 +167,13 @@ Ext.define('Redwood.view.UserEdit', {
                     xtype:'combo',
                     afterLabelTextTpl: this.requiredText,
                     fieldLabel: 'Role',
-                    hidden:true,
-                    store: ["Admin","User"],
+                    hidden:false,
+                    store: ["Test Designer","Developer"],
                     name: 'role',
                     forceSelection: true,
                     editable: false,
                     allowBlank: false,
-                    value:"User",
+                    value:"Developer",
                     listeners: {
                         specialkey: function(field, e){
                             if (e.getKey() == e.ENTER) {

@@ -10,8 +10,12 @@ exports.record = function(req, res){
     var project = req.cookies.project;
     var username = req.cookies.username;
     var ip = req.connection.remoteAddress;
+    if(ip.indexOf(":") != -1){
+        var ipParts = ip.split(":");
+        ip = ipParts[ipParts.length-1];
+    }
 
-    console.log(ip);
+    //console.log(ip);
     var options = {
         hostname: ip,
         port: 5009,
@@ -33,7 +37,7 @@ exports.record = function(req, res){
     });
 
     request.on('error', function(e) {
-        console.log('recordImage problem with request: ' + e.message);
+        //console.log('recordImage problem with request: ' + e.message);
         res.contentType('json');
         res.json({
             error: "Unable to connect to agent.<br/> If it is not installed please use <b>'Download Agent'</b> link on top left corner."

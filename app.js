@@ -27,7 +27,7 @@ var express = require('express')
   , testsets = require('./routes/testsets')
   , hosts = require('./routes/hosts')
   , templates = require('./routes/templates')
-  , uploadFiles = require('./routes/uploadFiles')
+  , uploadFiles = require('./routes/uploadfiles')
   , importtcs = require('./routes/importtcs')
   , rununittest = require('./routes/rununittest')
   , testcases = require('./routes/testcases')
@@ -41,14 +41,23 @@ var express = require('express')
   , results = require('./routes/results')
   , methodFinder = require('./routes/methodFinder')
   , aggregate = require('./routes/aggregate')
-  , executionstatus = require('./routes/executionstatus')
+  , executionstatus = require('./routes/executionStatus')
   , emailsettings = require('./routes/emailsettings')
   , imageautomation = require('./routes/imageautomation')
   , recorder = require('./routes/recorder')
-  , license = require('./routes/license');
+  , license = require('./routes/license')
+  , actionHistory = require('./routes/actionHistory')
+  , versionControl = require('./routes/versionControl')
+  , syncIDE = require('./routes/syncIDE')
+  , testcaseHistory = require('./routes/testcaseHistory');
 
+var realFs = require("fs");
+var gracefulFs = require("graceful-fs");
+gracefulFs.gracefulify(realFs);
 
 //var app = express.createServer();
+process.setMaxListeners(0);
+require('events').EventEmitter.defaultMaxListeners = 100;
 var app = express();
 process.env.TMPDIR = __dirname + '/logs';
 process.env.TMP = __dirname + '/logs';
@@ -60,8 +69,10 @@ process.env.TEMP = __dirname + '/logs';
     //app.use(express.multipart());
     //app.use(express.bodyParser({ keepExtensions: true, uploadDir: 'c:/temp' }));
     app.use(express.static(__dirname + '/public'));
-    app.use(express.json());
-    app.use(express.urlencoded());
+    //app.use(express.json());
+    //app.use(express.urlencoded());
+    app.use(express.json({limit: '50mb'}));
+    app.use(express.urlencoded({limit: '50mb'}));
     app.use(express.cookieParser());
     app.use(express.methodOverride());
     app.use(app.router);
@@ -76,7 +87,7 @@ process.env.TEMP = __dirname + '/logs';
   app.use(express.errorHandler());
 //});
 //DB
-
+require("fs").writeFileSync(__dirname+"/app.pid",process.pid);
 
 // Routes
 app.post('/login',auth.logIn,auth.logInSucess);
@@ -84,6 +95,15 @@ app.get('/login',auth.loginPage);
 
 app.post('/license',auth.auth,license.licensePost);
 app.get('/license',auth.auth,license.licenseGet);
+
+//sync to IDE
+app.post('/synctoide',auth.auth,syncIDE.syncToIDE);
+app.post('/synctoredwoodhq',auth.auth,syncIDE.syncToRedwoodHQ);
+app.post('/sourcesfromagent',syncIDE.sourcesFromAgent);
+
+//versioncontrol
+app.post('/versioncontrolhistory',auth.auth,versionControl.getLocalVersionHistory);
+app.post('/versioncontrolhistory/diff',auth.auth,versionControl.getVersionDiff);
 
 //emailsettings
 app.post('/emailsettings',auth.auth,emailsettings.Post);
@@ -97,6 +117,14 @@ app.post('/recordimage',auth.auth,imageautomation.recordImage);
 app.get('/image/:id',auth.auth,imageautomation.getImage);
 app.post('/recordedimage',imageautomation.recordedImage);
 
+//test case history
+app.get('/testcasehistory/:id',auth.auth,testcaseHistory.historyGet);
+app.post('/testcasehistory',auth.auth,testcaseHistory.historyPost);
+
+//action history
+app.get('/actionhistory/:id',auth.auth,actionHistory.historyGet);
+app.post('/actionhistory',auth.auth,actionHistory.historyPost);
+
 //uploadFiles
 app.post('/uploadfiles',auth.auth,uploadFiles.uploadFiles);
 app.post('/uploadfromagent',uploadFiles.uploadFromAgent);
@@ -105,6 +133,7 @@ app.post('/uploadfilesdone',uploadFiles.uploadDone);
 //importAllTCs
 app.post('/importalltcs',importtcs.importAllTCs);
 app.post('/getallunittcs',importtcs.getAllUnitTests);
+app.post('/getallpythonunittcs',importtcs.getAllPythonTests);
 app.post('/importselectedtcs',importtcs.importSelectedTCs);
 
 //rununittest
@@ -146,6 +175,7 @@ app.post('/heartbeat',heartbeat.heartbeatPost);
 
 //results
 app.get('/results/:id',results.resultsGet);
+app.get('/resultslogs/:id/:executionid',results.logsGet);
 
 //execution status
 app.get('/executionstatus/:id',executionstatus.executionStatusGet);
@@ -164,6 +194,7 @@ app.get('/actions',auth.auth, actions.actionsGet);
 app.put('/actions/:id',auth.auth, actions.actionsPut);
 app.post('/actions',auth.auth, actions.actionsPost);
 app.del('/actions/:id',auth.auth, actions.actionsDelete);
+app.get('/action/:id',auth.auth, actions.getActionDetails);
 
 //actionTags
 app.get('/actiontags',auth.auth, actiontags.actionTagsGet);
@@ -174,6 +205,8 @@ app.get('/testcases',auth.auth, testcases.testcasesGet);
 app.put('/testcases/:id',auth.auth, testcases.testcasesPut);
 app.post('/testcases',auth.auth, testcases.testcasesPost);
 app.del('/testcases/:id',auth.auth, testcases.testcasesDelete);
+app.get('/testcase/:id',auth.auth, testcases.getTestCaseDetails);
+app.post('/testcasetocode',auth.auth, testcases.testCaseToCode);
 
 //testcaseTags
 app.get('/testcasetags',auth.auth, testcaseTags.testcaseTagsGet);
@@ -184,6 +217,7 @@ app.get('/executions',auth.auth, executions.executionsGet);
 app.put('/executions/:id',auth.auth, executions.executionsPut);
 app.post('/executions/:id',executions.executionsPost);
 app.del('/executions/:id',auth.auth, executions.executionsDelete);
+//app.get('/executionreport/:id',auth.auth, executions.generateExcelReport);
 
 //executionTags
 app.get('/executiontags',auth.auth, executionTags.executionTagsGet);
@@ -196,6 +230,7 @@ app.put('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPu
 app.post('/executiontestcases',auth.auth, executiontestcases.executiontestcasesPost);
 app.post('/executiontestcases/udatetestset',auth.auth, executiontestcases.executionsTestSetUpdatePost);
 app.del('/executiontestcases/:id',auth.auth, executiontestcases.executiontestcasesDelete);
+app.put('/executiontestcasenotes',auth.auth, executiontestcases.executionNotes);
 
 //machineRoles
 app.get('/machineroles',auth.auth, machineroles.machineRolesGet);
@@ -207,6 +242,8 @@ app.put('/users/:id',auth.auth, users.usersPut);
 app.post('/users',auth.auth, users.usersPost);
 app.del('/users/:id',auth.auth, users.usersDelete);
 app.post('/canadduser',auth.auth, users.canAddUser);
+app.post('/users/sshkey',auth.auth, users.usersSSHKeyPost);
+app.get('/users/sshkey',auth.auth, users.usersSSHKeyGet);
 
 //testsets
 app.get('/testsets', auth.auth, testsets.testsetsGet);
@@ -239,6 +276,7 @@ app.get('/projects', auth.auth, projects.projectsGet);
 app.put('/projects/:id',auth.auth, projects.projectsPut);
 app.post('/projects',auth.auth, projects.projectsPost);
 app.del('/projects/:id',auth.auth, projects.projectsDelete);
+app.post('/projects/clone',auth.auth, projects.projectsClone);
 
 //userTags
 app.get('/userTags',auth.auth, userTags.userTagsGet);
@@ -250,8 +288,12 @@ app.post('/scripts/delete',auth.auth, scripts.scriptsDelete);
 app.post('/scripts/copy',auth.auth, scripts.scriptsCopy);
 app.post('/scripts/push',auth.auth, scripts.scriptsPush);
 app.post('/scripts/pull',scripts.scriptsPull);
+app.get('/scripts/notpushed',scripts.notPushedScripts);
+app.post('/scripts/findtext',scripts.findText);
+
 
 //script
+app.get('/runpip',auth.auth, script.runPipGet);
 app.post('/script/get',auth.auth, script.scriptGet);
 app.post('/script/resolveconflict',auth.auth, script.resolveConflict);
 app.post('/script',auth.auth, script.scriptPost);
@@ -267,6 +309,14 @@ app.post('/fileupload',auth.auth, fileupload.upload);
 
 //methodFinder
 app.post('/methodFinder',auth.auth, methodFinder.methodFinderPost);
+
+//disable console output for linux to avoid crashes
+if(process.platform != "win32") {
+    console.log = function(){};
+    console.info = function(){};
+    console.error = function(){};
+    console.warn = function(){};
+}
 
 common.initLogger("server");
 common.parseConfig(function(){

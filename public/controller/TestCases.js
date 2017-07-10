@@ -9,6 +9,20 @@ function openTestCase(id){
     }
 }
 
+function openTestCaseHistory(testcaseID,historyID){
+    var store = Ext.data.StoreManager.lookup('TCHistoryStore'+testcaseID);
+    var tab = Ext.ComponentQuery.query("#mainTabPanel")[0];
+    tab.setActiveTab(tab.down("#testcasesBrowser"));
+    var controller = Redwood.app.getController("TestCases");
+    var record = store.query("_id",historyID).get(0);
+    //flag this as a history test case
+    record.set("history",true);
+    controller.onEditTestCase(record);
+    if(Ext.isChrome){
+        return false;
+    }
+}
+
 
 Ext.define("Redwood.controller.TestCases", {
     extend: 'Ext.app.Controller',
@@ -26,7 +40,65 @@ Ext.define("Redwood.controller.TestCases", {
                 saveTestCase: this.onSaveTestCase,
                 editTestCase: this.onEditTestCase,
                 deleteTestCase: this.onDeleteTestCase,
-                cloneTestCase: this.onCloneTestCase
+                cloneTestCase: this.onCloneTestCase,
+                testCaseToCode: this.onTestCaseToCode
+            }
+        });
+    },
+
+    onTestCaseToCode: function(){
+        var testcaseView = this.tabPanel.getActiveTab();
+        var me = this;
+        if (testcaseView === null){
+            return;
+        }
+        if (testcaseView.title === "[New TestCase]"){
+            return;
+        }
+
+        if (testcaseView.xtype == "codeeditorpanel"){
+            return;
+        }
+
+        Ext.Ajax.request({
+            url:"/testcasetocode",
+            method:"POST",
+            jsonData : {_id:testcaseView.dataRecord.get("_id")},
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error){
+                    Ext.Msg.alert('Error', obj.error);
+                }
+                else{
+                    var tab = me.tabPanel.add({
+                        inCollab:false,
+                        inConflict:false,
+                        path:"",
+                        editorType:"text/x-groovy",
+                        title:"[Groovy Code]"+testcaseView.dataRecord.get("name"),
+                        closable:true,
+                        xtype:"codeeditorpanel",
+                        readOnly:true
+                    });
+                    me.tabPanel.setActiveTab(tab);
+                    tab.setValue(obj.code);
+                    tab.focus();
+                    tab.clearDirty();
+                }
+            }
+        });
+    },
+
+    onRevert: function(historyID){
+        Ext.Ajax.request({
+            url:"/testcasehistory",
+            method:"POST",
+            jsonData : {id:historyID},
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error){
+                    Ext.Msg.alert('Error', obj.error);
+                }
             }
         });
     },
@@ -47,6 +119,9 @@ Ext.define("Redwood.controller.TestCases", {
         if (testcaseView === null){
             return;
         }
+        if (testcaseView.xtype == "codeeditorpanel"){
+            return;
+        }
         if (testcaseView.dirty === true){
             Ext.Msg.show({title: "Clone Error",msg:"Please save any changes before cloning selected test case.",iconCls:'error',buttons : Ext.MessageBox.OK});
             return;
@@ -64,9 +139,11 @@ Ext.define("Redwood.controller.TestCases", {
                 testCase.name = text;
                 var newTestCase = me.getStore('TestCases').add(testCase)[0];
                 me.getStore('TestCases').sync({success:function(batch,options){
-                    Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
+                    var testcaseData = batch.operations[0].records[0].data;
+                    testcaseData.project = Ext.util.Cookies.get('project');
+                    Ext.socket.emit('AddTestCases', testcaseData);
+                    me.onEditTestCase(newTestCase,false);
                 }});
-                me.onEditTestCase(newTestCase,false);
             }
         });
 
@@ -76,6 +153,9 @@ Ext.define("Redwood.controller.TestCases", {
         var testcaseView = this.tabPanel.getActiveTab();
         var me = this;
         if (testcaseView === null){
+            return;
+        }
+        if (testcaseView.xtype == "codeeditorpanel"){
             return;
         }
         if (testcaseView.title === "[New TestCase]"){
@@ -97,29 +177,79 @@ Ext.define("Redwood.controller.TestCases", {
         });
     },
     onEditTestCase: function(record,collapse){
-        var foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+        var me = this;
+        var name = record.get("name");
+        if(record.get("history") == true){
+            name = "[HISTORY " + Ext.Date.format(record.get("date"),"m/d h:i:s") + "] "+name;
+        }
+        var foundIndex = this.tabPanel.items.findIndexBy(function(item) {
+            return item.itemId === name;
+        });
         //try again with the star
         if (foundIndex == -1){
-            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
+            //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"\\*$"),0,false,true);
+            foundIndex = this.tabPanel.items.findIndexBy(function(item,key){
+                if(key == name){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            });
         }
         if (foundIndex == -1){
-            var tab = Ext.create('Redwood.view.TestCaseView',{
-                title:record.get("name"),
-                closable:true,
-                dataRecord:record,
-                itemId:record.get("name")
+            Ext.Ajax.request({
+                url:"/testcase/"+record.get("_id"),
+                method:"GET",
+                success: function(response) {
+                    var obj = Ext.decode(response.responseText);
+                    if(obj.error){
+                        Ext.Msg.alert('Error', obj.error);
+                    }
+                    else{
+                        record.set("collection",obj.testcase.collection);
+                        record.set("name",obj.testcase.name);
+                        record.set("description",obj.testcase.description);
+                        record.set("status",obj.testcase.status);
+                        record.set("tag",obj.testcase.tag);
+                        record.set("type",obj.testcase.type);
+                        record.set("afterState",obj.testcase.afterState);
+                        record.set("script",obj.testcase.script);
+                        record.set("scriptLang",obj.testcase.scriptLang);
+                        if (obj.testcase.tcData){
+                            record.set("tcData",obj.testcase.tcData);
+                        }
+                        record.dirty = false;
+                        var tab = Ext.create('Redwood.view.TestCaseView',{
+                            title:name,
+                            closable:true,
+                            dataRecord:record,
+                            itemId:name
+                        });
+
+                        me.tabPanel.add(tab);
+
+                        //foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
+                        foundIndex = me.tabPanel.items.findIndexBy(function(item,key){
+                            if(key == name){
+                                return true;
+                            }
+                            else{
+                                return false;
+                            }
+                        });
+                        if(!collapse == false){
+                            tab.down("#testcaseDetails").collapse();
+                        }
+                        me.tabPanel.setActiveTab(foundIndex);
+                    }
+                }
             });
 
-            this.tabPanel.add(tab);
-
-            foundIndex = this.tabPanel.items.findIndex("title",new RegExp("^"+record.get("name")+"$"),0,false,true);
-            if(!collapse == false){
-                tab.down("#testcaseDetails").collapse();
-            }
         }
-
-        this.tabPanel.setActiveTab(foundIndex);
-
+        else{
+            this.tabPanel.setActiveTab(foundIndex);
+        }
     },
 
     onSaveTestCase: function(){
@@ -130,12 +260,17 @@ Ext.define("Redwood.controller.TestCases", {
         if (testcaseView.validate(this.getStore('TestCases')) === false){
             return;
         }
+        if (testcaseView.dataRecord !== null && testcaseView.dataRecord.get("history") == true){
+            return;
+        }
         var lastScrollPos = testcaseView.getEl().dom.children[0].scrollTop;
         var testcase = testcaseView.getTestCaseData();
         if (testcaseView.dataRecord === null){
             testcaseView.dataRecord = this.getStore('TestCases').add(testcase)[0];
             this.getStore('TestCases').sync({success:function(batch,options){
-                Ext.socket.emit('AddTestCases', batch.operations[0].records[0].data);
+                var testcaseData = batch.operations[0].records[0].data;
+                testcaseData.project = Ext.util.Cookies.get('project');
+                Ext.socket.emit('AddTestCases', testcaseData);
                 window.history.replaceState("", "", '/index.html?testcase='+testcaseView.dataRecord.get("_id")+"&project="+Ext.util.Cookies.get('project'));
             }});
         }
@@ -148,6 +283,8 @@ Ext.define("Redwood.controller.TestCases", {
             testcaseView.dataRecord.set("type",testcase.type);
             testcaseView.dataRecord.set("afterState",testcase.afterState);
             testcaseView.dataRecord.set("script",testcase.script);
+            testcaseView.dataRecord.set("scriptLang",testcase.scriptLang);
+            testcaseView.dataRecord.set("tcData",testcase.tcData);
             testcaseView.dataRecord.dirty = true;
 
             this.getStore('TestCases').sync();

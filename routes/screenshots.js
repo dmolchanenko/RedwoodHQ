@@ -7,15 +7,16 @@ exports.Post = function(req, res){
     var db = require('../common').getDB();
     var form = new multiparty.Form();
     form.parse(req, function(err, fields, files) {
+        if(!files) return;
         var tmp_path = files.file[0].path;
         var id = files.file[0].originalFilename;
-        console.log("MY ID IS:"+id);
-        console.log("MY resultID IS:"+req.cookies.resultID);
+        //console.log("MY ID IS:"+id);
+        //console.log("MY resultID IS:"+req.cookies.resultID);
         fs.readFile(tmp_path,function(err,data){
             if(!err){
                 db.collection('screenshots', function(err, collection) {
                     collection.save({file:new MongoDB.Binary(data),_id:id,executionID:req.cookies.executionID,resultID:req.cookies.resultID}, {safe:true},function(err,returnData){
-                        fs.unlink(tmp_path);
+                        fs.unlink(tmp_path,function(err){});
                         res.contentType('json');
                         res.json({
                             success: true

@@ -9,7 +9,7 @@ exports.Post = function(req, res){
     var gridStore = new Grid(db, id, 'w');
 
     gridStore.writeFile(tmp_path,function(err, doc){
-        fs.unlink(tmp_path);
+        fs.unlink(tmp_path,function(err){});
         res.contentType('json');
         res.json({
             success: true

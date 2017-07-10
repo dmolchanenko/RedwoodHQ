@@ -32,6 +32,8 @@ exports.initSocket = function(app){
             common.getDB().collection('users', function(err, collection) {
                 collection.update({username:users[socket.id]},{$set:{status:"online"}},{safe:true,multi:true},function(err,data){
                     collection.findOne({username:users[socket.id]},{},function(err,data){
+                        if(err) return;
+                        delete data.password;
                         realtime.emitMessage("UpdateUsers",data);
                     });
                 });
@@ -43,6 +45,8 @@ exports.initSocket = function(app){
                 common.getDB().collection('users', function(err, collection) {
                     collection.update({username:users[socket.id]},{$set:{status:"offline"}},{safe:true,multi:true},function(){
                         collection.findOne({username:users[socket.id]},{},function(err,data){
+                            if(data == null)return;
+                            delete data.password;
                             realtime.emitMessage("UpdateUsers",data);
                         });
                     });
@@ -69,7 +73,7 @@ exports.initSocket = function(app){
             }
             if(msg.change && msg.change.returnBack === true){
                 io.sockets.emit("CollaborateScript"+msg.username,msg);
-                console.log(msg);
+                //console.log(msg);
             }
         });
     });

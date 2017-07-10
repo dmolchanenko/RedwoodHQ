@@ -36,6 +36,11 @@ Ext.define('Redwood.model.Actions', {
         name: 'script',
         type: 'string'
 
+    },
+    {
+        name: 'scriptLang',
+        type: 'string'
+
     }
     ]
 });

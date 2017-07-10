@@ -1,6 +1,7 @@
 function openScript(path,lineNumber){
     var tab = Ext.ComponentQuery.query("#mainTabPanel")[0];
     tab.setActiveTab(tab.down("#ScriptBrowser"));
+    if(path.charAt(0) != "/") path = "/"+path;
     Ext.getCmp("ScriptBrowser").fireEvent('scriptEdit',path,parseInt(lineNumber,10));
     //scriptController.onScriptEdit(path,lineNumber);
     if(Ext.isChrome){
@@ -14,7 +15,7 @@ Ext.define("Redwood.controller.Scripts", {
 
     stores: ['Scripts'],
     models: ['Scripts'],
-    views:  ['ScriptBrowser','ImageView'],
+    views:  ['ScriptBrowser','ImageView','CommitView','FindTextView'],
     clipBoard: [],
     lastFocused: "",
 
@@ -22,12 +23,17 @@ Ext.define("Redwood.controller.Scripts", {
         this.control({
             'scriptBrowser': {
                 newScript: this.onNewScript,
+                scriptVersionDiff: this.onScriptVersionDiff,
+                syncDiffs: this.onSyncDiffs,
+                loadVersionHistory: this.loadVersionHistory,
+                clearVersionHistory: this.clearVersionHistory,
                 scriptEdit: this.onScriptEdit,
                 render: this.onScriptRender,
                 saveAll: this.onScriptSave,
                 deleteScript: this.onDelete,
                 newFolder: this.onNewFolder,
                 rename: this.onRename,
+                findText: this.onFindText,
                 copy: this.onCopy,
                 focused: this.onFocus,
                 paste: this.onPaste,
@@ -45,7 +51,8 @@ Ext.define("Redwood.controller.Scripts", {
                 recordImage: this.onRecordImage,
                 recordSteps: this.onRecordSteps,
                 imageEdit:this.onImageEdit,
-                uploadFiles:this.onUploadFiles
+                uploadFiles:this.onUploadFiles,
+                runPip:this.onRunPip
 
             },
             'scriptBrowser button': {
@@ -55,6 +62,114 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     compileEventAttached: false,
+
+    onFindText: function(path){
+        var selection = this.treePanel.getSelectionModel().getSelection()[0];
+        var path = selection.get("fullpath");
+
+        var win = Ext.create('Redwood.view.FindTextView',{
+            path:path
+        });
+        win.show();
+    },
+
+    onFindTextResults: function(foundTextResults){
+        this.scriptBrowser.down("#findText").store.loadData(foundTextResults);
+        var panel = this.scriptBrowser.down("#outputPanel");
+        panel.expand();
+        panel.down("tabpanel").setActiveTab(2);
+    },
+
+    onSyncDiffs: function(sourceTab){
+        var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
+        allScripts = allScripts.concat(Ext.ComponentQuery.query('diffpanel'));
+
+        Ext.each(allScripts,function(script){
+            if(script != sourceTab && script.path == sourceTab.path){
+                script.fireSyncEvent = false;
+                script.setValue(sourceTab.getValue());
+                script.fireSyncEvent = true;
+                script.refreshNeeded = true;
+            }
+        })
+    },
+
+    onScriptVersionDiff: function(record,version){
+        var me = this;
+
+        if(me.tabPanel.down("#"+version)){
+            me.tabPanel.setActiveTab(me.tabPanel.down("#"+version));
+            return;
+        }
+
+        var foundTab = null;
+
+        me.tabPanel.items.each(function(tab){
+            if (tab.title === "["+version+"]"+record.get("text")){
+                foundTab = tab;
+            }
+        });
+
+        if(foundTab){
+            me.tabPanel.setActiveTab(foundTab);
+            return;
+        }
+
+        var editorType = me.getEditorType(record.get("fullpath"));
+
+        var tab = this.tabPanel.add({
+            inConflict:false,
+            path:record.get("fullpath"),
+            editorType:editorType,
+            title:"["+version+"]"+record.get("text"),
+            closable:true,
+            xtype:"diffpanel",
+            itemId:version+record.get("fullpath"),
+            node:record,
+            listeners:{
+                focus: function(mel){
+                    me.up('scriptBrowser').fireEvent('focused',me.down("mergepanel").editor);
+                }
+            }
+        });
+
+        me.tabPanel.setActiveTab(tab);
+
+        Ext.Ajax.request({
+            url:"/versioncontrolhistory/diff",
+            method:"POST",
+            jsonData : {path:record.get("fullpath"),version:version},
+            success: function(response, action) {
+                var obj = Ext.decode(response.responseText);
+                tab.setCurrentVersion(obj.currentVersion);
+                tab.sePrevVersion(obj.prevVersion);
+                tab.clearDirty();
+            }
+        });
+
+
+    },
+
+    onRunPip: function(){
+        var panel = this.scriptBrowser.down("#outputPanel");
+        panel.expand();
+        var output = this.scriptBrowser.down("#compileOutput");
+        var elem = output.getEl();
+        while (elem.dom.hasChildNodes()) {
+            elem.dom.removeChild(elem.dom.lastChild);
+        }
+        Ext.Ajax.request({
+            url:"/runpip",
+            method:"GET",
+            success: function(response) {
+                var obj = Ext.decode(response.responseText);
+                if(obj.error){
+                    Ext.Msg.alert('Error', obj.error);
+                    if (callback) callback();
+                }
+            }
+        });
+    },
 
     onStopTC: function(){
         Ext.Ajax.request({
@@ -106,6 +221,26 @@ Ext.define("Redwood.controller.Scripts", {
         });
         Ext.Ajax.request({
             url:"/getallunittcs",
+            method:"POST",
+            jsonData : {import:true},
+            success: function(response) {
+
+                //Ext.MessageBox.hide();
+                //Ext.Msg.alert('Success', "Code was successfully pushed to the main branch.");
+            }
+        });
+    },
+
+    onImportAllPythonTCs: function(){
+        Ext.MessageBox.show({
+            msg: 'Scanning files for test cases, please wait...',
+            progressText: 'Scanning...',
+            width:300,
+            wait:true,
+            waitConfig: {interval:200}
+        });
+        Ext.Ajax.request({
+            url:"/getallpythonunittcs",
             method:"POST",
             jsonData : {import:true},
             success: function(response) {
@@ -192,13 +327,6 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onPushChanges: function(){
-        Ext.MessageBox.show({
-            msg: 'Pushing changes to master branch, please wait...',
-            progressText: 'Pushing...',
-            width:300,
-            wait:true,
-            waitConfig: {interval:200}
-        });
         var me = this;
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
         allScripts = allScripts.concat(Ext.ComponentQuery.query('mergepanel'));
@@ -211,9 +339,23 @@ Ext.define("Redwood.controller.Scripts", {
         });
 
         var doPush = function(){
+            var commitWindow = new Redwood.view.CommitView({});
+            commitWindow.show();
+            return;
+
+            Ext.MessageBox.show({
+                msg: 'Pushing changes to master branch, please wait...',
+                progressText: 'Pushing...',
+                width:300,
+                wait:true,
+                waitConfig: {interval:200}
+            });
+
+
             Ext.Ajax.request({
                 url:"/scripts/push",
                 method:"POST",
+                timeout: 400000,
                 jsonData : {},
                 success: function(response) {
                     me.treePanel.getRootNode().cascadeBy(function(node) {
@@ -308,15 +450,21 @@ Ext.define("Redwood.controller.Scripts", {
             Ext.Ajax.request({
                 url:"/scripts/pull",
                 method:"POST",
+                timeout: 600000,
                 jsonData : {},
                 success: function(response) {
                     var obj = Ext.decode(response.responseText);
                     var message = "";
+                    var title = "Success";
                     if (obj.conflicts.length > 0){
                         message = "Code was pulled but the following files are in conflict:<br>";
                         Ext.each(obj.conflicts,function(conflict){
                             message = message + "<b color='red'>"+conflict+"</b><br>";
                         });
+                    }
+                    else if(obj.error){
+                        title = "Error";
+                        message = obj.error;
                     }
                     else{
                         message = "Code was successfully pulled from the main branch.";
@@ -332,7 +480,7 @@ Ext.define("Redwood.controller.Scripts", {
                                     //node.parentNode.expand();
                                     if (node.get("inConflict") == true){
                                         script.close();
-                                        me.onScriptEdit(node);
+                                        //me.onScriptEdit(node);
                                         node.parentNode.expand();
                                     }
                                     else{
@@ -354,10 +502,16 @@ Ext.define("Redwood.controller.Scripts", {
                             });
                             if (foundIt == false) script.close();
                         });
+                        me.treePanel.getRootNode().cascadeBy(function(node) {
+                            if (node.get("inConflict") == true){
+                                me.onScriptEdit(node);
+                            }
+                        });
                     }});
                     Ext.MessageBox.hide();
 
-                    Ext.Msg.alert('Success', message);
+                    Ext.Msg.alert(title, message);
+                    me.loadVersionHistory(me.tabPanel.getActiveTab());
                 }
             });
         };
@@ -398,13 +552,21 @@ Ext.define("Redwood.controller.Scripts", {
         }
         var panel = me.scriptBrowser.down("#outputPanel");
         panel.expand();
+        panel.down("tabpanel").setActiveTab(0);
         if (me.compileEventAttached == false){
             //handle compile messages
             Ext.socket.on('compile',function(msg){
                 var output = me.scriptBrowser.down("#compileOutput");
                 var elem = output.getEl();
-
-                msg.split("\n").forEach(function(line){
+                var lines = msg.split("\n");
+                lines.forEach(function(line,index){
+                    //add green color for BUILD SUCCESSFUL
+                    if(line.indexOf("BUILD SUCCESSFUL") != -1){
+                        line = "<b style='color:green'>BUILD SUCCESSFUL</b>"
+                    }
+                    else if(line.indexOf("BUILD FAILED") != -1){
+                        line = "<b style='color:red'>BUILD FAILED</b>"
+                    }
                     //see if we get our file to show up
                     var srcIndex = line.lastIndexOf("\\src\\");
                     if(srcIndex != -1){
@@ -428,10 +590,62 @@ Ext.define("Redwood.controller.Scripts", {
                         //var newMsg = line.replace(path,"<a href='javascript:function(){return false;}'>"+ path +"</a>");
                         Ext.DomHelper.append(elem, {tag: 'div',html:newMsg});
                     }
+                    //see if it's python
+                    else if(line.indexOf("  File ") == 0 && line.indexOf(".py\"") != -1){
+                        var pythonPath = line.split('"')[1];
+                        var pythonLineNumber = line.split('line ')[1];
+                        pythonLineNumber = parseInt(pythonLineNumber,10) -1;
+                        var pythonLinkHmtl = "<a href='javascript:openScript(&quot;/"+ pythonPath.replace(/\\/g,"/") +"&quot;,"+pythonLineNumber+")'>"+ pythonPath +"</a>";
+
+                        var pythonNewMsg = line.replace(pythonPath,pythonLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
+                    }else if((line.indexOf("Sorry: ") == 0 || line.indexOf("SyntaxError: ") == 0) && line.indexOf(".py,") != -1){
+                        var pythonPath = lines[index-1].split('Compiling ')[1];
+                        pythonPath = pythonPath.split(' ...')[0];
+
+                        var pythonFileName = line.split('(')[1];
+                        var pythonFileName = pythonFileName.split(',')[0];
+
+                        var pythonLineNumber = line.split('line ')[1];
+                        pythonLineNumber = pythonLineNumber.split(')')[0];
+                        pythonLineNumber = parseInt(pythonLineNumber,10) -1;
+                        var pythonLinkHmtl = "<a href='javascript:openScript(&quot;/"+ pythonPath.replace(/\\/g,"/") +"&quot;,"+pythonLineNumber+")'>"+ pythonPath +"</a>";
+
+                        var pythonNewMsg = line.replace(pythonFileName,pythonLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
+                    }else if(line.indexOf("Sorry: ") == 0 && line.indexOf(".py',") != -1){
+                        var pythonPath = lines[index-1].split('Compiling ')[1];
+                        pythonPath = pythonPath.split(' ...')[0];
+
+                        var pythonFileName = line.split('(')[2];
+                        pythonFileName = pythonFileName.split("'")[1];
+
+                        var pythonLineNumber = line.split('(')[2];
+                        pythonLineNumber = pythonLineNumber.split("'")[2];
+                        pythonLineNumber = pythonLineNumber.split(",")[1].trim();
+                        pythonLineNumber = parseInt(pythonLineNumber,10) -1;
+                        var pythonLinkHmtl = "<a href='javascript:openScript(&quot;/"+ pythonPath.replace(/\\/g,"/") +"&quot;,"+pythonLineNumber+")'>"+ pythonPath +"</a>";
+
+                        var pythonNewMsg = line.replace(pythonFileName,pythonLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:pythonNewMsg});
+                    }
+                    //if c#
+                    else if(line.indexOf(": error ") != -1 && line.indexOf(".cs(") != -1){
+                        var csharpPath = line.split('(')[0];
+                        var csharpLineNumber = line.split('(')[1].split(',')[0];
+                        csharpLineNumber = parseInt(csharpLineNumber,10) -1;
+                        var csharpLinkHmtl = "<a href='javascript:openScript(&quot;/"+ csharpPath.replace(/\\/g,"/").trim() +"&quot;,"+csharpLineNumber+")'>"+ csharpPath +"</a>";
+
+                        var csharpNewMsg = line.replace(csharpPath,csharpLinkHmtl);
+                        Ext.DomHelper.append(elem, {tag: 'div',html:csharpNewMsg});
+                    }
                     else{
                         Ext.DomHelper.append(elem, {tag: 'div',html:line});
                     }
                 });
+                //scroll to bottom
+                elem.dom.scrollTop = elem.dom.scrollHeight;
+                //elem.dom.parentNode.scrollTop = elem.dom.parentNode.scrollHeight;
             });
             me.compileEventAttached = true;
         }
@@ -445,6 +659,10 @@ Ext.define("Redwood.controller.Scripts", {
             icon = "images/fileTypeJava.png";
         }else if (fileName.slice(-2) == "js"){
             icon = "images/fileTypeJavascript.png";
+        }else if (fileName.slice(-2) == "py"){
+            icon = "images/python.png";
+        }else if (fileName.slice(-2) == "cs"){
+            icon = "images/csharp.png";
         }
         return icon;
     },
@@ -721,6 +939,7 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onDelete: function(){
+        if(Ext.util.Cookies.get('role') == "Test Designer") return;
         var me = this;
         var selection = this.treePanel.getSelectionModel().getSelection();
         if(selection.length > 0){
@@ -810,6 +1029,7 @@ Ext.define("Redwood.controller.Scripts", {
     },
 
     onScriptSave: function(callback){
+        if(Ext.util.Cookies.get('role') == "Test Designer") return;
         var me = this;
         var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
         allScripts = allScripts.concat(Ext.ComponentQuery.query('mergepanel'));
@@ -821,20 +1041,74 @@ Ext.define("Redwood.controller.Scripts", {
         Ext.each(allScripts, function(script, index) {
             if (script.dirty == true){
                 if (script.inConflict == false){
-                    Ext.Ajax.request({
-                        url:"/script",
-                        method:"PUT",
-                        jsonData : {path:script.path,text:script.getValue()},
-                        success: function(response, action) {
-                            script.clearDirty();
-                            script.node.set("text",'<span style="color:blue">' + script.node.get("name") + '</span>');
-                            script.node.set("qtip",'This file is not yet pushed.');
-                            total++;
-                            if (total == allScripts.length){
-                                if (callback) callback();
+                    var sendSaveRequest = function(){
+                        //if we are saving pip requirements
+                        Ext.Ajax.request({
+                            url:"/script",
+                            method:"PUT",
+                            jsonData : {path:script.path,text:script.getValue()},
+                            success: function(response, action) {
+                                var obj = Ext.decode(response.responseText);
+                                if(obj.error){
+                                    Ext.Msg.alert('Error', obj.error);
+                                    if (callback) callback();
+                                    return;
+                                }
+                                if(script.path.indexOf(pipReqFilePath) == script.path.length -pipReqFilePath.length){
+                                    var panel = me.scriptBrowser.down("#outputPanel");
+                                    panel.expand();
+                                    var output = me.scriptBrowser.down("#compileOutput");
+                                    var elem = output.getEl();
+                                    while (elem.dom.hasChildNodes()) {
+                                        elem.dom.removeChild(elem.dom.lastChild);
+                                    }
+                                }
+                                script.clearDirty();
+                                if(script.closeAfterSave == true){
+                                    script.close();
+                                }
+                                script.node.set("text",'<span style="color:blue">' + script.node.get("name") + '</span>');
+                                script.node.set("qtip",'This file is not yet pushed.');
+                                total++;
+                                if (total == allScripts.length){
+                                    if (callback) callback();
+                                }
+                                me.loadVersionHistory(me.tabPanel.getActiveTab())
+                            },
+                            failure: function (response) {
+                                var obj = Ext.decode(response.responseText);
+                                if(obj.error){
+                                    Ext.Msg.alert('Error', obj.error);
+                                }
+                                else{
+                                    Ext.Msg.alert('Error', "Unable to save file.");
+                                }
                             }
+                        });
+                    };
+
+                    var pipReqFilePath = "/"+Ext.util.Cookies.get("username")+"/PipRequirements";
+                    if(script.path.indexOf(pipReqFilePath) == script.path.length -pipReqFilePath.length){
+                        if(!script.getValue().match(/[^\W_]/)){
+                            Ext.Msg.show({
+                                title:'Save Confirmation',
+                                msg: "It appears you have an empty pip requirement file.  This would cause all libraries to be uninstalled.  Do you want to proceed?",
+                                buttons: Ext.Msg.YESNO,
+                                icon: Ext.Msg.QUESTION,
+                                fn: function(id){
+                                    if (id == "yes"){
+                                        sendSaveRequest()
+                                    }
+                                }
+                            });
                         }
-                    });
+                        else{
+                            sendSaveRequest()
+                        }
+                    }
+                    else{
+                        sendSaveRequest()
+                    }
                 }
                 else{
                     Ext.Ajax.request({
@@ -842,6 +1116,7 @@ Ext.define("Redwood.controller.Scripts", {
                         method:"POST",
                         jsonData : {path:script.path,text:script.getValue()},
                         success: function(response, action) {
+                            var obj = Ext.decode(response.responseText);
                             script.clearDirty();
                             total++;
                             if (total == allScripts.length){
@@ -850,6 +1125,18 @@ Ext.define("Redwood.controller.Scripts", {
                                 script.node.set("text",script.node.get("name"));
                                 if (callback) callback();
                             }
+                            me.treePanel.getRootNode().cascadeBy(function(node) {
+                                if ((node.get("fullpath") && (node.get("fullpath").indexOf(obj.filesInConflict[0]) != -1))){
+                                    node.set("inConflict",true);
+                                    node.set("text",'<span style="color:red">' + node.get("name") + '</span>');
+                                    me.tabPanel.items.each(function(tab){
+                                        if (tab.path === node.get("fullpath")){
+                                            tab.close();
+                                        }
+                                    });
+                                    me.onScriptEdit(node);
+                                }
+                            });
                         }
                     });
                 }
@@ -863,12 +1150,43 @@ Ext.define("Redwood.controller.Scripts", {
         });
     },
 
+    loadVersionHistory: function(tab){
+        if(tab){
+            this.scriptBrowser.down("#versionControl").store.load({params:{path:tab.path}});
+            this.scriptBrowser.down("#versionControl").lastTab = tab;
+        }
+    },
+    clearVersionHistory: function(){
+        this.scriptBrowser.down("#versionControl").store.removeAll();
+    },
+
+    getEditorType: function(path){
+        var editorType = "text";
+
+        if (path.slice(-6) == "groovy"){
+            editorType = "text/x-groovy";
+        }else if (path.slice(-4) == "java"){
+            editorType = "text/x-java";
+        }else if (path.slice(-3) == "xml"){
+            editorType = "application/xml";
+        }else if (path.slice(-2) == "js"){
+            editorType = "text/javascript";
+        }else if (path.slice(-2) == "py"){
+            editorType = "text/x-python";
+        }else if (path.slice(-2) == "cs"){
+            editorType = "text/x-csharp";
+        }
+
+        return editorType;
+    },
+
     onScriptEdit: function(record,lineNumber){
         var me = this;
         //if string search for
         if (typeof(record) == "string"){
             this.treePanel.getRootNode().cascadeBy(function(node) {
-                if ((node.get("fullpath") && (node.get("fullpath").indexOf(record) != -1))){
+                //if ((node.get("fullpath") && (node.get("fullpath").indexOf(record) != -1))){
+                if ((node.get("fullpath") && ("/src/"+node.get("fullpath").split("/src/")[1] == record))){
                     node.parentNode.expand();
                     me.treePanel.getSelectionModel().select(node);
                     record = node;
@@ -888,17 +1206,8 @@ Ext.define("Redwood.controller.Scripts", {
             }
         });
         if (foundTab == null){
-            var editorType = "text";
+            var editorType = me.getEditorType(record.get("fullpath"));
 
-            if (record.get("fullpath").slice(-6) == "groovy"){
-                editorType = "text/x-groovy";
-            }else if (record.get("fullpath").slice(-4) == "java"){
-                editorType = "text/x-java";
-            }else if (record.get("fullpath").slice(-3) == "xml"){
-                editorType = "application/xml";
-            }else if (record.get("fullpath").slice(-2) == "js"){
-                editorType = "text/javascript";
-            }
 
             var tab;
 
@@ -918,6 +1227,17 @@ Ext.define("Redwood.controller.Scripts", {
                     listeners:{
                         focus: function(me){
                             me.up('scriptBrowser').fireEvent('focused',me.down("codeeditorfield").editor);
+                        },
+                        close: function(){
+                            //close all diff panels
+                            var allScripts = Ext.ComponentQuery.query('diffpanel');
+                            Ext.each(allScripts,function(script){
+                                if (tab.path == script.path){
+                                    script.close();
+                                }
+                            });
+                            me.clearVersionHistory();
+                            me.tabPanel.setActiveTab(0);
                         }
                     }
                 });
@@ -976,12 +1296,14 @@ Ext.define("Redwood.controller.Scripts", {
             me.tabPanel.getActiveTab().setCursor({line:lineNumber,ch:0});
             foundTab.focus();
         }
+        me.loadVersionHistory(foundTab);
     },
 
     onScriptRender: function(){
         var me = this;
         this.scriptBrowser = Ext.ComponentQuery.query('scriptBrowser')[0];
-        this.tabPanel = Ext.ComponentQuery.query('tabpanel',this.scriptBrowser)[0];
+        //this.tabPanel = Ext.ComponentQuery.query('tabpanel',this.scriptBrowser)[0];
+        this.tabPanel = this.scriptBrowser.down("#scriptstab");
         this.treePanel = Ext.ComponentQuery.query('treepanel',this.scriptBrowser)[0];
         this.searchField = Ext.ComponentQuery.query('#findTextField',this.scriptBrowser);
         this.treePanel.on("afterrender",function(tree){

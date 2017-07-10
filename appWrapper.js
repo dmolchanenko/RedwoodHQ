@@ -12,7 +12,7 @@ if (process.argv[2] === "--stop"){
         var pids = fs.readFileSync(__dirname+"/app.pid").toString();
         fs.unlink(__dirname+"/app.pid");
         try{
-            process.kill(pids.split("\r\n")[1],"SIGTERM");
+            //process.kill(pids.split("\r\n")[1],"SIGTERM");
             process.kill(pids.split("\r\n")[0],"SIGTERM");
         }
         catch(err){
@@ -57,12 +57,12 @@ common.parseConfig(function(){
     var dbStarted = false;
     var dbOut = "";
 
+    appChild.start();
     dbChild.on('stdout', function (data) {
         if (dbStarted == false){
             dbOut = dbOut + data.toString();
             if (dbOut.indexOf("waiting for connections on port") != -1){
                 dbStarted = true;
-                appChild.start();
                 //setTimeout(function(){
                 //    fs.writeFileSync(__dirname+"/app.pid",process.pid+"\r\n"+dbChild.child.pid +"\r\n"+appChild.child.pid);
                 //},10000);

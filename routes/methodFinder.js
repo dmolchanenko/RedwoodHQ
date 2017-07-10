@@ -4,6 +4,18 @@ var common = require('../common');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var appDir = path.resolve(__dirname,"../")+"/";
 var spawn = require('child_process').spawn;
+var divideChar = "\r\n";
+var pathDivider = ";";
+if(require('os').platform() == "linux" || (require('os').platform() == "darwin")) {
+    pathDivider = ":"
+}
+
+if(process.platform == "win32"){
+    divideChar = "\r\n";
+}
+else{
+    divideChar = "\n";
+}
 
 exports.methodFinderPost = function(req,res){
     var path = "";
@@ -18,13 +30,13 @@ exports.methodFinderPost = function(req,res){
         var filepath = req.body.node.substring(0,req.body.node.lastIndexOf("/"));
         var classname = req.body.node.substring(req.body.node.lastIndexOf("/")+1,req.body.node.length);
         classname = classname.replace(".class","");
-        FindMethods(filepath,classname,function(methods){
+        FindMethods(filepath,classname,rootDir+req.cookies.project+"/"+req.cookies.username,function(methods){
             res.contentType('json');
             res.json(methods);
         });
     }
-    else if ((req.body.node.slice(-6) == "groovy")||(req.body.node.slice(-4) == "java")){
-        FindClasses(req.body.node,function(classes){
+    else if ((req.body.node.slice(-6) == "groovy")||(req.body.node.slice(-4) == "java") ||(req.body.node.slice(-2) == "py")||(req.body.node.slice(-2) == "cs")){
+        FindClasses(req.body.node,rootDir+req.cookies.project+"/"+req.cookies.username,function(classes){
             res.contentType('json');
             res.json(classes);
         });
@@ -55,6 +67,10 @@ function FindFiles(path,callback){
                     result.icon = "images/fileTypeGroovy.png";
                 }else if (list[i].slice(-4) == "java"){
                     result.icon = "images/fileTypeJava.png";
+                } else if (list[i].slice(-2) == "py"){
+                    result.icon = "images/python.png";
+                } else if (list[i].slice(-2) == "cs"){
+                    result.icon = "images/csharp.png";
                 }
                 else{
                     result.leaf = true;
@@ -64,8 +80,10 @@ function FindFiles(path,callback){
             else{
                 result.type = "directory";
             }
-            files.push(result);
-            if(files.length === list.length){
+            if(result.text != "__init__.py" && result.text.slice(-4) != ".pyc"){
+                files.push(result);
+            }
+            if(i+1 === list.length){
                 callback(files);
             }
         }
@@ -73,18 +91,32 @@ function FindFiles(path,callback){
 }
 
 
-function FindClasses(path,callback){
+function FindClasses(path,projectPath,callback){
     var classes = [];
     var err = false;
-    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,"class"]);
+    var proc;
+    if (path.slice(-2) == "py"){
+        if(process.platform == "win32"){
+            proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,"class"],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
+        else{
+            proc = spawn(projectPath+"/PythonWorkDir/bin/python",[appDir+'utils/codeparser.py',"MethodList",path,"class"],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
+    }
+    else if (path.slice(-2) == "cs"){
+        proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,"class"]);
+    }
+    else{
+        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+pathDivider+appDir+'vendor/groovy/*'+pathDivider+appDir+'utils/*',"MethodList",path,"class"]);
+    }
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
     });
     var cache = "";
     proc.stdout.on('data', function(data) {
         cache = cache + data;
-        if (cache.indexOf("\r\n") == -1) return;
-        cache.toString().split("\r\n").forEach(function(line,index,array){
+        if (cache.indexOf(divideChar) == -1) return;
+        cache.toString().split(divideChar).forEach(function(line,index,array){
             cache = "";
             if (line == "COMPILATION ERROR:"){
                 err = true;
@@ -111,21 +143,35 @@ function FindClasses(path,callback){
     });
 }
 
-function FindMethods(path,classname,callback){
+function FindMethods(path,classname,projectPath,callback){
     var methods = [];
     var err = false;
     //var proc = spawn("vendor/Java/bin/java.exe",["-cp",'utils/lib/*;vendor/groovy/*;utils/*',"MethodList",path,classname]);
     //console.log ('"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"');
     //var proc = spawn(appDir+"vendor/Java/bin/java.exe",["-cp",'"'+appDir+'utils/lib/*'+'"'+';'+'"'+appDir+'vendor/groovy/*'+'"'+';'+'"'+appDir+'utils/*'+'"',"MethodList",path,classname]);
-    var proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*;'+appDir+'vendor/groovy/*;'+appDir+'utils/*',"MethodList",path,classname]);
+    var proc;
+    if (path.slice(-2) == "py"){
+        if(process.platform == "win32"){
+            proc = spawn(projectPath+"/PythonWorkDir/Scripts/python",[appDir+'utils/codeparser.py',"MethodList",path,classname],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
+        else{
+            proc = spawn(projectPath+"/PythonWorkDir/bin/python",[appDir+'utils/codeparser.py',"MethodList",path,classname],{env:{PYTHONPATH:projectPath+"/src"}});
+        }
+    }
+    else if (path.slice(-2) == "cs"){
+        proc = spawn(appDir+"utils/c#parser/CodeParser.exe",["MethodList",path,classname]);
+    }
+    else{
+        proc = spawn(appDir+"vendor/Java/bin/java",["-cp",appDir+'utils/lib/*'+pathDivider+appDir+'vendor/groovy/*'+pathDivider+appDir+'utils/*',"MethodList",path,classname]);
+    }
     proc.stderr.on('data', function (data) {
         common.logger.error(data.toString());
     });
     var cache = "";
     proc.stdout.on('data', function(data) {
         cache = cache + data;
-        if (cache.indexOf("\r\n") == -1) return;
-        cache.toString().split("\r\n").forEach(function(line,index,array){
+        if (cache.indexOf(divideChar) == -1) return;
+        cache.toString().split(divideChar).forEach(function(line,index,array){
             cache = "";
             if (line == "COMPILATION ERROR:"){
                 err = true;

@@ -2,9 +2,46 @@ var pushAction = Ext.create('Ext.Action', {
     icon: 'images/install.png',
     tooltip: "Push Changes to Master Branch",
     margin: "0 3 0 3",
+    itemId:"push",
     handler: function(widget, event) {
         this.up('scriptBrowser').fireEvent('pushChanges');
     }
+});
+
+var syncToPCAction = Ext.create('Ext.Action', {
+    text: "Sync to IDE",
+    tooltip: "Sync Code With Local IDE",
+    margin: "0 3 0 3",
+    icon: 'images/pc.png',
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('syncToPC');
+    }
+});
+
+var syncToRedwoodHQAction = Ext.create('Ext.Action', {
+    text: "Sync to RedwoodHQ",
+    tooltip: "Sync Code With RedwoodHQ",
+    margin: "0 3 0 3",
+    icon: 'images/redwoodhqicon.png',
+    handler: function(widget, event) {
+        this.up('scriptBrowser').fireEvent('syncToRedwoodHQ');
+    }
+});
+
+var ideSyncButton = Ext.create('Ext.button.Split',{
+    text: "IDE",
+    itemId:"ideSyncButton",
+    hidden:true,
+    icon: 'images/advancedsettings.png',
+    handler: function(){
+        this.showMenu();
+    },
+    menu: new Ext.menu.Menu({
+        items: [
+            syncToPCAction,
+            syncToRedwoodHQAction
+        ]
+    })
 });
 
 var recordImageAction = Ext.create('Ext.Action', {
@@ -27,6 +64,22 @@ var uploadFiles = Ext.create('Ext.Action', {
             editor = this.up('#treeContext').scriptEditor;
         }
         editor.fireEvent('uploadFiles');
+    }
+});
+
+var runPip = Ext.create('Ext.Action', {
+    icon: 'images/python.png',
+    tooltip: "Run pip install against current requirement file.",
+    text:"Run Pip Install",
+    itemId: "runPip",
+    visible: false,
+
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('runPip');
     }
 });
 
@@ -67,6 +120,7 @@ var pullAction = Ext.create('Ext.Action', {
 var copyAction = Ext.create('Ext.Action', {
     icon: 'images/page_copy.png',
     tooltip: "Copy File/Folder",
+    itemId:"copyBar",
     margin: "0 3 0 3",
     handler: function(widget, event) {
         this.up('scriptBrowser').fireEvent('copy');
@@ -108,10 +162,21 @@ var uploadAction = Ext.create('Ext.Action', {
 
 var importAllTCsAction = Ext.create('Ext.Action', {
     tooltip: "Import TestNG/Junit Test Cases.",
-    text:"Import Test Cases",
-    icon: 'images/import.png',
+    text:"Import TestNG/Junit Test Cases",
+    itemId:"importAllTCs",
+    icon: 'images/fileTypeJava.png',
     handler: function(widget, event) {
         Redwood.app.getController("Scripts").onImportAllTCs();
+    }
+});
+
+var importAllPythonTCsAction = Ext.create('Ext.Action', {
+    tooltip: "Import Pytest Test Cases.",
+    text:"Import Pytest Test Cases",
+    itemId:"importAllPythonTCs",
+    icon: 'images/python.png',
+    handler: function(widget, event) {
+        Redwood.app.getController("Scripts").onImportAllPythonTCs();
     }
 });
 
@@ -236,6 +301,7 @@ var replaceAllAction = Ext.create('Ext.Button', {
 var terminalAction = Ext.create('Ext.Action', {
     icon: 'images/terminal.png',
     tooltip: "Open terminal",
+    itemId:"terminal",
     margin: "0 3 0 3",
     handler: function(widget, event) {
         this.up('scriptBrowser').fireEvent('terminal');
@@ -279,6 +345,32 @@ var newGroovyScriptAction = Ext.create('Ext.Action', {
     }
 });
 
+var newPythonScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/python.png',
+    text: 'Python Action',
+    tooltip: "New Python Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"pythonAction");
+    }
+});
+
+var newCSharpScriptAction = Ext.create('Ext.Action', {
+    icon: 'images/csharp.png',
+    text: 'C# Action',
+    tooltip: "New C# Action",
+    handler: function(widget, event) {
+        var editor = this.up('scriptBrowser');
+        if (editor == undefined){
+            editor = this.up('#treeContext').scriptEditor;
+        }
+        editor.fireEvent('newScript',"csharpAction");
+    }
+});
+
 var newJavaScriptAction = Ext.create('Ext.Action', {
     icon: 'images/fileTypeJava.png',
     text: 'Java Action',
@@ -311,6 +403,7 @@ var saveScriptAction = Ext.create('Ext.Action', {
     //text: '',
     disabled: false,
     tooltip: "Save All",
+    itemId:"saveAll",
     margin: "0 3 0 3",
     handler: function(widget, event) {
         this.setDisabled(true);
@@ -382,6 +475,8 @@ var newMenuItem = Ext.create('Ext.Action', {
         items: [
             newJavaScriptAction,
             newGroovyScriptAction,
+            newPythonScriptAction,
+            newCSharpScriptAction,
             newScriptAction,
             newFolderAction,
             uploadAction,
@@ -401,6 +496,7 @@ var newItemButton = Ext.create('Ext.button.Split',{
         items: [
             newJavaScriptAction,
             newGroovyScriptAction,
+            newPythonScriptAction,
             newScriptAction,
             newFolderAction,
             uploadAction,
@@ -418,7 +514,8 @@ var importTCButton = Ext.create('Ext.button.Split',{
     },
     menu: new Ext.menu.Menu({
         items: [
-            importAllTCsAction
+            importAllTCsAction,
+            importAllPythonTCsAction
         ]
     })
 });
@@ -432,13 +529,23 @@ var renameMenuAction = Ext.create('Ext.Action', {
     }
 });
 
+var findTextMenuAction = Ext.create('Ext.Action', {
+    text: "Find in Path",
+    itemId: "findText",
+    handler: function(widget, event) {
+        this.up('menu').scriptEditor.fireEvent('findText');
+    }
+});
+
 var contextMenu = Ext.create('Ext.menu.Menu', {
     itemId:"treeContext",
     items: [
+        //runPip,
         newMenuItem,
         {xtype: 'menuseparator'},
         deleteMenuAction,
         renameMenuAction,
+        findTextMenuAction,
         {xtype: 'menuseparator'},
         copyMenuAction,
         pasteMenuAction
@@ -454,13 +561,20 @@ var contextMenu = Ext.create('Ext.menu.Menu', {
             }
             var foundRootItem = false;
             selection.forEach(function(node){
-                if (node.parentNode.isRoot() == true){
+                if (node.parentNode && node.parentNode.isRoot() == true){
                     me.down("#renameMenu").setDisabled(true);
                     me.down("#deleteMenu").setDisabled(true);
                     me.down("#copyMenu").setDisabled(true);
                     if (node.get("fileType")=="libs"){
                         me.down("#newFolder").setDisabled(true);
                         me.down("#newScript").setDisabled(true);
+                    }
+                    var pipReqFilePath = "/"+Ext.util.Cookies.get("username")+"/PipRequirements";
+                    if(node.get("fullpath").indexOf(pipReqFilePath) == node.get("fullpath").length -pipReqFilePath.length){
+                        //me.down("#runPip").setVisible(true);
+                    }
+                    else{
+                        //me.down("#runPip").setVisible(false);
                     }
                     foundRootItem = true;
                 }
@@ -473,6 +587,8 @@ var contextMenu = Ext.create('Ext.menu.Menu', {
                 me.down("#deleteMenu").setDisabled(false);
                 me.down("#copyMenu").setDisabled(false);
             }
+            //
+
         }
     }
 });
@@ -499,6 +615,53 @@ Ext.define('Redwood.view.ScriptBrowser', {
 
     initComponent: function () {
         var scriptEditor = this;
+        var versionControlStore = Ext.create('Ext.data.Store', {
+            autoLoad: false,
+            storeId: "VersionControl",
+            idProperty: 'version',
+            proxy: {
+                type: 'ajax',
+                actionMethods: {
+                    read: 'POST'
+                },
+                timeout : 240000,
+                url: '/versioncontrolhistory',
+                reader: {
+                    type: 'json',
+                    root: 'history',
+                    successProperty: 'success'
+                },
+                paramsAsJson:true
+            },
+            fields: [
+                {name: 'version',     type: 'string'},
+                {name: 'author',     type: 'string'},
+                {name: 'commitMessage',     type: 'string'},
+                {name: 'masterMatch',     type: 'boolean'},
+                {name: 'date',     type: 'date'}
+            ],
+            sorters: [{
+                property : 'date',
+                direction: 'DESC'
+            }]
+            //data:[]
+        });
+
+        var findTextStore = Ext.create('Ext.data.Store', {
+            autoLoad: false,
+            storeId: "FindTextStore",
+            fields: [
+                {name: 'matchedText',     type: 'string'},
+                {name: 'fullPath',     type: 'string'},
+                {name: 'line',     type: 'string'}
+            ],
+            sorters: [{
+                property : 'fullPath',
+                direction: 'DESC'
+            }]
+            //data:[]
+        });
+
         var scriptView = Ext.create('Ext.Panel', {
             layout: 'border',
 
@@ -514,21 +677,129 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     collapseDirection:"down",
                     collapsible: true,
                     readOnly: true,
-                    title: "Output",
+                    //title: "Output",
                     collapsed: true,
                     layout: 'fit',
-                    autoScroll:true,
-                    items:{
-                        xtype: "box",
-                        itemId: "compileOutput",
-                        anchor: '100%'
-                        //readOnly: true,
-                        //grow: true,
-                        //bodyPadding: 0,
-                        //border: false,
-                        //labelStyle: 'white-space: nowrap;',
-                        //fieldStyle:"border:none 0px black;background-image:none"
-                    }
+                    items:[
+                        {
+                            xtype:"tabpanel",
+                            ui: "red-tab",
+                            tabPosition:"bottom",
+                            items:[
+                                {
+                                    xtype: "box",
+                                    autoScroll:true,
+                                    title: "Output",
+                                    itemId: "compileOutput",
+                                    anchor: '100%'
+                                },
+                                {
+                                    xtype: "grid",
+                                    autoScroll:true,
+                                    title: "Version Control",
+                                    itemId: "versionControl",
+                                    anchor: '100%',
+                                    selType: 'rowmodel',
+                                    viewConfig: {
+                                        markDirty: false
+                                    },
+                                    flex: 1,
+                                    overflowY: 'auto',
+                                    header: 'Name',
+                                    dataIndex: 'name',
+                                    store: versionControlStore,
+                                    lastTab:null,
+                                    listeners:{
+                                        celldblclick: function(me,td,cell,record){
+                                            scriptEditor.fireEvent('scriptVersionDiff',me.up("scriptBrowser").down("#scriptstab").getActiveTab().node, record.get("version"));
+                                        }
+                                    },
+                                    columns:[
+                                        {
+                                            header: 'Version',
+                                            dataIndex: 'version',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Date',
+                                            dataIndex: 'date',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Author',
+                                            dataIndex: 'author',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Commit Message',
+                                            dataIndex: 'commitMessage',
+                                            width: 200
+                                        },
+                                        {
+                                            header: 'Exists in Master',
+                                            dataIndex: 'masterMatch',
+                                            width: 100,
+                                            renderer: function(value,meta){
+                                                if(value == true){
+                                                    meta.style = 'background-image: url(images/online.png);background-position: center; background-repeat: no-repeat;';
+                                                    meta.tdAttr = 'data-qtip="Exists in Master"';
+                                                }
+                                                else{
+                                                    meta.style = 'background-image: url(images/offline.png);background-position: center; background-repeat: no-repeat;';
+                                                    meta.tdAttr = 'data-qtip="Does not exist in Master"';
+                                                }
+                                            }
+                                        },
+                                        {
+                                            xtype: 'actioncolumn',
+                                            width: 30,
+                                            items: [
+                                                {
+                                                    icon: 'images/edit-diff-icon.png',
+                                                    tooltip: 'Diff',
+                                                    handler: function(grid, rowIndex, colIndex) {
+                                                        scriptEditor.fireEvent('scriptVersionDiff',grid.up("scriptBrowser").down("#scriptstab").getActiveTab().node, grid.store.getAt(rowIndex).get("version"));
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    xtype:"grid",
+                                    autoScroll:true,
+                                    title: "Find",
+                                    itemId: "findText",
+                                    anchor: '100%',
+                                    selType: 'rowmodel',
+                                    viewConfig: {
+                                        markDirty: false
+                                    },
+                                    flex: 1,
+                                    overflowY: 'auto',
+                                    header: 'Name',
+                                    dataIndex: 'name',
+                                    store: findTextStore,
+                                    columns:[
+                                        {
+                                            header: 'File Name',
+                                            dataIndex: 'fullPath',
+                                            width: 500,
+                                            renderer: function(value,meta,record){
+                                                return '<p><a style="color: blue;" href="javascript:openScript(\''+value+'\',\''+ (parseInt(record.get('line')) - 1).toString() +'\')">' + value +':'+record.get("line")+'</a></p>';
+                                            }
+                                        },
+                                        {
+                                            header: 'Matched Text',
+                                            dataIndex: "matchedText",
+                                            flex:1
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+
+                    ]
                 },
                 {
                     region: 'west',
@@ -546,6 +817,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     viewConfig: {
                         markDirty: false,
                         stripeRows: true,
+                        preserveScrollOnRefresh:true,
                         onRowDeselect: function(rowIdx){
                             this.removeRowCls(rowIdx,"x-redwood-tree-unfocused");
                             this.removeRowCls(rowIdx, this.selectedItemCls);
@@ -554,6 +826,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                         listeners: {
                             itemcontextmenu: function(view, rec, node, index, e) {
                                 e.stopEvent();
+                                if(Ext.util.Cookies.get('role') == "Test Designer") return false;
                                 view.getSelectionModel().select(rec);
                                 contextMenu.treePanel = view;
                                 contextMenu.scriptEditor = scriptEditor;
@@ -567,6 +840,12 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             me.el.on("click",function(){
                                 me.getView().focus();
                             });
+                        },
+                        beforeitemexpand: function(node){
+                            this.getSelectionModel().select(node);
+                        },
+                        beforeitemcollapse: function(node){
+                            this.getSelectionModel().select(node);
                         },
                         itemdblclick: function(me,record,item,index,evt,eOpts){
                             if (record.get("fileType") === "file"){
@@ -591,13 +870,14 @@ Ext.define('Redwood.view.ScriptBrowser', {
                             }
                             var foundRootItem = false;
                             selected.forEach(function(node){
-                                if (node.parentNode.isRoot()){
+                                if (node.parentNode && node.parentNode.isRoot()){
                                     copyAction.setDisabled(true);
                                     deleteScriptAction.setDisabled(true);
                                     if (node.get("fileType") === "libs"){
                                         newScriptAction.setDisabled(true);
                                         newGroovyScriptAction.setDisabled(true);
                                         newJavaScriptAction.setDisabled(true);
+                                        newPythonScriptAction.setDisabled(true);
                                         newFolderAction.setDisabled(true);
                                     }
                                     foundRootItem = true;
@@ -608,6 +888,7 @@ Ext.define('Redwood.view.ScriptBrowser', {
                                 newScriptAction.setDisabled(false);
                                 newGroovyScriptAction.setDisabled(false);
                                 newJavaScriptAction.setDisabled(false);
+                                newPythonScriptAction.setDisabled(false);
                                 newFolderAction.setDisabled(false);
                                 deleteScriptAction.setDisabled(false);
                                 copyAction.setDisabled(false);
@@ -634,6 +915,9 @@ Ext.define('Redwood.view.ScriptBrowser', {
                     listeners: {
                         tabchange: function(tabPanel,newCard,oldCard,eOpts){
                             if(newCard.path){
+                                if(newCard.xtype == "codeeditorpanel" && tabPanel.up("#ScriptBrowser").down("#versionControl").lastTab != newCard){
+                                    scriptEditor.fireEvent('loadVersionHistory',newCard);
+                                }
                                 setTimeout(function(){newCard.focus();},100);
                                 if(newCard.refreshNeeded == true) {
                                     newCard.focusArea();
@@ -683,9 +967,11 @@ Ext.define('Redwood.view.ScriptBrowser', {
                 recordStepsAction,
                 "-",
                 runTCAction,
+                ideSyncButton,
                 //importTCButton,
                 "->",
-                importAllTCsAction,
+                importTCButton,
+                //importAllTCsAction,
                 "-",
                 findText,
                 findPrev,

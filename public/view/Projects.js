@@ -22,12 +22,33 @@ Ext.define('Redwood.view.Projects', {
                 header: 'Language',
                 dataIndex: 'language',
                 //flex: 1,
+                hidden:true,
                 width: 200
             },
             {
                 xtype: 'actioncolumn',
-                width: 50,
+                width: 75,
                 items: [
+                    {
+                        icon: 'images/edit.png',
+                        tooltip: 'Edit',
+                        handler: function(grid, rowIndex, colIndex) {
+                            me.fireEvent('projectEdit', {
+                                rowIndex: rowIndex,
+                                colIndex: colIndex
+                            });
+                        }
+                    },
+                    {
+                        icon: 'images/clone.png',
+                        tooltip: 'Clone Project',
+                        handler: function(grid, rowIndex, colIndex) {
+                            me.fireEvent('projectClone', {
+                                rowIndex: rowIndex,
+                                colIndex: colIndex
+                            });
+                        }
+                    },
                     {
                         icon: 'images/delete.png',
                         tooltip: 'Delete',

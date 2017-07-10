@@ -5,11 +5,37 @@ Ext.application({
     appFolder: ".",
     autoCreateViewport: true,
 
+    applyPermissions: function(){
+        var mainTab = Ext.ComponentQuery.query('#mainTabPanel')[0];
+        if(Ext.util.Cookies.get('role') == "Test Designer"){
+            mainTab.remove(mainTab.down("#adminTab"));
+            mainTab.down("scriptBrowser").down("#compileBar").hide();
+            mainTab.down("scriptBrowser").down("#saveAll").hide();
+            mainTab.down("scriptBrowser").down("#push").hide();
+            mainTab.down("scriptBrowser").down("#runUnitTest").hide();
+            mainTab.down("scriptBrowser").down("#importAllTCs").hide();
+            mainTab.down("scriptBrowser").down("#newItemsMenu").hide();
+            mainTab.down("scriptBrowser").down("#deleteBar").hide();
+            mainTab.down("scriptBrowser").down("#pasteBar").hide();
+            mainTab.down("scriptBrowser").down("#copyBar").hide();
+            mainTab.down("scriptBrowser").down("#terminal").hide();
+            mainTab.down("actions").down("#saveAction").hide();
+            mainTab.down("actions").down("#deleteAction").hide();
+            mainTab.down("actions").down("#cloneAction").hide();
+            mainTab.down("actions").down("#newAction").hide();
+        }
+    },
+
     controllers: [
         'Machines','Variables','Users','Scripts','Actions','Projects','RealTimeEvents','TestCases','TestSets','Executions','License','EmailSettings','Hosts','Templates'],
     launch: function(){
         Redwood.app = this;
         Ext.clipboard = {};
+        Ext.Ajax.timeout = 300000;
+        Ext.override(Ext.data.proxy.Ajax, { timeout: 300000 });
+        Ext.data.proxy.JsonP.timeout = 300000;
+        this.applyPermissions();
+
         Ext.uniqueId = function()
         {
             var newDate = new Date;
@@ -43,6 +69,26 @@ Ext.application({
                 wait:true,
                 waitConfig: {interval:200}
             });
+            return;
+            //update execution status of TCs that are running
+            Ext.data.StoreManager.each(function(store){
+                if (store.storeId.indexOf("ExecutionTCs") == -1) return;
+
+                var records = store.query("_id",testCase._id).getAt(0);
+                var executionID = store.storeId.replace("ExecutionTCs","");
+
+                records.forEach(function(record){
+
+                    for(var propt in testCase){
+                        if ((propt != "_id")&&(propt != "name")){
+                            record.set(propt.toString(),Ext.util.Format.htmlEncode(testCase[propt]));
+                        }
+                    }
+                    store.fireEvent("beforesync",{update:[record]});
+                })
+            });
+
+
         });
         Ext.socket.on('connect', function(){
             if (Ext.MessageBox.isVisible()){
@@ -63,8 +109,8 @@ Ext.application({
             }
         }
         if(uri.testcase){
-            mainTab.setActiveTab(mainTab.down("#testcasesBrowser"));
             event = Ext.data.StoreManager.lookup('TestCases').on("load",function(store){
+                mainTab.setActiveTab(mainTab.down("#testcasesBrowser"));
                 var record = store.findRecord("_id",uri.testcase);
                 if(record != null){
                     Redwood.app.getController("TestCases").onEditTestCase(record);
@@ -73,8 +119,8 @@ Ext.application({
             });
         }
         else if(uri.action){
-            mainTab.setActiveTab(mainTab.down("#actionsBrowser"));
             event = Ext.data.StoreManager.lookup('Actions').on("load",function(store){
+                mainTab.setActiveTab(mainTab.down("#actionsBrowser"));
                 var record = store.findRecord("_id",uri.action);
                 if(record != null){
                     Redwood.app.getController("Actions").onEditAction(record);

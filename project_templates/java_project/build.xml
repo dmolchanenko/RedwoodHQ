@@ -1,4 +1,4 @@
-<project name="ProjectName" basedir="." default="main">
+<project name="ProjectName" basedir="." default="main" xmlns:ivy="antlib:org.apache.ivy.ant">
 
     <property name="src.dir"     value="src"/>
     <property name="build.dir"   value="build"/>
@@ -7,6 +7,7 @@
     <property name="lib.dir"     value="External Libraries"/>
     <property name="main-class"  value="Redwood"/>
     <property name="build.compiler"  value="modern"/>
+    <property name="ivy.lib.dir" value="${build.dir}/jar"/>
 
     <path id="class.path">
         <fileset dir="${lib.dir}">
@@ -15,11 +16,17 @@
         <fileset dir="../../../../launcher">
             <include name="**/*.jar"/>
         </fileset>
+        <fileset dir="${ivy.lib.dir}" erroronmissingdir="false">
+            <include name="**/*.jar"/>
+        </fileset>
     </path>
 
     <taskdef name="groovyc" classname="org.codehaus.groovy.ant.Groovyc" classpathref="class.path">
     </taskdef>
 
+    <target name="resolve" description="--> retrieve dependencies with ivy">
+        <ivy:retrieve/>
+    </target>
 
     <target name="clean">
         <delete dir="${build.dir}"/>

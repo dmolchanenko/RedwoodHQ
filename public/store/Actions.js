@@ -15,6 +15,7 @@ Ext.define('Redwood.store.Actions', {
     proxy: {
         type: 'rest',
         url: '/actions',
+        batchActions:true,
         reader: {
             type: 'json',
             root: 'actions',
@@ -57,13 +58,19 @@ Ext.define('Redwood.store.Actions', {
                     if (options.destroy){
                         options.destroy.forEach(function(r){
                             if (r != null){
-                                actionsCombo.remove(actionsCombo.query("_id", r.get("_id")).getAt(0));
+                                var removeAction = actionsCombo.query("_id", r.get("_id")).getAt(0);
+                                if(removeAction){
+                                    actionsCombo.remove(removeAction);
+                                }
                             }
                         });
                     }
                     if (options.update){
                         options.update.forEach(function(r){
-                            actionsCombo.remove(actionsCombo.query("_id", r.get("_id")).getAt(0));
+                            var removeAction = actionsCombo.query("_id", r.get("_id")).getAt(0);
+                            if(removeAction){
+                                actionsCombo.remove(removeAction);
+                            }
                             actionsCombo.add(r);
                         });
                     }

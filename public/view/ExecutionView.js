@@ -9,6 +9,7 @@ Ext.define('Redwood.view.ExecutionView', {
     loadingData: true,
     viewType: "Execution",
     noteChanged: false,
+    tcDataRefreshed: false,
 
     initComponent: function () {
         var me = this;
@@ -126,24 +127,39 @@ Ext.define('Redwood.view.ExecutionView', {
         var variablesGrid = new Ext.grid.Panel({
 
             listeners:{
-                afterrender: function(me){
-                    me.down("#varValue").setEditor(Ext.create('Ext.ux.ComboGridBox', {
-                        typeAhead: true,
-                        displayField: 'text',
-                        queryMode: 'local',
-                        valueField:'value',
-                        grid: me,
-                        dataIndex:"possibleValues",
-                        displayNULLOption:true,
-                        listeners:{
-                            focus: function(){
-                                this.selectText();
+                beforeedit: function(editor,e){
+                    var data = [];
+                    if(e.field === "value"){
+                        e.record.get("possibleValues").forEach(function(value){
+                            if (!Ext.Array.contains(e.record.get("value"),value)){
+                                data.push({text:Ext.util.Format.htmlEncode(value),value:value});
                             }
-                        },
-                        getDisplayValue: function() {
-                            return Ext.String.htmlDecode(this.value);
-                        }
-                    }))
+                        });
+
+                        var valuesStore = new Ext.data.Store({
+                            fields: [
+                                {type: 'string', name: 'value'}
+                            ],
+                            data: data
+                        });
+
+                        e.column.setEditor({
+                            xtype:"combo",
+                            displayField:"value",
+                            overflowY:"auto",
+                            descField:"value",
+                            height:24,
+                            labelWidth: 100,
+                            forceSelection:false,
+                            createNewOnEnter:true,
+                            encodeSubmitValue:true,
+                            autoSelect: true,
+                            store: valuesStore,
+                            valueField:"value",
+                            queryMode: 'local',
+                            removeOnDblClick:true
+                        });
+                    }
                 }
             },
             store: linkedVarStore,
@@ -175,7 +191,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     renderer:function(value, meta, record){
                         return Ext.util.Format.htmlEncode(value);
                     },
-                    //width: 500,
+                    editor: {},
                     flex: 1
                 },
                 {
@@ -733,6 +749,9 @@ Ext.define('Redwood.view.ExecutionView', {
                 {name: 'startdate',     type: 'date'},
                 {name: 'enddate',     type: 'date'},
                 {name: 'runtime',     type: 'string'},
+                {name: 'rowIndex'     },
+                {name: 'tcData',     convert:null},
+                {name: 'updated',     type: 'boolean'},
                 {name: 'error',     type: 'string'},
                 {name: 'note',     type: 'string'},
                 {name: '_id',     type: 'string'},
@@ -740,6 +759,7 @@ Ext.define('Redwood.view.ExecutionView', {
             ],
             data: []
         });
+        me.executionTCStore = executionTCStore;
 
 
         me.updateTotals = function(execution){
@@ -808,9 +828,86 @@ Ext.define('Redwood.view.ExecutionView', {
                         paramNames: ["name","tag"],
                         //paramNames: ["tempName","tag","status","result"],
                         store: executionTCStore
-                    },"->",
+                    },
+                    {
+                        icon:'images/refresh.png',
+                        tooltip:"Get Latest Data Driven Data",
+                        handler: function(){
+                            var testSet = Ext.data.StoreManager.lookup('TestSets').query("_id",me.dataRecord.get("testset")).getAt(0);
+                            testSet.get("testcases").forEach(function(testcaseId){
+                                var testcase = Ext.data.StoreManager.lookup('TestCases').query("_id",testcaseId._id).getAt(0);
+                                var execTestCases = me.down("#executionTestcases").store.query("testcaseID",testcaseId._id);
+                                if(testcase && execTestCases){
+                                    if(testcase.get("tcData") && testcase.get("tcData").length > 0){
+                                        //if this was a regular tc and now its data driven
+                                        if(execTestCases.getAt(0).get("tcData") == "" || execTestCases.getAt(0).get("tcData").length == 0){
+                                            me.down("#executionTestcases").store.remove(execTestCases.getAt(0));
+                                            testcase.get("tcData").forEach(function(row,index){
+                                                me.down("#executionTestcases").store.add({updated:true,rowIndex:index+1,tcData:row,name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                            })
+                                        }
+                                        else{
+                                            execTestCases.each(function(execTestCase,index){
+                                                if(index+1 > testcase.get("tcData").length){
+                                                    me.down("#executionTestcases").store.remove(execTestCase);
+                                                }
+                                                else if(JSON.stringify(execTestCase.get("tcData")) != JSON.stringify(testcase.get("tcData")[execTestCase.get("rowIndex")-1])){
+                                                    me.down("#executionTestcases").store.remove(execTestCase);
+                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:index+1,tcData:testcase.get("tcData")[index],name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                }
+                                            });
+                                            if(testcase.get("tcData").length > execTestCases.length){
+                                                for(var tcCount=execTestCases.length;tcCount<testcase.get("tcData").length;tcCount++){
+                                                    me.down("#executionTestcases").store.add({updated:true,rowIndex:tcCount+1,tcData:testcase.get("tcData")[tcCount],name:testcase.get("name")+"_"+(tcCount+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if ((!testcase.get("tcData") || testcase.get("tcData").length == 0)&& (execTestCases.getAt(0).get("tcData") == "" || execTestCases.getAt(0).get("tcData").length == 0)){
+                                        //execTestCases.each(function(execTestCase){
+                                        //    me.down("#executionTestcases").store.remove(execTestCase);
+                                        //});
+
+                                        //me.down("#executionTestcases").store.add({rowIndex:-1,updated:true,name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    }
+                                    //if tc was data driven and now is not
+                                    else if(execTestCases.getAt(0).get("tcData") && testcase.get("tcData").length == 0){
+                                        execTestCases.each(function(execTestCase){
+                                            me.down("#executionTestcases").store.remove(execTestCase);
+                                        });
+
+                                        me.down("#executionTestcases").store.add({rowIndex:-1,updated:true,name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                    }
+                                }
+                            });
+                            me.down("#totalNotRun").setRawValue(me.down("#executionTestcases").store.query("status","Not Run").getCount());
+                            me.down("#totalTestCases").setRawValue(me.down("#executionTestcases").store.getCount());
+                            me.tcDataRefreshed = true;
+                            me.markDirty();
+                            var editor = me.up('executionsEditor');
+                            editor.fireEvent('save');
+                        }
+                    },
+                    "->",
+                    {
+                        xtype:"checkbox",
+                        fieldLabel: "Debug",
+                        labelWidth: 40,
+                        checked: false,
+                        handler: function(widget){
+                            if(widget.getValue() == true){
+                                testcasesGrid.down('[dataIndex=startAction]').setVisible(true);
+                                testcasesGrid.down('[dataIndex=endAction]').setVisible(true);
+                            }
+                            else{
+                                testcasesGrid.down('[dataIndex=startAction]').setVisible(false);
+                                testcasesGrid.down('[dataIndex=endAction]').setVisible(false);
+                            }
+                        }
+                    },
                     {
                         icon: 'images/note_add.png',
+                        hidden:true,
                         tooltip:"Add Note to Selected Test Cases",
                         handler: function(){
                             if(testcasesGrid.getSelectionModel().getSelection().length == 0){
@@ -861,12 +958,26 @@ Ext.define('Redwood.view.ExecutionView', {
                     clicksToEdit: 1
             })],
             listeners:{
+                validateedit: function(editor,e){
+                    if(e.field == "note"){
+                        Ext.Ajax.request({
+                            url:"/executiontestcasenotes",
+                            method:"PUT",
+                            jsonData : {_id:e.record.get("_id"),note:e.value},
+                            success: function(response) {
+                                //if(obj.error != null){
+                                //    Ext.Msg.alert('Error', obj.error);
+                                //}
+                            }
+                        });
+                    }
+                },
                 edit: function(editor, e ){
                     if ((e.field == "endAction") &&(e.value != "") &&(e.record.get("startAction") == "")){
                         e.record.set("startAction",1);
                     }
                     testcasesGrid.getSelectionModel().select([e.record]);
-                },
+                }/*,
                 cellclick: function(grid, td, cellIndex, record, tr, rowIndex, e ) {
                     if (cellIndex == 11){
                         var win = Ext.create('Redwood.view.TestCaseNote',{
@@ -879,7 +990,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         });
                         win.show();
                     }
-                }
+                }*/
             },
             columns:[
                 {
@@ -902,7 +1013,7 @@ Ext.define('Redwood.view.ExecutionView', {
                                 //record.set("name","<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>");
                             //}
                             //return value;
-                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;)'>" + value +"</a>";
+                            return "<a style= 'color: blue;' href='javascript:openResultDetails(&quot;"+ record.get("resultID") +"&quot;,&quot;"+ me.itemId +"&quot;)'>" + value +"</a>";
                         }
                             //record.set("name")
                         return value;
@@ -918,6 +1029,7 @@ Ext.define('Redwood.view.ExecutionView', {
                     header: 'Start Action',
                     dataIndex: 'startAction',
                     width: 80,
+                    hidden:true,
                     editor: {
                         xtype: 'textfield',
                         maskRe: /^\d+$/,
@@ -932,6 +1044,7 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'End Action',
                     dataIndex: 'endAction',
+                    hidden:true,
                     width: 80,
                     editor: {
                         xtype: 'textfield',
@@ -1028,11 +1141,23 @@ Ext.define('Redwood.view.ExecutionView', {
                 {
                     header: 'Note',
                     dataIndex: 'note',
-                    width: 50,
+                    width: 300,
+                    editor: {
+                        xtype: 'textfield',
+                        allowBlank: true,
+                        listeners:{
+                            focus: function(){
+                                //this.selectText();
+                            }
+                        }
+                    },
                     renderer: function(value,metadata,record){
                         if (value == ""){
                             return value;
                         }
+                        metadata.tdCls = 'x-redwood-results-cell';
+                        return Autolinker.link( value, {} );
+                        /*
                         else{
                             metadata.style = 'background-image: url(images/note_pinned.png);background-position: center; background-repeat: no-repeat;';
                             //metadata.tdAttr = 'data-qalign="tl-tl?" data-qtip="' + Ext.util.Format.htmlEncode(value) + '"';
@@ -1041,6 +1166,8 @@ Ext.define('Redwood.view.ExecutionView', {
                             //return '<div ext:qtip="' + value + '"/>';
                             //return "<img src='images/note_pinned.png'/>";
                         }
+                        */
+
                     }
                 }
             ]
@@ -1124,7 +1251,7 @@ Ext.define('Redwood.view.ExecutionView', {
                         itemId:"name",
                         anchor:'90%',
                         listeners:{
-                            change: function(){
+                            change: function(field){
                                 if (me.loadingData === false){
                                     me.markDirty();
                                 }
@@ -1186,7 +1313,14 @@ Ext.define('Redwood.view.ExecutionView', {
                                     var testcase = Ext.data.StoreManager.lookup('TestCases').query("_id",testcaseId._id).getAt(0);
                                     //me.down("#executionTestcases").store.add({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
                                     if(testcase){
-                                        allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                        if(testcase.get("tcData") && testcase.get("tcData").length > 0){
+                                            testcase.get("tcData").forEach(function(row,index){
+                                                allTCs.push({rowIndex:index+1,tcData:row,name:testcase.get("name")+"_"+(index+1),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                            })
+                                        }
+                                        else{
+                                            allTCs.push({name:testcase.get("name"),tag:testcase.get("tag"),status:"Not Run",testcaseID:testcase.get("_id"),_id: Ext.uniqueId()});
+                                        }
                                     }
                                 });
                                 me.down("#executionTestcases").store.add(allTCs);
@@ -1669,12 +1803,19 @@ Ext.define('Redwood.view.ExecutionView', {
                     me.dataRecord.get("testcases").forEach(function(testcase){
                         var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
                         if (originalTC){
-                            testcase.name = originalTC.get("name");
+                            if(testcase.tcData && testcase.tcData != ""){
+                                testcase.name = originalTC.get("name")+"_"+testcase.rowIndex;
+                            }
+                            else{
+                                testcase.name = originalTC.get("name");
+                            }
                             testcase.tag = originalTC.get("tag");
                             allTCs.push(testcase);
                         }
                     });
                     me.down("#executionTestcases").store.add(allTCs);
+                    me.down("#executionTestcases").store.filter("email", /\.com$/);
+                    me.down("#executionTestcases").store.clearFilter();
                 };
                 if (Ext.data.StoreManager.lookup('TestCases').initialLoad == true){
                     loadTCs();
@@ -1713,6 +1854,7 @@ Ext.define('Redwood.view.ExecutionView', {
             Ext.data.StoreManager.lookup("Executions").removeListener("beforesync",me.statusListener);
             Ext.data.StoreManager.lookup("Machines").removeListener("beforesync",me.machinesListener);
             Ext.data.StoreManager.lookup("Variables").removeListener("beforesync",me.variablesListener);
+            Ext.data.StoreManager.remove(me.executionTCStore);
         }
     },
 
@@ -1735,7 +1877,7 @@ Ext.define('Redwood.view.ExecutionView', {
     getSelectedTestCases: function(){
         var testcases = [];
         this.down("#executionTestcases").getSelectionModel().getSelection().forEach(function(testcase){
-            testcases.push({testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id"),resultID:testcase.get("resultID"),startAction:testcase.get("startAction"),endAction:testcase.get("endAction")});
+            testcases.push({rowIndex:testcase.get("rowIndex"),tcData:testcase.get("tcData"),testcaseID:testcase.get("testcaseID"),_id:testcase.get("_id"),resultID:testcase.get("resultID"),startAction:testcase.get("startAction"),endAction:testcase.get("endAction")});
         });
 
         return testcases;
@@ -1786,8 +1928,10 @@ Ext.define('Redwood.view.ExecutionView', {
         });
 
         var testcasesStore = this.down("#executionTestcases").store;
+
         execution.testcases = [];
-        testcasesStore.each(function(item){
+        //testcasesStore.query("name",/.*/).each(function(item){
+        testcasesStore.query("_id",/.*/).each(function(item){
             execution.testcases.push(item.data);
         });
 

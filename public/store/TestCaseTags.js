@@ -9,13 +9,15 @@ Ext.define('Redwood.store.TestCaseTags', {
     sorters: [{
         property : 'value'
     }],
+    idProperty: '_id',
     proxy: {
         type: 'rest',
+        idParam:"_id",
         url: '/testcasetags',
         reader: {
             type: 'json',
             root: 'tags',
             successProperty: 'success'
         }
-    }
+    },
 });

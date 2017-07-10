@@ -19,6 +19,30 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             Ext.Msg.show({title: "Test Cases Imported",msg:"Imported "+totalCount+" test cases.",buttons : Ext.MessageBox.OK});
         });
 
+        Ext.socket.on('PythonRequirementRun'+Ext.util.Cookies.get('username'),function(output){
+            var outputPanel = Ext.getCmp('scriptOutputPanel').down("#compileOutput").getEl();
+            if (output.message){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.message});
+            }
+            else if(output.error){
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:'<span style="color: red; ">Error: '+Ext.util.Format.htmlEncode(output.error)+'</span>'});
+            }
+            else if(output.freezeData){
+                var allScripts = Ext.ComponentQuery.query('codeeditorpanel');
+                Ext.each(allScripts, function(script, index) {
+                    var pipReqFilePath = "/"+Ext.util.Cookies.get("username")+"/PipRequirements";
+                    if(script.path.indexOf(pipReqFilePath) == script.path.length -pipReqFilePath.length){
+                        script.setValue(output.freezeData);
+                        script.clearDirty();
+                        script.refreshNeeded = true;
+                    }
+                });
+            }
+            else{
+                Ext.DomHelper.append(outputPanel, {tag: 'div',html:output.status});
+            }
+        });
+
         Ext.socket.on('UnitTestRun'+Ext.util.Cookies.get('username'),function(output){
             var outputPanel = Ext.getCmp('scriptOutputPanel').down("#compileOutput").getEl();
             if (output.message){
@@ -122,6 +146,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('Login',function(username){
             if (username === Ext.util.Cookies.get('username')){
+                Ext.util.Cookies.clear("sessionid");
                 Ext.socket.disconnect();
                 Ext.Msg.show({
                     title:'Invalid Session',
@@ -141,7 +166,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
         });
 
         var UpdateResultCache = {};
-        Ext.socket.on('UpdateResult',function(result){
+        Ext.socket.on('UpdateResultDONE',function(result){
             var updateResult = function(result){
                 var controller = Redwood.app.getController("Executions");
                 var foundTab = controller.tabPanel.down("#"+result._id);
@@ -170,7 +195,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                 me.updateStore(store,machine);
             };
 
-            if(!UpdateExecutionsCache[machine._id]){
+            if(!UpdateMachinesCache[machine._id]){
                 UpdateMachinesCache[machine._id] = machine;
                 setTimeout(function(){
                     updateMachine(UpdateMachinesCache[machine._id]);
@@ -434,7 +459,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                 setTimeout(function(){
                     updateExecution(UpdateExecutionsCache[execution._id]);
                     delete UpdateExecutionsCache[execution._id];
-                },1000)
+                },2000)
             }
             else{
                 UpdateExecutionsCache[execution._id] = execution;
@@ -457,9 +482,11 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.updateStore(store,execution);
         });
 
-        Ext.socket.on('AddVariables',function(testCase){
+        Ext.socket.on('AddVariables',function(variable){
             var store = Ext.data.StoreManager.lookup("Variables");
-            me.addToStore(store,testCase);
+            if(!store.query("name",variable.name )){
+                me.addToStore(store,variable);
+            }
         });
 
         Ext.socket.on('DeleteVariables',function(action){
@@ -467,12 +494,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
             me.removeFromStore(store,action);
         });
 
-        Ext.socket.on('AddExecutionLog',function(log){
+        Ext.socket.on('AddExecutionLog',function(logs){
             var controller = Redwood.app.getController("Executions");
-            var foundTab = controller.tabPanel.down("#"+log.resultID);
-            if (foundTab){
-                foundTab.logStore.add(log);
-            }
+            logs.forEach(function(log){
+                var foundTab = controller.tabPanel.down("#"+log.resultID);
+                if (foundTab){
+                    foundTab.logStore.add(log);
+                }
+            });
         });
 
         var UpdateExecutionTestCaseCache = {};
@@ -499,7 +528,7 @@ Ext.define("Redwood.controller.RealTimeEvents", {
                     record = store.query("_id",testCase._id).getAt(0);
 
                     for(var propt in testCase){
-                        if ((propt != "_id")&&(propt != "name")){
+                        if ((propt != "_id")&&(propt != "name")&&(propt != "tcData")){
                             record.set(propt.toString(),Ext.util.Format.htmlEncode(testCase[propt]));
                         }
                     }
@@ -535,7 +564,12 @@ Ext.define("Redwood.controller.RealTimeEvents", {
 
         Ext.socket.on('AddExecutionTestCase',function(testCase){
             var addToStore = function(testcase,tcStore){
-                if (tcStore.find("testcaseID",testcase.testcaseID) == -1){
+                if(testcase.tcData && testcase.tcData.length != ""){
+                    if (tcStore.findBy(function(record){if(record.get("testcaseID") == testcase.testcaseID && record.get("rowIndex") == testcase.rowIndex)return true}) == -1){
+                        tcStore.add(testcase);
+                    }
+                }
+                else if (tcStore.find("testcaseID",testcase.testcaseID) == -1){
                     var originalTC = Ext.data.StoreManager.lookup('TestCases').query("_id",testcase.testcaseID).getAt(0);
                     if (originalTC){
                         testcase.name = originalTC.get("name");
@@ -588,9 +622,14 @@ Ext.define("Redwood.controller.RealTimeEvents", {
     addToStore: function(store,item){
         //if (store.find("_id",item._id) == -1){
         if (store.query("_id",item._id).length == 0){
-            var items = store.add(item);
-            store.fireEvent("beforesync",{create:items});
-            items[0].phantom = false;
+            if(item.project && item.project != Ext.util.Cookies.get("project")){
+                return;
+            }
+            else{
+                    var items = store.add(item);
+                    store.fireEvent("beforesync",{create:items});
+                    items[0].phantom = false;
+            }
         }
     }
 

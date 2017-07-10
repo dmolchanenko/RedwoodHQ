@@ -6,6 +6,7 @@ Ext.define('Redwood.view.ResultsView', {
     bodyPadding: 5,
     dataRecord: null,
     viewType: "Results",
+    UpdateResultCache: null,
 
     refreshHeight: function(){
         var grid = this.down("#resultsGrid");
@@ -13,6 +14,43 @@ Ext.define('Redwood.view.ResultsView', {
     },
     listeners:{
         afterrender: function(me){
+            if(me.dataRecord.testcase.tcData){
+                me.down("#testCaseDetails").add({
+                    xtype:"displayfield",
+                    fieldLabel: 'Test Case Data',
+                    labelStyle: "font-weight: bold",
+                    itemId:"tcData",
+                    value:me.dataRecord.testcase.tcData,
+                    anchor:'90%',
+                    renderer: function (value) {
+                        var rows = "";
+
+                        for (var tcDataColumn in value) {
+                            rows += '<div style="display:table-row;">'+
+                                '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b; font-weight: bold;width:100px;white-space: normal;word-wrap: break-word;">'+Ext.util.Format.htmlEncode(tcDataColumn)+'</span>'+
+                                '<span style="display:table-cell; padding: 3px; border: 1px solid #8b8b8b;width:250px;white-space: normal;word-wrap: break-word;">'+Ext.util.Format.htmlEncode(value[tcDataColumn])+'</span>'+
+                                '</div>';
+                        }
+                        var table = '<div style="display:table;table-layout: fixed;width: 100%;">'+ rows +'</div>';
+
+                        return table;
+                    }
+                })
+            }
+            Ext.socket.on('UpdateResult'+me.itemId,function(result){
+                if(!me.UpdateResultCache){
+                    me.UpdateResultCache = result;
+                    setTimeout(function(){
+                        me.refreshResult(me.UpdateResultCache);
+                        me.UpdateResultCache = null;
+                    },3000)
+                }
+                else{
+                    me.UpdateResultCache = result;
+                }
+
+            });
+
             if (me.dataRecord.testcase.script){
                 if(me.dataRecord.screenshot){
                     me.down("#screenShots").addNewScreenShot(me.dataRecord.screenshot._id);
@@ -23,8 +61,9 @@ Ext.define('Redwood.view.ResultsView', {
             }
         },
         beforeclose:function(panel){
+            Ext.socket.removeAllListeners('UpdateResult'+panel.itemId);
             panel.resultsStore.destroy();
-            panel.logStore.destroy();
+            //panel.logStore.destroy();
             panel.dataRecord = null;
         }
     },
@@ -75,6 +114,7 @@ Ext.define('Redwood.view.ResultsView', {
         };
         setTimeout(function(){
             refresh();
+            if(me.down("#status") == null) return;
             if(me.down("#status").getValue() != result.status){
                 me.down("#status").setValue(result.status);
             }
@@ -372,6 +412,58 @@ Ext.define('Redwood.view.ResultsView', {
                                 }
                             }
                         });
+                        //if python
+                        if(value.indexOf("Traceback") == 0){
+                            value.split("File ").forEach(function(line,index){
+                                if(index > 0){
+                                    var filePath = "";
+                                    if(line.indexOf("/src/") != -1){
+                                        filePath = line.substring(line.indexOf("/src/"),line.indexOf(",")-1);
+                                    }
+                                    else if (line.indexOf("\\src\\") != -1){
+                                        filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(",")-1);
+                                    }
+                                    else{
+                                        return
+                                    }
+
+                                    var pathLink = filePath.replace(/\\/g,"/");
+                                    var lineNumber = line.split(",")[1].split(" ")[2];
+                                    pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+'</a></p>';
+
+                                    displayValue += line.replace(filePath,pathLink);
+                                }
+                            });
+                            //displayValue += "adfdsa";
+                        }
+                        //if c#
+                        else if(value.indexOf("   at ") == 0){
+                            value.split("at ").forEach(function(line,index){
+                                if(index > 0){
+                                    var filePath = "";
+                                    var divider = "\\";
+                                    if(line.indexOf("/src/") != -1){
+                                        divider = "/";
+                                        filePath = line.substring(line.indexOf("/src/"),line.indexOf(":line"));
+                                    }
+                                    else if (line.indexOf("\\src\\") != -1){
+                                        filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(":line"));
+                                    }
+                                    else{
+                                        displayValue += line;
+                                    }
+
+                                    var pathLink = filePath.replace(/\\/g,"/");
+                                    var lineNumber = line.split(":line ")[1];
+                                    pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+":line "+lineNumber+'</a></p>';
+
+                                    displayValue += line.replace(filePath.replace(/\//g,divider)+":line "+lineNumber,pathLink);
+                                }
+                            });
+                        }
+                        else{
+                            displayValue += value;
+                        }
                         displayValue += '<p><a style="color: blue;" href="javascript:openDetailedTrace(\''+record.internalId+'\')">Full Trace...</a></p>';
                         meta.tdCls = 'x-redwood-results-cell';
                         return "<p>"+displayValue+"</p>"
@@ -380,9 +472,28 @@ Ext.define('Redwood.view.ResultsView', {
             ]
         });
 
+        var executionID;
+
+        if(me.dataRecord.testcase.executionID){
+            executionID = me.dataRecord.testcase.executionID;
+        }
+        else{
+            executionID = me.executionID;
+        }
         this.logStore =  Ext.create('Ext.data.Store', {
+            autoLoad: true,
             storeId: "ResultLogs"+this.itemId,
             idProperty: '_id',
+            proxy: {
+                type: 'rest',
+                timeout : 240000,
+                url: '/resultslogs/'+me.itemId+"/"+executionID,
+                reader: {
+                    type: 'json',
+                    root: 'logs',
+                    successProperty: 'success'
+                }
+            },
             fields: [
                 {name: 'actionName',     type: 'string'},
                 {name: 'message',     type: 'string'},
@@ -391,28 +502,80 @@ Ext.define('Redwood.view.ResultsView', {
             sorters: [{
                 property : 'date',
                 direction: 'ASC'
-            }],
-            data:[]
+            }]
+            //data:[]
         });
 
+        //this.logStore.
+        /*
         me.dataRecord.logs.forEach(function(log){
             //var timestamp = log._id.substring(0,8);
             me.logStore.add({message:log.message,actionName:log.actionName,date:log.date});
             //logStore.add({message:log.message,actionName:log.actionName,date:new Date( parseInt( timestamp, 16 ) * 1000 )})
         });
+        */
 
         var logGrid = Ext.create('Ext.grid.Panel', {
             store: me.logStore,
             itemId:"executionLogs",
             selType: 'rowmodel',
             height:500,
-            overflowY: 'auto',
             viewConfig: {
                 markDirty: false,
                 enableTextSelection: true
             },
-            plugins: [
-                "bufferedrenderer"],
+            tbar:{
+                xtype: 'toolbar',
+                dock: 'top',
+                items: [
+                    {
+                        width: 400,
+                        fieldLabel: 'Search',
+                        labelWidth: 50,
+                        xtype: 'searchfield',
+                        paramNames: ["message"],
+                        store: me.logStore
+                    },"",
+                    {
+                        icon: 'images/down.png',
+                        hidden:false,
+                        tooltip:"Download Logs.",
+                        handler: function(){
+
+                            var link = document.createElement("a");
+                            var records = "";
+                            me.logStore.each(function(record){
+                                records = records + record.get("actionName") + "\t" + record.get("date")+"\t"+record.get("message") + "\r\n"
+                            });
+
+                            if(Ext.isIE){
+                                var blob = new Blob([records],{
+                                    type: "text/csv;charset=utf-8;"
+                                });
+
+                                navigator.msSaveBlob(blob, "log.txt");
+                            }
+                            else{
+                                var a = window.document.createElement('a');
+                                a.href = window.URL.createObjectURL(new Blob([records], {type: 'text/csv'}));
+                                a.download = 'log.txt';
+
+                                // Append anchor to body.
+                                document.body.appendChild(a);
+                                a.click();
+
+                                // Remove anchor from body
+                                document.body.removeChild(a);
+                            }
+                        }
+                    }
+                ]
+            },
+            plugins: [{
+                ptype:"bufferedrenderer",
+                trailingBufferZone:200,
+                leadingBufferZone:200
+            }],
             columns:[
                 {
                     header: 'Action Name',
@@ -432,7 +595,7 @@ Ext.define('Redwood.view.ResultsView', {
                     flex: 1,
                     renderer: function(value,meta,record){
                         meta.tdCls = 'x-redwood-results-cell';
-                        return "<p>"+value+"</p>"
+                        return "<p>"+Ext.util.Format.htmlEncode(value)+"</p>"
                     }
                 }
 
@@ -517,6 +680,7 @@ Ext.define('Redwood.view.ResultsView', {
                 xtype: 'fieldset',
                 title: 'Details',
                 defaultType: 'displayfield',
+                itemId:"testCaseDetails",
                 flex: 1,
                 collapsible: true,
                 defaults: {
@@ -528,7 +692,14 @@ Ext.define('Redwood.view.ResultsView', {
                         labelStyle: "font-weight: bold",
                         style:"font-weight: bold",
                         itemId:"name",
-                        value:"<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ me.dataRecord.testcase.testcaseID +"&quot;)'>" + me.dataRecord.testcase.name +"</a>",
+                        value:"",
+                        renderer: function (value) {
+                            var name = me.dataRecord.testcase.name;
+                            if(me.dataRecord.testcase.tcData && me.dataRecord.testcase.tcData != ""){
+                                name = name+"_"+me.dataRecord.testcase.rowIndex;
+                            }
+                            return "<a style= 'color:font-weight:bold;blue;' href='javascript:openTestCase(&quot;"+ me.dataRecord.testcase.testcaseID +"&quot;)'>" + name +"</a>"
+                        },
                         anchor:'90%'
                     },
                     {
@@ -591,7 +762,63 @@ Ext.define('Redwood.view.ResultsView', {
                         //maxWidth: 500,
                         minWidth:300,
                         value:me.dataRecord.testcase.trace,
-                        anchor:'90%'
+                        anchor:'90%',
+                        renderer: function(value){
+                            var displayValue = "";
+                            if(value.indexOf("Traceback") == 0){
+                                value.split("File ").forEach(function(line,index){
+                                    if(index > 0){
+                                        var filePath = "";
+                                        if(line.indexOf("/src/") != -1){
+                                            filePath = line.substring(line.indexOf("/src/"),line.indexOf(",")-1);
+                                        }
+                                        else if (line.indexOf("\\src\\") != -1){
+                                            filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(",")-1);
+                                        }
+                                        else{
+                                            displayValue += line;
+                                        }
+
+                                        var pathLink = filePath.replace(/\\/g,"/");
+                                        var lineNumber = line.split(",")[1].split(" ")[2];
+                                        pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+'</a></p>';
+
+                                        displayValue += line.replace(filePath,pathLink);
+                                    }
+                                });
+                                return displayValue;
+                            }
+                            //if c#
+                            else if(value.indexOf("   at ") == 0){
+                                value.split("at ").forEach(function(line,index){
+                                    if(index > 0){
+                                        var filePath = "";
+                                        var divider = "\\";
+                                        if(line.indexOf("/src/") != -1){
+                                            divider = "/";
+                                            filePath = line.substring(line.indexOf("/src/"),line.indexOf(":line"));
+                                        }
+                                        else if (line.indexOf("\\src\\") != -1){
+                                            filePath = line.substring(line.indexOf("\\src\\"),line.indexOf(":line"));
+                                        }
+                                        else{
+                                            displayValue += line;
+                                        }
+
+                                        var pathLink = filePath.replace(/\\/g,"/");
+                                        var lineNumber = line.split(":line ")[1];
+                                        pathLink = '<p><a style="color: blue;" href="javascript:openScript(\''+pathLink+'\',\''+ (parseInt(lineNumber) - 1).toString() +'\')">' + filePath+":line "+lineNumber+'</a></p>';
+
+                                        displayValue += line.replace(filePath.replace(/\//g,divider)+":line "+lineNumber,pathLink);
+                                    }
+                                });
+                                return displayValue;
+                            }
+                            else{
+                                displayValue += value;
+                                return displayValue;
+                            }
+                        }
                     }
 
                 ]

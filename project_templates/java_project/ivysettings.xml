@@ -1,0 +1,7 @@
+<ivysettings>
+    <settings defaultResolver="maven2" />
+    <resolvers>
+        <ibiblio name="maven2" m2compatible="true"/>
+    </resolvers>
+    <caches lockStrategy="artifact-lock-nio"/>
+</ivysettings>

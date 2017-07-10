@@ -1,12 +1,13 @@
 Ext.define('Redwood.ux.CodeEditorField', {
-    extend: 'Ext.form.field.TextArea',
+    extend: 'Ext.panel.Panel',
     alias: 'widget.codeeditorfield',
-    cls: 'codemirror-field',
-    fieldLabel: 'Label',
-    hideLabel: true,
+    layout:     'fit',
+    preventHeader: true,
+    plain:      true,
     anchor:     '100%',
-    allowBlank: true,
     editorType: "text/x-groovy",
+    fireSyncEvent: false,
+    readOnly: false,
 
     isFullScreen: function(){
         return /\bCodeMirror-fullscreen\b/.test(this.editor.getWrapperElement().className);
@@ -56,16 +57,17 @@ Ext.define('Redwood.ux.CodeEditorField', {
 
     onCodeeditorfieldRender: function(abstractcomponent, options) {
         var me = this;
-        var element = document.getElementById(abstractcomponent.getInputId());
-
-        this.editor = CodeMirror.fromTextArea(element, {
+        var target = this.getEl().dom;
+        target.innerHTML = "";
+        this.editor = CodeMirror(target, {
+            readOnly:me.readOnly,
             styleActiveLine: true,
             lineNumbers: true,
             matchBrackets: true,
             autoCloseBrackets: true,
             indentUnit: 4,
             tabSize: 4,
-            anchor:     '100% -20',
+            //anchor:     '100% -20',
             extraKeys:
                 {"Ctrl-S": function(){
                     me.up("scriptBrowser").fireEvent('saveAll',null);
@@ -86,6 +88,17 @@ Ext.define('Redwood.ux.CodeEditorField', {
                 showing.CodeMirror.getWrapperElement().style.height = me.winHeight() + "px";
             }
         });
+        if(me.editorType == "text/x-python"){
+            this.editor.setOption("extraKeys", {
+                Tab: function(cm) {
+                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces,"end");
+                },
+                "Ctrl-S": function(){
+                    me.up("scriptBrowser").fireEvent('saveAll',null);
+                }
+            });
+        }
         this.editor.on("change",function(cm,changeOpt){
             if(me.up("codeeditorpanel").inCollab === true){
                 //console.log(changeOpt);
@@ -96,6 +109,11 @@ Ext.define('Redwood.ux.CodeEditorField', {
                 }
             }
             me.onChange(cm,changeOpt);
+        });
+        this.editor.on("changes",function(cm,changeOpt){
+            if(me.fireSyncEvent == true){
+                me.up('scriptBrowser').fireEvent('syncDiffs',me.up("codeeditorpanel"));
+            }
         });
         this.editor.on("beforeSelectionChange",function(cm,changeOpt){
             if(me.up("codeeditorpanel").inCollab === true){
@@ -143,13 +161,12 @@ Ext.define('Redwood.ux.CodeEditorField', {
     },
 
     destroy: function() {
-        this.editor.toTextArea();
+        this.getEl().dom.removeChild(this.getEl().dom.firstChild);
         this.callParent(arguments);
     },
 
     getValue: function() {
-        this.editor.save();
-        return this.callParent(arguments);
+        return this.editor.getValue();
     },
 
     clearHistory: function() {
@@ -158,8 +175,10 @@ Ext.define('Redwood.ux.CodeEditorField', {
 
     setValue: function(value) {
         if (this.editor) {
+            this.fireSyncEvent = false;
             this.editor.setValue(value);
-            return
+            this.fireSyncEvent = true;
+            return;
             this.editor.setValue("click(action)");
 
             var cacheImage = document.createElement('img');
@@ -190,9 +209,9 @@ Ext.define('Redwood.ux.EditorPanel', {
     preventHeader: true,
     plain:      true,
     editorType: "text/x-groovy",
-    //autoScroll:false,
-
     title:"",
+    closeAfterSave: false,
+    readOnly:false,
 
     initComponent: function() {
         var me = this;
@@ -202,8 +221,8 @@ Ext.define('Redwood.ux.EditorPanel', {
 
                 {
                     xtype: 'codeeditorfield',
+                    readOnly:me.readOnly,
                     editorType:me.editorType,
-                    margin: '0 0 -100 0',
                     onChange: function(cm,changeOpt){
                         if (me.dirty == false){
                             me.setTitle(me.title + "*");
@@ -218,7 +237,7 @@ Ext.define('Redwood.ux.EditorPanel', {
 
         me.callParent(arguments);
         me.on("beforeclose",function(panel){
-            if (this.dirty == true){
+            if (this.dirty == true && Ext.util.Cookies.get('role') != "Test Designer"){
                 var me = this;
                 Ext.Msg.show({
                     title:'Save Changes?',
@@ -227,12 +246,12 @@ Ext.define('Redwood.ux.EditorPanel', {
                     icon: Ext.Msg.QUESTION,
                     fn: function(id){
                         if (id == "no"){
-                            me.destroy();
+                            me.clearDirty();
+                            me.close();
                         }
                         if (id == "yes"){
-                            //me.fireEvent('saveAll');
+                            me.closeAfterSave = true;
                             me.up('scriptBrowser').fireEvent('saveAll');
-                            me.destroy();
                         }
                     }
                 });
@@ -255,7 +274,8 @@ Ext.define('Redwood.ux.EditorPanel', {
     },
 
     focus: function() {
-        this.down('codeeditorfield').focus();
+        var editField = this.down('codeeditorfield');
+        if(editField != null) editField.focus();
     },
 
     getValue: function() {

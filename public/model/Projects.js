@@ -22,6 +22,18 @@ Ext.define('Redwood.model.Projects', {
         {
             name: '_id',
             type: 'string'
+        },
+        {
+            name: 'externalRepo',
+            type: 'boolean'
+        },
+        {
+            name: 'externalRepoURL',
+            type: 'string'
+        },
+        {
+            name: 'tcFields',
+            type: 'array'
         }
     ]
 });

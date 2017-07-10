@@ -258,6 +258,7 @@
             });
             Ext.defer(boxKeyNav.enable, 1, boxKeyNav);
         }
+        me.fireEvent('boxready',me);
     },
     onDestroy: function() {
         var me = this;

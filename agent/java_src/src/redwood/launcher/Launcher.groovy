@@ -29,6 +29,8 @@ class Launcher {
 
     public static Map<String,String> variables = [:]
 
+    public static def threadID
+
     public static log(String message){
         def toServer = [:]
         toServer.command = "Log Message"
@@ -69,7 +71,7 @@ class Launcher {
                             def command = new JsonSlurper().parseText(line)
                             //output << '{"error":null,"status":"started"}--EOM--'
                             if (command.command == "run action"){
-                                this.currentAction = command
+                                //this.currentAction = command
                                 runAction(command)
                                 output<<groovy.json.JsonOutput.toJson(command)+"--EOM--"
                             }
@@ -90,6 +92,8 @@ class Launcher {
             if (action.testcaseName){
                 globals.testcaseName = action.testcaseName
             }
+
+            threadID = action.threadID
 
             if (action.variables){
                 action.variables.each{

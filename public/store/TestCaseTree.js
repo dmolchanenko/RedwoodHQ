@@ -91,6 +91,10 @@ Ext.define('Redwood.store.TestCaseTree', {
     add: function(records){
         var me = this;
         records.forEach(function(action){
+            //if another project ignore it
+            if(action.project && action.project != Ext.util.Cookies.get("project")){
+                return;
+            }
             var tags;
             var ID;
             var name;

@@ -15,28 +15,29 @@ exports.uploadFromAgent = function(req, res){
         var target_path = path.resolve(__dirname,"../public/") + "/"+files.file[0].originalFilename;
         res.contentType('text/html');
         fs.exists(target_path,function(exists){
-            checkDir(target_path);
-            console.log(target_path);
-            //return;
-            if (exists){
-                res.send('{error:"File already exists."}');
-                fs.unlink(tmp_path);
-                return;
-            }
-            // move the file from the temporary location to the intended location
-            fs.rename(tmp_path, target_path, function(err) {
-
-                if (err){
-                    res.send('{error:"'+err+'"}');
+            checkDir(target_path,function(){
+                //console.log(target_path);
+                //return;
+                if (exists){
+                    res.send('{error:"File already exists."}');
+                    fs.unlink(tmp_path,function(err){});
                     return;
                 }
-                // delete the temporary file, so that the explicitly set temporary upload dir does not get filled with unwanted files
-                fs.unlink(tmp_path, function(err) {
-                    var gitInfo = git.getGitInfo(target_path);
+                // move the file from the temporary location to the intended location
+                fs.rename(tmp_path, target_path, function(err) {
 
-                    git.add(gitInfo.path,gitInfo.fileName,function(){
-                        git.commit(gitInfo.path,gitInfo.fileName,function(){
-                            res.send("{error:null,success:true}");
+                    if (err){
+                        res.send('{error:"'+err+'"}');
+                        return;
+                    }
+                    // delete the temporary file, so that the explicitly set temporary upload dir does not get filled with unwanted files
+                    fs.unlink(tmp_path, function(err) {
+                        var gitInfo = git.getGitInfo(target_path);
+
+                        git.add(gitInfo.path,gitInfo.fileName,function(){
+                            //git.commit(gitInfo.path,gitInfo.fileName,function(){
+                                res.send("{error:null,success:true}");
+                            //});
                         });
                     });
                 });
@@ -45,7 +46,7 @@ exports.uploadFromAgent = function(req, res){
     });
 };
 
-function checkDir(filePath){
+function checkDir(filePath,callback){
     var dirs = filePath.split("/");
     var parent = "";
     for(var i = 0;i<dirs.length-1;i++){
@@ -57,6 +58,7 @@ function checkDir(filePath){
         }
         parent = parent + dirs[i] + "/"
     }
+    callback();
 }
 
 exports.uploadDone = function(req, res){

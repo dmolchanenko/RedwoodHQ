@@ -14,18 +14,43 @@ var git = require('../gitinterface/gitcommands');
 var rootDir = path.resolve(__dirname,"../public/automationscripts/")+"/";
 var nodemailer = require("nodemailer");
 var spawn = require('child_process').spawn;
+var os = require('os');
+var archiver = require('archiver');
 var db;
+var compilations = {};
+var fileSync = {};
+var ObjectID = require('mongodb').ObjectID;
+var elasticSearch = require("../routes/elasticsearch");
 
 exports.stopexecutionPost = function(req, res){
     var execution = executions[req.body.executionID];
-    if(!execution) return;
+    if(!execution) {
+        res.contentType('json');
+        res.json({success:true});
+        //update execution status in DB anyway
+        updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true);
+        return;
+    }
+    if(execution.fileReqs){
+        execution.fileReqs.forEach(function(req){
+            req.end();
+            req.destroy();
+        })
+    }
+
     cleanUpMachines(execution.machines,req.body.executionID);
     unlockMachines(execution.machines);
     unlockCloudMachines(execution.machines);
     for(var testcase in execution.currentTestCases){
-        updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+        if(execution.currentTestCases[testcase].testcase.dbTestCase.tcData && execution.currentTestCases[testcase].testcase.dbTestCase.tcData.length > 0){
+            updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+        }
+        else{
+            updateExecutionTestCase({_id:execution.testcases[testcase]._id},{$set:{status:"Not Run","result":"",resultID:null,error:"",trace:"",startdate:"",enddate:"",runtime:""}});
+        }
     }
-    git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+    //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"jar_"+req.body.executionID);
+    deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
     common.logger.log("Stop button was pushed");
     cleanExecutionMachines(req.body.executionID,function(){
         updateExecution({_id:req.body.executionID},{$set:{status:"Ready To Run"}},true,function(){
@@ -56,6 +81,15 @@ exports.startexecutionPost = function(req, res){
     var variables = {};
     var testcases = req.body.testcases;
     var template = null;
+
+    //clean up previous files if needed
+    /*
+    for(var file in fileSync){
+        if (file.indexOf() != "_id"){
+            record.getAt(0).set(propt,item[propt]);
+        }
+    }
+    */
 
     req.body.variables.forEach(function(variable){
         variables[variable.name] = variable.value;
@@ -96,76 +130,98 @@ exports.startexecutionPost = function(req, res){
     }
 
     executions[executionID] = {template:template,sendEmail:sendEmail,ignoreAfterState:ignoreAfterState,ignoreStatus:ignoreStatus,ignoreScreenshots:ignoreScreenshots,allScreenshots:allScreenshots,testcases:{},machines:machines,variables:variables,currentTestCases:{},project:req.cookies.project,username:req.cookies.username,returnVars:{}};
+    updateExecution({_id:executionID},{$set:{status:"Running",user:req.cookies.username}},false);
 
     compileBuild(req.cookies.project,req.cookies.username,function(err){
         if (err != null){
             res.contentType('json');
             res.json({error:"Unable to compile scripts."});
+            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
             delete executions[executionID];
         }
         else{
             //copy files for each execution to prevent conflicts
-            git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar","jar_"+executionID,function(){
-                cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
-                    executions[executionID].sourceCache = sourceCache;
-                    verifyMachineState(machines,function(err){
-                        if(err){
-                            updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
-                            res.contentType('json');
-                            res.json({error:err});
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
-                            delete executions[executionID];
-                            return;
-                        }
-                        VerifyCloudCapacity(executions[executionID].template,function(response){
-                            if(response.err || response.capacityAvailable == false){
-                                var message = "";
-                                if(response.err){
-                                    message = response.err
-                                }
-                                else{
-                                    message = "Cloud does not have the capacity to run this execution."
-                                }
-                                updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
-                                res.contentType('json');
-                                res.json({error:"Cloud Error: "+message});
-                                git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
-                                delete executions[executionID];
+            //git.copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar",os.tmpDir()+"/jar_"+executionID,function(){
+            copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+executionID,function(){
+                copyFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build/jar"),os.tmpDir()+"/jar_"+executionID,function(){
+                    zipPythonFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),os.tmpDir()+"/jar_"+executionID,function(){
+                        cacheSourceCode(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username),function(sourceCache){
+                            if(executions[executionID]){
+                                executions[executionID].sourceCache = sourceCache;
+                            }
+                            else{
                                 return;
                             }
-                            res.contentType('json');
-                            res.json({success:true});
-                            lockMachines(machines,executionID,function(){
-                                if(executions[executionID].template){
-                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
+                            verifyMachineState(machines,function(err){
+                                if(err){
+                                    updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true);
+                                    res.contentType('json');
+                                    res.json({error:err});
+                                    //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                    deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
+                                    delete executions[executionID];
+                                    return;
                                 }
-                                else{
-                                    updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
-                                }
-                                StartCloudMachines(template,executionID,function(cloudMachines){
-                                    if(cloudMachines.err){
-                                        unlockMachines(machines);
-                                        updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
-                                        git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),"jar_"+req.body.executionID);
+                                VerifyCloudCapacity(executions[executionID].template,function(response){
+                                    if(response.err || response.capacityAvailable == false){
+                                        var message = "";
+                                        if(response.err){
+                                            message = response.err
+                                        }
+                                        else{
+                                            message = "Cloud does not have the capacity to run this execution."
+                                        }
+                                        updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+message}},true);
+                                        res.contentType('json');
+                                        res.json({error:"Cloud Error: "+message});
+                                        //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                        deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
                                         delete executions[executionID];
                                         return;
                                     }
-                                    if(executions[executionID].template){
-                                        updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
-                                    }
-                                    executions[executionID].machines = machines.concat(cloudMachines);
-                                    getGlobalVars(executionID,function(){
-                                        testcases.forEach(function(testcase){
-                                            executions[executionID].testcases[testcase.testcaseID] = testcase;
-                                        });
-                                        //see if there is a base state
-                                        suiteBaseState(executionID,executions[executionID].machines,function(){
-                                            //magic happens here
-                                            applyMultiThreading(executionID,function(){
-                                                updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
-                                                    executeTestCases(executions[executionID].testcases,executionID);
+                                    res.contentType('json');
+                                    res.json({success:true});
+                                    lockMachines(machines,executionID,function(){
+                                        if(executions[executionID].template){
+                                            updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:"Provisioning Virtual Machines..."}},false);
+                                        }
+                                        else{
+                                            updateExecution({_id:executionID},{$set:{status:"Running",cloudStatus:""}},false);
+                                        }
+                                        StartCloudMachines(template,executionID,function(cloudMachines){
+                                            if(cloudMachines.err){
+                                                unlockMachines(machines);
+                                                updateExecution({_id:executionID},{$set:{status:"Ready To Run",cloudStatus:"Error: "+cloudMachines.err}},true);
+                                                //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+req.cookies.project+"/"+req.cookies.username+"/build"),os.tmpDir()+"/jar_"+req.body.executionID);
+                                                deleteDir(os.tmpDir()+"/jar_"+req.body.executionID);
+                                                delete executions[executionID];
+                                                return;
+                                            }
+                                            if(executions[executionID].template){
+                                                updateExecution({_id:executionID},{$set:{cloudStatus:"Virtual Machines have been provisioned."}},false);
+                                            }
+                                            executions[executionID].machines = machines.concat(cloudMachines);
+                                            getGlobalVars(executionID,function(){
+                                                testcases.forEach(function(testcase){
+                                                    testcase.dbID = testcase.testcaseID;
+                                                    if(testcase.tcData){
+                                                        testcase.testcaseID = testcase.testcaseID+testcase.rowIndex;
+                                                        executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                                    }
+                                                    else{
+                                                        executions[executionID].testcases[testcase.testcaseID] = testcase;
+                                                    }
                                                 });
-                                            })
+                                                //see if there is a base state
+                                                suiteBaseState(executionID,executions[executionID].machines,function(){
+                                                    //magic happens here
+                                                    applyMultiThreading(executionID,function(){
+                                                        updateExecution({_id:executionID},{$set:{status:"Running",lastRunDate:new Date()}},false,function(){
+                                                            executeTestCases(executions[executionID].testcases,executionID);
+                                                        });
+                                                    })
+                                                });
+                                            });
                                         });
                                     });
                                 });
@@ -178,10 +234,77 @@ exports.startexecutionPost = function(req, res){
     });
 };
 
+function zipPythonFiles(projectDir,destDir,callback){
+    fs.mkdir(destDir,function(){
+        fs.exists(projectDir + "/PythonWorkDir",function(exists){
+            if(exists == true){
+                git.lsFiles(projectDir + "/src/",["*.py"],function(data){
+                    if ((data != "")&&(data.indexOf("\n") != -1)){
+                        var libDir = projectDir + "/PythonWorkDir/Lib";
+                        if(process.platform != "win32"){
+                            libDir = projectDir + "/PythonWorkDir/lib/python2.7";
+                        }
+                        zipDir(libDir,destDir+"/pythonLibs.zip",['**','!**.pyc','!**/*.pyc'],function(){
+                            zipDir(projectDir + "/src/",destDir+"/pythonSources.zip",['**/*.py','**.py','**/*.cfg','**/*.ini'],function(){
+                                callback();
+                            });
+                        })
+                    }
+                    else{
+                        callback();
+                    }
+                });
+            }
+            else{
+                callback()
+            }
+        });
+    });
+}
+
+function zipDir(sourceDir,targetFile,pattern,callback){
+    fs.exists(sourceDir,function(exists){
+        if(exists == true){
+            var output = fs.createWriteStream(targetFile);
+            /*
+            var archive = archiver('tar', {
+                gzip: true,
+                gzipOptions: {
+                    level: 1
+                }
+            });
+            */
+            var archive = archiver('zip');
+
+            output.on('close', function () {
+                output.end();
+                callback();
+                console.log(archive.pointer() + ' total bytes');
+                console.log('archiver has been finalized and the output file descriptor has closed.');
+            });
+
+            archive.on('error', function(err){
+                console.log(err);
+                //throw err;
+            });
+
+            archive.pipe(output);
+            archive.bulk([
+                { expand: true, cwd: sourceDir, src: pattern}
+            ]);
+            archive.finalize();
+        }
+        else{
+            callback()
+        }
+    })
+}
+
 exports.compileBuild = function(project,username,callback){compileBuild(project,username,callback)};
 
 function compileBuild(project,username,callback){
     var workDir = rootDir+project+"/"+username;
+    var msg = {project:project,username:username,java:true,python:true,csharp:true};
 
     var compileScripts = function(){
         var compileOut = "";
@@ -191,8 +314,8 @@ function compileBuild(project,username,callback){
             id += Math.floor(Math.random() * 10).toString(16);
         }
 
-        compile.operation({project:project,username:username},id,function(data){compileOut = compileOut + data},function(){
-            if (compileOut.indexOf("BUILD SUCCESSFUL") == -1){
+        compile.operation(msg,id,function(data){compileOut = compileOut + data},function(){
+            if (compileOut.indexOf("BUILD FAILED") != -1){
                 callback("unable to compile")
             }
             else{
@@ -201,27 +324,83 @@ function compileBuild(project,username,callback){
 
         })
     };
+    needToCompileJava(workDir,project,function(compileJava){
+        msg.java = compileJava;
+        needToCompilePython(workDir,project,username,function(compilePython){
+            msg.python = compilePython;
+            needToCompileCSharp(workDir,project,function(compileCSharp){
+                msg.csharp = compileCSharp;
+                compileScripts();
+            })
+        })
+    })
 
+
+}
+
+function needToCompilePython(workDir,project,username,callback){
+    var needToCompile = true;
+    if(compilations[project+username+"python"]){
+        git.filesModifiedSinceDate(workDir,compilations[project+username+"python"],function(data){
+            if (data == ""){
+                needToCompile = false;
+            }
+            else{
+                compilations[project+username+"python"] = new Date();
+            }
+            callback(needToCompile)
+        });
+    }
+    else{
+        compilations[project+username+"python"] = new Date();
+        callback(needToCompile);
+    }
+}
+
+function needToCompileJava(workDir,project,callback){
+    var needToCompile = true;
     fs.exists(workDir+"/build/jar/"+project+".jar", function (exists) {
         if(exists == true){
             fs.stat(workDir+"/build/jar/"+project+".jar",function(err,stats){
                 if(err) {
-                    compileScripts();
+                    callback(needToCompile);
                 }
                 else{
-                    git.commitsSinceDate(workDir,stats.mtime,function(data){
-                        if (data == "0\n"){
-                            callback(null)
+                    git.filesModifiedSinceDate(workDir,stats.mtime,function(data){
+                        if (data == ""){
+                            needToCompile = false;
                         }
-                        else{
-                            compileScripts();
-                        }
+                        callback(needToCompile)
                     });
                 }
             });
         }
         else{
-            compileScripts()
+            callback(needToCompile);
+        }
+    });
+}
+
+function needToCompileCSharp(workDir,project,callback){
+    var needToCompile = true;
+    fs.exists(workDir+"/build/RedwoodHQAutomation.dll", function (exists) {
+        if(exists == true){
+            fs.stat(workDir+"/build/RedwoodHQAutomation.dll",function(err,stats){
+                if(err) {
+                    callback(needToCompile);
+                }
+                else{
+                    git.filesModifiedSinceDate(workDir,stats.mtime,function(data){
+                        if (data == ""){
+                            needToCompile = false;
+                        }
+                        callback(needToCompile)
+                    });
+                }
+            });
+        }
+        else{
+            callback(needToCompile);
         }
     });
 }
@@ -232,17 +411,17 @@ function applyMultiThreading(executionID,callback){
     var mainMachinesCount = executions[executionID].machines.length;
     executions[executionID].machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machine._id)}, {}, function(err, dbMachine) {
                 var startThread = 0;
                 if(dbMachine){
                     startThread = dbMachine.takenThreads - machine.threads;
                 }
-                if(startThread != 0){
-                    startThread = dbMachine.lastStartThread + 1
-                }
+                //if(startThread != 0){
+                //    startThread = dbMachine.lastStartThread + 1
+                //}
 
-                collection.findAndModify({_id:db.bson_serializer.ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
-                });
+                //collection.findAndModify({_id:new ObjectID(machine._id)},{},{$set:{lastStartThread:startThread}},{safe:true,new:true},function(err,data){
+                //});
                 common.logger.info("staring at:"+startThread);
                 machine.threadID = startThread;
                 //if more than one thread run base state if not let it go
@@ -259,6 +438,7 @@ function applyMultiThreading(executionID,callback){
                             }
                             newMachine.threadID = i+startThread-1;
                             common.logger.info(newMachine);
+                            if(!executions[executionID]) return;
                             executions[executionID].machines.push(newMachine);
                             sendAgentCommand(newMachine.host,newMachine.port,{command:"start launcher",executionID:executionID,threadID:newMachine.threadID},3,function(err){
                                 newMachineCount++;
@@ -314,8 +494,8 @@ function suiteBaseState(executionID,machines,callback){
                 collection.insert({baseState:true,name:machine.host+"_state",status:"Automated",type:"collection",collection:[{order:"1",actionid:machine.baseState,host:machine.host,executionflow:"Record Error Stop Test Case",parameters:[]}]}, {safe:true},function(err,testcaseData){
                     db.collection('executiontestcases', function(err, collection) {
                         //collection.save({_id:machine.resultID},{},{$set:{executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.resultID}}, {safe:true,new:true},function(err,returnData){
-                        collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.__id,_id: machine.baseStateTCID},function(err,returnData){
-                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.__id,retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",type:"collection"});
+                        collection.save({baseState:true,executionID:executionID,name:machine.host+"_state",status:"Not Run",testcaseID:testcaseData[0]._id.toString(),_id: machine.baseStateTCID},function(err,returnData){
+                            suiteBaseTCs.push({testcaseID:testcaseData[0]._id.toString(),retryCount:0,_id:machine.baseStateTCID,status:"Not Run",name:machine.host+"_state",dbID:testcaseData[0]._id.toString(),type:"collection"});
                             count++;
                             lastMachine();
                         });
@@ -395,7 +575,8 @@ function executeTestCases(testcases,executionID){
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
                             if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),"jar_"+executionID);
+                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
+                            deleteDir(os.tmpDir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -417,15 +598,23 @@ function executeTestCases(testcases,executionID){
         }
         else{
             if(executions[executionID]){
+                var shouldFinish = true;
+                //if something is running dont finish the execution
+                for(var tc in executions[executionID].testcases) {
+                    if(tc.finished == false) shouldFinish = false;
+                }
+                if(shouldFinish == false) return;
                 unlockCloudMachines(executions[executionID].machines);
                 unlockMachines(executions[executionID].machines,function(){
+                    if(!executions[executionID]) return;
                     cleanUpMachines(executions[executionID].machines,executionID,function(){
 
                     });
                     updateExecution({_id:executionID},{$set:{status:"Ready To Run"}},true,function(){
                         executionsRoute.updateExecutionTotals(executionID,function(){
-                            if(executions[executionID].sendEmail == true) sendNotification(executionID);
-                            git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),"jar_"+executionID);
+                            if(executions[executionID] && executions[executionID].sendEmail == true) sendNotification(executionID);
+                            //git.deleteFiles(path.join(__dirname, '../public/automationscripts/'+executions[executionID].project+"/"+executions[executionID].username+"/build"),os.tmpDir()+"/jar_"+executionID);
+                            deleteDir(os.tmpDir()+"/jar_"+executionID);
                             delete executions[executionID];
                         });
                     });
@@ -467,7 +656,7 @@ function executeTestCases(testcases,executionID){
             return;
         }
         testcases[tcArray[count]].executing = true;
-        startTCExecution(testcases[tcArray[count]].testcaseID,variables,executionID,function(){
+        startTCExecution(testcases[tcArray[count]].testcaseID,testcases[tcArray[count]].dbID,variables,executionID,function(){
             if (!executions[executionID]) return;
             count++;
             var machineAvailable = false;
@@ -522,16 +711,21 @@ function executeTestCases(testcases,executionID){
     if (count == 0) nextTC();
 }
 
-function startTCExecution(id,variables,executionID,callback){
-    GetTestCaseDetails(id,executionID,function(testcase,result,hosts){
+function startTCExecution(id,dbID,variables,executionID,callback){
+    GetTestCaseDetails(id,dbID,executionID,function(testcase,result,hosts){
         if(testcase == null){
             callback();
             return;
         }
+        //if(executions[executionID].testcases[id].tcData && executions[executionID].testcases[id].tcData != ""){
+        //    testcase.tcData = executions[executionID].testcases[id].tcData;
+        //}
+        testcase.variables = {};
         testcase.machines = [];
         testcase.machineVars = [];
         var reservedHosts = [];
         var busyMachines = false;
+        if(!executions[executionID]) return;
         executions[executionID].machines.forEach(function(machine,index){
             if(machine.runningTC != undefined){
                 busyMachines = true;
@@ -564,7 +758,24 @@ function startTCExecution(id,variables,executionID,callback){
         createResult(result,function(writtenResult){
             result._id = writtenResult[0]._id;
             result.executionID = executionID;
-            executions[executionID].currentTestCases[testcase.dbTestCase._id] = {testcase:testcase,result:result,executionTestCaseID:id};
+            if(executions[executionID].testcases[id].tcData && executions[executionID].testcases[id].tcData != ""){
+                result.tcData = executions[executionID].testcases[id].tcData;
+                result.rowIndex = executions[executionID].testcases[id].rowIndex;
+            }
+            if(!executions[executionID]) return;
+            executions[executionID].currentTestCases[id] = {testcase:testcase,result:result,executionTestCaseID:id};
+
+            for (var attrname in testcase.machineVars) { testcase.variables[attrname] = testcase.machineVars[attrname]; }
+            for (var attrname in variables) { testcase.variables[attrname] = variables[attrname]; }
+            if(result.rowIndex){
+                testcase.variables["Framework.TestCaseName"] = testcase.dbTestCase.name+"_"+result.rowIndex;
+            }
+            else{
+                testcase.variables["Framework.TestCaseName"] = testcase.dbTestCase.name;
+            }
+            if (result.tcData){
+                for (var tcDataColumn in result.tcData) { testcase.variables["TCData."+tcDataColumn] = result.tcData[tcDataColumn]; }
+            }
             //testcase.machines = [];
 
             testcase.startDate = new Date();
@@ -588,7 +799,7 @@ function startTCExecution(id,variables,executionID,callback){
                 result.result = error;
                 updateResult(result);
                 //executions[executionID].testcases[id].result = result;
-                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                 callback();
                 return;
             }
@@ -601,7 +812,7 @@ function startTCExecution(id,variables,executionID,callback){
                 result.status = "Finished";
                 result.result = "Passed";
                 updateResult(result);
-                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                 callback();
                 return;
             }
@@ -647,7 +858,7 @@ function startTCExecution(id,variables,executionID,callback){
                 result.status = "Finished";
                 result.result = "Failed";
                 updateResult(result);
-                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                 callback();
                 return;
             }
@@ -657,7 +868,8 @@ function startTCExecution(id,variables,executionID,callback){
 
             //var startTC = function(){
 
-            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id,variables:executions[executionID].variables};
+            //var agentInstructions = {command:"run action",executionID:executionID,testcaseID:testcase.dbTestCase._id,variables:executions[executionID].variables};
+            var agentInstructions = {command:"run action",executionID:executionID,testcaseID:id,variables:executions[executionID].variables};
 
             var foundMachine = null;
 
@@ -669,9 +881,9 @@ function startTCExecution(id,variables,executionID,callback){
                         result.status = "Finished";
                         result.result = "Failed";
                         updateResult(result);
-                        if (executions[executionID]){
-                            executions[executionID].currentTestCases[testcase.dbTestCase._id].result = result;
-                            finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                        if (executions[executionID] && executions[executionID].currentTestCases[id]){
+                            executions[executionID].currentTestCases[id].result = result;
+                            finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                         }
                     }
                     else{
@@ -689,7 +901,7 @@ function startTCExecution(id,variables,executionID,callback){
                     result.result = "Failed";
                     updateResult(result);
                     //executions[executionID].testcases[id].result = result;
-                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                     return;
                 }
                 agentInstructions.name = testcase.name;
@@ -698,7 +910,8 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.executionID = executionID;
                 agentInstructions.testcaseName = testcase.name;
                 agentInstructions.script = testcase.script;
-                agentInstructions.resultID = result._id.__id;
+                agentInstructions.scriptLang = testcase.scriptLang;
+                agentInstructions.resultID = result._id.toString();
                 agentInstructions.parameters = [];
                 agentInstructions.type = testcase.dbTestCase.type;
 
@@ -715,14 +928,14 @@ function startTCExecution(id,variables,executionID,callback){
                 executionsRoute.updateExecutionTotals(executionID);
                 if (foundMachine.runBaseState === true){
                     if (foundMachine.multiThreaded  == true){
-                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                     }
                     else{
                         //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
                         //could have changed while test case was running
-                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},3,function(message){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},30,function(message){
                             if (message.loaded == true){
-                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                             }
                             else{
                                 runBaseState();
@@ -739,18 +952,15 @@ function startTCExecution(id,variables,executionID,callback){
                 return;
             }
 
-            callback();
-            for (var attrname in testcase.machineVars) { variables[attrname] = testcase.machineVars[attrname]; }
-            variables["Framework.TestCaseName"] = testcase.dbTestCase.name;
-            findNextAction(testcase.actions,variables,function(action){
+            findNextAction(testcase.actions,testcase.variables,function(action){
                 if (!executions[executionID]) return;
-                if(!executions[executionID].currentTestCases[testcase.dbTestCase._id]) return;
+                if(!executions[executionID].currentTestCases[id]) return;
                 if(action == null){
-                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[testcase.dbTestCase._id]);
+                    finishTestCaseExecution(executions[executionID],executionID,executions[executionID].testcases[id]._id,executions[executionID].currentTestCases[id]);
                     return;
                 }
 
-                executions[executionID].currentTestCases[testcase.dbTestCase._id].currentAction = action;
+                executions[executionID].currentTestCases[id].currentAction = action;
 
                 agentInstructions.name = action.name;
                 agentInstructions.executionflow = action.dbAction.executionflow;
@@ -760,7 +970,8 @@ function startTCExecution(id,variables,executionID,callback){
                 agentInstructions.returnValueName = action.dbAction.returnvalue;
                 agentInstructions.testcaseName = testcase.dbTestCase.name;
                 agentInstructions.script = action.script;
-                agentInstructions.resultID = result._id.__id;
+                agentInstructions.scriptLang = action.scriptLang;
+                agentInstructions.resultID = result._id.toString();
                 agentInstructions.parameters = [];
                 action.dbAction.parameters.forEach(function(parameter){
                     agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
@@ -774,24 +985,24 @@ function startTCExecution(id,variables,executionID,callback){
                     }
                 });
 
-
+                callback();
                 agentInstructions.threadID = foundMachine.threadID;
                 updateExecutionTestCase({_id:executions[executionID].testcases[id]._id},{$set:{"status":"Running","result":"",error:"",trace:"",resultID:result._id,startdate:testcase.startDate,enddate:"",runtime:"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
                 if ((testcase.machines.length > 0) &&((testcase.machines[0].baseState))){
-                    updateExecutionMachine(executionID,testcase.machines[0]._id,"",result._id.__id);
+                    updateExecutionMachine(executionID,testcase.machines[0]._id,"",result._id.toString());
                 }
                 executionsRoute.updateExecutionTotals(executionID);
 
                 if (foundMachine.runBaseState === true){
                     if (foundMachine.multiThreaded  == true){
-                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                        sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                     }
                     else{
                         //make sure the files are actually there, in case of revert to snapshot or not persistent VMs files
                         //could have changed while test case was running
-                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},3,function(message){
+                        sendAgentCommand(foundMachine.host,foundMachine.port,{command:"files loaded",executionID:executionID},30,function(message){
                             if (message.loaded == true){
-                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,3);
+                                sendAgentCommand(foundMachine.host,foundMachine.port,agentInstructions,30);
                             }
                             else{
                                 runBaseState();
@@ -809,21 +1020,35 @@ function startTCExecution(id,variables,executionID,callback){
 }
 
 exports.logPost = function(req,res){
-    var record = req.body;
-    delete record.command;
+    var insertLogMessage = function(record){
+        var executionID = record.executionID.replace(/-/g, '');
+        delete record.command;
+        delete record.executionID;
 
-    db.collection('executionlogs', function(err, collection) {
-        collection.insert(record, {safe:true},function(err,returnData){
-            res.contentType('json');
-            res.json({success:true});
-            realtime.emitMessage("AddExecutionLog",record);
+        db.collection('executionlogs'+executionID, function(err, collection) {
+            collection.insert(record, {safe:true},function(err,returnData){
+            });
         });
-    });
+    };
+    if(Array.isArray(req.body) == true){
+        req.body.forEach(function(record){
+            insertLogMessage(record);
+        });
+        realtime.emitMessage("AddExecutionLog",req.body);
+    }
+    else{
+        insertLogMessage(req.body);
+        realtime.emitMessage("AddExecutionLog",[req.body]);
+    }
+    res.contentType('json');
+    res.set('Connection','Close');
+    res.json({success:true});
 };
 
 
 exports.actionresultPost = function(req, res){
     res.contentType('json');
+    res.set('Connection','Close');
     res.json({success:true});
 
     var execution = executions[req.body.executionID];
@@ -844,6 +1069,8 @@ exports.actionresultPost = function(req, res){
         if (req.body.trace){
             formatTrace(req.body.trace,execution.sourceCache,function(trace){
                 testcase.result.trace = trace;
+                testcase.trace = trace;
+                if(trace == "") testcase.result.trace = req.body.trace;
                 updateResult(testcase.result);
             });
         }
@@ -854,17 +1081,20 @@ exports.actionresultPost = function(req, res){
         return;
     }
 
+    var actionFlow = testcase.currentAction.dbAction.executionflow;
     testcase.currentAction.result.status = "Finished";
+
     testcase.currentAction.result.result = req.body.result;
-    if(!testcase.result.error){
-        testcase.result.error = "";
-    }
-    if (req.body.error){
+    if (req.body.error && actionFlow != "Ignore Error Continue Test Case"){
         testcase.result.error = req.body.error;
         testcase.currentAction.result.error = req.body.error;
     }
 
-    if (req.body.trace){
+    if(!testcase.result.error){
+        testcase.result.error = "";
+    }
+
+    if (req.body.trace && actionFlow != "Ignore Error Continue Test Case"){
         testcase.result.trace = req.body.trace;
         testcase.currentAction.result.trace = req.body.trace;
         testcase.trace = req.body.trace;
@@ -886,7 +1116,6 @@ exports.actionresultPost = function(req, res){
         //execution.variables[testcase.currentAction.dbAction.returnvalue] = req.body.returnValue;
     }
 
-    var actionFlow = testcase.currentAction.dbAction.executionflow;
     if (req.body.result == "Failed"){
         if (actionFlow == "Record Error Stop Test Case"){
             testcase.result.status = "Finished";
@@ -915,17 +1144,14 @@ exports.actionresultPost = function(req, res){
             testcase.currentAction.result.result = "";
             testcase.currentAction.result.trace = "";
             testcase.currentAction.result.error = "";
-            testcase.result.result = "";
-            testcase.result.error = "";
+            //testcase.result.result = "";
+            //testcase.result.error = "";
         }
     }
 
-    markFinishedResults(testcase.result.children,execution.sourceCache,function(){
-        updateResult(testcase.result);
-    });
 
     var actionVariables = {};
-    for (var attrname in execution.variables) { actionVariables[attrname] = execution.variables[attrname]; }
+    for (var attrname in testcase.testcase.variables) { actionVariables[attrname] = testcase.testcase.variables[attrname]; }
     for (var attrname in testcase.machineVars) { actionVariables[attrname] = testcase.machineVars[attrname]; }
     if(execution.returnVars[testcase.executionTestCaseID]){
         for (var attrname in execution.returnVars[testcase.executionTestCaseID]) { actionVariables[attrname] = execution.returnVars[testcase.executionTestCaseID][attrname]; }
@@ -935,9 +1161,16 @@ exports.actionresultPost = function(req, res){
         if(action == null){
             testcase.result.status = "Finished";
             if(testcase.result.result != "Failed") testcase.result.result = "Passed";
-            updateResult(testcase.result);
+            markFinishedResults(testcase.result.children,execution.sourceCache,function(){
+                updateResult(testcase.result);
+            });
             finishTestCaseExecution(execution,req.body.executionID,execution.testcases[testcase.executionTestCaseID]._id,testcase);
             return;
+        }
+        else{
+            markFinishedResults(testcase.result.children,execution.sourceCache,function(){
+                updateResult(testcase.result);
+            });
         }
 
         var foundMachine = null;
@@ -952,9 +1185,9 @@ exports.actionresultPost = function(req, res){
         updateExecutionTestCase({_id:execution.testcases[testcase.executionTestCaseID]._id},{$set:{"status":"Running","result":"",host:foundMachine.host,vncport:foundMachine.vncport}},foundMachine.host,foundMachine.vncport);
         testcase.result.status = "Running";
 
-        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.testcase.dbTestCase._id,variables:execution.variables};
+        var agentInstructions = {command:"run action",executionID:req.body.executionID,threadID:foundMachine.threadID,testcaseID:testcase.executionTestCaseID,variables:testcase.testcase.variables};
 
-        execution.currentTestCases[testcase.testcase.dbTestCase._id].currentAction = action;
+        execution.currentTestCases[testcase.executionTestCaseID].currentAction = action;
 
         agentInstructions.name = action.name;
         agentInstructions.executionflow = action.dbAction.executionflow;
@@ -964,7 +1197,8 @@ exports.actionresultPost = function(req, res){
         agentInstructions.returnValueName = action.dbAction.returnvalue;
         agentInstructions.testcaseName = testcase.testcase.dbTestCase.name;
         agentInstructions.script = action.script;
-        agentInstructions.resultID = testcase.result._id.__id;
+        agentInstructions.scriptLang = action.scriptLang;
+        agentInstructions.resultID = testcase.result._id.toString();
         agentInstructions.parameters = [];
         action.dbAction.parameters.forEach(function(parameter){
             agentInstructions.parameters.push({name:parameter.paramname,value:parameter.paramvalue});
@@ -978,9 +1212,9 @@ exports.actionresultPost = function(req, res){
                     testcase.result.status = "Finished";
                     testcase.result.result = "Failed";
                     updateResult(testcase.result);
-                    if (execution){
-                        execution.currentTestCases[testcase.dbTestCase._id].result = "Failed";
-                        finishTestCaseExecution(execution,req.body.executionID,execution.testcases[id]._id,execution.currentTestCases[testcase.dbTestCase._id]);
+                    if (execution && testcase.dbTestCase){
+                        execution.currentTestCases[testcase.executionTestCaseID].result = "Failed";
+                        finishTestCaseExecution(execution,req.body.executionID,execution.testcases[id]._id,execution.currentTestCases[testcase.executionTestCaseID]);
                     }
                 }
                 else{
@@ -1026,13 +1260,13 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
         status = "Not Run";
     }
     var updateTC = function(){
-        updateExecutionTestCase({_id:testcaseId},{$set:{trace:testcase.trace,"status":status,resultID:testcase.result._id.__id,result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
+        updateExecutionTestCase({_id:testcaseId},{$set:{trace:testcase.trace,"status":status,resultID:testcase.result._id.toString(),result:testcase.result.result,error:testcase.result.error,enddate:date,runtime:date-testcase.testcase.startDate,host:"",vncport:""}});
         executionsRoute.updateExecutionTotals(executionID);
     };
     //update machine base state result
     if(execution.cachedTCs){
         if (testcase.testcase.machines.length > 0){
-            updateExecutionMachine(executionID,testcase.testcase.machines[0]._id,testcase.result.result,testcase.result._id.__id,function(){
+            updateExecutionMachine(executionID,testcase.testcase.machines[0]._id,testcase.result.result,testcase.result._id.toString(),function(){
                 updateTC();
             });
         }
@@ -1077,9 +1311,9 @@ function finishTestCaseExecution(execution,executionID,testcaseId,testcase){
                 execution.testcases[testcase.executionTestCaseID].executing = false;
             }
             delete execution.currentTestCases[testcase.executionTestCaseID];
-            if(execution.executingTCs != true){
+            //if(execution.executingTCs != true){
                 executeTestCases(execution.testcases,executionID);
-            }
+            //}
         }
     });
 }
@@ -1138,6 +1372,11 @@ function formatTrace(trace,sourceCache,callback){
                     }
                 }
             });
+        }
+        else{
+            if (traceCount == traces.length){
+                callback(newTrace);
+            }
         }
     });
 }
@@ -1202,7 +1441,7 @@ function markFinishedResults(results,sourceCache,callback){
             }
             if(action.trace){
                 formatTrace(action.trace,sourceCache,function(trace){
-                    action.trace = trace;
+                    if(trace != "") action.trace = trace;
                     returnValue();
                 })
             }
@@ -1218,18 +1457,28 @@ exports.agentBaseState = function(project,executionID,agentHost,port,threadID,ca
 
 function agentBaseState(project,executionID,agentHost,port,threadID,callback){
     sendAgentCommand(agentHost,port,{command:"cleanup",executionID:executionID},3,function(message){
-        if (message.error){
-            callback(message.error);
+        if (message && message.error){
+            callback(message);
             return;
         }
-        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",function(error){
+        if(executions[executionID]){
+            executions[executionID].fileReqs = [];
+        }
+        else if(executionID.indexOf("unittest") == -1){
+            return;
+        }
+        //os.tmpDir()+"/jar_"+executionID
+        syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/bin"),"executionfiles/"+executionID+"/bin",executionID,function(error){
             if(error) {callback(error);return}
-            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",function(){
-                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",function(){
-                    syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/build/jar_"+executionID),"executionfiles/"+executionID+"/lib",function(){
+            syncFilesWithAgent(agentHost,port,path.join(__dirname, '../launcher'),"executionfiles/"+executionID+"/launcher",executionID,function(error){
+                if(error) {callback(error);return}
+                syncFilesWithAgent(agentHost,port,path.join(__dirname, '../public/automationscripts/'+project+"/External Libraries"),"executionfiles/"+executionID+"/lib",executionID,function(error){
+                    if(error) {callback(error);return}
+                    syncFilesWithAgent(agentHost,port,os.tmpDir()+"/jar_"+executionID,"executionfiles/"+executionID+"/lib",executionID,function(error){
+                        if(error) {callback(error);return}
                         sendAgentCommand(agentHost,port,{command:"start launcher",executionID:executionID,threadID:threadID},3,function(message){
                             if ((message) && (message.error)){
-                                callback(message.error);
+                                callback(message);
                             }
                             else{
                                 callback();
@@ -1270,7 +1519,7 @@ function syncFilesWithAgent_old(agentHost,port,rootPath,destDir,callback){
     });
 }
 
-function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
+function syncFilesWithAgent(agentHost,port,rootPath,destDir,executionID,callback){
     var walker = walk.walkSync(rootPath);
     var fileCount = 0;
     var files = [];
@@ -1283,7 +1532,7 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
             callback();
             return;
         }
-        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,function(error){
+        sendFileToAgent(files[fileCount-1].file,files[fileCount-1].dest,agentHost,port,3,executionID,function(error){
             if(error){
                 foundError = true;
                 callback(error);
@@ -1309,80 +1558,44 @@ function syncFilesWithAgent(agentHost,port,rootPath,destDir,callback){
         }
 
         files.push({file:root+"/"+fileStats.name,dest:dest});
+        /*
+        sendFileToAgent(root+"/"+fileStats.name,dest,agentHost,port,3,executionID,function(error){
+            if(error){
+                foundError = true;
+                callback(error);
+                return;
+            }
+            fileCount++;
+            if(fileCount === files.length){
+                callback();
+            }
+        })
+        */
     });
 
     walker.on("end",function(){
-        sendFiles()
+        if(files.length == 0) {
+            callback();
+            return;
+        }
+        sendFiles();
     });
 }
 
-function sendFileToAgent(file,dest,agentHost,port,retryCount,callback){
-    var stat = fs.statSync(file);
+//if agent already got the file in cache don't copy
+function matchFileWithAgent(file,dest,agentHost,port,retryCount,callback){
 
-    var readStream = fs.createReadStream(file);
-    var boundary = '--------------------------';
-    for (var i = 0; i < 24; i++) {
-        boundary += Math.floor(Math.random() * 10).toString(16);
+    //don't match pythonLibs or python sources
+    if (file.indexOf("pythonLibs.zip", file.length - "pythonLibs.zip".length) !== -1 || file.indexOf("pythonSources.zip", file.length - "pythonSources.zip".length) !== -1){
+        if(callback) callback({error:null,success:true,matched:false});
+        //if(callback) callback();
+        return;
     }
 
-    var message =  '------' + boundary + '\r\n'
-        // use your file's mime type here, if known
-        + 'Content-Disposition: form-data; name="file"; filename="'+dest+'"\r\n'
-        + 'Content-Type: application/octet-stream\r\n'
-        // "name" is the name of the form field
-        // "filename" is the name of the original file
-        + 'Content-Transfer-Encoding: binary\r\n\r\n';
-
-
-
     var options = {
         hostname: agentHost,
         port: port,
-        path: '/fileupload',
-        method: 'POST',
-        headers: {
-            //'Content-Type': 'text/plain'//,
-            'Content-Type': 'multipart/form-data; boundary=----'+boundary,
-            //'Content-Disposition': 'form-data; name="file"; filename="ProjectName.jar"',
-            //'Content-Length': 3360
-            //'Content-Length': stat.size + message.length + 30 + boundary.length
-            'Content-Length': stat.size + message.length + boundary.length + 14
-        }
-    };
-
-    var req = http.request(options, function(res) {
-        //res.setEncoding('utf8');
-        res.on('data', function (chunk) {
-            if (callback) callback();
-        });
-    });
-
-    req.on('error', function(e) {
-        if(retryCount <= 0){
-            if (callback) callback({error:'sendFileToAgent problem with request: ' + e.message+ ' file:'+file});
-            common.logger.error('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
-        }
-        else{
-            retryCount--;
-            setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,callback),1000)
-        }
-    });
-
-    req.write(message);
-    readStream.pipe(req, { end: false });
-    readStream.on("end", function(){
-        req.end('\r\n------' + boundary + '--\r\n');
-    });
-}
-
-exports.sendAgentCommand = function(agentHost,port,command,retryCount,callback){sendAgentCommand(agentHost,port,command,retryCount,callback)};
-
-function sendAgentCommand(agentHost,port,command,retryCount,callback){
-    common.logger.info(command);
-    var options = {
-        hostname: agentHost,
-        port: port,
-        path: '/command',
+        path: '/matchfile',
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1411,15 +1624,225 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
         });
     });
 
-    req.on('error', function(e) {
+    var retryMatch = function(message){
         if(retryCount <= 0){
-            if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + e.message);
+            if (callback) callback("Unable to connect to machine: "+agentHost + " error: " + message);
+            common.logger.error('matchFileWithAgent problem with request: ' + message+ ' ');
+        }
+        else{
+            retryCount--;
+            setTimeout(matchFileWithAgent(file,dest,agentHost,port,retryCount,callback),1000)
+        }
+    };
+
+    req.on('error', function(e) {
+        retryMatch(e.message)
+    });
+    //fs.readFile(file, function(err, buf) {
+        // write data to request body
+        //req.write(JSON.stringify({dest:dest,file:file,md5:md5(buf)}));
+    var md5sum = require("crypto").createHash('md5');
+    var s = fs.ReadStream(file);
+    fileSync[file] = s;
+    s.on('data',function(d){
+        md5sum.update(d);
+    });
+
+    s.on('error',function(err){
+        s.destroy.bind(s);
+        retryMatch("Unable to read file:"+file)
+    });
+
+    s.on('close',function(){
+        var d = md5sum.digest('hex');
+        this.destroy();
+        req.write(JSON.stringify({dest:dest,file:file,md5:d.toString()}));
+        req.end();
+        //md5sum.end();
+    });
+    //});
+}
+
+function sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callback){
+    if (file in fileSync){
+        if(fileSync[file].close){
+            fileSync[file].destroy();
+            delete fileSync[file];
+        }
+    }
+    fileSync[file] = true;
+    matchFileWithAgent(file,dest,agentHost,port,0,function(response){
+        if(response && response.matched == true){
+            if(file in fileSync && fileSync[file].close){
+                fileSync[file].destroy();
+            }
+            delete fileSync[file];
+            if (callback) callback();
+            return;
+        }
+
+        try{
+            var stat = fs.statSync(file);
+
+            var readStream = fs.createReadStream(file);
+        }
+        catch(e){
+            if (callback) callback({error: "Can't read file: " + file + " " + e.message});
+            return;
+        }
+        fileSync[file] = readStream;
+        var boundary = '--------------------------';
+        for (var i = 0; i < 24; i++) {
+            boundary += Math.floor(Math.random() * 10).toString(16);
+        }
+
+        var message =  '------' + boundary + '\r\n'
+            // use your file's mime type here, if known
+            + 'Content-Disposition: form-data; name="file"; filename="'+dest+'"\r\n'
+            + 'Content-Type: application/octet-stream\r\n'
+            // "name" is the name of the form field
+            // "filename" is the name of the original file
+            + 'Content-Transfer-Encoding: binary\r\n\r\n';
+
+
+
+        var options = {
+            hostname: agentHost,
+            port: port,
+            path: '/fileupload',
+            method: 'POST',
+            headers: {
+                //'Content-Type': 'text/plain'//,
+                'Content-Type': 'multipart/form-data; boundary=----'+boundary,
+                //'Content-Disposition': 'form-data; name="file"; filename="ProjectName.jar"',
+                //'Content-Length': 3360
+                //'Content-Length': stat.size + message.length + 30 + boundary.length
+                'Content-Length': stat.size + message.length + boundary.length + 14
+            }
+        };
+
+        var req = http.request(options, function(res) {
+            //res.setEncoding('utf8');
+            res.on('data', function (chunk) {
+                readStream.destroy();
+                if (file in fileSync){
+                    if(fileSync[file].close){
+                        fileSync[file].destroy();
+                        delete fileSync[file];
+                    }
+                }
+                if (callback) callback();
+            });
+            res.on('close', function(){
+                if(file in fileSync && fileSync[file].close){
+                    fileSync[file].destroy();
+                }
+                delete fileSync[file];
+                readStream.destroy.bind(readStream);
+            });
+        });
+
+        if( executions[executionID] && executions[executionID].fileReqs){
+            executions[executionID].fileReqs.push(req);
+        }
+
+        var handleError = function(e){
+            readStream.destroy();
+            if(file in fileSync && fileSync[file].close){
+                fileSync[file].destroy();
+            }
+            delete fileSync[file];
+            if(retryCount <= 0){
+                if (callback) callback({error:'sendFileToAgent problem with request: ' + e.message+ ' file:'+file});
+                common.logger.error('sendFileToAgent problem with request: ' + e.message+ ' file:'+file);
+            }
+            else{
+                retryCount--;
+                setTimeout(sendFileToAgent(file,dest,agentHost,port,retryCount,executionID,callback),1000)
+            }
+        };
+        req.setTimeout(300000, function(){
+            handleError({message:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
+            this.end();
+        });
+        req.on('error', function(e) {
+            handleError(e);
+            this.end();
+        });
+
+        req.write(message);
+        //readStream.pipe(req, { end: false });
+        readStream.on("error",function(e){
+            this.end();
+            handleError(e);
+        }).pipe(req, { end: false });
+        readStream.on("end", function(){
+            try{
+                req.end('\r\n------' + boundary + '--\r\n');
+            }
+            catch(e){
+                //req.end();
+                readStream.destroy();
+            }
+        });
+        readStream.on('close',function(){
+            if(file in fileSync && fileSync[file].close){
+                fileSync[file].destroy();
+            }
+            delete fileSync[file];
+        })
+    })
+}
+
+exports.sendAgentCommand = function(agentHost,port,command,retryCount,callback){sendAgentCommand(agentHost,port,command,retryCount,callback)};
+
+function sendAgentCommand(agentHost,port,command,retryCount,callback){
+    common.logger.info(command);
+    var options = {
+        hostname: agentHost,
+        port: port,
+        path: '/command',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    var req = http.request(options, function(res) {
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            try{
+                var msg = JSON.parse(chunk);
+            }
+            catch(err){
+                if (callback) callback({error:err});
+            }
+
+            if((msg )&&(msg.error != null)){
+                if (callback) callback({error:msg.error});
+            }
+            else if (msg){
+                if(callback) callback(msg);
+            }
+            else{
+                if(callback) callback();
+            }
+        });
+    });
+    //req.setTimeout(50000, function(){
+    //    if (callback) callback({error:"Unable to connect to machine: "+agentHost + " CONNECTION TIMEOUT"});
+    //});
+    req.on('error', function(e) {
+        retryCount = 0;
+        if(retryCount <= 0){
+            if (callback) callback({error:"Unable to connect to machine: "+agentHost + " error: " + e.message});
             common.logger.error('sendAgentCommand problem with request: ' + e.message+ ' ');
         }
         else{
             retryCount--;
-            setTimeout(sendAgentCommand(agentHost,port,command,retryCount,callback),1000)
+            setTimeout(sendAgentCommand(agentHost,port,command,retryCount,callback),3000)
         }
+        //req.close();
     });
 
     // write data to request body
@@ -1430,12 +1853,38 @@ function sendAgentCommand(agentHost,port,command,retryCount,callback){
 
 function resolveParamValue(value,variables){
     var returnNULL = false;
+
+    var resolveVariable = function(stringValue){
+        return stringValue.replace(new RegExp("\\$\\{([\\s\\w_.-]+)\\}", "g" ),function(a,b){
+            if(b in variables){
+                if (variables[b] == "<NULL>"){
+                    if (returnNULL == true){
+                        return "<NULL>"
+                    }
+                    else{
+                        return "";
+                    }
+                }
+                else{
+                    return variables[b];
+                }
+            }
+            else{
+                return a;
+            }
+        });
+    };
+
     if(Object.prototype.toString.call(value) == '[object Array]'){
         if((value.length == 1) && (value[0] === "<NULL>")){
             return [];
         }
         else{
-            return value;
+            var returnValue = [];
+            value.forEach(function(arrayItem){
+                returnValue.push(resolveVariable(arrayItem))
+            });
+            return returnValue;
         }
     }
     else if (typeof value != "string"){
@@ -1448,31 +1897,12 @@ function resolveParamValue(value,variables){
             returnNULL = true;
         }
     }
-    //var result = value.replace(new RegExp("\\$\\{([\\w_.-\\s*]+)\\}", "g" ),function(a,b){
-    var result = value.replace(new RegExp("\\$\\{([\\s\\w_.-]+)\\}", "g" ),function(a,b){
-        if(b in variables){
-            if (variables[b] == "<NULL>"){
-                if (returnNULL == true){
-                    return "<NULL>"
-                }
-                else{
-                    return "";
-                }
-            }
-            else{
-                return variables[b];
-            }
-        }
-        else{
-            return a;
-        }
-    });
-    return result;
+    return resolveVariable(value);
 }
 
 function createResult(result,callback){
     db.collection('testcaseresults', function(err, collection) {
-        result._id = db.bson_serializer.ObjectID(result._id);
+        result._id = new ObjectID(result._id);
         collection.insert(result, {safe:true},function(err,returnData){
             callback(returnData);
         });
@@ -1482,11 +1912,13 @@ function createResult(result,callback){
 
 function updateResult(result,callback){
     db.collection('testcaseresults', function(err, collection) {
-        collection.save(result,{safe:true},function(err){
+        collection.save(result,{safe:true},function(err,data){
+            if(err) common.logger.error("ERROR updating results: "+err);
             if (callback){
                 callback(err);
             }
-            realtime.emitMessage("UpdateResult",result);
+            //realtime.emitMessage("UpdateResult",result);
+            realtime.emitMessage("UpdateResult"+result._id.toString(),result);
         });
     });
 }
@@ -1494,11 +1926,15 @@ function updateResult(result,callback){
 function updateExecutionTestCase(query,update,machineHost,vncport,callback){
     db.collection('executiontestcases', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
+            if(err) common.logger.error("ERROR updating results: "+err.message);
             if (data == null){
                 if (callback){
                     callback(err);
                 }
                 return;
+            }
+            if (data && data.status == "Finished"){
+                elasticSearch.indexTCResult(data,"PUT");
             }
             if (machineHost){
                 data.host = machineHost;
@@ -1515,7 +1951,16 @@ function updateExecutionTestCase(query,update,machineHost,vncport,callback){
 function updateExecution(query,update,finished,callback){
     db.collection('executions', function(err, collection) {
         collection.findAndModify(query,{},update,{safe:true,new:true},function(err,data){
-            if(err) common.logger.error("ERROR updating execution: "+err);
+            try{
+                elasticSearch.indexExecution(data);
+            }
+            catch(e){
+                console.log(e);
+            }
+            if(err) {
+                common.logger.error("ERROR updating execution: "+err.message);
+                return;
+            }
             realtime.emitMessage("UpdateExecutions",data);
             if(finished === true){
                 realtime.emitMessage("FinishExecution",data);
@@ -1537,6 +1982,7 @@ function updateExecutionMachine(executionID,machineID,result,resultID,callback){
         });
     });
 }
+
 
 function cleanExecutionMachines(executionID,callback){
     db.collection('executions', function(err, collection) {
@@ -1575,7 +2021,7 @@ function verifyMachineState(machines,callback){
     if(machines.length == 0 && callback) callback();
     machines.forEach(function(machine){
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machine._id)}, {}, function(err, dbMachine) {
 
                 if(dbMachine.maxThreads < dbMachine.takenThreads + machine.threads)
                 {
@@ -1732,7 +2178,7 @@ function lockMachines(machines,executionID,callback){
     machines.forEach(function(machine){
         updateExecutionMachine(executionID,machine._id,"","");
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machine._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machine._id)}, {}, function(err, dbMachine) {
                 if(dbMachine.maxThreads < dbMachine.takenThreads + machine.threads)
                 {
                     callback("Machine: "+ machine.host+" has reached thread limit.");
@@ -1746,7 +2192,7 @@ function lockMachines(machines,executionID,callback){
                     else{
                         takenThreads = machine.threads;
                     }
-                    updateMachine({_id:db.bson_serializer.ObjectID(machine._id)},{$set:{takenThreads:takenThreads,state:"Running "+takenThreads+ " of " + machine.maxThreads}},function(){
+                    updateMachine({_id:new ObjectID(machine._id)},{$set:{takenThreads:takenThreads,state:"Running "+takenThreads+ " of " + machine.maxThreads}},function(){
                         machineCount++;
                         if (machineCount == machines.length){
                             if(callback) callback();
@@ -1800,7 +2246,7 @@ function unlockMachines(allmachines,callback){
     unlockCloudMachines(allmachines);
     var nextMachine = function(){
         db.collection('machines', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
+            collection.findOne({_id:new ObjectID(machines[machineCount]._id)}, {}, function(err, dbMachine) {
                 common.logger.info(dbMachine);
                 if(dbMachine != null) {
                     var takenThreads = 1;
@@ -1815,7 +2261,7 @@ function unlockMachines(allmachines,callback){
                     if (takenThreads > 0) state = "Running "+takenThreads+ " of " + dbMachine.maxThreads;
 
                     updateMachine({_id:dbMachine._id},{$set:{takenThreads:takenThreads,state:state}},function(){
-                    //updateMachine({_id:db.bson_serializer.ObjectID(dbMachine._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
+                    //updateMachine({_id:new ObjectID(dbMachine._id)},{$set:{takenThreads:takenThreads,state:state}},function(){
                         machineCount++;
                         if (machineCount == machines.length){
                             if(callback) callback();
@@ -1904,41 +2350,45 @@ function findNextAction (actions,variables,callback){
             return;
         }
         if ((action.script)||((action.actions.length == 0) && ((!action.script)))){
-            resolveParams(action,function(){
-                if (allDone == false){
-                    callback(action);
-                    allDone = true;
-                }
-            });
+            if (allDone == false){
+                resolveParams(action,function(){
+                        callback(action);
+                        allDone = true;
+                });
+            }
         }
         else{
-            resolveParams(action,function(){
-                findNextAction(action.actions,variables,function(action){
-                    if ((action == null) &&(order == actions.length)){
-                        if (allDone == false){
-                            callback(null);
-                            allDone = true;
-                        }
-                    }
-                    else if (action != null){
-                        resolveParams(action,function(){
-                            if (allDone == false){
-                                callback(action);
+            if (allDone == false){
+                resolveParams(action,function(){
+                    findNextAction(action.actions,variables,function(action){
+                        if ((action == null) &&(order == actions.length)){
+                                callback(null);
                                 allDone = true;
+                        }
+                        else if (action != null){
+                            if (allDone == false){
+                                resolveParams(action,function(){
+                                        callback(action);
+                                        allDone = true;
+                                });
                             }
-                        });
-                    }
-                });
-            })
+                        }
+                    });
+                })
+            }
         }
 
     });
 }
 
 
-function deleteOldResult(testcaseID,executionID,callback){
+function deleteOldResult(resultID,executionID,callback){
+    if(!resultID) {
+        if(callback) callback();
+        return;
+    }
     db.collection('testcaseresults', function(err, collection) {
-        collection.findOne({testcaseID:db.bson_serializer.ObjectID(testcaseID),executionID:executionID}, {}, function(err, result) {
+        collection.findOne({_id:new ObjectID(resultID),executionID:executionID}, {}, function(err, result) {
             if(result == null) {
                 if(callback) callback();
                 return;
@@ -1948,6 +2398,10 @@ function deleteOldResult(testcaseID,executionID,callback){
                     SHCollection.remove({_id:result.screenshot});
                 })
             }
+            db.collection('executionlogs'+executionID.replace(/-/g, ''), function(err, LogCollection) {
+                if(err) return;
+                LogCollection.remove({resultID:result._id});
+            });
             if(callback) callback();
             collection.remove({_id:result._id},{safe:true},function(err){});
         })
@@ -1955,7 +2409,7 @@ function deleteOldResult(testcaseID,executionID,callback){
 }
 
 
-function GetTestCaseDetails(testcaseID,executionID,callback){
+function GetTestCaseDetails(testcaseID,dbID,executionID,callback){
     var testcaseDetails = {};
     var testcaseResults = {};
     var hosts = [];
@@ -1966,16 +2420,25 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 cb();
                 return;
             }
-            collection.findOne({_id:db.bson_serializer.ObjectID(nextAction.actionid)}, {}, function(err, action) {
+            collection.findOne({_id:new ObjectID(nextAction.actionid)}, {}, function(err, action) {
                 if(action == null){
                     cb();
                     return;
+                }
+                for(var iTCParamCount=0;iTCParamCount<lastPoint.dbAction.parameters.length;iTCParamCount++){
+                    for(var iActionParamCount=0;iActionParamCount<action.params.length;iActionParamCount++){
+                        if(action.params[iActionParamCount].id == lastPoint.dbAction.parameters[iTCParamCount].paramid){
+                            lastPoint.dbAction.parameters[iTCParamCount].paramname = action.params[iActionParamCount].name;
+                            lastPoint.dbAction.parameters[iTCParamCount].parametertype = action.params[iActionParamCount].parametertype;
+                            break;
+                        }
+                    }
                 }
                 lastPoint.name = action.name;
                 lastResultPoint.name = action.name;
                 lastResultPoint.actionStatus = action.status;
                 if (action.status != "Automated"){
-                    if (executions[executionID].ignoreStatus != true){
+                    if (executions[executionID] && executions[executionID].ignoreStatus != true){
                         testcaseDetails.statusError = "One ore more actions inside the test case are not in automated state.";
                         lastResultPoint.error = "Action " + action.status;
                     }
@@ -1983,9 +2446,15 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                 lastResultPoint.expanded = false;
                 if (action.type == "script")
                 {
+                    var lang = "Java/Groovy";
+                    if(action.scriptLang){
+                        lang = action.scriptLang;
+                    }
                     lastPoint.script = action.script;
+                    lastPoint.scriptLang = lang;
                     lastPoint.type = action.type;
                     lastResultPoint.script = action.script;
+                    lastResultPoint.scriptLang = lang;
                     lastResultPoint.leaf = true;
                     cb();
                 }
@@ -2017,13 +2486,20 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
         });
     };
 
-    deleteOldResult(testcaseID,executionID,function(){
+    deleteOldResult(executions[executionID].testcases[testcaseID].resultID,executionID,function(){
         db.collection('testcases', function(err, collection) {
-            collection.findOne({_id:db.bson_serializer.ObjectID(testcaseID)}, {}, function(err, testcase) {
-                if(testcase == null) callback(null);
+            collection.findOne({_id:new ObjectID(dbID)}, {}, function(err, testcase) {
+                if(testcase == null) {
+                    callback(null);
+                    return;
+                }
                 //if (testcase.type == "script"){
-                if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"){
-                    testcaseDetails = {type:testcase.type,dbTestCase:testcase,script:testcase.script,afterState:false,name:testcase.name};
+                if (testcase.type == "script" ||testcase.type == "junit"||testcase.type == "testng"||testcase.type == "pytest"){
+                    var lang = "Java/Groovy";
+                    if(testcase.scriptLang){
+                        lang = testcase.scriptLang;
+                    }
+                    testcaseDetails = {type:testcase.type,dbTestCase:testcase,scriptLang:lang,script:testcase.script,afterState:false,name:testcase.name};
                     testcaseResults = {name:testcase.name,testcaseID:testcase._id,script:testcase.script,leaf:true};
                     callback(testcaseDetails,testcaseResults,["Default"]);
                 }
@@ -2031,9 +2507,22 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
                     //now process after state
                     var afterStatePresent = false;
                     if((testcase.afterState) && (testcase.afterState != "") &&(executions[executionID].ignoreAfterState == false)){
-                        afterStatePresent = true;
-                        var stateOrder = (testcase.collection.length+1).toString();
-                        testcase.collection.push({order:stateOrder,host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
+                        var stateOrder = (testcase.collection.length+1);
+                        if(Array.isArray(testcase.afterState)){
+                            if(testcase.afterState.length > 0){
+                                afterStatePresent = true;
+                            }
+                            testcase.afterState.forEach(function(afterStateAction,index){
+                                var afterStateActionOrder = stateOrder+index;
+                                afterStateAction.order = afterStateActionOrder.toString();
+                                afterStateAction.afterState = true;
+                                testcase.collection.push(afterStateAction);
+                            })
+                        }
+                        else{
+                            afterStatePresent = true;
+                            testcase.collection.push({order:stateOrder.toString(),host:"Default",actionid:testcase.afterState,parameters:[],executionflow:"Record Error Stop Test Case",afterState:true});
+                        }
                     }
                     if (testcase.collection.length > 0){
                         testcaseDetails = {dbTestCase:testcase,actions:[],afterState:afterStatePresent};
@@ -2050,7 +2539,7 @@ function GetTestCaseDetails(testcaseID,executionID,callback){
 
                             var runAction = true;
 
-                            if(!executions[executionID]){
+                            if(!executions[executionID] || !executions[executionID].testcases[testcaseID]){
                                 return;
                             }
                             //if start action is greater than all actions don't execute anything
@@ -2097,7 +2586,7 @@ function sendNotification(executionID){
                 EXEcollection.findOne({_id:executionID}, {}, function(err, execution) {
                     if(!execution.emails) return;
                     if(execution.emails.length == 0) return;
-                    if((!settings.host) || (settings.host == "")) return;
+                    if((settings == null) || (!settings.host) || (settings.host == "")) return;
                     var options = {};
 
                     var subject = "Execution FINISHED: " + execution.name;
@@ -2167,5 +2656,148 @@ function sendNotification(executionID){
             });
         })
     });
+}
+
+
+exports.copyFiles = function(sourceDir,destDir,callback){copyFiles(sourceDir,destDir,callback)};
+function copyFiles(sourceDir,destDir,callback){
+    fs.exists(sourceDir,function(exists){
+        if(exists == true){
+            fs.mkdir(destDir,function(){
+                fs.readdir(sourceDir,function(err,files){
+                    var copied = 1;
+                    files.forEach(function(file,index){
+                        try{
+                            fs.stat(sourceDir + '/' + file,function(err,stat){
+                                if(!stat.isDirectory()){
+                                    copyFile(sourceDir + '/' + file,destDir + '/' + file,function(){
+                                        if (sourceDir + '/' + file in fileSync){
+                                            if(fileSync[sourceDir + '/' + file].close){
+                                                fileSync[sourceDir + '/' + file].destroy();
+                                                fileSync[destDir + '/' + file].destroy();
+                                                delete fileSync[destDir + '/' + file];
+                                                delete fileSync[sourceDir + '/' + file];
+                                            }
+                                        }
+                                        if(copied == files.length) callback();
+                                        copied++;
+                                    });
+                                }
+                                else{
+                                    if(copied == files.length) callback();
+                                    copied++;
+                                }
+                            });
+                            //fs.createReadStream(sourceDir + '/' + file).pipe(fs.createWriteStream(destDir + '/' + file));
+                        }
+                        catch(err){
+                            callback(err)
+                        }
+                    });
+                });
+            })
+        }
+        else{
+            callback("Source Dir: "+sourceDir +" does not exist.")
+        }
+    });
+}
+
+function copyFile(source, target, cb) {
+    var cbCalled = false;
+    if (source in fileSync){
+        if(fileSync[source].close){
+            fileSync[source].destroy();
+        }
+    }
+    else if (target in fileSync){
+        if(fileSync[target].close){
+            fileSync[target].destroy();
+        }
+    }
+    else{
+        fileSync[source] = true;
+    }
+
+    var rd = fs.createReadStream(source);
+    fileSync[source] = rd;
+    var wr = fs.createWriteStream(target);
+    fileSync[target] = wr;
+
+    wr.on("error", function(err) {
+        if(source in fileSync && fileSync[source].close){
+            fileSync[source].destroy();
+        }
+        delete fileSync[source];
+        delete fileSync[target];
+        this.close();
+        rd.destroy.bind(rd);
+        done(err);
+    });
+    wr.on("close", function(ex) {
+        done();
+        if(rd.destroy){
+            rd.destroy.bind(rd);
+        }
+    });
+
+    rd.on("close",function(){
+        if(source in fileSync && fileSync[source].close){
+            fileSync[source].destroy();
+            fileSync[target].destroy();
+        }
+        delete fileSync[source];
+        delete fileSync[target];
+    });
+
+    rd.on("error",function(e){
+        if(source in fileSync && fileSync[source].close){
+            fileSync[source].destroy();
+            fileSync[target].destroy();
+        }
+        delete fileSync[source];
+        delete fileSync[target];
+        //this.end();
+        done(e);
+    }).pipe(wr, { end: true });
+
+
+    function done(err) {
+        if(fileSync[source]) {fileSync[source].destroy();delete fileSync[source]}
+        if(fileSync[target]) {fileSync[target].destroy();delete fileSync[target]}
+        if (!cbCalled) {
+            cb(err);
+            cbCalled = true;
+        }
+    }
+}
+
+exports.deleteDir = function(path,callback){deleteDir(path,callback)};
+function deleteDir(path,callback){
+    fs.exists(path,function(exists){
+        if(exists == true){
+            fs.readdir(path,function(err,files){
+                if(err){
+                    if (callback) callback();
+                    return;
+                }
+                files.forEach(function(file){
+                    file = path + '/' + file;
+                    try{
+                        fs.unlinkSync(file);
+                    }
+                    catch(err){
+
+                    }
+                });
+                fs.rmdir(path,function(){
+                    if (callback) callback();
+                });
+            })
+        }
+        else{
+            if (callback) callback();
+        }
+    })
 }
 

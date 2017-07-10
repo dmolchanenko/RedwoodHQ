@@ -1,4 +1,5 @@
 var realtime = require("./realtime");
+var ObjectID = require('mongodb').ObjectID;
 
 exports.machineRolesGet = function(req, res){
     var app =  require('../common');
@@ -29,7 +30,7 @@ exports.machineRolesPost = function(req, res){
 
 function CreateMachineRoles(db,data,callback){
     db.collection('machineRoles', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
             callback(returnData);
         });

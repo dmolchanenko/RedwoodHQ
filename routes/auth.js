@@ -14,7 +14,11 @@ exports.loadSessions = function(){
         collection.find({}, {}, function(err, cursor) {
             cursor.each(function(err, session) {
                 if(session != null) {
-                    sessions[session.username] = {sessionid:session.sessionid,expires:session.expires};
+                    if(!sessions[session.username]){
+                        sessions[session.username] = [];
+                    }
+                    //sessions[session.username] = {sessionid:session.sessionid,expires:session.expires};
+                    sessions[session.username].push({sessionid:session.sessionid,expires:session.expires});
                 }
             });
         })
@@ -22,15 +26,20 @@ exports.loadSessions = function(){
 };
 
 exports.logIn = function (req,res,next){
-    verifyUser(req.body.username,req.body.password,function(userFound){
+    verifyUser(req.body.username,req.body.password,function(userFound,role){
         if (userFound){
             require('crypto').randomBytes(20, function(ex, buf) {
                 realtime.emitMessage("Login",req.body.username);
                 var token = buf.toString('hex');
-                sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000)};
+                if (!sessions[req.body.username]){
+                    sessions[req.body.username] = [];
+                }
+                sessions[req.body.username].push({sessionid:token,expires:new Date(Date.now() + 2592000000),role:role});
+                //sessions[req.body.username] = {sessionid:token,expires:new Date(Date.now() + 2592000000),role:role};
                 storeSession(req.body.username,token,new Date(Date.now() + 2592000000));
                 res.cookie('sessionid', token, { expires: new Date(Date.now() + 2592000000), httpOnly: false});
                 res.cookie('username', req.body.username, {maxAge: 2592000000, httpOnly: false });
+                res.cookie('role', role, {maxAge: 2592000000, httpOnly: false });
                 return next();
             });
         }
@@ -40,12 +49,22 @@ exports.logIn = function (req,res,next){
     });
 };
 
-exports.logInSucess = function(req,res){
+function logInSucess(req,res){
     userState.GetUserProject(req.cookies.username,function(project){
-        if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
+        if(req.cookies.deeplink){
+            res.clearCookie('deeplink');
+            if(req.originalUrl != "/index.html"){
+                res.json({error:null,redirect:req.cookies.deeplink});
+            }
+            else{
+                res.json({error:null,redirect:"./index.html"});
+            }
+        }
+        else if ((project == null) && ((req.cookies.project === undefined)||(req.cookies.project == "") )){
             projects.allProjects(function(projects){
                 res.cookie('project', projects[0].name, {maxAge: 2592000000, httpOnly: false });
-                res.json({error:null,redirect:"./index.html"});
+                res.redirect("/index.html");
+               // res.json({error:null,redirect:"./index.html"});
             });
         }
         else if (project == null){
@@ -69,19 +88,41 @@ exports.logInSucess = function(req,res){
             res.json({error:null,redirect:"./index.html"});
         }
     })
+}
+exports.logInSucess = function(req,res){
+    logInSucess(req,res)
 };
 
 exports.auth = function(req,res,next){
+    var matchSessionID = function(userid,sessionid){
+        for(var i=0;i<sessions[req.cookies.username].length;i++){
+            if(sessions[req.cookies.username][i].sessionid == sessionid){
+                return true;
+            }
+        }
+        return false;
+    };
+
     if (sessions[req.cookies.username] != undefined){
-        if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
+        //if (req.cookies.sessionid == sessions[req.cookies.username].sessionid){
+        if(matchSessionID(req.cookies.username,req.cookies.sessionid)){
             if (req.cookies.project == undefined){
-                res.redirect("/login");
-                return;
+                if(req.originalUrl == "/index.html"){
+                    res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
+                    return next();
+                }
+                else{
+                    logInSucess(req,res);
+                    return;
+                }
             }
             else{
                 return next();
             }
         }
+    }
+    if(req.originalUrl != "/index.html"){
+        res.cookie('deeplink', req.originalUrl, {maxAge: 2592000000, httpOnly: false });
     }
     return res.redirect("/login");
 };
@@ -111,12 +152,12 @@ function verifyUser(username,password,callback){
     var app =  require('../common');
     var db = app.getDB();
     db.collection('users', function(err, collection) {
-        collection.find({username:username,password:hash}).count(function(err,number){
-            if (number == 0){
-                callback(false);
+        collection.findOne({username:username,password:hash},function(err,user){
+            if (user == null){
+                callback(false,null);
             }
             else{
-                callback(true);
+                callback(true,user.role);
             }
         });
     })

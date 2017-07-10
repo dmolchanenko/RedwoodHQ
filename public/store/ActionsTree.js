@@ -93,6 +93,11 @@ Ext.define('Redwood.store.ActionsTree', {
     addActions: function(records){
         var me = this;
         records.forEach(function(action){
+            //if another project ignore it
+            if(action.project && action.project != Ext.util.Cookies.get("project")){
+                return;
+            }
+
             var actionTags;
             var actionID;
             var actionName;

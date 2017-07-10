@@ -4,11 +4,12 @@ var http = require("http");
 var fs = require('fs');
 var path = require('path');
 var updatingAgents = {};
+var ObjectID = require('mongodb').ObjectID;
 
 exports.heartbeatPost = function(req, res){
     var app =  require('../common');
     var data = req.body;
-    var ip = req.connection.remoteAddress;
+    var ip = req.connection.remoteAddress.replace("::ffff:","");
 
     findMachine(app.getDB(),data,ip,function(machine){
         if (machine == null){
@@ -96,7 +97,7 @@ function updateMachine(db,id,query,callback){
     db.collection('machines', function(err, collection) {
         collection.findAndModify({_id:id},{},query,{safe:true,new:true},function(err,data){
             if (data != null) realtime.emitMessage("UpdateMachines",data);
-            if (err) console.warn(err.message);
+            //if (err) console.warn(err.message);
             else if(callback) callback(err);
         });
     });
@@ -104,9 +105,9 @@ function updateMachine(db,id,query,callback){
 
 function createMachine(db,data,callback){
     db.collection('machines', function(err, collection) {
-        data._id = db.bson_serializer.ObjectID(data._id);
+        data._id = new ObjectID(data._id);
         collection.insert(data, {safe:true},function(err,returnData){
-            if (returnData != null) realtime.emitMessage("AddMachines",returnData);
+            realtime.emitMessage("AddMachines",data);
             if (callback) callback(returnData);
         });
     });

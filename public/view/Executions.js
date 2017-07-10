@@ -10,6 +10,9 @@ Ext.define('Redwood.view.ExecutionsGrid', {
         markDirty: false
     },
     minHeight: 150,
+    height: 500,
+    plugins: [
+        "bufferedrenderer"],
     manageHeight: true,
     selModel: Ext.create('Ext.selection.CheckboxModel', {
         singleSelect: false,
@@ -63,6 +66,16 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                 },
                 "-",
                 {
+                    icon: "images/delete.png",
+                    tooltip: "Delete Selected Executions",
+                    itemId: "deleteExecutions",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('deleteExecutions',me);
+                    }
+                },
+                "-",
+                {
                     icon: "images/symbol_sum.png",
                     tooltip: "Select Executions to Aggregate",
                     itemId: "aggregationReport",
@@ -103,6 +116,13 @@ Ext.define('Redwood.view.ExecutionsGrid', {
                     else{
                         return "<p style='font-weight:bold;color:green'>"+value+"</p>";
                     }
+                }
+            },
+            {
+                header: 'Totals',
+                flex:1,
+                renderer: function(value,meta,record){
+                    return "<b style='font-weight:bold;color:green'>"+record.get("passed")+" "+"</b>"+"<b style='font-weight:bold;color:red'>"+record.get("failed")+" "+"</b>"+"<b style='font-weight:bold;color:orange'>"+record.get("notRun")+" "+"</b>";
                 }
             },
             {
@@ -269,6 +289,18 @@ Ext.define('Redwood.view.Executions', {
                     handler: function(widget, event) {
                         var editor = this.up('executionsEditor');
                         editor.fireEvent('save');
+                    }
+                },
+                "-",
+                {
+                    icon: "images/pdf.png",
+                    tooltip: "View Results as PDF",
+                    disabled: false,
+                    hidden:true,
+                    itemId: "exportPDF",
+                    handler: function(widget, event) {
+                        var editor = this.up('executionsEditor');
+                        editor.fireEvent('export');
                     }
                 },
                 "-",

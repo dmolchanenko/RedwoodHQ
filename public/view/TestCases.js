@@ -50,6 +50,17 @@ var cloneTestCase = Ext.create('Ext.Action', {
     }
 });
 
+var testCaseToCode = Ext.create('Ext.Action', {
+    icon: 'images/code.png',
+    itemId: "testCaseToCode",
+    tooltip: "View Test Case as Groovy Code",
+    handler: function(widget, event) {
+        var editor = this.up('testcases');
+        editor.fireEvent('testCaseToCode');
+    }
+});
+
+
 function formatTestCase(val,metaData,record) {
     return '<img src="images/testcase.png" align="top"> '+val;
 }
@@ -111,6 +122,8 @@ Ext.define('Redwood.view.TestCases', {
             //region: 'west',
             //split:true,
             xtype: 'grid',
+            plugins: [
+                "bufferedrenderer"],
             hideCollapseTool: true,
             //collapseDirection: "left",
             //collapsible: true,
@@ -163,6 +176,8 @@ Ext.define('Redwood.view.TestCases', {
 
         var actionListTree = {
             xtype: 'treepanel',
+            plugins: [
+                "bufferedrenderer"],
             multiSelect: false,
             hideCollapseTool: true,
             rootVisible: false,
@@ -193,6 +208,8 @@ Ext.define('Redwood.view.TestCases', {
 
         var testCaseListTree = {
             xtype: 'treepanel',
+            plugins: [
+                "bufferedrenderer"],
             multiSelect: false,
             hideCollapseTool: true,
             rootVisible: false,
@@ -223,6 +240,8 @@ Ext.define('Redwood.view.TestCases', {
             //split:true,
             xtype: 'grid',
             hideCollapseTool: true,
+            plugins: [
+                "bufferedrenderer"],
             //collapseDirection: "left",
             //collapsible: true,
             multiSelect: false,
@@ -348,7 +367,9 @@ Ext.define('Redwood.view.TestCases', {
                         " ",
                         deleteTestCase,
                         "-",
-                        cloneTestCase
+                        cloneTestCase,
+                        "-",
+                        testCaseToCode
                     ]
                 },
                 items:[

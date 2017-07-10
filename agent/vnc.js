@@ -14,6 +14,7 @@ var Buffer = require('buffer').Buffer,
     webServer, wsServer,vncProc,
     source_host, source_port, target_host, target_port,certFile,keyFile;
 
+fs.writeFileSync(__dirname+"/agent.vncproxy.pid",process.pid);
 
 new_client = function(client) {
 

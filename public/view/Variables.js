@@ -102,7 +102,7 @@ Ext.define('Redwood.view.Variables', {
                 allowBlank: false,
                 listeners:{
                     validitychange: function(field,isValid){
-                        if(variablesEditor.rowEditor.editor) variablesEditor.rowEditor.editor.onFieldChange();
+                        //if(variablesEditor.rowEditor.editor) variablesEditor.rowEditor.editor.onFieldChange();
                     },
                     focus: function(){
                         this.selectText();
@@ -129,10 +129,10 @@ Ext.define('Redwood.view.Variables', {
                 displayNULLOption:true,
                 listeners:{
                     validitychange: function(field,isValid){
-                        if(variablesEditor.rowEditor.editor) variablesEditor.rowEditor.editor.onFieldChange();
+                        //if(variablesEditor.rowEditor.editor) variablesEditor.rowEditor.editor.onFieldChange();
                     },
                     focus: function(){
-                        this.selectText();
+                        //this.selectText();
                     }
                 },
                 getDisplayValue: function() {

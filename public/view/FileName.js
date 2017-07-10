@@ -52,6 +52,15 @@ Ext.define('Redwood.view.FileName', {
                             else if(me.objectType === "javaAction"){
                                 field.setValue("JavaAction.java");
                                 field.selectText(0,10);
+                            }else if(me.objectType === "pythonAction"){
+                                field.setValue("PythonAction.py");
+                                field.selectText(0,12);
+                            }else if(me.objectType === "csharpAction"){
+                                field.setValue("CsharpAction.cs");
+                                field.selectText(0,12);
+                            }else if(me.objectType === "javascriptAction"){
+                                field.setValue("JavaScriptAction.js");
+                                field.selectText(0,16);
                             }
                             else{
                                 field.selectText();
@@ -80,18 +89,35 @@ Ext.define('Redwood.view.FileName', {
                                     method = "POST";
                                     var fileName = form.getFieldValues().fileName;
                                     var text = "";
-                                    if ((fileName.indexOf("groovy", fileName.length - 6) !== -1) || (fileName.indexOf("java", fileName.length - 4) !== -1)){
+                                    var packageStr = "";
+                                    if ((fileName.indexOf("groovy", fileName.length - 6) !== -1) || (fileName.indexOf("java", fileName.length - 4) !== -1) || (fileName.indexOf("py", fileName.length - 2) !== -1)|| (fileName.indexOf("cs", fileName.length - 2) !== -1)){
                                         if (path.slice(-4) != "/src"){
-                                            var packageStr = path.substr(path.lastIndexOf("/src/")+5,path.length-1);
+                                            packageStr = path.substr(path.lastIndexOf("/src/")+5,path.length-1);
                                             packageStr = packageStr.replace(/\//g,".");
                                             text = "package " + packageStr + ";\r\n\r\n";
-                                            console.log(window.objectType);
                                         }
                                         if(window.objectType === "groovyAction"){
-                                            text = text+"\r\nclass "+fileName.split(".")[0]+"{\r\n  public void run(def params){\r\n    \r\n  }\r\n}";
+                                            text = text+"\r\nclass "+fileName.split(".")[0]+"{\r\n    public void run(def params){\r\n        \r\n    }\r\n}";
                                         }
                                         else if(window.objectType === "javaAction"){
-                                            text = text+"import java.util.*;\r\n\r\nclass "+fileName.split(".")[0]+"{\r\n  public void run(HashMap<String, Object> params){\r\n    \r\n  }\r\n}";
+                                            text = text+"import java.util.*;\r\n\r\nclass "+fileName.split(".")[0]+"{\r\n    public void run(HashMap<String, Object> params){\r\n        \r\n    }\r\n}";
+                                        }else if(window.objectType === "pythonAction"){
+                                            text = "class "+fileName.split(".")[0]+":\r\n    def run(self,params):\r\n        pass\r\n";
+                                        }else if(window.objectType === "csharpAction"){
+                                            var namespaceStart = "namespace "+packageStr+ "{\r\n";
+                                            var namespaceEnd = "}";
+                                            if (packageStr == ""){
+                                                namespaceStart = "";
+                                                namespaceEnd = "";
+                                            }
+                                            text = "using System;\r\nusing System.Collections.Generic;\r\n\r\n"+
+                                            namespaceStart +
+                                            "    class "+fileName.split(".")[0]+"{\r\n"+
+                                            "        public void run(Dictionary<string, object> Params){\r\n"+
+                                            "            \r\n"+
+                                            "        }\r\n"+
+                                            "    }\r\n"+
+                                            namespaceEnd
                                         }
 
                                     }

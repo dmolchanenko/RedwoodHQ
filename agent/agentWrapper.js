@@ -1,4 +1,5 @@
-var forever = require('forever-monitor');
+//var forever = require('forever-monitor');
+var spawn = require('child_process').spawn;
 var fs = require('fs');
 var path = require('path');
 var logPath = path.resolve(__dirname,"../logs");
@@ -24,16 +25,19 @@ if (process.argv[2] === "--stop"){
 if (!fs.existsSync(logPath)){
     fs.mkdirSync(logPath);
 }
+
+/*
 var child = new (forever.Monitor)('app.js', {
     silent: false,
     options: [],
     killTree: true
-    //'outFile': logPath+'/agent.out.log',
-    //'errFile': logPath+'/agent.err.log'
 });
+*/
 
-child.start();
+var child = spawn(process.execPath,['app.js'],{cwd:__dirname});
+
+//child.start();
 
 setTimeout(function(){
-    fs.writeFileSync(__dirname+"/agent.pid",process.pid+"\r\n"+child.child.pid);
+    fs.writeFileSync(__dirname+"/agent.pid",process.pid+"\r\n"+child.pid);
 },3000);
