@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  server:
+    build: services/server
+    ports:
+      - "3000:3000"
+      - "9200:9200"
+    volumes:
+    - ./services/server/src:/redwoodhq
+    depends_on:
+      - mongodb
+  agent:
+    build: services/agent
+    ports:
+      - "5009:5009"
+      - "3006:3006"
+    volumes:
+      - ./services/agent/src:/redwoodagent
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo
